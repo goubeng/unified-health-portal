@@ -596,3 +596,82 @@
 
 /* 2026-09-20 UI closeout: default switches, compact role warning, mapping sections and stable loading. */
 .portal-loading-placeholder{min-height:320px;width:100%}.role-permission-note{margin:0 0 14px!important;padding:6px 10px!important;min-height:32px!important;font-size:13px!important;line-height:20px!important}.role-permission-note :is(.t-alert__message,.t-alert__description){font-size:13px!important;line-height:20px!important}.identity-mapping-section+.identity-mapping-section{margin-top:20px}.identity-mapping-section-title{margin:0 0 10px;color:#1d2129;font-size:14px;font-weight:600;line-height:22px}.identity-mapping-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px}.identity-mapping-section-head .identity-mapping-section-title{margin:0}.identity-mappings-summary{display:flex;align-items:center;gap:12px;color:#697386;font-size:13px}.identity-mappings-dialog .t-pagination{margin-top:14px}.identity-mappings-dialog .t-dialog__body{max-height:72vh}.access-switch-line{gap:0!important}.form-field>.t-switch{align-self:flex-start}
+
+
+/* 2026-09-20 admin home visual refinement: icon overview + pending/shortcut workbench row. */
+.admin-overview-card{
+  min-height:104px!important;
+  justify-content:flex-start!important;
+  padding:16px 18px!important;
+  background:#fff!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.admin-overview-card:hover{background:#fbfcfe!important;box-shadow:none!important}
+.admin-overview-head{display:flex;align-items:center;gap:10px;min-width:0;color:#697386;font-size:13px}
+.admin-overview-head>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-overview-icon{display:inline-flex;width:34px;height:34px;flex:none;align-items:center;justify-content:center;border-radius:4px}
+.admin-overview-icon>.t-icon{width:18px;height:18px}
+.admin-overview-card>strong{margin:10px 0 2px!important;color:#1d2129!important;font-size:26px!important;line-height:1.2!important;font-weight:600!important}
+.admin-overview-card>small{color:#98a2b3!important;font-size:12px!important}
+
+.admin-workbench-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.95fr);gap:16px;align-items:stretch;margin-bottom:16px}
+.admin-workbench-grid>.panel{min-width:0;margin:0!important}
+.admin-pending-panel,.admin-work-panel{height:100%}
+.admin-pending-panel .section-head,.admin-work-panel .section-head{margin-bottom:12px}
+
+.admin-reminder-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+.admin-reminder-card{
+  min-height:86px!important;
+  justify-content:center!important;
+  gap:3px!important;
+  padding:14px 15px!important;
+  border:1px solid transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.admin-reminder-card:hover{filter:brightness(.99);box-shadow:none!important}
+.admin-reminder-card>span{color:#4e5969!important;font-size:13px!important}
+.admin-reminder-card>strong{color:#1d2129!important;font-size:21px!important;line-height:1.25!important;font-weight:600!important}
+.admin-reminder-card>strong.is-danger{color:#d54941!important}
+.admin-reminder-card>small{color:#86909c!important;font-size:12px!important}
+
+.admin-shortcut-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-shortcut-card{
+  display:flex;min-width:0;min-height:58px;align-items:center;gap:11px;
+  padding:11px 12px;border:1px solid #e5e8ef;border-radius:0;background:#fff;
+  color:#344054;text-align:left;cursor:pointer;box-shadow:none
+}
+.admin-shortcut-card:hover{border-color:#b8c8e4;background:#fbfcfe}
+.admin-shortcut-card>span:last-child{display:flex;min-width:0;flex-direction:column;gap:3px}
+.admin-shortcut-card strong{overflow:hidden;color:#1f2329;font-size:13px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
+.admin-shortcut-card small{overflow:hidden;color:#86909c;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.admin-shortcut-icon{display:inline-flex;width:32px;height:32px;flex:none;align-items:center;justify-content:center;border-radius:4px}
+.admin-shortcut-icon>.t-icon{width:17px;height:17px}
+
+.admin-overview-icon.tone-blue,.admin-shortcut-icon.tone-blue{background:#eef4ff;color:#2454ff}
+.admin-overview-icon.tone-green,.admin-shortcut-icon.tone-green{background:#eaf8f1;color:#00a870}
+.admin-overview-icon.tone-purple,.admin-shortcut-icon.tone-purple{background:#f3efff;color:#7356e8}
+.admin-overview-icon.tone-red,.admin-shortcut-icon.tone-red{background:#fff0ed;color:#d54941}
+.admin-shortcut-icon.tone-cyan{background:#eaf8fb;color:#029cd4}
+.admin-shortcut-icon.tone-gray{background:#f2f3f5;color:#697386}
+
+.admin-reminder-card.tone-blue{background:#f2f7ff!important;border-color:#dce9ff!important}
+.admin-reminder-card.tone-cyan{background:#f1f9fb!important;border-color:#d9eef4!important}
+.admin-reminder-card.tone-orange{background:#fff7e8!important;border-color:#ffebc2!important}
+.admin-reminder-card.tone-red{background:#fff3f1!important;border-color:#ffdeda!important}
+.admin-reminder-card.tone-yellow{background:#fffae8!important;border-color:#fff0b8!important}
+.admin-reminder-card.tone-purple{background:#f6f2ff!important;border-color:#e8defe!important}
+
+@media(max-width:1200px){
+  .admin-workbench-grid{grid-template-columns:1fr}
+  .admin-shortcut-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .admin-reminder-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .admin-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+  .admin-reminder-grid,.admin-shortcut-grid{grid-template-columns:1fr!important}
+}
