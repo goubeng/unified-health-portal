@@ -207,17 +207,22 @@ test('管理端公告详情与编辑在右侧内容区打开，不使用详情�
   assert(editor.includes('to="#page-header-actions"'));
 });
 
-test('新增公告支持立即发布和定时发布且失效日期按当天235959处理',()=>{
+test('新增公告发布方式定时发布时间失效日期同一行且失效日期按当天235959处理',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
   const createDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
+  assert(createDialog.includes('class="announcement-publish-row"'));
   assert(createDialog.includes('v-model="form.publishMode"'));
   assert(createDialog.includes('value="IMMEDIATE"'));
   assert(createDialog.includes('value="SCHEDULED"'));
-  assert(createDialog.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
   assert(createDialog.includes('v-model="form.scheduledPublishAt"'));
+  assert(createDialog.includes(":disabled=\"form.publishMode!=='SCHEDULED'\""));
+  assert(createDialog.includes("form.publishMode==='SCHEDULED'?'请选择未来发布时间':'立即发布无需选择'"));
   assert(createDialog.includes('v-model="form.effectiveEnd"'));
   assert(createDialog.includes('format="YYYY-MM-DD"'));
   assert(!createDialog.includes('v-model="form.effectiveEnd" enable-time-picker'));
+  assert(css.includes('.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:minmax(220px,.9fr) minmax(300px,1.2fr) minmax(250px,1fr)'));
+  assert(css.includes('@media(max-width:900px){.announcement-publish-row{grid-template-columns:1fr 1fr}'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
   assert(source.includes('async function saveAndPublish()'));
   assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
