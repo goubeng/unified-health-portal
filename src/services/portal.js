@@ -408,6 +408,7 @@ export function createPortalService(provider,getActor){
      const publishMode=action==='publish'?'IMMEDIATE':p.publishMode;
      if(!['IMMEDIATE','SCHEDULED'].includes(publishMode))fail('VALIDATION_ERROR','请选择立即发布或定时发布');
      if(publishMode==='SCHEDULED'&&(!p.scheduledPublishAt||Date.parse(p.scheduledPublishAt)<=Date.parse(now)))fail('VALIDATION_ERROR','定时发布时间必须晚于当前时间');
+     if(publishMode==='SCHEDULED'&&x.effectiveEnd&&Date.parse(p.scheduledPublishAt)>=Date.parse(x.effectiveEnd))fail('VALIDATION_ERROR','定时发布时间必须早于失效日期当天23:59:59');
      x.publishMode=publishMode;x.submittedAt=now;x.submittedBy=a.id;x.publisherId=a.id;
      if(publishMode==='IMMEDIATE'){x.status='PUBLISHED';x.publishedAt=now;x.scheduledPublishAt=null;}
      else{x.status='SCHEDULED';x.scheduledPublishAt=p.scheduledPublishAt;x.publishedAt=null;}
