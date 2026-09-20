@@ -32,19 +32,17 @@ test('PG-104待办任务使用独立TodoCenter',()=>{
   assert(page.includes("<TodoCenter v-else-if=\"resource==='todos'\" :rows=\"rows\"/>"));
   assert(source.includes('label="待办标题"'));
   assert(source.includes('label="来源应用"'));
-  assert(source.includes('label="优先级"'));
   assert(source.includes('label="状态"'));
 });
 
 test('PG-104待办列表字段完整并支持标题查看详情',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
-  for(const title of ['待办标题','来源应用','业务类型','优先级','状态','接收时间','截止时间','操作']){
+  for(const title of ['待办标题','来源应用','业务类型','状态','接收时间','操作']){
     assert(source.includes("title:'"+title+"'"),'缺少待办列表字段 '+title);
   }
   assert(source.includes('@click="openDetail(row)"'));
   assert(source.includes('header="待办详情"'));
   assert(source.includes('源待办ID'));
-  assert(source.includes('来源版本'));
   assert(source.includes('待办说明'));
 });
 
@@ -57,11 +55,12 @@ test('PG-104仅待处理状态显示去处理并复用openTodo校验',()=>{
   assert(source.includes('<template #footer>'));
 });
 
-test('PG-104展示逾期状态但不修改来源待办状态',()=>{
+test('PG-104不展示优先级截止时间逾期来源版本和终态时间',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
-  assert(source.includes("row.status==='PENDING'&&row.dueAt&&Date.parse(row.dueAt)<Date.now()"));
-  assert(source.includes('>已逾期</t-tag>'));
-  assert(!source.includes("row.status='EXPIRED'"));
+  for(const text of ['优先级','截止时间','已逾期','来源版本','终态时间'])assert(!source.includes(text),text+' 不应出现在待办页面');
+  assert(!source.includes('dueAt'));
+  assert(!source.includes('sourceRevision'));
+  assert(!source.includes('terminalAt'));
 });
 
 
