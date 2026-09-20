@@ -134,11 +134,11 @@ test('我的应用隐藏正常关联状态，其它应用保留状态提示',()=
 });
 
 
-test('公众用户个人中心不制造所属单位，组织字段按来源可选',()=>{
+test('公众用户所属单位允许为空并统一显示英文半角短横线',()=>{
   const profile=fs.readFileSync('src/components/portal/PersonalProfile.vue','utf8');
   const seed=fs.readFileSync('src/mock/seed.js','utf8');
-  assert(profile.includes("props.user.userType!=='CITIZEN'"));
-  assert(profile.includes('v-if="showOrganization"'));
+  assert(profile.includes("{key:'orgName',label:'所属单位',value:text(props.user.orgName)||'-'}"));
+  assert(profile.includes("<p>{{text(user.orgName)||'-'}}</p>"));
   assert(seed.includes("userType:'CITIZEN',orgName:'',orgKey:''"));
   assert(!seed.includes("userType:'CITIZEN',orgName:'公众服务'"));
 });
@@ -158,4 +158,25 @@ test('编辑公告启用Dialog Footer且主操作不会被footer=false关闭',()
   assert(formDialog.includes('取消'));
   assert(formDialog.includes('预览'));
   assert(formDialog.includes('saveAnnouncement'));
+});
+
+
+test('公告详情正文默认最小高度为350px',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.portal-announcement-body{min-height:350px;'));
+});
+
+test('系统空值占位统一使用英文半角短横线',()=>{
+  const presentation=fs.readFileSync('src/components/portal/presentation.js','utf8');
+  assert(presentation.includes("||'-';"));
+  assert(presentation.includes(":'-';"));
+  for(const file of walk('src','.vue')){
+    const source=fs.readFileSync(file,'utf8');
+    assert(!/\|\|\s*['\"]—['\"]/.test(source),file+' 仍存在全角长横线空值占位');
+    assert(!/>\s*—\s*</.test(source),file+' 仍存在全角长横线空值占位');
+  }
+  for(const file of walk('src','.js')){
+    const source=fs.readFileSync(file,'utf8');
+    assert(!/\|\|\s*['\"]—['\"]/.test(source),file+' 仍存在全角长横线空值占位');
+  }
 });
