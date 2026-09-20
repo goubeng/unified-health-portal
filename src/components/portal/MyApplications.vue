@@ -2,7 +2,7 @@
   <section class="panel my-applications">
     <t-tabs v-model="active">
       <t-tab-panel value="APPLICATION_ACCESS" :label="`应用访问申请（${accessRows.length}）`">
-        <t-table row-key="id" :data="accessRows" :columns="accessColumns" hover table-layout="fixed" size="medium">
+        <t-table class="my-applications-table" row-key="id" :data="accessRows" :columns="accessColumns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="暂无应用访问申请"/></template>
           <template #status="{row}"><t-tag :theme="theme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
           <template #operation="{row}"><div class="row-actions">
@@ -13,7 +13,7 @@
         </t-table>
       </t-tab-panel>
       <t-tab-panel value="ACCOUNT_OPENING" :label="`子系统账号开通申请（${openingRows.length}）`">
-        <t-table row-key="id" :data="openingRows" :columns="openingColumns" hover table-layout="fixed" size="medium">
+        <t-table class="my-applications-table" row-key="id" :data="openingRows" :columns="openingColumns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="暂无子系统账号开通申请"/></template>
           <template #status="{row}"><t-tag :theme="theme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
           <template #operation="{row}"><div class="row-actions">
