@@ -1,0 +1,3383 @@
+{
+  "schemaVersion": "0.1.0-design",
+  "status": "NATIVE_CONSTRAINTS_VERIFIED",
+  "baseId": "pb3gir75kkooyea",
+  "storageMode": "NOCODB_NATIVE_LOCAL",
+  "externalDataSource": false,
+  "apiPayload": false,
+  "sqlDialect": "PostgreSQL 14; native engine 14.20 verified 2026-09-18, migration 003 applied",
+  "enums": {
+    "enable_status": [
+      "ENABLED",
+      "DISABLED"
+    ],
+    "runtime_status": [
+      "NORMAL",
+      "ABNORMAL",
+      "UNCONFIGURED",
+      "DISABLED"
+    ],
+    "identity_kind": [
+      "CITIZEN",
+      "GOV"
+    ],
+    "identity_status": [
+      "NORMAL",
+      "ABNORMAL",
+      "DISABLED"
+    ],
+    "login_status": [
+      "WAITING",
+      "SCANNED",
+      "AUTHENTICATING",
+      "SUCCESS",
+      "FAILED",
+      "EXPIRED",
+      "CANCELLED"
+    ],
+    "mapping_status": [
+      "UNBOUND",
+      "VERIFYING",
+      "BOUND",
+      "FAILED",
+      "CONFLICT"
+    ],
+    "identity_binding_status": [
+      "PENDING",
+      "BOUND",
+      "CONFLICT",
+      "UNBOUND"
+    ],
+    "binding_method": [
+      "AUTO",
+      "SELF",
+      "ADMIN"
+    ],
+    "todo_status": [
+      "PENDING",
+      "COMPLETED",
+      "WITHDRAWN",
+      "EXPIRED"
+    ],
+    "read_status": [
+      "UNREAD",
+      "READ"
+    ],
+    "announcement_status": [
+      "DRAFT",
+      "PUBLISHED",
+      "WITHDRAWN",
+      "EXPIRED"
+    ],
+    "sms_status": [
+      "PENDING",
+      "SENDING",
+      "SUCCESS",
+      "FAILED"
+    ],
+    "message_type": [
+      "BUSINESS",
+      "SYSTEM",
+      "ACCOUNT",
+      "SECURITY",
+      "TODO_REMINDER",
+      "OTHER"
+    ],
+    "scope_type": [
+      "ALL",
+      "CITIZEN",
+      "GOV",
+      "ORG"
+    ]
+  },
+  "tables": [
+    {
+      "name": "identity_source",
+      "description": "身份源配置",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "身份源编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "身份源名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "description": "身份类型",
+          "required": true,
+          "enum": "identity_kind",
+          "sqlType": "text"
+        },
+        {
+          "name": "protocol",
+          "type": "string",
+          "description": "实际协议，待对接确认",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "config_secret_ref",
+          "type": "string",
+          "description": "安全配置引用，非密钥明文",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "register_url",
+          "type": "string",
+          "description": "上层注册/开通URL",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "配置启停",
+          "required": true,
+          "enum": "enable_status",
+          "default": "DISABLED",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "unified_user",
+      "description": "最小身份索引",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "display_name",
+          "type": "string",
+          "description": "上层展示姓名",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "org_key",
+          "type": "string",
+          "description": "可信上层组织标识，缺失不可匹配组织公告",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "org_name",
+          "type": "string",
+          "description": "上层单位摘要",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "上层可用性摘要",
+          "required": true,
+          "enum": "identity_status",
+          "default": "NORMAL",
+          "sqlType": "text"
+        },
+        {
+          "name": "first_login_at",
+          "type": "datetime",
+          "description": "首次登录",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "last_login_at",
+          "type": "datetime",
+          "description": "最后登录",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "identity_mapping",
+      "description": "一人多身份；不按手机号合并",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "user_id",
+          "type": "string",
+          "description": "统一身份",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "source_id",
+          "type": "string",
+          "description": "权威身份源",
+          "required": true,
+          "references": "identity_source",
+          "sqlType": "text"
+        },
+        {
+          "name": "external_subject_id",
+          "type": "string",
+          "description": "源内稳定唯一标识",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "external_account",
+          "type": "string",
+          "description": "上层账号展示摘要",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "上层映射状态",
+          "required": true,
+          "enum": "identity_binding_status",
+          "default": "PENDING",
+          "sqlType": "text"
+        },
+        {
+          "name": "verified_at",
+          "type": "datetime",
+          "description": "最近权威核验",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "source_id",
+          "external_subject_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "login_request",
+      "description": "一次性登录请求",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "source_id",
+          "type": "string",
+          "description": "认证来源",
+          "required": true,
+          "references": "identity_source",
+          "sqlType": "text"
+        },
+        {
+          "name": "state_hash",
+          "type": "string",
+          "description": "随机state摘要",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "description": "QR / MOBILE / UPSTREAM；适配能力待核验",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "登录过程",
+          "required": true,
+          "enum": "login_status",
+          "default": "WAITING",
+          "sqlType": "text"
+        },
+        {
+          "name": "expires_at",
+          "type": "datetime",
+          "description": "到期后拒绝消费",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "consumed_at",
+          "type": "datetime",
+          "description": "一次性消费时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "failure_code",
+          "type": "string",
+          "description": "安全错误码",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "state_hash"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "portal_session",
+      "description": "会话，不保存明文Token",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "user_id",
+          "type": "string",
+          "description": "会话所属身份",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "identity_mapping_id",
+          "type": "string",
+          "description": "本次登录使用的上层身份",
+          "required": true,
+          "references": "identity_mapping",
+          "sqlType": "text"
+        },
+        {
+          "name": "token_hash",
+          "type": "string",
+          "description": "会话凭证摘要",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "expires_at",
+          "type": "datetime",
+          "description": "会话有效期",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "revoked_at",
+          "type": "datetime",
+          "description": "退出/撤销时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "token_hash"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "application_category",
+      "description": "应用分类",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "唯一分类编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "分类名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "description": "图标标识",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "description": "越小越靠前",
+          "required": true,
+          "default": 0,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "启停",
+          "required": true,
+          "enum": "enable_status",
+          "default": "ENABLED",
+          "sqlType": "text"
+        },
+        {
+          "name": "remark",
+          "type": "string",
+          "description": "备注",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "application",
+      "description": "目录，不代表应用内部授权",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "正式系统唯一编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "正式系统名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "category_id",
+          "type": "string",
+          "description": "分类",
+          "required": false,
+          "references": "application_category",
+          "sqlType": "text"
+        },
+        {
+          "name": "network_zone",
+          "type": "string",
+          "description": "网络区",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "user_type",
+          "type": "string",
+          "description": "适用身份",
+          "required": true,
+          "values": [
+            "CITIZEN",
+            "GOV",
+            "BOTH"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "application_url",
+          "type": "string",
+          "description": "经审批的入口URL",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "logo_url",
+          "type": "string",
+          "description": "Logo地址",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "简介",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "contact_name",
+          "type": "string",
+          "description": "业务联系人",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "technical_contact",
+          "type": "string",
+          "description": "技术联系人",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "description": "排序",
+          "required": true,
+          "default": 0,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "应用管理状态",
+          "required": true,
+          "enum": "enable_status",
+          "default": "DISABLED",
+          "sqlType": "text"
+        },
+        {
+          "name": "runtime_status",
+          "type": "string",
+          "description": "运行摘要",
+          "required": true,
+          "enum": "runtime_status",
+          "default": "UNCONFIGURED",
+          "sqlType": "text"
+        },
+        {
+          "name": "allowed_origins",
+          "type": "json",
+          "description": "允许跳转origin数组",
+          "required": true,
+          "default": "[]",
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "binding_methods",
+          "type": "json",
+          "description": "允许的关联方式；未配置不开放",
+          "required": true,
+          "default": "[]",
+          "sqlType": "jsonb"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "application_user_mapping",
+      "description": "每人每应用一个当前映射槽位",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "user_id",
+          "type": "string",
+          "description": "统一身份",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "external_user_id",
+          "type": "string",
+          "description": "已核验源账号标识",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "external_account",
+          "type": "string",
+          "description": "展示账号",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "binding_method",
+          "type": "string",
+          "description": "审核关联尚未启用",
+          "required": false,
+          "enum": "binding_method",
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "账号关联状态",
+          "required": true,
+          "enum": "mapping_status",
+          "default": "UNBOUND",
+          "sqlType": "text"
+        },
+        {
+          "name": "active_account_key",
+          "type": "string",
+          "description": "BOUND时由服务端生成JSON数组键[application_id,external_user_id]；其余NULL",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "verified_method",
+          "type": "string",
+          "description": "验证方式",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "verified_at",
+          "type": "datetime",
+          "description": "验证时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "bound_at",
+          "type": "datetime",
+          "description": "绑定时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "unbound_at",
+          "type": "datetime",
+          "description": "解绑时间；用于区分曾绑定与从未绑定",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "conflict_reason",
+          "type": "string",
+          "description": "冲突摘要",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "user_id",
+          "application_id"
+        ],
+        [
+          "active_account_key"
+        ]
+      ],
+      "checks": [
+        "(status = 'BOUND' AND external_user_id IS NOT NULL AND active_account_key IS NOT NULL) OR (status <> 'BOUND' AND active_account_key IS NULL)",
+        "active_account_key IS NULL OR active_account_key::jsonb = jsonb_build_array(application_id, external_user_id)"
+      ],
+      "partialUniqueIndexes": [
+        {
+          "name": "uq_mapping_bound_account",
+          "fields": ["application_id", "external_user_id"],
+          "where": "status = 'BOUND'",
+          "migration": "../../database/migrations/002_bound_account_unique.sql",
+          "description": "直接约束BOUND账号占用，不能依赖active_account_key文本序列化一致；不新增字段。原生存储物理名称及等价索引由主线程验证。"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "mapping_exception",
+      "description": "异常处理记录",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "mapping_id",
+          "type": "string",
+          "description": "子系统映射",
+          "required": false,
+          "references": "application_user_mapping",
+          "sqlType": "text"
+        },
+        {
+          "name": "identity_mapping_id",
+          "type": "string",
+          "description": "上层映射",
+          "required": false,
+          "references": "identity_mapping",
+          "sqlType": "text"
+        },
+        {
+          "name": "exception_type",
+          "type": "string",
+          "description": "重复/多账号/核验失败等错误码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "description": "脱敏异常说明",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "resolution_status",
+          "type": "string",
+          "description": "运维处理状态",
+          "required": true,
+          "values": [
+            "OPEN",
+            "RESOLVED"
+          ],
+          "default": "OPEN",
+          "sqlType": "text"
+        },
+        {
+          "name": "resolved_by",
+          "type": "string",
+          "description": "处理人",
+          "required": false,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "resolved_at",
+          "type": "datetime",
+          "description": "处理时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "resolution_note",
+          "type": "string",
+          "description": "处理依据",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [],
+      "checks": [
+        "mapping_id IS NOT NULL OR identity_mapping_id IS NOT NULL"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "portal_role",
+      "description": "门户角色，不含子系统角色",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "角色编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "角色名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "说明",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "启停",
+          "required": true,
+          "enum": "enable_status",
+          "default": "DISABLED",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "portal_permission",
+      "description": "门户权限注册项",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "权限码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "description": "权限层",
+          "required": true,
+          "values": [
+            "MENU",
+            "PAGE",
+            "ACTION"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "route",
+          "type": "string",
+          "description": "对应产品路由",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "portal_role_permission",
+      "description": "角色权限关联",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "role_id",
+          "type": "string",
+          "description": "角色",
+          "required": true,
+          "references": "portal_role",
+          "sqlType": "text"
+        },
+        {
+          "name": "permission_id",
+          "type": "string",
+          "description": "权限",
+          "required": true,
+          "references": "portal_permission",
+          "sqlType": "text"
+        },
+        {
+          "name": "data_scope",
+          "type": "string",
+          "description": "门户数据范围",
+          "required": true,
+          "values": [
+            "SELF",
+            "ASSIGNED_APPS",
+            "ALL_PORTAL"
+          ],
+          "default": "SELF",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "role_id",
+          "permission_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "portal_user_role",
+      "description": "身份角色授权，不管理身份资料",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "user_id",
+          "type": "string",
+          "description": "身份",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "role_id",
+          "type": "string",
+          "description": "角色",
+          "required": true,
+          "references": "portal_role",
+          "sqlType": "text"
+        },
+        {
+          "name": "granted_by",
+          "type": "string",
+          "description": "授权操作者",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "expires_at",
+          "type": "datetime",
+          "description": "可选授权到期",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "user_id",
+          "role_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "portal_user_application_scope",
+      "description": "指定应用的数据管理范围",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "user_id",
+          "type": "string",
+          "description": "管理员",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "可管理应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "user_id",
+          "application_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sso_config",
+      "description": "协议参数占位，不预设真实端点",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "protocol",
+          "type": "string",
+          "description": "协议类型",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "client_id",
+          "type": "string",
+          "description": "客户端ID",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "secret_ref",
+          "type": "string",
+          "description": "密钥安全存储引用",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "endpoints",
+          "type": "json",
+          "description": "authorize/token/userInfo/callback/logout等已批准配置",
+          "required": true,
+          "default": "{}",
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "user_key_field",
+          "type": "string",
+          "description": "用户标识字段",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "token_expire_seconds",
+          "type": "integer",
+          "description": "协议允许的有效期",
+          "required": false,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "配置/运行状态",
+          "required": true,
+          "enum": "runtime_status",
+          "default": "UNCONFIGURED",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "application_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "push_integration_config",
+      "description": "待办、消息分别配置；同表不同kind",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "推送应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "description": "接入类型",
+          "required": true,
+          "values": [
+            "TODO",
+            "MESSAGE"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "mode",
+          "type": "string",
+          "description": "固定PUSH",
+          "required": true,
+          "values": [
+            "PUSH"
+          ],
+          "default": "PUSH",
+          "sqlType": "text"
+        },
+        {
+          "name": "credential_ref",
+          "type": "string",
+          "description": "调用凭证引用",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "field_mapping",
+          "type": "json",
+          "description": "字段映射",
+          "required": true,
+          "default": "{}",
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "value_mapping",
+          "type": "json",
+          "description": "状态/类型映射",
+          "required": true,
+          "default": "{}",
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "target_key_kind",
+          "type": "string",
+          "description": "统一ID或本应用外部账号",
+          "required": true,
+          "values": [
+            "UNIFIED_USER_ID",
+            "EXTERNAL_USER_ID"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "接入状态",
+          "required": true,
+          "enum": "runtime_status",
+          "default": "UNCONFIGURED",
+          "sqlType": "text"
+        },
+        {
+          "name": "last_received_at",
+          "type": "datetime",
+          "description": "最近有效推送",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "application_id",
+          "kind"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "ingest_receipt",
+      "description": "接收幂等与处理恢复",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "已认证应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "description": "类型",
+          "required": true,
+          "values": [
+            "TODO",
+            "MESSAGE",
+            "SMS"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "event_id",
+          "type": "string",
+          "description": "源事件/请求幂等标识",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "payload_hash",
+          "type": "string",
+          "description": "规范化载荷SHA256",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "内部处理状态",
+          "required": true,
+          "values": [
+            "RECEIVED",
+            "APPLIED",
+            "REJECTED"
+          ],
+          "default": "RECEIVED",
+          "sqlType": "text"
+        },
+        {
+          "name": "result",
+          "type": "json",
+          "description": "稳定重放结果",
+          "required": false,
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "applied_at",
+          "type": "datetime",
+          "description": "业务提交完成时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "application_id",
+          "kind",
+          "event_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "todo_item",
+      "description": "一个源待办对应一个目标用户",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "来源应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "source_todo_id",
+          "type": "string",
+          "description": "源待办ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "target_user_id",
+          "type": "string",
+          "description": "解析后目标身份",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "标题",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "business_type",
+          "type": "string",
+          "description": "业务类型",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "description": "摘要",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "源权威状态",
+          "required": true,
+          "enum": "todo_status",
+          "default": "PENDING",
+          "sqlType": "text"
+        },
+        {
+          "name": "priority",
+          "type": "string",
+          "description": "优先级",
+          "required": true,
+          "values": [
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "default": "MEDIUM",
+          "sqlType": "text"
+        },
+        {
+          "name": "source_created_at",
+          "type": "datetime",
+          "description": "源创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "source_updated_at",
+          "type": "datetime",
+          "description": "源更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "source_revision",
+          "type": "integer",
+          "description": "单调递增源版本",
+          "required": true,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "due_at",
+          "type": "datetime",
+          "description": "截止时间，仅逾期提示不自动完成",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "terminal_at",
+          "type": "datetime",
+          "description": "进入终态时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "business_url",
+          "type": "string",
+          "description": "已批准业务URL",
+          "required": true,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "application_id",
+          "source_todo_id"
+        ]
+      ],
+      "checks": [
+        "(status = 'PENDING' AND terminal_at IS NULL) OR (status <> 'PENDING' AND terminal_at IS NOT NULL)"
+      ],
+      "indexes": [
+        [
+          "target_user_id",
+          "status",
+          "source_created_at"
+        ]
+      ]
+    },
+    {
+      "name": "message",
+      "description": "门户及外部消息本体",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "外部消息必填，门户消息NULL",
+          "required": false,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "source_kind",
+          "type": "string",
+          "description": "消息来源",
+          "required": true,
+          "values": [
+            "PORTAL",
+            "APPLICATION"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "source_key",
+          "type": "string",
+          "description": "外部为application_id，门户固定PORTAL",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "source_message_id",
+          "type": "string",
+          "description": "源消息/门户事件稳定ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "message_type",
+          "type": "string",
+          "description": "统一类型",
+          "required": true,
+          "enum": "message_type",
+          "sqlType": "text"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "标题",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "已清理正文",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "business_url",
+          "type": "string",
+          "description": "允许的业务跳转",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "source_created_at",
+          "type": "datetime",
+          "description": "源产生时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "source_key",
+          "source_message_id"
+        ]
+      ],
+      "checks": [
+        "(source_kind = 'PORTAL' AND application_id IS NULL AND source_key = 'PORTAL') OR (source_kind = 'APPLICATION' AND application_id IS NOT NULL AND source_key = application_id)"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "message_recipient",
+      "description": "每个收件人独立已读状态",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "message_id",
+          "type": "string",
+          "description": "消息",
+          "required": true,
+          "references": "message",
+          "sqlType": "text"
+        },
+        {
+          "name": "user_id",
+          "type": "string",
+          "description": "接收人",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "read_status",
+          "type": "string",
+          "description": "阅读状态",
+          "required": true,
+          "enum": "read_status",
+          "default": "UNREAD",
+          "sqlType": "text"
+        },
+        {
+          "name": "read_at",
+          "type": "datetime",
+          "description": "首次已读时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [
+        [
+          "message_id",
+          "user_id"
+        ]
+      ],
+      "checks": [
+        "(read_status = 'UNREAD' AND read_at IS NULL) OR (read_status = 'READ' AND read_at IS NOT NULL)"
+      ],
+      "indexes": [
+        [
+          "user_id",
+          "read_status"
+        ]
+      ]
+    },
+    {
+      "name": "announcement",
+      "description": "仅门户自产公告",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "标题",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "announcement_type",
+          "type": "string",
+          "description": "公告类型字典编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "清理后的正文",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "scope",
+          "type": "string",
+          "description": "发布范围",
+          "required": true,
+          "enum": "scope_type",
+          "default": "ALL",
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "公告生命周期",
+          "required": true,
+          "enum": "announcement_status",
+          "default": "DRAFT",
+          "sqlType": "text"
+        },
+        {
+          "name": "effective_start",
+          "type": "datetime",
+          "description": "生效时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "effective_end",
+          "type": "datetime",
+          "description": "失效时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "publisher_id",
+          "type": "string",
+          "description": "发布人",
+          "required": false,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "published_at",
+          "type": "datetime",
+          "description": "发布时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        }
+      ],
+      "unique": [],
+      "checks": [
+        "effective_end IS NULL OR effective_start IS NULL OR effective_end > effective_start",
+        "status <> 'PUBLISHED' OR (publisher_id IS NOT NULL AND published_at IS NOT NULL)"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "announcement_org_scope",
+      "description": "组织标识引用上层，不建组织主数据",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "announcement_id",
+          "type": "string",
+          "description": "公告",
+          "required": true,
+          "references": "announcement",
+          "sqlType": "text"
+        },
+        {
+          "name": "identity_source_code",
+          "type": "string",
+          "description": "组织标识命名空间",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "org_key",
+          "type": "string",
+          "description": "上层稳定组织ID",
+          "required": true,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "announcement_id",
+          "identity_source_code",
+          "org_key"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "announcement_attachment",
+      "description": "NocoDB上传完成后的附件对象",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "announcement_id",
+          "type": "string",
+          "description": "公告",
+          "required": true,
+          "references": "announcement",
+          "sqlType": "text"
+        },
+        {
+          "name": "file_name",
+          "type": "string",
+          "description": "文件名",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "size_bytes",
+          "type": "integer",
+          "description": "字节数",
+          "required": true,
+          "min": 0,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "mime_type",
+          "type": "string",
+          "description": "类型",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "attachment",
+          "type": "json",
+          "description": "NocoDB上传返回的附件对象数组；不得写File或空对象",
+          "required": true,
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "uploaded_by",
+          "type": "string",
+          "description": "上传者",
+          "required": true,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "description": "显示顺序",
+          "required": true,
+          "default": 0,
+          "sqlType": "bigint"
+        }
+      ],
+      "unique": [],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sms_channel",
+      "description": "短信渠道配置",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "通道编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "provider",
+          "type": "string",
+          "description": "待确认的服务商",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "api_url",
+          "type": "string",
+          "description": "真实端点经确认后填写",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "secret_ref",
+          "type": "string",
+          "description": "安全凭证引用",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "sign_name",
+          "type": "string",
+          "description": "签名",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "配置启停",
+          "required": true,
+          "enum": "enable_status",
+          "default": "DISABLED",
+          "sqlType": "text"
+        },
+        {
+          "name": "runtime_status",
+          "type": "string",
+          "description": "运行状态",
+          "required": true,
+          "enum": "runtime_status",
+          "default": "UNCONFIGURED",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sms_template",
+      "description": "短信模板定义",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "模板编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "名称",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "scene_type",
+          "type": "string",
+          "description": "场景",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "模板内容",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "variables",
+          "type": "json",
+          "description": "变量名与类型定义",
+          "required": true,
+          "default": "{}",
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "sign_name",
+          "type": "string",
+          "description": "签名",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "provider_template_id",
+          "type": "string",
+          "description": "服务商模板ID",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "启停",
+          "required": true,
+          "enum": "enable_status",
+          "default": "DISABLED",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sms_application",
+      "description": "短信调用授权，不代表业务授权",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "调用应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "sms_app_id",
+          "type": "string",
+          "description": "短信接入标识",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "secret_ref",
+          "type": "string",
+          "description": "安全凭证引用",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "daily_limit",
+          "type": "integer",
+          "description": "每日限额；未设置不得发送",
+          "required": false,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "启停",
+          "required": true,
+          "enum": "enable_status",
+          "default": "DISABLED",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "application_id"
+        ],
+        [
+          "sms_app_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sms_application_template",
+      "description": "允许模板白名单",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "sms_application_id",
+          "type": "string",
+          "description": "短信授权",
+          "required": true,
+          "references": "sms_application",
+          "sqlType": "text"
+        },
+        {
+          "name": "template_id",
+          "type": "string",
+          "description": "模板",
+          "required": true,
+          "references": "sms_template",
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "sms_application_id",
+          "template_id"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sms_send_record",
+      "description": "逻辑短信请求；重试保留同一个记录",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "调用应用",
+          "required": true,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "template_id",
+          "type": "string",
+          "description": "模板",
+          "required": true,
+          "references": "sms_template",
+          "sqlType": "text"
+        },
+        {
+          "name": "channel_id",
+          "type": "string",
+          "description": "渠道",
+          "required": true,
+          "references": "sms_channel",
+          "sqlType": "text"
+        },
+        {
+          "name": "request_key",
+          "type": "string",
+          "description": "应用内幂等键",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "payload_hash",
+          "type": "string",
+          "description": "模板/接收目标/变量摘要",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "mobile_masked",
+          "type": "string",
+          "description": "脱敏手机号",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "recipient_secret_ref",
+          "type": "string",
+          "description": "短期加密目标引用，不记录明文",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "variables_secret_ref",
+          "type": "string",
+          "description": "短期加密模板变量引用",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "content_summary",
+          "type": "string",
+          "description": "脱敏摘要",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "发送状态",
+          "required": true,
+          "enum": "sms_status",
+          "default": "PENDING",
+          "sqlType": "text"
+        },
+        {
+          "name": "retry_count",
+          "type": "integer",
+          "description": "已重试次数，不含首发",
+          "required": true,
+          "default": 0,
+          "min": 0,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "failure_reason",
+          "type": "string",
+          "description": "安全错误摘要",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "application_id",
+          "request_key"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "sms_send_attempt",
+      "description": "每次外部调用与计费回执",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "send_id",
+          "type": "string",
+          "description": "逻辑短信",
+          "required": true,
+          "references": "sms_send_record",
+          "sqlType": "text"
+        },
+        {
+          "name": "attempt_no",
+          "type": "integer",
+          "description": "首发为1",
+          "required": true,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "provider_request_id",
+          "type": "string",
+          "description": "稳定服务商幂等号",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "本次调用状态",
+          "required": true,
+          "enum": "sms_status",
+          "sqlType": "text"
+        },
+        {
+          "name": "delivery_certainty",
+          "type": "string",
+          "description": "防止超时重复发送",
+          "required": true,
+          "values": [
+            "UNKNOWN",
+            "CONFIRMED_SUCCESS",
+            "CONFIRMED_FAILURE"
+          ],
+          "default": "UNKNOWN",
+          "sqlType": "text"
+        },
+        {
+          "name": "fee_minor_units",
+          "type": "integer",
+          "description": "已确认费用最小货币单位，未知NULL",
+          "required": false,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "description": "费用币种",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "finished_at",
+          "type": "datetime",
+          "description": "完成时间",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "provider_summary",
+          "type": "string",
+          "description": "脱敏响应",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "send_id",
+          "attempt_no"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "system_config",
+      "description": "配置值不预设正式周期",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "description": "唯一配置键",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "value",
+          "type": "json",
+          "description": "有效值；未确认NULL",
+          "required": false,
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "description": "单位/值类型",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "配置可用性",
+          "required": true,
+          "values": [
+            "UNCONFIGURED",
+            "CONFIGURED"
+          ],
+          "default": "UNCONFIGURED",
+          "sqlType": "text"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "配置说明",
+          "required": true,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "code"
+        ]
+      ],
+      "checks": [
+        "(status = 'UNCONFIGURED' AND value IS NULL) OR (status = 'CONFIGURED' AND value IS NOT NULL)"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "monitor_status",
+      "description": "一服务一个观察快照",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "target_key",
+          "type": "string",
+          "description": "身份源/应用/短信通道命名空间键",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "service_type",
+          "type": "string",
+          "description": "IDENTITY/SSO/TODO/MESSAGE/SMS",
+          "required": true,
+          "values": [
+            "IDENTITY",
+            "SSO",
+            "TODO",
+            "MESSAGE",
+            "SMS"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "运行观察",
+          "required": true,
+          "enum": "runtime_status",
+          "default": "UNCONFIGURED",
+          "sqlType": "text"
+        },
+        {
+          "name": "last_success_at",
+          "type": "datetime",
+          "description": "最近成功",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "last_failure_at",
+          "type": "datetime",
+          "description": "最近失败",
+          "required": false,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "failure_count",
+          "type": "integer",
+          "description": "连续失败次数",
+          "required": true,
+          "default": 0,
+          "min": 0,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "response_time_ms",
+          "type": "integer",
+          "description": "耗时",
+          "required": false,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "last_error",
+          "type": "string",
+          "description": "脱敏错误",
+          "required": false,
+          "sqlType": "text"
+        }
+      ],
+      "unique": [
+        [
+          "target_key",
+          "service_type"
+        ]
+      ],
+      "checks": [],
+      "indexes": []
+    },
+    {
+      "name": "audit_event",
+      "description": "统一物理日志；按kind提供各日志视图",
+      "source": "database (planned)",
+      "deletePolicy": "RESTRICT；业务表禁止通用删除；按数据设计的留存任务清理",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "服务端UTC创建时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "服务端UTC更新时间",
+          "required": true,
+          "sqlType": "timestamptz"
+        },
+        {
+          "name": "version",
+          "type": "integer",
+          "description": "乐观版本；每次成功更新加1",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "sqlType": "bigint"
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "description": "日志类别",
+          "required": true,
+          "values": [
+            "LOGIN",
+            "AUTH",
+            "ACCESS",
+            "OPERATION",
+            "API",
+            "ERROR"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "event_code",
+          "type": "string",
+          "description": "统一事件编码",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "request_id",
+          "type": "string",
+          "description": "链路请求ID",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "actor_user_id",
+          "type": "string",
+          "description": "操作者，匿名/系统时NULL",
+          "required": false,
+          "references": "unified_user",
+          "sqlType": "text"
+        },
+        {
+          "name": "actor_kind",
+          "type": "string",
+          "description": "操作者类型",
+          "required": true,
+          "values": [
+            "USER",
+            "APPLICATION",
+            "SYSTEM",
+            "ANONYMOUS"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "application_id",
+          "type": "string",
+          "description": "相关应用",
+          "required": false,
+          "references": "application",
+          "sqlType": "text"
+        },
+        {
+          "name": "object_type",
+          "type": "string",
+          "description": "关联对象",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "object_id",
+          "type": "string",
+          "description": "关联业务ID",
+          "required": false,
+          "sqlType": "text"
+        },
+        {
+          "name": "result",
+          "type": "string",
+          "description": "处理结果",
+          "required": true,
+          "values": [
+            "SUCCESS",
+            "FAILURE",
+            "DENIED"
+          ],
+          "sqlType": "text"
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "description": "模板化脱敏履历",
+          "required": true,
+          "sqlType": "text"
+        },
+        {
+          "name": "details",
+          "type": "json",
+          "description": "允许字段的脱敏前后状态/错误码/身份源/方式/IP/耗时等",
+          "required": true,
+          "default": "{}",
+          "sqlType": "jsonb"
+        },
+        {
+          "name": "resolution_status",
+          "type": "string",
+          "description": "仅ERROR运维处理标记",
+          "required": false,
+          "values": [
+            "OPEN",
+            "RESOLVED"
+          ],
+          "sqlType": "text"
+        }
+      ],
+      "unique": [],
+      "checks": [],
+      "indexes": [
+        [
+          "kind",
+          "created_at"
+        ],
+        [
+          "request_id"
+        ]
+      ]
+    }
+  ],
+  "creationStrategy": "原生字段与业务ID引用，不创建Link/Lookup关联字段；保留nc_id系统键。32表356字段已由主线程实际元数据读取成功；业务id独立于nc_id，Provider按真实tableId/columnId映射。",
+  "typeMapping": {
+    "string": "SingleLineText / enum SingleSelect",
+    "datetime": "DateTime UTC",
+    "integer": "Number integer",
+    "json": "LongText JSON; announcement_attachment.attachment -> Attachment"
+  },
+  "constraintPolicy": "鉴权已解除，32表356字段基础结构已由主线程元数据读回确认。复合UNIQUE（含BOUND账号部分唯一索引）/CHECK/FK及事务真实落库仍未验证；必须在原生本地存储证明等价约束，不能用Service先查后写代替。基础结构完成不代表并发业务写入Gate通过。禁止外部源绑定。"
+}

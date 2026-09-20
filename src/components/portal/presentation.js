@@ -1,0 +1,29 @@
+import {labels,scopes} from '../../config/pages.js';
+
+export const text=value=>String(value??'').replace(/上层身份平台|政务身份平台/g,'闽政务').replace(/公众侧身份平台|公众身份平台/g,'闽政通').replace(/上层公共服务/g,'公共服务').replace(/上层身份/g,'统一身份').replace(/\s*·\s*[^·]*演示/g,'').replace(/模拟|演示|示例/g,'').trim();
+
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+export function richText(value){
+  const raw=String(value??'').trim();
+  if(!raw)return '<p>暂无正文</p>';
+  const hasMarkup=/<\/?[a-z][\s\S]*>/i.test(raw);
+  let html=hasMarkup?raw:escapeHtml(raw).replace(/\r?\n/g,'<br>');
+  html=html.replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*>[\s\S]*?<\/\s*\1\s*>/gi,'')
+           .replace(/<\s*(script|style|iframe|object|embed|link|meta)\b[^>]*\/?>/gi,'')
+           .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,'')
+           .replace(/(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi,'$1="#"');
+  return html;
+}
+export const label=value=>text(labels[value]||value)||'—';
+export const date=value=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('zh-CN',{hour12:false}):'—';
+export const source=user=>user?.userType==='CITIZEN'?'闽政通':'闽政务';
+export const theme=value=>['ENABLED','NORMAL','BOUND','READ','SUCCESS','PUBLISHED','CONFIGURED'].includes(value)?'success':['DISABLED','FAILED','FAILURE','DENIED','CONFLICT','ABNORMAL'].includes(value)?'danger':['PENDING','UNREAD','VERIFYING','OPEN'].includes(value)?'warning':'default';
+export const scopeText=values=>(values||[]).map(value=>scopes[value]||value).join('、')||'本人门户数据';
+export const latest=(rows,key='createdAt',limit=5)=>[...rows].sort((a,b)=>(Date.parse(b[key])||0)-(Date.parse(a[key])||0)).slice(0,limit);
+export const titles={name:'名称',account:'登录账号',code:'编码',title:'标题',category:'系统分类',userType:'用户类别',status:'状态',runtimeStatus:'运行状态',appName:'来源应用',appCode:'应用编码',ssoStatus:'SSO状态',ssoRemark:'SSO备注',todoStatus:'TODO状态',todoRemark:'TODO备注',messageStatus:'MESSAGE状态',messageRemark:'MESSAGE备注',lastCheckedAt:'最近检测时间',priority:'优先级',messageType:'消息类型',createdAt:'创建时间',publishedAt:'发布时间',content:'正文',summary:'说明',description:'说明',scope:'发布范围',scopes:'门户权限范围',scopeLabels:'门户权限范围',roleIds:'系统角色',roleLabels:'系统角色',roleCode:'角色编码',roleName:'角色名称',externalAccount:'子系统账号',userId:'统一身份标识',source:'身份来源',kind:'接入类型',mode:'接入模式',value:'配置值',remark:'备注',url:'入口地址',mappingStatus:'账号关联状态',orgName:'所属单位',actor:'操作人',sourceRevision:'来源版本',effectiveStart:'生效时间',effectiveEnd:'失效时间',type:'公告类型',phone:'手机号',email:'邮箱',requestId:'请求ID'};
+export function display(key,value){
+  if(key==='scopes')return scopeText(value);
+  if(key==='roleIds'||key==='roleNames')return Array.isArray(value)?value.join('、')||'普通用户':text(value)||'普通用户';
+  if(key.endsWith('At')||key.startsWith('effective'))return date(value);
+  return label(value);
+}

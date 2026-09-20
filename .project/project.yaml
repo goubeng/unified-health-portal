@@ -1,0 +1,61 @@
+project:
+  name: "卫健XC统一门户系统"
+  code: ""
+  type: "new"
+  stage: "P4"
+  version: "0.2.0"
+  baseline: "V20260917-01"
+
+base_project:
+  enabled: true
+  version: "office-house 0.1.0 UI reference / snapshot 2026-09-18"
+
+frontend:
+  framework: "vue3"
+  build: "vite"
+  ui: "tdesign-vue-next"
+
+data:
+  database: "postgresql14"
+  gateway: "nocodb"
+  nocodb_base_id: "pb3gir75kkooyea"
+  nocodb_source_id: "bojz43pok1w9vqa"
+  storage_mode: "native_local"
+  external_data_source: false
+  business: "database"
+  dashboard: "mock"
+
+stage_review:
+  p0: "PASS_DESIGN"
+  p1: "PASS_DESIGN"
+  p2: "PASS_DESIGN"
+  p3: "PASS_STAGE_GATE"
+  p4: "IN_PROGRESS"
+  p3_native_tables: 32
+  p3_business_fields: 356
+  p3_seed_rows: 12
+  p3_constraints: "199_CONSTRAINTS_VERIFIED_PG14_20"
+  baseline_status: "Draft"
+  report: "docs/review/P0-P2阶段审查.md"
+
+prototype:
+  mode: "demo_first"
+  data_mode: "mock_first"
+  integration_mode:
+    todo: "push"
+    message: "push"
+
+common_modules:
+  user: true # portal access/scopes only; identity credentials remain external
+  organization: false
+  role: true
+  dictionary: true
+  message: true
+  audit_log: true
+
+delivery:
+  full_package: true
+  patch_package: false
+  database_package: true
+  final_documents: true
+  deployment_package: true

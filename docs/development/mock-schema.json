@@ -1,0 +1,6238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "P3 Provider output DTO and Mock dataset contract",
+  "description": "设计JSON，非源码、非生产seed。输出契约覆盖Service目录与核心矩阵；Mock和真实Provider共用。JSON Schema校验必须启用date-time格式检查；业务规则由Service执行。",
+  "x-nullPolicy": {
+    "required": "所有对象properties均为required；可空值显式null，不使用缺字段/空字符串/0代替未知。",
+    "collections": "集合始终数组，无记录[]；分页total=0；空列表成功，读取失败返回Failure。",
+    "dates": "UTC RFC3339以Z结尾；未知可空时间为null。",
+    "numbers": "bigint安全范围内整数，超范围十进制字符串；未知金额/成功率为null。",
+    "joins": "可选单关系无记录null，集合关系[]；必需归属缺失返回NOT_FOUND/IDENTITY_UNRESOLVED，不拼装空对象。",
+    "mockIds": "仅Mock实体id及对应外键统一以MOCK_开头；真实Provider沿用业务id，不输出nc_id。",
+    "sensitive": "秘密引用、hash、明文Token不返回；任意JSON内容亦须白名单脱敏；DTO不是通用写入payload。"
+  },
+  "x-enumSource": "nocodb-schema.json#/enums",
+  "x-datasets": {
+    "identity_source": {
+      "dto": {
+        "$ref": "#/$defs/IdentitySourceDTO"
+      },
+      "source": "identity_source",
+      "mockCollection": "src/mock/portal/identity_source (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "config_secret_ref"
+      ]
+    },
+    "unified_user": {
+      "dto": {
+        "$ref": "#/$defs/UserDTO"
+      },
+      "source": "unified_user",
+      "mockCollection": "src/mock/portal/unified_user (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "identity_mapping": {
+      "dto": {
+        "$ref": "#/$defs/IdentityMappingDTO"
+      },
+      "source": "identity_mapping",
+      "mockCollection": "src/mock/portal/identity_mapping (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "login_request": {
+      "dto": {
+        "$ref": "#/$defs/LoginRequestDTO"
+      },
+      "source": "login_request",
+      "mockCollection": "src/mock/portal/login_request (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "state_hash"
+      ]
+    },
+    "portal_session": {
+      "dto": {
+        "$ref": "#/$defs/SessionDTO"
+      },
+      "source": "portal_session",
+      "mockCollection": "src/mock/portal/portal_session (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "token_hash"
+      ]
+    },
+    "application_category": {
+      "dto": {
+        "$ref": "#/$defs/CategoryDTO"
+      },
+      "source": "application_category",
+      "mockCollection": "src/mock/portal/application_category (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "application": {
+      "dto": {
+        "$ref": "#/$defs/AppDTO"
+      },
+      "source": "application",
+      "mockCollection": "src/mock/portal/application (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "application_user_mapping": {
+      "dto": {
+        "$ref": "#/$defs/MappingDTO"
+      },
+      "source": "application_user_mapping",
+      "mockCollection": "src/mock/portal/application_user_mapping (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "active_account_key"
+      ]
+    },
+    "mapping_exception": {
+      "dto": {
+        "$ref": "#/$defs/MappingExceptionDTO"
+      },
+      "source": "mapping_exception",
+      "mockCollection": "src/mock/portal/mapping_exception (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "portal_role": {
+      "dto": {
+        "$ref": "#/$defs/RoleDTO"
+      },
+      "source": "portal_role",
+      "mockCollection": "src/mock/portal/portal_role (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "portal_permission": {
+      "dto": {
+        "$ref": "#/$defs/PermissionDTO"
+      },
+      "source": "portal_permission",
+      "mockCollection": "src/mock/portal/portal_permission (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "portal_role_permission": {
+      "dto": {
+        "$ref": "#/$defs/RolePermissionDTO"
+      },
+      "source": "portal_role_permission",
+      "mockCollection": "src/mock/portal/portal_role_permission (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "portal_user_role": {
+      "dto": {
+        "$ref": "#/$defs/UserRoleDTO"
+      },
+      "source": "portal_user_role",
+      "mockCollection": "src/mock/portal/portal_user_role (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "portal_user_application_scope": {
+      "dto": {
+        "$ref": "#/$defs/ApplicationScopeDTO"
+      },
+      "source": "portal_user_application_scope",
+      "mockCollection": "src/mock/portal/portal_user_application_scope (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "sso_config": {
+      "dto": {
+        "$ref": "#/$defs/SsoConfigDTO"
+      },
+      "source": "sso_config",
+      "mockCollection": "src/mock/portal/sso_config (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "secret_ref"
+      ]
+    },
+    "push_integration_config": {
+      "dto": {
+        "$ref": "#/$defs/PushConfigDTO"
+      },
+      "source": "push_integration_config",
+      "mockCollection": "src/mock/portal/push_integration_config (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "credential_ref"
+      ]
+    },
+    "ingest_receipt": {
+      "dto": {
+        "$ref": "#/$defs/IngestReceiptDTO"
+      },
+      "source": "ingest_receipt",
+      "mockCollection": "src/mock/portal/ingest_receipt (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "payload_hash"
+      ]
+    },
+    "todo_item": {
+      "dto": {
+        "$ref": "#/$defs/TodoDTO"
+      },
+      "source": "todo_item",
+      "mockCollection": "src/mock/portal/todo_item (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "message": {
+      "dto": {
+        "$ref": "#/$defs/MessageBodyDTO"
+      },
+      "source": "message",
+      "mockCollection": "src/mock/portal/message (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "message_recipient": {
+      "dto": {
+        "$ref": "#/$defs/MessageRecipientDTO"
+      },
+      "source": "message_recipient",
+      "mockCollection": "src/mock/portal/message_recipient (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "announcement": {
+      "dto": {
+        "$ref": "#/$defs/AnnouncementDTO"
+      },
+      "source": "announcement",
+      "mockCollection": "src/mock/portal/announcement (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "announcement_org_scope": {
+      "dto": {
+        "$ref": "#/$defs/AnnouncementOrgScopeDTO"
+      },
+      "source": "announcement_org_scope",
+      "mockCollection": "src/mock/portal/announcement_org_scope (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "announcement_attachment": {
+      "dto": {
+        "$ref": "#/$defs/AnnouncementAttachmentDTO"
+      },
+      "source": "announcement_attachment",
+      "mockCollection": "src/mock/portal/announcement_attachment (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "sms_channel": {
+      "dto": {
+        "$ref": "#/$defs/SmsChannelDTO"
+      },
+      "source": "sms_channel",
+      "mockCollection": "src/mock/portal/sms_channel (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "secret_ref"
+      ]
+    },
+    "sms_template": {
+      "dto": {
+        "$ref": "#/$defs/SmsTemplateDTO"
+      },
+      "source": "sms_template",
+      "mockCollection": "src/mock/portal/sms_template (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "sms_application": {
+      "dto": {
+        "$ref": "#/$defs/SmsApplicationDTO"
+      },
+      "source": "sms_application",
+      "mockCollection": "src/mock/portal/sms_application (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "secret_ref"
+      ]
+    },
+    "sms_application_template": {
+      "dto": {
+        "$ref": "#/$defs/SmsApplicationTemplateDTO"
+      },
+      "source": "sms_application_template",
+      "mockCollection": "src/mock/portal/sms_application_template (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "sms_send_record": {
+      "dto": {
+        "$ref": "#/$defs/SmsRecordDTO"
+      },
+      "source": "sms_send_record",
+      "mockCollection": "src/mock/portal/sms_send_record (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [
+        "payload_hash",
+        "recipient_secret_ref",
+        "variables_secret_ref"
+      ]
+    },
+    "sms_send_attempt": {
+      "dto": {
+        "$ref": "#/$defs/SmsAttemptDTO"
+      },
+      "source": "sms_send_attempt",
+      "mockCollection": "src/mock/portal/sms_send_attempt (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "system_config": {
+      "dto": {
+        "$ref": "#/$defs/ConfigDTO"
+      },
+      "source": "system_config",
+      "mockCollection": "src/mock/portal/system_config (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": [],
+      "dictionaryNamespace": {
+        "code": "dictionary.<type>",
+        "value": "{items:[{code,label,enabled,sortOrder}]}",
+        "dto": {
+          "$ref": "#/$defs/DictionaryDTO"
+        },
+        "rule": "业务字典白名单；生命周期枚举禁止维护；12个种子不变。"
+      }
+    },
+    "monitor_status": {
+      "dto": {
+        "$ref": "#/$defs/MonitorStatusDTO"
+      },
+      "source": "monitor_status",
+      "mockCollection": "src/mock/portal/monitor_status (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    },
+    "audit_event": {
+      "dto": {
+        "$ref": "#/$defs/AuditDTO"
+      },
+      "source": "audit_event",
+      "mockCollection": "src/mock/portal/audit_event (planned; no source created)",
+      "key": "id",
+      "physicalKey": "nc_id (server-only; never DTO id)",
+      "joinRule": "references按业务id解析，无Link/Lookup字段；仅授权数据参与连接。",
+      "excludedFields": []
+    }
+  },
+  "x-serviceOutputs": {
+    "AuthService.start": {
+      "$ref": "#/$defs/LoginRequestDTOResult"
+    },
+    "AuthService.authenticate": {
+      "$ref": "#/$defs/AuthResultDTOResult"
+    },
+    "AuthService.confirm": {
+      "$ref": "#/$defs/AuthResultDTOResult"
+    },
+    "AuthService.complete": {
+      "$ref": "#/$defs/AuthResultDTOResult"
+    },
+    "AuthService.retry": {
+      "$ref": "#/$defs/LoginRequestDTOResult"
+    },
+    "AuthService.expire": {
+      "$ref": "#/$defs/LoginRequestDTOResult"
+    },
+    "AuthService.logout": {
+      "$ref": "#/$defs/MutationAckDTOResult"
+    },
+    "IdentityService.getList": {
+      "$ref": "#/$defs/UserDTOPageResult"
+    },
+    "IdentityService.getDetail": {
+      "$ref": "#/$defs/UserDTOResult"
+    },
+    "IdentityService.getCurrent": {
+      "$ref": "#/$defs/UserDTOResult"
+    },
+    "ApplicationService.getList": {
+      "$ref": "#/$defs/AppDTOPageResult"
+    },
+    "ApplicationService.getMine": {
+      "$ref": "#/$defs/AppDTOPageResult"
+    },
+    "ApplicationService.getDetail": {
+      "$ref": "#/$defs/AppDTOResult"
+    },
+    "ApplicationService.create": {
+      "$ref": "#/$defs/AppDTOResult"
+    },
+    "ApplicationService.update": {
+      "$ref": "#/$defs/AppDTOResult"
+    },
+    "ApplicationService.setEnabled": {
+      "$ref": "#/$defs/AppDTOResult"
+    },
+    "ApplicationService.enter": {
+      "$ref": "#/$defs/RedirectDTOResult"
+    },
+    "ApplicationService.getCategories": {
+      "$ref": "#/$defs/CategoryDTOPageResult"
+    },
+    "ApplicationService.getCategory": {
+      "$ref": "#/$defs/CategoryDTOResult"
+    },
+    "ApplicationService.createCategory": {
+      "$ref": "#/$defs/CategoryDTOResult"
+    },
+    "ApplicationService.updateCategory": {
+      "$ref": "#/$defs/CategoryDTOResult"
+    },
+    "ApplicationService.removeCategory": {
+      "$ref": "#/$defs/MutationAckDTOResult"
+    },
+    "MappingService.getList": {
+      "$ref": "#/$defs/MappingDTOPageResult"
+    },
+    "MappingService.verify": {
+      "$ref": "#/$defs/MappingDTOResult"
+    },
+    "MappingService.complete": {
+      "$ref": "#/$defs/MappingDTOResult"
+    },
+    "MappingService.resolve": {
+      "$ref": "#/$defs/MappingDTOResult"
+    },
+    "MappingService.unbind": {
+      "$ref": "#/$defs/MappingDTOResult"
+    },
+    "TodoService.getList": {
+      "$ref": "#/$defs/TodoDTOPageResult"
+    },
+    "TodoService.getDetail": {
+      "$ref": "#/$defs/TodoDTOResult"
+    },
+    "TodoService.open": {
+      "$ref": "#/$defs/RedirectDTOResult"
+    },
+    "MessageService.getList": {
+      "$ref": "#/$defs/MessageDTOPageResult"
+    },
+    "MessageService.getDetail": {
+      "$ref": "#/$defs/MessageDTOResult"
+    },
+    "MessageService.markRead": {
+      "$ref": "#/$defs/MessageDTOResult"
+    },
+    "AnnouncementService.getList": {
+      "$ref": "#/$defs/AnnouncementDTOPageResult"
+    },
+    "AnnouncementService.getDetail": {
+      "$ref": "#/$defs/AnnouncementDTOResult"
+    },
+    "AnnouncementService.saveDraft": {
+      "$ref": "#/$defs/AnnouncementDTOResult"
+    },
+    "AnnouncementService.uploadAttachment": {
+      "$ref": "#/$defs/UploadResultDTOResult"
+    },
+    "AnnouncementService.publish": {
+      "$ref": "#/$defs/AnnouncementDTOResult"
+    },
+    "AnnouncementService.withdraw": {
+      "$ref": "#/$defs/AnnouncementDTOResult"
+    },
+    "AnnouncementService.expire": {
+      "$ref": "#/$defs/AnnouncementDTOResult"
+    },
+    "IntegrationService.saveSso": {
+      "$ref": "#/$defs/SsoConfigDTOResult"
+    },
+    "IntegrationService.savePush": {
+      "$ref": "#/$defs/PushConfigDTOResult"
+    },
+    "IntegrationService.rotateCredential": {
+      "$ref": "#/$defs/RotationResultDTOResult"
+    },
+    "IntegrationService.test": {
+      "$ref": "#/$defs/TestResultDTOResult"
+    },
+    "PermissionService.getRoles": {
+      "$ref": "#/$defs/RoleDTOPageResult"
+    },
+    "PermissionService.saveRole": {
+      "$ref": "#/$defs/RoleDTOResult"
+    },
+    "PermissionService.setRolePermissions": {
+      "$ref": "#/$defs/RolePermissionDTOArrayResult"
+    },
+    "PermissionService.assignRole": {
+      "$ref": "#/$defs/UserRoleDTOResult"
+    },
+    "SmsService.getList": {
+      "$ref": "#/$defs/SmsRecordDTOPageResult"
+    },
+    "SmsService.reconcile": {
+      "$ref": "#/$defs/SmsRecordDTOResult"
+    },
+    "ConfigService.getList": {
+      "$ref": "#/$defs/ConfigDTOPageResult"
+    },
+    "ConfigService.update": {
+      "$ref": "#/$defs/ConfigDTOResult"
+    },
+    "MonitorService.getOverview": {
+      "$ref": "#/$defs/MonitorOverviewDTOResult"
+    },
+    "MonitorService.getAlerts": {
+      "$ref": "#/$defs/AlertDTOPageResult"
+    },
+    "PortalService.getOverview": {
+      "$ref": "#/$defs/PortalOverviewDTOResult"
+    },
+    "PortalService.getAlerts": {
+      "$ref": "#/$defs/AlertDTOPageResult"
+    },
+    "AuditService.getList": {
+      "$ref": "#/$defs/AuditDTOPageResult"
+    },
+    "AuditService.getDetail": {
+      "$ref": "#/$defs/AuditDTOResult"
+    },
+    "AuditService.resolveError": {
+      "$ref": "#/$defs/AuditDTOResult"
+    },
+    "IngestService.pushTodo": {
+      "$ref": "#/$defs/IngestResultDTOResult"
+    },
+    "IngestService.pushMessage": {
+      "$ref": "#/$defs/IngestResultDTOResult"
+    },
+    "IntegrationService.getConfig": {
+      "$ref": "#/$defs/IntegrationConfigDTOResult"
+    },
+    "DictionaryService.get": {
+      "$ref": "#/$defs/DictionaryDTOResult"
+    },
+    "DictionaryService.save": {
+      "$ref": "#/$defs/DictionaryDTOResult"
+    }
+  },
+  "x-composedDatasets": {
+    "AuthResultDTO": [
+      "login_request",
+      "unified_user",
+      "identity_mapping",
+      "portal_session",
+      "identity_source"
+    ],
+    "AppDTO": [
+      "application",
+      "application_user_mapping"
+    ],
+    "MessageDTO": [
+      "message",
+      "message_recipient"
+    ],
+    "AnnouncementDTO": [
+      "announcement",
+      "announcement_org_scope",
+      "announcement_attachment"
+    ],
+    "SmsRecordDTO": [
+      "sms_send_record",
+      "sms_send_attempt"
+    ],
+    "PortalOverviewDTO": [
+      "todo_item",
+      "message_recipient",
+      "application",
+      "application_user_mapping"
+    ],
+    "MonitorOverviewDTO": [
+      "application",
+      "sso_config",
+      "push_integration_config",
+      "audit_event",
+      "mapping_exception"
+    ],
+    "AlertDTO": [
+      "monitor_status",
+      "mapping_exception",
+      "audit_event"
+    ],
+    "RedirectDTO": [
+      "application",
+      "sso_config",
+      "application_user_mapping",
+      "todo_item"
+    ],
+    "IngestResultDTO": [
+      "ingest_receipt",
+      "todo_item",
+      "message"
+    ],
+    "DictionaryDTO": [
+      "system_config"
+    ]
+  },
+  "$defs": {
+    "Integer": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "string",
+          "pattern": "^-?(0|[1-9][0-9]*)$"
+        }
+      ],
+      "x-rule": "JS安全范围内用整数；超范围用十进制字符串，禁止精度丢失。"
+    },
+    "DateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "JsonValue": {
+      "type": [
+        "string",
+        "number",
+        "boolean",
+        "null",
+        "array",
+        "object"
+      ],
+      "description": "合法JSON扩展值；使用处由Service按具体配置白名单校验和脱敏，不允许秘密穿透。"
+    },
+    "JsonObject": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      }
+    },
+    "UploadObject": {
+      "type": "object",
+      "required": [
+        "title",
+        "url"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "x-rule": "仅为已验证NocoDB上传返回对象的Provider标准形；title/url由真实返回映射，下载URL必须经过公告鉴权；JSON形状不代替来源校验，禁止任意外链。"
+    },
+    "Enum_enable_status": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "Enum_runtime_status": {
+      "type": "string",
+      "enum": [
+        "NORMAL",
+        "ABNORMAL",
+        "UNCONFIGURED",
+        "DISABLED"
+      ]
+    },
+    "Enum_identity_kind": {
+      "type": "string",
+      "enum": [
+        "CITIZEN",
+        "GOV"
+      ]
+    },
+    "Enum_identity_status": {
+      "type": "string",
+      "enum": [
+        "NORMAL",
+        "ABNORMAL",
+        "DISABLED"
+      ]
+    },
+    "Enum_login_status": {
+      "type": "string",
+      "enum": [
+        "WAITING",
+        "SCANNED",
+        "AUTHENTICATING",
+        "SUCCESS",
+        "FAILED",
+        "EXPIRED",
+        "CANCELLED"
+      ]
+    },
+    "Enum_mapping_status": {
+      "type": "string",
+      "enum": [
+        "UNBOUND",
+        "VERIFYING",
+        "BOUND",
+        "FAILED",
+        "CONFLICT"
+      ]
+    },
+    "Enum_identity_binding_status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "BOUND",
+        "CONFLICT",
+        "UNBOUND"
+      ]
+    },
+    "Enum_binding_method": {
+      "type": "string",
+      "enum": [
+        "AUTO",
+        "SELF",
+        "ADMIN"
+      ]
+    },
+    "Enum_todo_status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "COMPLETED",
+        "WITHDRAWN",
+        "EXPIRED"
+      ]
+    },
+    "Enum_read_status": {
+      "type": "string",
+      "enum": [
+        "UNREAD",
+        "READ"
+      ]
+    },
+    "Enum_announcement_status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PUBLISHED",
+        "WITHDRAWN",
+        "EXPIRED"
+      ]
+    },
+    "Enum_sms_status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "SENDING",
+        "SUCCESS",
+        "FAILED"
+      ]
+    },
+    "Enum_message_type": {
+      "type": "string",
+      "enum": [
+        "BUSINESS",
+        "SYSTEM",
+        "ACCOUNT",
+        "SECURITY",
+        "TODO_REMINDER",
+        "OTHER"
+      ]
+    },
+    "Enum_scope_type": {
+      "type": "string",
+      "enum": [
+        "ALL",
+        "CITIZEN",
+        "GOV",
+        "ORG"
+      ]
+    },
+    "IdentitySourceDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "identity_source.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "identity_source.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "identity_source.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "identity_source.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "身份源编码",
+          "x-storage": "identity_source.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "身份源名称",
+          "x-storage": "identity_source.name"
+        },
+        "kind": {
+          "$ref": "#/$defs/Enum_identity_kind",
+          "description": "身份类型",
+          "x-storage": "identity_source.kind"
+        },
+        "protocol": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "实际协议，待对接确认",
+          "x-storage": "identity_source.protocol"
+        },
+        "registerUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "上层注册/开通URL",
+          "x-storage": "identity_source.register_url"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "配置启停",
+          "x-storage": "identity_source.status"
+        },
+        "credentialConfigured": {
+          "type": "boolean",
+          "x-derived": "服务端检查凭证引用是否有效，不返回引用或密文。",
+          "x-storage": [
+            "identity_source.config_secret_ref"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "kind",
+        "protocol",
+        "registerUrl",
+        "status",
+        "credentialConfigured"
+      ]
+    },
+    "UserDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "unified_user.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "unified_user.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "unified_user.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "unified_user.version"
+        },
+        "displayName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "上层展示姓名",
+          "x-storage": "unified_user.display_name"
+        },
+        "orgKey": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "可信上层组织标识，缺失不可匹配组织公告",
+          "x-storage": "unified_user.org_key"
+        },
+        "orgName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "上层单位摘要",
+          "x-storage": "unified_user.org_name"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_identity_status",
+          "description": "上层可用性摘要",
+          "x-storage": "unified_user.status"
+        },
+        "firstLoginAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "首次登录",
+          "x-storage": "unified_user.first_login_at"
+        },
+        "lastLoginAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "最后登录",
+          "x-storage": "unified_user.last_login_at"
+        },
+        "identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IdentityMappingDTO"
+          },
+          "x-derived": "identity_mapping.user_id=id；仅返回当前查询身份可见的映射。"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "displayName",
+        "orgKey",
+        "orgName",
+        "status",
+        "firstLoginAt",
+        "lastLoginAt",
+        "identities"
+      ]
+    },
+    "IdentityMappingDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "identity_mapping.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "identity_mapping.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "identity_mapping.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "identity_mapping.version"
+        },
+        "userId": {
+          "type": "string",
+          "description": "统一身份",
+          "x-storage": "identity_mapping.user_id"
+        },
+        "sourceId": {
+          "type": "string",
+          "description": "权威身份源",
+          "x-storage": "identity_mapping.source_id"
+        },
+        "externalSubjectId": {
+          "type": "string",
+          "description": "源内稳定唯一标识",
+          "x-storage": "identity_mapping.external_subject_id"
+        },
+        "externalAccount": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "上层账号展示摘要",
+          "x-storage": "identity_mapping.external_account"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_identity_binding_status",
+          "description": "上层映射状态",
+          "x-storage": "identity_mapping.status"
+        },
+        "verifiedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "最近权威核验",
+          "x-storage": "identity_mapping.verified_at"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "userId",
+        "sourceId",
+        "externalSubjectId",
+        "externalAccount",
+        "status",
+        "verifiedAt"
+      ]
+    },
+    "LoginRequestDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "login_request.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "login_request.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "login_request.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "login_request.version"
+        },
+        "sourceId": {
+          "type": "string",
+          "description": "认证来源",
+          "x-storage": "login_request.source_id"
+        },
+        "method": {
+          "type": "string",
+          "description": "QR / MOBILE / UPSTREAM；适配能力待核验",
+          "x-storage": "login_request.method"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_login_status",
+          "description": "登录过程",
+          "x-storage": "login_request.status"
+        },
+        "expiresAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "到期后拒绝消费",
+          "x-storage": "login_request.expires_at"
+        },
+        "consumedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "一次性消费时间",
+          "x-storage": "login_request.consumed_at"
+        },
+        "failureCode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "安全错误码",
+          "x-storage": "login_request.failure_code"
+        },
+        "challenge": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "QR",
+                    "OTP",
+                    "REDIRECT",
+                    "NONE"
+                  ]
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "expiresAt": {
+                  "$ref": "#/$defs/DateTime"
+                }
+              },
+              "required": [
+                "kind",
+                "value",
+                "expiresAt"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-derived": "适配器返回的临时展示信息；不得含proof、state_hash、token_hash或认证凭证；无挑战为null。"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "sourceId",
+        "method",
+        "status",
+        "expiresAt",
+        "consumedAt",
+        "failureCode",
+        "challenge"
+      ]
+    },
+    "SessionDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "portal_session.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "portal_session.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "portal_session.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "portal_session.version"
+        },
+        "userId": {
+          "type": "string",
+          "description": "会话所属身份",
+          "x-storage": "portal_session.user_id"
+        },
+        "identityMappingId": {
+          "type": "string",
+          "description": "本次登录使用的上层身份",
+          "x-storage": "portal_session.identity_mapping_id"
+        },
+        "expiresAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "会话有效期",
+          "x-storage": "portal_session.expires_at"
+        },
+        "revokedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "退出/撤销时间",
+          "x-storage": "portal_session.revoked_at"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "userId",
+        "identityMappingId",
+        "expiresAt",
+        "revokedAt"
+      ]
+    },
+    "CategoryDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "application_category.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "application_category.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "application_category.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "application_category.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "唯一分类编码",
+          "x-storage": "application_category.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "分类名称",
+          "x-storage": "application_category.name"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "图标标识",
+          "x-storage": "application_category.icon"
+        },
+        "sortOrder": {
+          "$ref": "#/$defs/Integer",
+          "description": "越小越靠前",
+          "x-storage": "application_category.sort_order"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "启停",
+          "x-storage": "application_category.status"
+        },
+        "remark": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "备注",
+          "x-storage": "application_category.remark"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "icon",
+        "sortOrder",
+        "status",
+        "remark"
+      ]
+    },
+    "AppDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "application.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "application.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "application.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "application.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "正式系统唯一编码",
+          "x-storage": "application.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "正式系统名称",
+          "x-storage": "application.name"
+        },
+        "categoryId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "分类",
+          "x-storage": "application.category_id"
+        },
+        "networkZone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "网络区",
+          "x-storage": "application.network_zone"
+        },
+        "userType": {
+          "type": "string",
+          "enum": [
+            "CITIZEN",
+            "GOV",
+            "BOTH"
+          ],
+          "description": "适用身份",
+          "x-storage": "application.user_type"
+        },
+        "applicationUrl": {
+          "type": "string",
+          "description": "经审批的入口URL",
+          "x-storage": "application.application_url"
+        },
+        "logoUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Logo地址",
+          "x-storage": "application.logo_url"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "简介",
+          "x-storage": "application.description"
+        },
+        "contactName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "业务联系人",
+          "x-storage": "application.contact_name"
+        },
+        "technicalContact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "技术联系人",
+          "x-storage": "application.technical_contact"
+        },
+        "sortOrder": {
+          "$ref": "#/$defs/Integer",
+          "description": "排序",
+          "x-storage": "application.sort_order"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "应用管理状态",
+          "x-storage": "application.status"
+        },
+        "runtimeStatus": {
+          "$ref": "#/$defs/Enum_runtime_status",
+          "description": "运行摘要",
+          "x-storage": "application.runtime_status"
+        },
+        "allowedOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "允许跳转origin数组",
+          "x-storage": "application.allowed_origins"
+        },
+        "bindingMethods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Enum_binding_method"
+          },
+          "description": "允许的关联方式；未配置不开放",
+          "x-storage": "application.binding_methods"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MappingDTO"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-derived": "application_user_mapping按当前用户user_id与application_id连接；无槽位为null，不能伪造记录。"
+        },
+        "mappingStatus": {
+          "$ref": "#/$defs/Enum_mapping_status",
+          "x-derived": "当前用户映射status；不存在时UNBOUND，独立于应用管理status和runtimeStatus。"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "categoryId",
+        "networkZone",
+        "userType",
+        "applicationUrl",
+        "logoUrl",
+        "description",
+        "contactName",
+        "technicalContact",
+        "sortOrder",
+        "status",
+        "runtimeStatus",
+        "allowedOrigins",
+        "bindingMethods",
+        "mapping",
+        "mappingStatus"
+      ]
+    },
+    "MappingDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "application_user_mapping.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "application_user_mapping.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "application_user_mapping.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "application_user_mapping.version"
+        },
+        "userId": {
+          "type": "string",
+          "description": "统一身份",
+          "x-storage": "application_user_mapping.user_id"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "应用",
+          "x-storage": "application_user_mapping.application_id"
+        },
+        "externalUserId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "已核验源账号标识",
+          "x-storage": "application_user_mapping.external_user_id"
+        },
+        "externalAccount": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "展示账号",
+          "x-storage": "application_user_mapping.external_account"
+        },
+        "bindingMethod": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Enum_binding_method"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "审核关联尚未启用",
+          "x-storage": "application_user_mapping.binding_method"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_mapping_status",
+          "description": "账号关联状态",
+          "x-storage": "application_user_mapping.status"
+        },
+        "verifiedMethod": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "验证方式",
+          "x-storage": "application_user_mapping.verified_method"
+        },
+        "verifiedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "验证时间",
+          "x-storage": "application_user_mapping.verified_at"
+        },
+        "boundAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "绑定时间",
+          "x-storage": "application_user_mapping.bound_at"
+        },
+        "unboundAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "解绑时间；用于区分曾绑定与从未绑定",
+          "x-storage": "application_user_mapping.unbound_at"
+        },
+        "conflictReason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "冲突摘要",
+          "x-storage": "application_user_mapping.conflict_reason"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "userId",
+        "applicationId",
+        "externalUserId",
+        "externalAccount",
+        "bindingMethod",
+        "status",
+        "verifiedMethod",
+        "verifiedAt",
+        "boundAt",
+        "unboundAt",
+        "conflictReason"
+      ]
+    },
+    "MappingExceptionDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "mapping_exception.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "mapping_exception.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "mapping_exception.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "mapping_exception.version"
+        },
+        "mappingId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "子系统映射",
+          "x-storage": "mapping_exception.mapping_id"
+        },
+        "identityMappingId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "上层映射",
+          "x-storage": "mapping_exception.identity_mapping_id"
+        },
+        "exceptionType": {
+          "type": "string",
+          "description": "重复/多账号/核验失败等错误码",
+          "x-storage": "mapping_exception.exception_type"
+        },
+        "summary": {
+          "type": "string",
+          "description": "脱敏异常说明",
+          "x-storage": "mapping_exception.summary"
+        },
+        "resolutionStatus": {
+          "type": "string",
+          "enum": [
+            "OPEN",
+            "RESOLVED"
+          ],
+          "description": "运维处理状态",
+          "x-storage": "mapping_exception.resolution_status"
+        },
+        "resolvedBy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "处理人",
+          "x-storage": "mapping_exception.resolved_by"
+        },
+        "resolvedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "处理时间",
+          "x-storage": "mapping_exception.resolved_at"
+        },
+        "resolutionNote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "处理依据",
+          "x-storage": "mapping_exception.resolution_note"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "mappingId",
+        "identityMappingId",
+        "exceptionType",
+        "summary",
+        "resolutionStatus",
+        "resolvedBy",
+        "resolvedAt",
+        "resolutionNote"
+      ]
+    },
+    "RoleDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "portal_role.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "portal_role.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "portal_role.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "portal_role.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "角色编码",
+          "x-storage": "portal_role.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "角色名称",
+          "x-storage": "portal_role.name"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "说明",
+          "x-storage": "portal_role.description"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "启停",
+          "x-storage": "portal_role.status"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "description",
+        "status"
+      ]
+    },
+    "PermissionDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "portal_permission.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "portal_permission.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "portal_permission.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "portal_permission.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "权限码",
+          "x-storage": "portal_permission.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "名称",
+          "x-storage": "portal_permission.name"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "MENU",
+            "PAGE",
+            "ACTION"
+          ],
+          "description": "权限层",
+          "x-storage": "portal_permission.kind"
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "对应产品路由",
+          "x-storage": "portal_permission.route"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "kind",
+        "route"
+      ]
+    },
+    "RolePermissionDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "portal_role_permission.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "portal_role_permission.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "portal_role_permission.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "portal_role_permission.version"
+        },
+        "roleId": {
+          "type": "string",
+          "description": "角色",
+          "x-storage": "portal_role_permission.role_id"
+        },
+        "permissionId": {
+          "type": "string",
+          "description": "权限",
+          "x-storage": "portal_role_permission.permission_id"
+        },
+        "dataScope": {
+          "type": "string",
+          "enum": [
+            "SELF",
+            "ASSIGNED_APPS",
+            "ALL_PORTAL"
+          ],
+          "description": "门户数据范围",
+          "x-storage": "portal_role_permission.data_scope"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "roleId",
+        "permissionId",
+        "dataScope"
+      ]
+    },
+    "UserRoleDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "portal_user_role.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "portal_user_role.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "portal_user_role.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "portal_user_role.version"
+        },
+        "userId": {
+          "type": "string",
+          "description": "身份",
+          "x-storage": "portal_user_role.user_id"
+        },
+        "roleId": {
+          "type": "string",
+          "description": "角色",
+          "x-storage": "portal_user_role.role_id"
+        },
+        "grantedBy": {
+          "type": "string",
+          "description": "授权操作者",
+          "x-storage": "portal_user_role.granted_by"
+        },
+        "expiresAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "可选授权到期",
+          "x-storage": "portal_user_role.expires_at"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "userId",
+        "roleId",
+        "grantedBy",
+        "expiresAt"
+      ]
+    },
+    "ApplicationScopeDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "portal_user_application_scope.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "portal_user_application_scope.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "portal_user_application_scope.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "portal_user_application_scope.version"
+        },
+        "userId": {
+          "type": "string",
+          "description": "管理员",
+          "x-storage": "portal_user_application_scope.user_id"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "可管理应用",
+          "x-storage": "portal_user_application_scope.application_id"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "userId",
+        "applicationId"
+      ]
+    },
+    "SsoConfigDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sso_config.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sso_config.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sso_config.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sso_config.version"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "应用",
+          "x-storage": "sso_config.application_id"
+        },
+        "protocol": {
+          "type": "string",
+          "description": "协议类型",
+          "x-storage": "sso_config.protocol"
+        },
+        "clientId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "客户端ID",
+          "x-storage": "sso_config.client_id"
+        },
+        "endpoints": {
+          "$ref": "#/$defs/JsonObject",
+          "description": "authorize/token/userInfo/callback/logout等已批准配置",
+          "x-storage": "sso_config.endpoints"
+        },
+        "userKeyField": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "用户标识字段",
+          "x-storage": "sso_config.user_key_field"
+        },
+        "tokenExpireSeconds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "协议允许的有效期",
+          "x-storage": "sso_config.token_expire_seconds"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_runtime_status",
+          "description": "配置/运行状态",
+          "x-storage": "sso_config.status"
+        },
+        "credentialConfigured": {
+          "type": "boolean",
+          "x-derived": "服务端检查凭证引用是否有效，不返回引用或密文。",
+          "x-storage": [
+            "sso_config.secret_ref"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "protocol",
+        "clientId",
+        "endpoints",
+        "userKeyField",
+        "tokenExpireSeconds",
+        "status",
+        "credentialConfigured"
+      ]
+    },
+    "PushConfigDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "push_integration_config.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "push_integration_config.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "push_integration_config.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "push_integration_config.version"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "推送应用",
+          "x-storage": "push_integration_config.application_id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "TODO",
+            "MESSAGE"
+          ],
+          "description": "接入类型",
+          "x-storage": "push_integration_config.kind"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "PUSH"
+          ],
+          "description": "固定PUSH",
+          "x-storage": "push_integration_config.mode"
+        },
+        "fieldMapping": {
+          "$ref": "#/$defs/JsonObject",
+          "description": "字段映射",
+          "x-storage": "push_integration_config.field_mapping"
+        },
+        "valueMapping": {
+          "$ref": "#/$defs/JsonObject",
+          "description": "状态/类型映射",
+          "x-storage": "push_integration_config.value_mapping"
+        },
+        "targetKeyKind": {
+          "type": "string",
+          "enum": [
+            "UNIFIED_USER_ID",
+            "EXTERNAL_USER_ID"
+          ],
+          "description": "统一ID或本应用外部账号",
+          "x-storage": "push_integration_config.target_key_kind"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_runtime_status",
+          "description": "接入状态",
+          "x-storage": "push_integration_config.status"
+        },
+        "lastReceivedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "最近有效推送",
+          "x-storage": "push_integration_config.last_received_at"
+        },
+        "credentialConfigured": {
+          "type": "boolean",
+          "x-derived": "服务端检查凭证引用是否有效，不返回引用或密文。",
+          "x-storage": [
+            "push_integration_config.credential_ref"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "kind",
+        "mode",
+        "fieldMapping",
+        "valueMapping",
+        "targetKeyKind",
+        "status",
+        "lastReceivedAt",
+        "credentialConfigured"
+      ]
+    },
+    "IngestReceiptDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "ingest_receipt.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "ingest_receipt.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "ingest_receipt.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "ingest_receipt.version"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "已认证应用",
+          "x-storage": "ingest_receipt.application_id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "TODO",
+            "MESSAGE",
+            "SMS"
+          ],
+          "description": "类型",
+          "x-storage": "ingest_receipt.kind"
+        },
+        "eventId": {
+          "type": "string",
+          "description": "源事件/请求幂等标识",
+          "x-storage": "ingest_receipt.event_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "RECEIVED",
+            "APPLIED",
+            "REJECTED"
+          ],
+          "description": "内部处理状态",
+          "x-storage": "ingest_receipt.status"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JsonValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "稳定重放结果",
+          "x-storage": "ingest_receipt.result"
+        },
+        "appliedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "业务提交完成时间",
+          "x-storage": "ingest_receipt.applied_at"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "kind",
+        "eventId",
+        "status",
+        "result",
+        "appliedAt"
+      ]
+    },
+    "TodoDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "todo_item.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "todo_item.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "todo_item.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "todo_item.version"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "来源应用",
+          "x-storage": "todo_item.application_id"
+        },
+        "sourceTodoId": {
+          "type": "string",
+          "description": "源待办ID",
+          "x-storage": "todo_item.source_todo_id"
+        },
+        "targetUserId": {
+          "type": "string",
+          "description": "解析后目标身份",
+          "x-storage": "todo_item.target_user_id"
+        },
+        "title": {
+          "type": "string",
+          "description": "标题",
+          "x-storage": "todo_item.title"
+        },
+        "businessType": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "业务类型",
+          "x-storage": "todo_item.business_type"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "摘要",
+          "x-storage": "todo_item.summary"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_todo_status",
+          "description": "源权威状态",
+          "x-storage": "todo_item.status"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "description": "优先级",
+          "x-storage": "todo_item.priority"
+        },
+        "sourceCreatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "源创建时间",
+          "x-storage": "todo_item.source_created_at"
+        },
+        "sourceUpdatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "源更新时间",
+          "x-storage": "todo_item.source_updated_at"
+        },
+        "sourceRevision": {
+          "$ref": "#/$defs/Integer",
+          "description": "单调递增源版本",
+          "x-storage": "todo_item.source_revision"
+        },
+        "dueAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "截止时间，仅逾期提示不自动完成",
+          "x-storage": "todo_item.due_at"
+        },
+        "terminalAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "进入终态时间",
+          "x-storage": "todo_item.terminal_at"
+        },
+        "businessUrl": {
+          "type": "string",
+          "description": "已批准业务URL",
+          "x-storage": "todo_item.business_url"
+        },
+        "isOverdue": {
+          "type": "boolean",
+          "x-derived": "status=PENDING且dueAt非null且dueAt<服务端now。"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "sourceTodoId",
+        "targetUserId",
+        "title",
+        "businessType",
+        "summary",
+        "status",
+        "priority",
+        "sourceCreatedAt",
+        "sourceUpdatedAt",
+        "sourceRevision",
+        "dueAt",
+        "terminalAt",
+        "businessUrl",
+        "isOverdue"
+      ]
+    },
+    "MessageBodyDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "message.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "message.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "message.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "message.version"
+        },
+        "applicationId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "外部消息必填，门户消息NULL",
+          "x-storage": "message.application_id"
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": [
+            "PORTAL",
+            "APPLICATION"
+          ],
+          "description": "消息来源",
+          "x-storage": "message.source_kind"
+        },
+        "sourceKey": {
+          "type": "string",
+          "description": "外部为application_id，门户固定PORTAL",
+          "x-storage": "message.source_key"
+        },
+        "sourceMessageId": {
+          "type": "string",
+          "description": "源消息/门户事件稳定ID",
+          "x-storage": "message.source_message_id"
+        },
+        "messageType": {
+          "$ref": "#/$defs/Enum_message_type",
+          "description": "统一类型",
+          "x-storage": "message.message_type"
+        },
+        "title": {
+          "type": "string",
+          "description": "标题",
+          "x-storage": "message.title"
+        },
+        "content": {
+          "type": "string",
+          "description": "已清理正文",
+          "x-storage": "message.content"
+        },
+        "businessUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "允许的业务跳转",
+          "x-storage": "message.business_url"
+        },
+        "sourceCreatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "源产生时间",
+          "x-storage": "message.source_created_at"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "sourceKind",
+        "sourceKey",
+        "sourceMessageId",
+        "messageType",
+        "title",
+        "content",
+        "businessUrl",
+        "sourceCreatedAt"
+      ]
+    },
+    "MessageRecipientDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "message_recipient.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "message_recipient.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "message_recipient.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "message_recipient.version"
+        },
+        "messageId": {
+          "type": "string",
+          "description": "消息",
+          "x-storage": "message_recipient.message_id"
+        },
+        "userId": {
+          "type": "string",
+          "description": "接收人",
+          "x-storage": "message_recipient.user_id"
+        },
+        "readStatus": {
+          "$ref": "#/$defs/Enum_read_status",
+          "description": "阅读状态",
+          "x-storage": "message_recipient.read_status"
+        },
+        "readAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "首次已读时间",
+          "x-storage": "message_recipient.read_at"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "messageId",
+        "userId",
+        "readStatus",
+        "readAt"
+      ]
+    },
+    "AnnouncementDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "announcement.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "announcement.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "announcement.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "announcement.version"
+        },
+        "title": {
+          "type": "string",
+          "description": "标题",
+          "x-storage": "announcement.title"
+        },
+        "announcementType": {
+          "type": "string",
+          "description": "公告类型字典编码",
+          "x-storage": "announcement.announcement_type"
+        },
+        "content": {
+          "type": "string",
+          "description": "清理后的正文",
+          "x-storage": "announcement.content"
+        },
+        "scope": {
+          "$ref": "#/$defs/Enum_scope_type",
+          "description": "发布范围",
+          "x-storage": "announcement.scope"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_announcement_status",
+          "description": "公告生命周期",
+          "x-storage": "announcement.status"
+        },
+        "effectiveStart": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "生效时间",
+          "x-storage": "announcement.effective_start"
+        },
+        "effectiveEnd": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "失效时间",
+          "x-storage": "announcement.effective_end"
+        },
+        "publisherId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "发布人",
+          "x-storage": "announcement.publisher_id"
+        },
+        "publishedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "发布时间",
+          "x-storage": "announcement.published_at"
+        },
+        "orgScopes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnnouncementOrgScopeDTO"
+          },
+          "x-derived": "announcement_org_scope.announcement_id=id；非ORG返回[]。"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnnouncementAttachmentDTO"
+          },
+          "x-derived": "announcement_attachment.announcement_id=id，按sort_order,id排序。"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "title",
+        "announcementType",
+        "content",
+        "scope",
+        "status",
+        "effectiveStart",
+        "effectiveEnd",
+        "publisherId",
+        "publishedAt",
+        "orgScopes",
+        "attachments"
+      ]
+    },
+    "AnnouncementOrgScopeDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "announcement_org_scope.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "announcement_org_scope.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "announcement_org_scope.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "announcement_org_scope.version"
+        },
+        "announcementId": {
+          "type": "string",
+          "description": "公告",
+          "x-storage": "announcement_org_scope.announcement_id"
+        },
+        "identitySourceCode": {
+          "type": "string",
+          "description": "组织标识命名空间",
+          "x-storage": "announcement_org_scope.identity_source_code"
+        },
+        "orgKey": {
+          "type": "string",
+          "description": "上层稳定组织ID",
+          "x-storage": "announcement_org_scope.org_key"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "announcementId",
+        "identitySourceCode",
+        "orgKey"
+      ]
+    },
+    "AnnouncementAttachmentDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "announcement_attachment.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "announcement_attachment.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "announcement_attachment.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "announcement_attachment.version"
+        },
+        "announcementId": {
+          "type": "string",
+          "description": "公告",
+          "x-storage": "announcement_attachment.announcement_id"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "文件名",
+          "x-storage": "announcement_attachment.file_name"
+        },
+        "sizeBytes": {
+          "$ref": "#/$defs/Integer",
+          "description": "字节数",
+          "x-storage": "announcement_attachment.size_bytes"
+        },
+        "mimeType": {
+          "type": "string",
+          "description": "类型",
+          "x-storage": "announcement_attachment.mime_type"
+        },
+        "attachment": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/UploadObject"
+          },
+          "description": "NocoDB上传返回的附件对象数组；不得写File或空对象",
+          "x-storage": "announcement_attachment.attachment"
+        },
+        "uploadedBy": {
+          "type": "string",
+          "description": "上传者",
+          "x-storage": "announcement_attachment.uploaded_by"
+        },
+        "sortOrder": {
+          "$ref": "#/$defs/Integer",
+          "description": "显示顺序",
+          "x-storage": "announcement_attachment.sort_order"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "announcementId",
+        "fileName",
+        "sizeBytes",
+        "mimeType",
+        "attachment",
+        "uploadedBy",
+        "sortOrder"
+      ]
+    },
+    "SmsChannelDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sms_channel.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sms_channel.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sms_channel.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sms_channel.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "通道编码",
+          "x-storage": "sms_channel.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "名称",
+          "x-storage": "sms_channel.name"
+        },
+        "provider": {
+          "type": "string",
+          "description": "待确认的服务商",
+          "x-storage": "sms_channel.provider"
+        },
+        "apiUrl": {
+          "type": "string",
+          "description": "真实端点经确认后填写",
+          "x-storage": "sms_channel.api_url"
+        },
+        "signName": {
+          "type": "string",
+          "description": "签名",
+          "x-storage": "sms_channel.sign_name"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "配置启停",
+          "x-storage": "sms_channel.status"
+        },
+        "runtimeStatus": {
+          "$ref": "#/$defs/Enum_runtime_status",
+          "description": "运行状态",
+          "x-storage": "sms_channel.runtime_status"
+        },
+        "credentialConfigured": {
+          "type": "boolean",
+          "x-derived": "服务端检查凭证引用是否有效，不返回引用或密文。",
+          "x-storage": [
+            "sms_channel.secret_ref"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "provider",
+        "apiUrl",
+        "signName",
+        "status",
+        "runtimeStatus",
+        "credentialConfigured"
+      ]
+    },
+    "SmsTemplateDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sms_template.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sms_template.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sms_template.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sms_template.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "模板编码",
+          "x-storage": "sms_template.code"
+        },
+        "name": {
+          "type": "string",
+          "description": "名称",
+          "x-storage": "sms_template.name"
+        },
+        "sceneType": {
+          "type": "string",
+          "description": "场景",
+          "x-storage": "sms_template.scene_type"
+        },
+        "content": {
+          "type": "string",
+          "description": "模板内容",
+          "x-storage": "sms_template.content"
+        },
+        "variables": {
+          "$ref": "#/$defs/JsonObject",
+          "description": "变量名与类型定义",
+          "x-storage": "sms_template.variables"
+        },
+        "signName": {
+          "type": "string",
+          "description": "签名",
+          "x-storage": "sms_template.sign_name"
+        },
+        "providerTemplateId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "服务商模板ID",
+          "x-storage": "sms_template.provider_template_id"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "启停",
+          "x-storage": "sms_template.status"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "name",
+        "sceneType",
+        "content",
+        "variables",
+        "signName",
+        "providerTemplateId",
+        "status"
+      ]
+    },
+    "SmsApplicationDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sms_application.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sms_application.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sms_application.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sms_application.version"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "调用应用",
+          "x-storage": "sms_application.application_id"
+        },
+        "smsAppId": {
+          "type": "string",
+          "description": "短信接入标识",
+          "x-storage": "sms_application.sms_app_id"
+        },
+        "dailyLimit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "每日限额；未设置不得发送",
+          "x-storage": "sms_application.daily_limit"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_enable_status",
+          "description": "启停",
+          "x-storage": "sms_application.status"
+        },
+        "credentialConfigured": {
+          "type": "boolean",
+          "x-derived": "服务端检查凭证引用是否有效，不返回引用或密文。",
+          "x-storage": [
+            "sms_application.secret_ref"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "smsAppId",
+        "dailyLimit",
+        "status",
+        "credentialConfigured"
+      ]
+    },
+    "SmsApplicationTemplateDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sms_application_template.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sms_application_template.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sms_application_template.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sms_application_template.version"
+        },
+        "smsApplicationId": {
+          "type": "string",
+          "description": "短信授权",
+          "x-storage": "sms_application_template.sms_application_id"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "模板",
+          "x-storage": "sms_application_template.template_id"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "smsApplicationId",
+        "templateId"
+      ]
+    },
+    "SmsRecordDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sms_send_record.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sms_send_record.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sms_send_record.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sms_send_record.version"
+        },
+        "applicationId": {
+          "type": "string",
+          "description": "调用应用",
+          "x-storage": "sms_send_record.application_id"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "模板",
+          "x-storage": "sms_send_record.template_id"
+        },
+        "channelId": {
+          "type": "string",
+          "description": "渠道",
+          "x-storage": "sms_send_record.channel_id"
+        },
+        "requestKey": {
+          "type": "string",
+          "description": "应用内幂等键",
+          "x-storage": "sms_send_record.request_key"
+        },
+        "mobileMasked": {
+          "type": "string",
+          "description": "脱敏手机号",
+          "x-storage": "sms_send_record.mobile_masked"
+        },
+        "contentSummary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "脱敏摘要",
+          "x-storage": "sms_send_record.content_summary"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_sms_status",
+          "description": "发送状态",
+          "x-storage": "sms_send_record.status"
+        },
+        "retryCount": {
+          "$ref": "#/$defs/Integer",
+          "description": "已重试次数，不含首发",
+          "x-storage": "sms_send_record.retry_count"
+        },
+        "failureReason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "安全错误摘要",
+          "x-storage": "sms_send_record.failure_reason"
+        },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SmsAttemptDTO"
+          },
+          "x-derived": "sms_send_attempt.send_id=id，按attempt_no排序。"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "templateId",
+        "channelId",
+        "requestKey",
+        "mobileMasked",
+        "contentSummary",
+        "status",
+        "retryCount",
+        "failureReason",
+        "attempts"
+      ]
+    },
+    "SmsAttemptDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "sms_send_attempt.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "sms_send_attempt.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "sms_send_attempt.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "sms_send_attempt.version"
+        },
+        "sendId": {
+          "type": "string",
+          "description": "逻辑短信",
+          "x-storage": "sms_send_attempt.send_id"
+        },
+        "attemptNo": {
+          "$ref": "#/$defs/Integer",
+          "description": "首发为1",
+          "x-storage": "sms_send_attempt.attempt_no"
+        },
+        "providerRequestId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "稳定服务商幂等号",
+          "x-storage": "sms_send_attempt.provider_request_id"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_sms_status",
+          "description": "本次调用状态",
+          "x-storage": "sms_send_attempt.status"
+        },
+        "deliveryCertainty": {
+          "type": "string",
+          "enum": [
+            "UNKNOWN",
+            "CONFIRMED_SUCCESS",
+            "CONFIRMED_FAILURE"
+          ],
+          "description": "防止超时重复发送",
+          "x-storage": "sms_send_attempt.delivery_certainty"
+        },
+        "finishedAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "完成时间",
+          "x-storage": "sms_send_attempt.finished_at"
+        },
+        "providerSummary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "脱敏响应",
+          "x-storage": "sms_send_attempt.provider_summary"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "sendId",
+        "attemptNo",
+        "providerRequestId",
+        "status",
+        "deliveryCertainty",
+        "finishedAt",
+        "providerSummary"
+      ]
+    },
+    "ConfigDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "system_config.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "system_config.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "system_config.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "system_config.version"
+        },
+        "code": {
+          "type": "string",
+          "description": "唯一配置键",
+          "x-storage": "system_config.code"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JsonValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "有效值；未确认NULL",
+          "x-storage": "system_config.value"
+        },
+        "unit": {
+          "type": "string",
+          "description": "单位/值类型",
+          "x-storage": "system_config.unit"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "UNCONFIGURED",
+            "CONFIGURED"
+          ],
+          "description": "配置可用性",
+          "x-storage": "system_config.status"
+        },
+        "description": {
+          "type": "string",
+          "description": "配置说明",
+          "x-storage": "system_config.description"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "code",
+        "value",
+        "unit",
+        "status",
+        "description"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "UNCONFIGURED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "pattern": "^dictionary\\."
+              },
+              "status": {
+                "const": "CONFIGURED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unit": {
+                "const": "json"
+              },
+              "value": {
+                "$ref": "#/$defs/DictionaryValue"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "MonitorStatusDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "monitor_status.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "monitor_status.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "monitor_status.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "monitor_status.version"
+        },
+        "targetKey": {
+          "type": "string",
+          "description": "身份源/应用/短信通道命名空间键",
+          "x-storage": "monitor_status.target_key"
+        },
+        "serviceType": {
+          "type": "string",
+          "enum": [
+            "IDENTITY",
+            "SSO",
+            "TODO",
+            "MESSAGE",
+            "SMS"
+          ],
+          "description": "IDENTITY/SSO/TODO/MESSAGE/SMS",
+          "x-storage": "monitor_status.service_type"
+        },
+        "status": {
+          "$ref": "#/$defs/Enum_runtime_status",
+          "description": "运行观察",
+          "x-storage": "monitor_status.status"
+        },
+        "lastSuccessAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "最近成功",
+          "x-storage": "monitor_status.last_success_at"
+        },
+        "lastFailureAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "最近失败",
+          "x-storage": "monitor_status.last_failure_at"
+        },
+        "failureCount": {
+          "$ref": "#/$defs/Integer",
+          "description": "连续失败次数",
+          "x-storage": "monitor_status.failure_count"
+        },
+        "responseTimeMs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "耗时",
+          "x-storage": "monitor_status.response_time_ms"
+        },
+        "lastError": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "脱敏错误",
+          "x-storage": "monitor_status.last_error"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "targetKey",
+        "serviceType",
+        "status",
+        "lastSuccessAt",
+        "lastFailureAt",
+        "failureCount",
+        "responseTimeMs",
+        "lastError"
+      ]
+    },
+    "AuditDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "audit_event.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "audit_event.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "audit_event.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "audit_event.version"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "LOGIN",
+            "AUTH",
+            "ACCESS",
+            "OPERATION",
+            "API",
+            "ERROR"
+          ],
+          "description": "日志类别",
+          "x-storage": "audit_event.kind"
+        },
+        "eventCode": {
+          "type": "string",
+          "description": "统一事件编码",
+          "x-storage": "audit_event.event_code"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "链路请求ID",
+          "x-storage": "audit_event.request_id"
+        },
+        "actorUserId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "操作者，匿名/系统时NULL",
+          "x-storage": "audit_event.actor_user_id"
+        },
+        "actorKind": {
+          "type": "string",
+          "enum": [
+            "USER",
+            "APPLICATION",
+            "SYSTEM",
+            "ANONYMOUS"
+          ],
+          "description": "操作者类型",
+          "x-storage": "audit_event.actor_kind"
+        },
+        "applicationId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "相关应用",
+          "x-storage": "audit_event.application_id"
+        },
+        "objectType": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "关联对象",
+          "x-storage": "audit_event.object_type"
+        },
+        "objectId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "关联业务ID",
+          "x-storage": "audit_event.object_id"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "SUCCESS",
+            "FAILURE",
+            "DENIED"
+          ],
+          "description": "处理结果",
+          "x-storage": "audit_event.result"
+        },
+        "summary": {
+          "type": "string",
+          "description": "模板化脱敏履历",
+          "x-storage": "audit_event.summary"
+        },
+        "details": {
+          "$ref": "#/$defs/JsonObject",
+          "description": "允许字段的脱敏前后状态/错误码/身份源/方式/IP/耗时等",
+          "x-storage": "audit_event.details"
+        },
+        "resolutionStatus": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "RESOLVED"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "仅ERROR运维处理标记",
+          "x-storage": "audit_event.resolution_status"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "kind",
+        "eventCode",
+        "requestId",
+        "actorUserId",
+        "actorKind",
+        "applicationId",
+        "objectType",
+        "objectId",
+        "result",
+        "summary",
+        "details",
+        "resolutionStatus"
+      ]
+    },
+    "AuthResultDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "AUTHENTICATED",
+            "REGISTRATION_REQUIRED",
+            "PENDING"
+          ]
+        },
+        "loginRequest": {
+          "$ref": "#/$defs/LoginRequestDTO"
+        },
+        "user": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UserDTO"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "session": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionDTO"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "registerUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "outcome",
+        "loginRequest",
+        "user",
+        "session",
+        "registerUrl"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "AUTHENTICATED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "user": {
+                "$ref": "#/$defs/UserDTO"
+              },
+              "session": {
+                "$ref": "#/$defs/SessionDTO"
+              },
+              "registerUrl": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "REGISTRATION_REQUIRED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "user": {
+                "type": "null"
+              },
+              "session": {
+                "type": "null"
+              },
+              "registerUrl": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "PENDING"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "user": {
+                "type": "null"
+              },
+              "session": {
+                "type": "null"
+              },
+              "registerUrl": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "x-derived": "AuthService权威认证结果；失败使用Result.error；只有AUTHENTICATED设置安全会话Cookie；REGISTRATION_REQUIRED仅在配置的受控注册方向可用时返回，否则CONFIG_UNSET。"
+    },
+    "RedirectDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expiresAt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "applicationId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "url",
+        "expiresAt",
+        "applicationId"
+      ],
+      "x-derived": "ApplicationService.enter/TodoService.open鉴权、映射及URL白名单检查后的跳转地址；expiresAt为临时跳转有效期，静态入口为null；不得暴露管理凭证。"
+    },
+    "MessageDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定业务ID；服务端生成UUID，不使用真实NocoDB记录ID",
+          "x-storage": "message.id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC创建时间",
+          "x-storage": "message.created_at"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "服务端UTC更新时间",
+          "x-storage": "message.updated_at"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer",
+          "description": "乐观版本；每次成功更新加1",
+          "x-storage": "message.version"
+        },
+        "applicationId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "外部消息必填，门户消息NULL",
+          "x-storage": "message.application_id"
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": [
+            "PORTAL",
+            "APPLICATION"
+          ],
+          "description": "消息来源",
+          "x-storage": "message.source_kind"
+        },
+        "sourceKey": {
+          "type": "string",
+          "description": "外部为application_id，门户固定PORTAL",
+          "x-storage": "message.source_key"
+        },
+        "sourceMessageId": {
+          "type": "string",
+          "description": "源消息/门户事件稳定ID",
+          "x-storage": "message.source_message_id"
+        },
+        "messageType": {
+          "$ref": "#/$defs/Enum_message_type",
+          "description": "统一类型",
+          "x-storage": "message.message_type"
+        },
+        "title": {
+          "type": "string",
+          "description": "标题",
+          "x-storage": "message.title"
+        },
+        "content": {
+          "type": "string",
+          "description": "已清理正文",
+          "x-storage": "message.content"
+        },
+        "businessUrl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "允许的业务跳转",
+          "x-storage": "message.business_url"
+        },
+        "sourceCreatedAt": {
+          "$ref": "#/$defs/DateTime",
+          "description": "源产生时间",
+          "x-storage": "message.source_created_at"
+        },
+        "recipient": {
+          "$ref": "#/$defs/MessageRecipientDTO"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "version",
+        "applicationId",
+        "sourceKind",
+        "sourceKey",
+        "sourceMessageId",
+        "messageType",
+        "title",
+        "content",
+        "businessUrl",
+        "sourceCreatedAt",
+        "recipient"
+      ],
+      "x-derived": "message JOIN message_recipient ON message_id=message.id AND user_id=context.actorUserId；仅当前收件人一条；无授权收件记录返回NOT_FOUND，禁止返回所有收件人。"
+    },
+    "UploadResultDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attachments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/UploadObject"
+          }
+        }
+      },
+      "required": [
+        "attachments"
+      ]
+    },
+    "MutationAckDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "entityId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "applied",
+        "entityId",
+        "version"
+      ],
+      "x-derived": "删除/退出等无实体输出动作；删除后version为null，批量授权entityId/version可为null；applied=false仅幂等无变化。"
+    },
+    "TestResultDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "passed": {
+          "type": "boolean"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/DateTime"
+        },
+        "responseTimeMs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "passed",
+        "observedAt",
+        "responseTimeMs",
+        "summary"
+      ],
+      "x-derived": "授权协议适配器测试观察；缺适配器返回CAPABILITY_UNAVAILABLE，不编造成功。"
+    },
+    "IngestResultDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entityId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "$ref": "#/$defs/Integer"
+        },
+        "disposition": {
+          "enum": [
+            "APPLIED",
+            "DUPLICATE"
+          ]
+        },
+        "sourceRevision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "entityId",
+        "version",
+        "disposition",
+        "sourceRevision"
+      ],
+      "x-derived": "ingest_receipt.result及业务实体；TODO返回source_revision；MESSAGE为null。"
+    },
+    "PortalOverviewDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "asOf": {
+          "$ref": "#/$defs/DateTime"
+        },
+        "pendingTodoCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "unreadMessageCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "applicationCount": {
+          "$ref": "#/$defs/Integer"
+        }
+      },
+      "required": [
+        "asOf",
+        "pendingTodoCount",
+        "unreadMessageCount",
+        "applicationCount"
+      ],
+      "x-derived": "同一授权快照：本人todo_item PENDING、本人message_recipient UNREAD、ApplicationService.getMine可见应用数；以id去重。"
+    },
+    "MonitorOverviewDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "asOf": {
+          "$ref": "#/$defs/DateTime"
+        },
+        "applicationCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "normalApplicationCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "abnormalApplicationCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "ssoNormalCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "todoNormalCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "messageNormalCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "todayLoginUserCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "todayAccessCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "openMappingExceptionCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "failedApiRequestCount": {
+          "$ref": "#/$defs/Integer"
+        },
+        "from": {
+          "$ref": "#/$defs/DateTime"
+        },
+        "to": {
+          "$ref": "#/$defs/DateTime"
+        }
+      },
+      "required": [
+        "asOf",
+        "applicationCount",
+        "normalApplicationCount",
+        "abnormalApplicationCount",
+        "ssoNormalCount",
+        "todoNormalCount",
+        "messageNormalCount",
+        "todayLoginUserCount",
+        "todayAccessCount",
+        "openMappingExceptionCount",
+        "failedApiRequestCount",
+        "from",
+        "to"
+      ],
+      "x-derived": "同一授权快照；application按id计数且runtime_status分别NORMAL/ABNORMAL；sso_config/push_integration_config按NORMAL与kind去重application_id；LOGIN SUCCESS按actor_user_id去重，ACCESS SUCCESS按request_id去重，今日边界Asia/Shanghai转UTC；mapping_exception OPEN按id；API非SUCCESS按request_id且created_at在[from,to)。"
+    },
+    "AlertDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "MONITOR",
+            "MAPPING",
+            "ERROR"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/DateTime"
+        },
+        "applicationId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "summary",
+        "observedAt",
+        "applicationId"
+      ],
+      "x-derived": "monitor_status ABNORMAL、mapping_exception OPEN、audit_event kind=ERROR且resolution_status=OPEN；id为源业务id，kind+id唯一；summary必须脱敏，applicationId无法确定为null。"
+    },
+    "RotationResultDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "credentialConfigured": {
+          "type": "boolean"
+        },
+        "version": {
+          "$ref": "#/$defs/Integer"
+        }
+      },
+      "required": [
+        "credentialConfigured",
+        "version"
+      ],
+      "x-derived": "IntegrationService.rotateCredential只返回配置标记及版本，凭证通过授权服务端安全渠道交付，不进入通用Result或审计。"
+    },
+    "ErrorDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "UNAUTHENTICATED",
+            "FORBIDDEN",
+            "NOT_FOUND",
+            "VALIDATION_ERROR",
+            "VERSION_CONFLICT",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_TRANSITION",
+            "STALE_EVENT",
+            "IDENTITY_UNRESOLVED",
+            "UPSTREAM_UNAVAILABLE",
+            "CAPABILITY_UNAVAILABLE",
+            "RATE_LIMITED",
+            "CONFIG_UNSET",
+            "PARTIAL_FAILURE"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "field",
+        "retryable"
+      ]
+    },
+    "Failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "const": false
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorDTO"
+        },
+        "requestId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "ok",
+        "error",
+        "requestId"
+      ]
+    },
+    "IntegrationConfigDTO": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SsoConfigDTO"
+        },
+        {
+          "$ref": "#/$defs/PushConfigDTO"
+        }
+      ]
+    },
+    "LoginRequestDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/LoginRequestDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AuthResultDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AuthResultDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "MutationAckDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/MutationAckDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "UserDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UserDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "UserDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/UserDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "UserDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/UserDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AppDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AppDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "AppDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AppDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AppDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AppDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "RedirectDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/RedirectDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "CategoryDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CategoryDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "CategoryDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/CategoryDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "CategoryDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/CategoryDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "MappingDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MappingDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "MappingDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/MappingDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "MappingDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/MappingDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "TodoDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TodoDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "TodoDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/TodoDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "TodoDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/TodoDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "MessageDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MessageDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "MessageDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/MessageDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "MessageDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/MessageDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AnnouncementDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnnouncementDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "AnnouncementDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AnnouncementDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AnnouncementDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AnnouncementDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "UploadResultDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/UploadResultDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "SsoConfigDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/SsoConfigDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "PushConfigDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/PushConfigDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "RotationResultDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/RotationResultDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "TestResultDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/TestResultDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "RoleDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoleDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "RoleDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/RoleDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "RoleDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/RoleDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "RolePermissionDTOArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RolePermissionDTO"
+      }
+    },
+    "RolePermissionDTOArrayResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/RolePermissionDTOArray"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "UserRoleDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/UserRoleDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "SmsRecordDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/SmsRecordDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "SmsRecordDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SmsRecordDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "SmsRecordDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/SmsRecordDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "ConfigDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConfigDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "ConfigDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/ConfigDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "ConfigDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/ConfigDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "MonitorOverviewDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/MonitorOverviewDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AlertDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AlertDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "AlertDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AlertDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "PortalOverviewDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/PortalOverviewDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AuditDTOPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AuditDTO"
+          }
+        },
+        "total": {
+          "$ref": "#/$defs/Integer"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "enum": [
+            10,
+            12,
+            20,
+            50
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "page",
+        "pageSize"
+      ]
+    },
+    "AuditDTOPageResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AuditDTOPage"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "AuditDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/AuditDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "IngestResultDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/IngestResultDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "IntegrationConfigDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/IntegrationConfigDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    },
+    "DictionaryItemDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "sortOrder": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "code",
+        "label",
+        "enabled",
+        "sortOrder"
+      ]
+    },
+    "DictionaryValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DictionaryItemDTO"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ]
+    },
+    "DictionaryDTO": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "announcement_type"
+          ]
+        },
+        "configured": {
+          "type": "boolean"
+        },
+        "config": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfigDTO"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DictionaryItemDTO"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "configured",
+        "config",
+        "items"
+      ],
+      "x-derived": "仅system_config.code=dictionary.<type>，config为该记录DTO或null，items=config.value.items按sortOrder/code排序；无记录/UNCONFIGURED时configured=false且items=[]；包含停用项用于历史展示，选择控件过滤enabled；无独立表。",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "configured": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "items": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "config": {
+                "$ref": "#/$defs/ConfigDTO"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "DictionaryDTOResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/DictionaryDTO"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "ok",
+            "data",
+            "requestId"
+          ]
+        },
+        {
+          "$ref": "#/$defs/Failure"
+        }
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/LoginRequestDTOResult"
+    },
+    {
+      "$ref": "#/$defs/AuthResultDTOResult"
+    },
+    {
+      "$ref": "#/$defs/MutationAckDTOResult"
+    },
+    {
+      "$ref": "#/$defs/UserDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/UserDTOResult"
+    },
+    {
+      "$ref": "#/$defs/AppDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/AppDTOResult"
+    },
+    {
+      "$ref": "#/$defs/RedirectDTOResult"
+    },
+    {
+      "$ref": "#/$defs/CategoryDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/CategoryDTOResult"
+    },
+    {
+      "$ref": "#/$defs/MappingDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/MappingDTOResult"
+    },
+    {
+      "$ref": "#/$defs/TodoDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/TodoDTOResult"
+    },
+    {
+      "$ref": "#/$defs/MessageDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/MessageDTOResult"
+    },
+    {
+      "$ref": "#/$defs/AnnouncementDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/AnnouncementDTOResult"
+    },
+    {
+      "$ref": "#/$defs/UploadResultDTOResult"
+    },
+    {
+      "$ref": "#/$defs/SsoConfigDTOResult"
+    },
+    {
+      "$ref": "#/$defs/PushConfigDTOResult"
+    },
+    {
+      "$ref": "#/$defs/RotationResultDTOResult"
+    },
+    {
+      "$ref": "#/$defs/TestResultDTOResult"
+    },
+    {
+      "$ref": "#/$defs/RoleDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/RoleDTOResult"
+    },
+    {
+      "$ref": "#/$defs/RolePermissionDTOArrayResult"
+    },
+    {
+      "$ref": "#/$defs/UserRoleDTOResult"
+    },
+    {
+      "$ref": "#/$defs/SmsRecordDTOResult"
+    },
+    {
+      "$ref": "#/$defs/SmsRecordDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/ConfigDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/ConfigDTOResult"
+    },
+    {
+      "$ref": "#/$defs/MonitorOverviewDTOResult"
+    },
+    {
+      "$ref": "#/$defs/AlertDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/PortalOverviewDTOResult"
+    },
+    {
+      "$ref": "#/$defs/AuditDTOPageResult"
+    },
+    {
+      "$ref": "#/$defs/AuditDTOResult"
+    },
+    {
+      "$ref": "#/$defs/IngestResultDTOResult"
+    },
+    {
+      "$ref": "#/$defs/IntegrationConfigDTOResult"
+    },
+    {
+      "$ref": "#/$defs/DictionaryDTOResult"
+    }
+  ],
+  "x-currentScope": "ADR-017/018: public-service integration conditional; fee capabilities removed. Physical legacy sms fields are reserved, not active DTO features. Administrator is one user category with permission scopes."
+}

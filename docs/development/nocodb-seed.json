@@ -1,0 +1,149 @@
+{
+  "status": "APPLIED_AND_READBACK_2026_09_18",
+  "baseId": "pb3gir75kkooyea",
+  "records": {
+    "system_config": [
+      {
+        "id": "cfg.retention.message_days",
+        "code": "retention.message_days",
+        "value": null,
+        "unit": "day",
+        "status": "UNCONFIGURED",
+        "description": "消息留存周期",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.retention.todo_terminal_days",
+        "code": "retention.todo_terminal_days",
+        "value": null,
+        "unit": "day",
+        "status": "UNCONFIGURED",
+        "description": "终态待办留存周期",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.retention.log_days",
+        "code": "retention.log_days",
+        "value": null,
+        "unit": "day",
+        "status": "UNCONFIGURED",
+        "description": "日志留存周期",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.auth.qr_ttl_seconds",
+        "code": "auth.qr_ttl_seconds",
+        "value": null,
+        "unit": "second",
+        "status": "UNCONFIGURED",
+        "description": "二维码有效期",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.auth.otp_ttl_seconds",
+        "code": "auth.otp_ttl_seconds",
+        "value": null,
+        "unit": "second",
+        "status": "UNCONFIGURED",
+        "description": "验证码有效期",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.auth.session_ttl_seconds",
+        "code": "auth.session_ttl_seconds",
+        "value": null,
+        "unit": "second",
+        "status": "UNCONFIGURED",
+        "description": "Session有效期",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.auth.failure_limit",
+        "code": "auth.failure_limit",
+        "value": null,
+        "unit": "count/window",
+        "status": "UNCONFIGURED",
+        "description": "登录失败限制",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.integration.timeout_ms",
+        "code": "integration.timeout_ms",
+        "value": null,
+        "unit": "ms",
+        "status": "UNCONFIGURED",
+        "description": "接口超时",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.integration.max_retries",
+        "code": "integration.max_retries",
+        "value": null,
+        "unit": "count",
+        "status": "UNCONFIGURED",
+        "description": "接口重试上限",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.sms.max_retries",
+        "code": "sms.max_retries",
+        "value": null,
+        "unit": "count",
+        "status": "UNCONFIGURED",
+        "description": "短信重试上限",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.monitor.failure_threshold",
+        "code": "monitor.failure_threshold",
+        "value": null,
+        "unit": "count",
+        "status": "UNCONFIGURED",
+        "description": "监控失败阈值",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      },
+      {
+        "id": "cfg.upload.policy",
+        "code": "upload.policy",
+        "value": null,
+        "unit": "json",
+        "status": "UNCONFIGURED",
+        "description": "附件类型和大小约束",
+        "version": 1,
+        "created_at": "2026-09-17T00:00:00.000Z",
+        "updated_at": "2026-09-17T00:00:00.000Z"
+      }
+    ]
+  },
+  "excluded": [
+    "真实43应用名单",
+    "真实身份与用户",
+    "账号凭证",
+    "角色授权",
+    "固定留存天数",
+    "示例业务记录"
+  ],
+  "conflictPolicy": "按code只插入缺失值，既有值不得覆盖"
+}

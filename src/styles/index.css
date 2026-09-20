@@ -1,0 +1,97 @@
+@import './core.css';
+@import './layout.css';
+
+/*
+ * Unified portal typography.
+ * Keep font weight decisions here instead of scattering page-specific overrides.
+ */
+:root{
+  --portal-font-weight-regular:400;
+  --portal-font-weight-medium:500;
+  --portal-font-weight-semibold:600;
+}
+
+html,body,#app,button,input,textarea,select{font-weight:var(--portal-font-weight-regular)}
+
+/* Global hierarchy: system name > page title > section title > ordinary content. */
+.brand,.login-brand{font-weight:var(--portal-font-weight-semibold)!important}
+.content-header h1{font-weight:var(--portal-font-weight-medium)!important}
+.section-head h2,.section-head h3,.page-heading h2,.portal-profile-content h3,
+.portal-announcement-header h2,.message-letter h2,.portal-letter h2{font-weight:var(--portal-font-weight-medium)!important}
+
+/* Navigation uses medium only for hierarchy/selected state. */
+.menu-wrap .menu-group,.portal-caption{font-weight:var(--portal-font-weight-medium)!important}
+.menu-item,.menu-item-label{font-weight:var(--portal-font-weight-regular)!important}
+.menu-item.active,.menu-item.active .menu-item-label,.account-entry .user-name{font-weight:var(--portal-font-weight-medium)!important}
+
+/* Form / table / detail text follows office-house's lighter hierarchy. */
+.t-table th{font-weight:var(--portal-font-weight-medium)!important}
+.t-table td,.t-form__label,.t-form__controls,.detail-grid,.portal-detail-grid,
+.portal-announcement-meta-inline,.message-letter-meta,.message-business-grid{font-weight:var(--portal-font-weight-regular)}
+
+/* Links and text actions never gain visual weight merely because they are clickable. */
+a,.t-link,.t-button--variant-text,.portal-field-link,.portal-field-link.is-unread,
+.portal-field-link.is-attention,.message-title-link,.portal-app-enter{font-weight:var(--portal-font-weight-regular)!important}
+
+/* App names need one level of emphasis, but not semibold. */
+.portal-app-info .portal-app-name,.portal-app-info .portal-app-name:hover{font-weight:var(--portal-font-weight-medium)!important}
+
+/* Numeric/statistical emphasis stays restrained. */
+.stat-card strong,.admin-overview-card>strong,.admin-reminder-card>strong,.portal-section-count{font-weight:var(--portal-font-weight-medium)!important}
+.portal-title-count-number{font-weight:var(--portal-font-weight-semibold)!important}
+
+/* TDesign tags/buttons should not introduce a heavier hierarchy on their own. */
+.t-tag,.t-button,.t-button__text{font-weight:var(--portal-font-weight-regular)}
+/* Unified query-control widths by field semantics.
+ * Lock the outer TDesign form-item as well as the inner control so inline-form flex rules
+ * cannot stretch all filters to the same width. */
+.content-body .portal-query.list-toolbar .query-width-keyword{--portal-query-width:380px}
+.content-body .portal-query.list-toolbar .query-width-status{--portal-query-width:180px}
+.content-body .portal-query.list-toolbar .query-width-runtime-status{--portal-query-width:210px}
+.content-body .portal-query.list-toolbar .query-width-sso-status{--portal-query-width:190px}
+.content-body .portal-query.list-toolbar .query-width-todo-status{--portal-query-width:200px}
+.content-body .portal-query.list-toolbar .query-width-message-status{--portal-query-width:230px}
+.content-body .portal-query.list-toolbar .query-width-default{--portal-query-width:200px}
+.content-body .portal-query.list-toolbar .query-width-category{--portal-query-width:230px}
+.content-body .portal-query.list-toolbar .query-width-user-type{--portal-query-width:210px}
+.content-body .portal-query.list-toolbar .query-width-priority{--portal-query-width:180px}
+.content-body .portal-query.list-toolbar .query-width-message-type{--portal-query-width:220px}
+.content-body .portal-query.list-toolbar .query-width-scope{--portal-query-width:210px}
+.content-body .portal-query.list-toolbar .query-width-source{--portal-query-width:300px}
+.content-body .portal-query.list-toolbar .query-width-actor{--portal-query-width:220px}
+.content-body .portal-query.list-toolbar .query-width-org{--portal-query-width:300px}
+.content-body .portal-query.list-toolbar .query-width-kind{--portal-query-width:200px}
+.content-body .portal-query.list-toolbar .query-width-mode{--portal-query-width:210px}
+.content-body .portal-query.list-toolbar .query-width-date{--portal-query-width:240px}
+.content-body .portal-query.list-toolbar .query-width-date-range{--portal-query-width:380px}
+
+.content-body .portal-query.list-toolbar [class*="query-width-"]{
+  box-sizing:border-box!important;
+  width:var(--portal-query-width)!important;
+  min-width:var(--portal-query-width)!important;
+  max-width:var(--portal-query-width)!important;
+  flex:0 0 var(--portal-query-width)!important;
+}
+.content-body .portal-query.list-toolbar [class*="query-width-"] :is(.t-form__controls,.t-form__controls-content,.t-select,.t-select__wrap,.t-input__wrap,.t-input,.t-date-picker,.t-range-input,.t-input-number){
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  flex:1 1 auto!important;
+}
+.content-body .portal-query.list-toolbar .portal-query-action{
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  flex:0 0 auto!important;
+}
+
+@media(max-width:760px){
+  .content-body .portal-query.list-toolbar [class*="query-width-"]{
+    --portal-query-width:100%;
+    width:100%!important;
+    min-width:100%!important;
+    max-width:100%!important;
+    flex:1 1 100%!important;
+  }
+}
