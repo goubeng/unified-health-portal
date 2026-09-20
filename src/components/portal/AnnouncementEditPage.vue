@@ -26,7 +26,7 @@
       </div>
 
       <div
-        v-if="isDraft"
+        v-if="isDraft||isScheduled"
         class="announcement-publish-row"
         :class="{'is-scheduled':form.publishMode==='SCHEDULED'}"
       >
@@ -55,16 +55,6 @@
       </div>
 
       <template v-else>
-        <div v-if="isScheduled" class="form-field">
-          <label>定时发布时间 <span class="portal-required">*</span></label>
-          <t-date-picker
-            v-model="form.scheduledPublishAt"
-            enable-time-picker
-            format="YYYY-MM-DD HH:mm:ss"
-            value-type="YYYY-MM-DD HH:mm:ss"
-            placeholder="请选择未来发布时间"
-          />
-        </div>
         <div class="form-field">
           <label>失效日期</label>
           <t-date-picker v-model="form.effectiveEnd" clearable format="YYYY-MM-DD" value-type="YYYY-MM-DD" placeholder="留空表示永久有效"/>
@@ -83,7 +73,7 @@
           <t-button variant="outline" theme="primary" :loading="saving" @click="saveDraft">保存草稿</t-button>
           <t-button theme="primary" :loading="saving" @click="publishDraft">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>
         </template>
-        <t-button v-else theme="primary" :loading="saving" @click="saveCurrent">保存修改</t-button>
+        <t-button v-else theme="primary" :loading="saving" @click="saveCurrent">{{isScheduled&&form.publishMode==='IMMEDIATE'?'立即发布':'保存修改'}}</t-button>
       </div>
     </template>
   </t-dialog>
@@ -141,7 +131,7 @@ function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T
 function assign(record){
   Object.keys(form).forEach(key=>delete form[key]);
   Object.assign(form,JSON.parse(JSON.stringify(record||{})));
-  if(!form.publishMode)form.publishMode='IMMEDIATE';
+  if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE';
   if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
   if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
   uploadFiles.value=(form.attachments||[]).map(file=>({
@@ -203,7 +193,7 @@ async function saveBase(){
     id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,
     effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments
   };
-  if(isScheduled.value)payload.scheduledPublishAt=toIso(form.scheduledPublishAt);
+  if(isScheduled.value&&form.publishMode==='SCHEDULED')payload.scheduledPublishAt=toIso(form.scheduledPublishAt);
   const result=await command('saveAnnouncement',payload);
   if(!result.ok){formError.value=result.error.message;return null;}
   Object.assign(form,{id:result.data.id,version:result.data.version,status:result.data.status,scheduledPublishAt:result.data.scheduledPublishAt?toDateTimeValue(result.data.scheduledPublishAt):form.scheduledPublishAt});
@@ -244,12 +234,23 @@ async function publishDraft(){
 
 async function saveCurrent(){
   if(saving.value)return;
-  if(isScheduled.value&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
+  if(isScheduled.value&&form.publishMode==='SCHEDULED'&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
   saving.value=true;formError.value='';
   try{
     const saved=await saveBase();
     if(!saved)return;
-    MessagePlugin.success(isPublished.value?'公告修改已生效':'定时公告修改已保存');
+    if(isScheduled.value){
+      const result=await command('submitAnnouncement',{
+        id:saved.id,version:saved.version,publishMode:form.publishMode,
+        scheduledPublishAt:form.publishMode==='SCHEDULED'?toIso(form.scheduledPublishAt):null
+      });
+      if(!result.ok){formError.value=result.error.message;return;}
+      MessagePlugin.success(form.publishMode==='IMMEDIATE'?'公告已立即发布':'定时公告修改已保存');
+      emit('saved',result.data);
+      close();
+      return;
+    }
+    MessagePlugin.success('公告修改已生效');
     emit('saved',saved);
     close();
   }catch(cause){formError.value=cause.message;}
