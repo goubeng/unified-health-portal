@@ -178,7 +178,8 @@
         </div>
 
         <div class="binding-actions">
-          <t-button v-if="resultStatus==='OPENING_REQUESTED'||resultStatus==='REVIEWING'||resultStatus==='CONFLICT'" variant="outline" @click="viewRequests">查看我的申请</t-button>
+          <t-button v-if="resultStatus==='FAILED'" variant="outline" @click="restart">重新关联</t-button>
+          <t-button v-if="resultStatus==='OPENING_REQUESTED'" variant="outline" @click="viewRequests">查看我的申请</t-button>
           <t-button theme="primary" @click="close">完成</t-button>
         </div>
       </section>
@@ -208,8 +209,9 @@ function reset(){
  verificationMethod.value='';otpSent.value=false;otpCode.value='';credentialAccount.value='demo01';credentialPassword.value='';
  openingReason.value='业务使用需要';openingContact.value='';result.value=null;resultStatus.value='';
  if(['REVIEWING','CONFLICT','FAILED'].includes(props.app?.accessState)){
-  result.value={externalAccount:props.app?.externalAccount||'',status:props.app.accessState};
-  resultStatus.value=props.app.accessState;step.value=2;
+  const status=props.app?.externalAccountStatus==='DISABLED'?'ACCOUNT_DISABLED':props.app.accessState;
+  result.value={externalAccount:props.app?.externalAccount||'',status};
+  resultStatus.value=status;step.value=2;
  }
 }
 watch(()=>props.visible,visible=>{if(visible)reset();});
@@ -218,6 +220,7 @@ watch(()=>props.app?.id,()=>{if(props.visible)reset();});
 function updateVisible(value){emit('update:visible',value);}
 function close(){emit('update:visible',false);}
 function resetSearch(){discovery.value=null;candidate.value=null;verificationMethod.value='';externalAccount.value='';error.value='';}
+function restart(){step.value=0;result.value=null;resultStatus.value='';error.value='';discovery.value=null;candidate.value=null;verificationMethod.value='';otpSent.value=false;otpCode.value='';}
 function methodTitle(method){return {TRUSTED_ID:'可信身份自动匹配',SUBSYSTEM_OTP:'手机验证码',SUBSYSTEM_CREDENTIAL:'原系统账号验证',UPSTREAM_REAUTH:'重新进行身份认证'}[method]||method;}
 function methodDescription(method){return {TRUSTED_ID:'使用稳定唯一标识完成关联',SUBSYSTEM_OTP:'验证码发送至子系统原账号预留手机号',SUBSYSTEM_CREDENTIAL:'使用原系统账号密码完成一次性校验',UPSTREAM_REAUTH:'重新调用闽政通/闽政务等上层身份认证'}[method]||'';}
 
