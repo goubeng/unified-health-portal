@@ -455,7 +455,6 @@
 .access-config-tab-head{margin-bottom:16px!important;padding-bottom:12px!important;border-bottom:1px solid #eef0f4!important}
 .access-config-grid{padding:0!important}
 .access-switch-line{display:flex!important;align-items:center!important;gap:10px!important;min-height:32px!important;color:#1f2329!important;font-size:13px!important}
-.access-switch-line>span{font-size:13px!important;font-weight:400!important;color:#1f2329!important;line-height:20px!important}
 .access-config-footer{display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:flex-end!important;min-height:56px!important;margin:0 -24px -24px!important;padding:12px 24px!important;border-top:1px solid #e5e8ef!important;background:#fff!important}
 @media(max-width:900px){.access-config-dialog-body{height:66vh!important;min-height:420px!important}.access-config-tabs>.t-tabs__nav{flex-basis:150px!important;width:150px!important}.access-config-tabs>.t-tabs__content{padding-left:14px!important}}
 
@@ -576,9 +575,6 @@
 
 /* Local admin demo form: fields are visual only in phase A. */
 .local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.local-captcha-tip{margin:6px 0 0;color:#86909c;font-size:12px;text-align:right}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
-
-/* Compact status switch: keep TDesign switch intrinsic width and show state text beside it. */
-.form-switch-control{display:inline-flex;align-items:center;align-self:flex-start;gap:8px;min-height:32px;width:auto;max-width:100%;color:#4e5969;font-size:13px}.form-switch-control .t-switch{flex:none!important;width:auto!important;min-width:40px!important;max-width:max-content!important}.form-switch-control.is-table{min-height:28px;white-space:nowrap}.form-switch-control.is-table>span{font-size:12px;color:#697386}
 
 /* App center: normal usable apps do not repeat status; exceptional/other app state tags are 12px. */
 .portal-app-status-tag,.portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}
