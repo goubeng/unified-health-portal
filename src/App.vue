@@ -49,10 +49,7 @@ const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|�
 const typeLabel=user=>labels[user?.userType]||user?.userType||'用户';
 const displayTitle=title=>String(title||'').replace('上层身份映射','闽政通 / 闽政务身份映射').replace('上层公共服务接入','公共服务接入');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
-const currentPageTitle=computed(()=>{
- if(route.meta.resource==='announcementDetail'&&admin.value&&route.query.mode==='edit')return '编辑公告';
- return route.meta.resource==='messages'&&route.query.messageId?'消息详情':displayTitle(route.meta.title);
-});
+const currentPageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':displayTitle(route.meta.title));
 const isMenuActive=page=>{
  if(route.meta.resource==='announcementDetail'&&page.resource==='announcements')return page.path===(admin.value?'/admin/announcements':'/portal/announcements');
  return route.path===page.path;
@@ -60,7 +57,6 @@ const isMenuActive=page=>{
 function backToList(){
  if(route.meta.resource==='messages'){const query={...route.query};delete query.messageId;router.replace({path:route.path,query});return;}
  if(route.meta.resource==='announcementDetail'){
-  if(admin.value&&route.query.mode==='edit'){router.push('/admin/announcements/'+encodeURIComponent(route.params.id));return;}
   router.push(admin.value?'/admin/announcements':'/portal/announcements');return;
  }
 }
