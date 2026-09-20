@@ -92,25 +92,19 @@ test('详情入口使用业务字段，不在操作列重复显示详情',()=>{
   assert(!logs.includes('>详情</t-button>'));
 });
 
-test('用户管理启用状态文字显示在开关内部并保持固定宽度',()=>{
-  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
-  const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert((source.match(/class="user-status-switch"/g)||[]).length>=3);
-  assert(source.includes(':label="[\'启用\',\'停用\']"'));
-  assert(!source.includes("form.status==='DISABLED'?'停用':'启用'</span>"));
-  assert(css.includes('.user-status-switch.t-switch{width:64px!important;min-width:64px!important;max-width:64px!important'));
-});
-
-test('组织角色字典仍使用紧凑开关加右侧状态文字',()=>{
-  for(const file of [
-    'src/components/portal/OrganizationManagement.vue',
-    'src/components/portal/RoleManagement.vue',
-    'src/components/portal/DictionaryManagement.vue'
-  ]){
+test('全系统TDesign开关统一使用默认无文字样式',()=>{
+  for(const file of walk('src','.vue')){
     const source=fs.readFileSync(file,'utf8');
-    assert(!source.includes(':label="[\'启用\',\'停用\']"'),file+' 不应使用会拉伸开关的label数组');
-    assert(source.includes('form-switch-control'),file+' 应使用统一紧凑开关容器');
+    const switches=[...source.matchAll(/<t-switch\b[^>]*>/g)].map(match=>match[0]);
+    for(const tag of switches){
+      assert(!/\blabel=|:label=/.test(tag),file+' 的开关不应显示文字: '+tag);
+    }
+    assert(!source.includes('form-switch-control'),file+' 不应恢复开关外部启用/停用文字');
+    assert(!source.includes('user-status-switch'),file+' 不应恢复用户管理专用文字开关');
   }
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(!css.includes('.user-status-switch.t-switch'));
+  assert(!css.includes('.form-switch-control{'));
 });
 
 
@@ -287,4 +281,55 @@ test('其他应用关联流程不显示Mock演示提示并区分自动与账号�
   assert(source.includes('@click="autoDiscover"'));
   assert(source.includes('@click="discoverByAccount"'));
   assert(source.includes("if(!account){error.value='请输入已有子系统账号，或使用“自动查找”';return;}"));
+});
+
+
+test('折叠菜单使用TDesign Tooltip而非原生title',()=>{
+  const source=fs.readFileSync('src/App.vue','utf8');
+  const nav=source.split('<nav class="menu-wrap"')[1]?.split('</nav>')[0]||'';
+  assert(nav.includes('<t-tooltip'));
+  assert(nav.includes('placement="right"'));
+  assert(nav.includes(':disabled="!collapsed"'));
+  assert(!nav.includes(':title="collapsed?'));
+});
+
+test('页面数据完成前只显示Loading不渲染Empty业务内容',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(source.includes("loading=ref(true),pageReady=ref(false)"));
+  assert(source.includes('class="portal-loading-placeholder"'));
+  assert(source.includes('<template v-else>'));
+  assert(source.includes("loading.value=true;pageReady.value=false;error.value=''"));
+  assert(source.includes("if(version===loadVersion&&!error.value)pageReady.value=true"));
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.portal-loading-placeholder{min-height:320px'));
+});
+
+test('用户类别Tag按类别使用不同配色',()=>{
+  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  assert(source.includes(':theme="userTypeTheme(row.userType)"'));
+  assert(source.includes("CITIZEN:'primary'"));
+  assert(source.includes("GOV:'success'"));
+  assert(source.includes("LOCAL:'warning'"));
+});
+
+test('角色超级管理员提示位于表单头部并使用13px紧凑提示',()=>{
+  const source=fs.readFileSync('src/components/portal/RoleManagement.vue','utf8');
+  const errorIndex=source.indexOf('class="error-note"');
+  const alertIndex=source.indexOf('class="role-permission-note"');
+  const formIndex=source.indexOf('class="form-grid role-basic-form"');
+  assert(errorIndex>=0&&alertIndex>errorIndex&&formIndex>alertIndex);
+  assert.equal((source.match(/class="role-permission-note"/g)||[]).length,1);
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.role-permission-note{margin:0 0 14px!important;padding:6px 10px!important;min-height:32px!important;font-size:13px!important'));
+});
+
+test('身份与子系统映射详情分区加宽并提供子系统分页',()=>{
+  const source=fs.readFileSync('src/components/portal/IdentityMappings.vue','utf8');
+  assert(source.includes('>基本信息</h3>'));
+  assert(source.includes('>子系统映射</h3>'));
+  assert(source.includes('width="min(1320px, calc(100vw - 48px))"'));
+  assert(source.includes(':data="mappingPaged"'));
+  assert(source.includes('v-model="mappingPage"'));
+  assert(source.includes('v-model:page-size="mappingPageSize"'));
+  assert(source.includes(':total="selectedMappings.length"'));
 });
