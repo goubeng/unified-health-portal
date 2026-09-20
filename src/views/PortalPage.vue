@@ -1,6 +1,5 @@
 <template>
  <div class="portal-page">
-  <Teleport v-if="admin&&resource==='announcements'&&can(actor,'announcement')" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveAnnouncement')"><template #icon><Icon name="add"/></template>新增公告</t-button></Teleport>
   <Teleport v-if="admin&&resource==='apps'&&canCreate" to="#page-header-actions"><t-button variant="outline" theme="primary" @click="downloadAccessSpec"><template #icon><Icon name="download"/></template>下载接口文件</t-button><t-button theme="primary" @click="openForm('saveApp')"><template #icon><Icon name="add"/></template>新增应用</t-button></Teleport>
   <Teleport v-if="admin&&resource==='categories'&&canCreate" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveCategory')"><template #icon><Icon name="add"/></template>新增分类</t-button></Teleport>
   <Teleport v-if="resource==='todos'" to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
@@ -34,6 +33,7 @@
    <RoleManagement v-else-if="resource==='roles'" :rows="rows" @saved="load"/>
    <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
+   <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
    <template v-else-if="resource==='announcementDetail'"><AnnouncementDetail v-if="detail" :record="detail" @download="download"/><section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section></template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
@@ -112,6 +112,7 @@ import UserManagement from '../components/portal/UserManagement.vue';
 import RoleManagement from '../components/portal/RoleManagement.vue';
 import OrganizationManagement from '../components/portal/OrganizationManagement.vue';
 import DictionaryManagement from '../components/portal/DictionaryManagement.vue';
+import AnnouncementManagement from '../components/portal/AnnouncementManagement.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
@@ -166,6 +167,7 @@ async function load(){
   else if(key==='users'){tasks.rows=read('users');tasks.systemRoles=read('roles');tasks.organizations=read('organizations');}
   else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
   else if(key==='dictionaries'){tasks.dictionaryData=read('dictionaries');}
+  else if(key==='announcements'&&isAdmin){tasks.rows=read('adminAnnouncements');if(can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');}
   else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcementDetail'?(isAdmin?'adminAnnouncements':'announcements'):key==='announcements'&&isAdmin?'adminAnnouncements':key);
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
   if(version!==loadVersion)return;
