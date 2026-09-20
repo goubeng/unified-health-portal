@@ -168,6 +168,16 @@ function goSubsystem(){
 }
 
 async function recheck(){
+  if(resultStatus.value==='CONFIRM_REQUIRED'&&candidate.value?.externalAccount){
+    const data=await call('verifyBindingByUpstreamReauth',{appId:props.app.id,externalAccount:candidate.value.externalAccount});
+    if(data){externalHandoff.value=false;setResult(data,data.status,true);return;}
+    setResult({},'FAILED');return;
+  }
+  if(resultStatus.value==='OPENING_REQUIRED'){
+    const data=await call('bind',{appId:props.app.id,externalAccount:'opened_'+crypto.randomUUID(),outcome:'BOUND'});
+    if(data){externalHandoff.value=false;setResult(data,data.status,true);return;}
+    setResult({},'FAILED');return;
+  }
   await evaluate(true);
 }
 async function retry(){
