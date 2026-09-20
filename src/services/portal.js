@@ -100,7 +100,7 @@ export function createPortalService(provider,getActor){
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
    if(resource==='home')return {appCount:userApps.length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
-   const permissions={categories:'application',access:'application',applicationRequests:'application',accountOpeningRequests:'application',identityOverview:'identity',identities:'identity',identityMappings:'identity',mappings:'identity',exceptions:'identity',roles:'super',permissions:'super',sso:'integration',todoIntegration:'integration',messageIntegration:'integration',external:'integration',settings:'super',monitor:'integration',adminHome:'any',users:'system',organizations:'system',dictionaries:'system'};
+   const permissions={categories:'application',access:'application',applicationRequests:'application',accountOpeningRequests:'application',identityOverview:'identity',identities:'identity',identityMappings:'identity',mappings:'identity',exceptions:'identity',roles:'system',permissions:'super',sso:'integration',todoIntegration:'integration',messageIntegration:'integration',external:'integration',settings:'super',monitor:'integration',adminHome:'any',users:'system',organizations:'system',dictionaries:'system'};
    auth(a,resource.startsWith('logs:')?'audit':permissions[resource]||'super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
    if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
@@ -154,6 +154,7 @@ export function createPortalService(provider,getActor){
      syncUserRoleScopes(d,x);d.users.push(x);result=decorateUser(d,x);
     }else if(action==='setPortalUserStatus'){
      const x=requireRow(d.users,p.id,p.version);if(!['NORMAL','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');
+     if(x.userType==='LOCAL'&&!can(a,'super'))fail('FORBIDDEN','门户本地用户启停仅允许门户超级管理员操作');
      if(x.id===a.id&&p.status==='DISABLED')fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
      if(isSuper&&p.status==='DISABLED'){
