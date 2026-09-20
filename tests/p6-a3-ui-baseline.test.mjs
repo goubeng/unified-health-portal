@@ -180,3 +180,38 @@ test('系统空值占位统一使用英文半角短横线',()=>{
     assert(!/\|\|\s*['\"]—['\"]/.test(source),file+' 仍存在全角长横线空值占位');
   }
 });
+
+
+test('公告详情与编辑保持通知公告菜单选中',()=>{
+  const app=fs.readFileSync('src/App.vue','utf8');
+  assert(app.includes('const isMenuActive=page=>'));
+  assert(app.includes("route.meta.resource==='announcementDetail'&&page.resource==='announcements'"));
+  assert(app.includes(":class=\"{active:isMenuActive(p)}\""));
+  assert(app.includes("route.query.mode==='edit'"));
+  assert(app.includes("return '编辑公告'"));
+});
+
+test('管理端公告详情与编辑在右侧内容区打开，不使用详情编辑弹窗',()=>{
+  const list=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const editor=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
+  assert(list.includes('@click="$emit(\'detail\',row)"'));
+  assert(list.includes('@click="$emit(\'edit\',row)"'));
+  assert(!list.includes('function openEdit(row)'));
+  assert(page.includes('<AnnouncementEditPage'));
+  assert(page.includes("route.query.mode==='edit'"));
+  assert(page.includes("@detail=\"openAdminAnnouncementDetail\""));
+  assert(page.includes("@edit=\"openAdminAnnouncementEdit\""));
+  assert(editor.includes('class="announcement-admin-edit-page"'));
+  assert(editor.includes('to="#page-header-actions"'));
+});
+
+test('公告撤回删除确认分别使用warning和danger提示主题',()=>{
+  const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  const withdraw=source.split('function withdraw(row){')[1]?.split('function remove(row){')[0]||'';
+  const remove=source.split('function remove(row){')[1]?.split('async function fileToDataUrl')[0]||'';
+  assert(withdraw.includes("theme:'warning'"));
+  assert(withdraw.includes("confirmBtn:{content:'确认撤回',theme:'warning'}"));
+  assert(remove.includes("theme:'danger'"));
+  assert(remove.includes("confirmBtn:{content:'确认删除',theme:'danger'}"));
+});
