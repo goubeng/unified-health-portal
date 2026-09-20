@@ -591,3 +591,6 @@
 
 /* User management: compact keyword query and flat role selection. */
 .user-management .portal-query .user-query-keyword{width:220px!important}.user-role-options{display:flex!important;align-items:center;flex-wrap:wrap;gap:10px 20px;min-height:32px;padding:5px 0}.user-role-options .t-checkbox{margin-right:0!important;min-width:150px;font-size:13px}.user-role-options .t-checkbox__label{font-size:13px}
+
+/* Account binding search: separate trusted-identity auto lookup from explicit account lookup. */
+.binding-auto-search{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px;border:1px solid #e5e8ef;border-radius:4px;background:#fafbfc}.binding-auto-search>div{display:flex;min-width:0;flex-direction:column;gap:4px}.binding-auto-search strong{color:#344054;font-size:13px;font-weight:600}.binding-auto-search span{color:#86909c;font-size:12px}.binding-search-divider{display:flex;align-items:center;gap:10px;color:#98a2b3;font-size:12px}.binding-search-divider::before,.binding-search-divider::after{content:"";height:1px;flex:1;background:#eef0f4}.binding-search-divider>span{white-space:nowrap}@media(max-width:760px){.binding-auto-search{align-items:stretch;flex-direction:column}.binding-auto-search>.t-button{width:100%}}
