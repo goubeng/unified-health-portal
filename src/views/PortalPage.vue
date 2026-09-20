@@ -37,7 +37,7 @@
 
      <section class="panel admin-exception-panel">
       <div class="section-head"><h2>接入异常 <span class="portal-count">{{homeExceptions.length}}</span></h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看全部</router-link></div>
-      <div v-for="item in latest(homeExceptions).slice(0,5)" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button><p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p></div><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></div>
+      <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button><p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p></div><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></div>
       <EmptyState v-if="!homeExceptions.length" :description="can(actor,'integration')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
      </section>
 
