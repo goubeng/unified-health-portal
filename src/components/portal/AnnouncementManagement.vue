@@ -51,7 +51,6 @@
       placement="center"
       :header="form.id?'编辑公告':'新增公告'"
       width="min(1180px, calc(100vw - 48px))"
-      :footer="false"
       :close-on-overlay-click="false"
     >
       <div v-if="formError" class="error-note">{{formError}}</div>
