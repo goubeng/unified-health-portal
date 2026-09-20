@@ -45,7 +45,7 @@
       <div class="form-grid role-basic-form">
         <div class="form-field"><label>角色编码 <span class="portal-required">*</span></label><t-input v-model="form.roleCode" :disabled="Boolean(form.builtIn)" placeholder="例如 CUSTOM_OPERATOR"/></div>
         <div class="form-field"><label>角色名称 <span class="portal-required">*</span></label><t-input v-model="form.roleName" :disabled="Boolean(form.builtIn)" placeholder="请输入角色名称"/></div>
-        <div class="form-field"><label>启用状态</label><t-switch :value="form.status==='ENABLED'" :disabled="form.id==='ROLE_SUPER'" :label="['启用','停用']" @change="form.status=$event?'ENABLED':'DISABLED'"/></div>
+        <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status==='ENABLED'" :disabled="form.id==='ROLE_SUPER'" @change="form.status=$event?'ENABLED':'DISABLED'"/><span>{{form.status==='ENABLED'?'启用':'停用'}}</span></div></div>
         <div class="form-field"><label>数据范围</label><t-input value="ALL_PORTAL" disabled/></div>
         <div class="form-field full"><label>角色说明</label><t-textarea v-model="form.description" :autosize="{minRows:2,maxRows:4}"/></div>
       </div>
