@@ -58,3 +58,22 @@ psql -X -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM system_config;"
 新增文件：`validation/generate-native-migration.mjs`输出003；`validation/native-acceptance.sql`执行事务隔离反例并回滚。原生表只执行003，不重跑001/002；002的部分唯一规则已包含在003中。`schema.sql`/001面向空schema的独立初始化尚未单独运行，不混称为已在目标库执行。
 
 真实后端跨表事务、并发事件处理和现场联调尚未实现。NocoDB多个HTTP写请求不构成事务；后续服务端必须用原生PG连接和受控事务实现，不向前端暴露管理Token。
+
+
+## 0.3.0-B 待办表结构调整（待执行）
+
+2026-09-20 需求已确认：门户待办不承接优先级、截止时间、逾期、来源版本和终态时间。
+
+因此下一阶段数据库 Migration 需调整 `todo_item`：
+
+- 删除 `priority`；
+- 删除 `source_revision`；
+- 删除 `due_at`；
+- 删除 `terminal_at`；
+- TODO状态CHECK由 `PENDING / COMPLETED / WITHDRAWN / EXPIRED` 收敛为 `PENDING / COMPLETED / WITHDRAWN`；
+- 删除依赖 `terminal_at` 的状态CHECK；
+- 保留 `application_id + source_todo_id` 唯一约束；
+- 事件幂等继续使用事件接收/回执表中的 `application_id + kind + event_id`；
+- 待办进入终态后的时间如有留存清理需要，使用该次状态更新后的 `updated_at`，不再维护独立 `terminal_at`。
+
+当前 `database/schema.sql`、历史Migration及已验收P3数据库仍保持原样，作为历史事实基线；本节仅记录0.3.0-B目标变更。本阶段未执行DDL、Migration或NocoDB结构同步。
