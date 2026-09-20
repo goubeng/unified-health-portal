@@ -96,20 +96,18 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
    status:i<8?'UNREAD':'READ',readAt:i<8?null:at(-1),createdAt:at(-i-1),url:portal?null:app.url});
  }));
  const announcementRows=[
-  ['关于门户服务使用安排的通知','请通过应用中心查看服务入口，业务办理要求以来源系统说明为准。','ALL','PUBLISHED'],
-  ['关于完善应用接入资料的通知','请整理应用目录、责任分工与接口字段，提交接入资料核验。','GOV','DRAFT'],
-  ['公众服务事项办理指引','请在办事前核对材料清单，关注待办与消息中的办理要求。','CITIZEN','PUBLISHED'],
-  ['卫生健康统计报送安排','请核对本期统计报表，并在规定期限内完成报送。','GOV','PUBLISHED'],
-  // ORG is reserved for P6; retain organization drafts for admin-only inspection.
-  ['运行保障值班安排','请核对值班分工，及时记录运行问题与处理情况。','ORG','DRAFT'],
-  ['信息发布审核工作安排','发布前须核对内容、发布范围与有效期。','ORG','DRAFT'],
-  ['原维护时段安排撤回通知','原维护时段安排已撤回，后续安排另行通知。','ALL','WITHDRAWN'],
-  ['个人信息保护提示','请妥善保管账号，勿向他人提供验证码或身份核验资料。','ALL','PUBLISHED']
+  ['关于门户服务使用安排的通知','请通过应用中心查看服务入口，业务办理要求以来源系统说明为准。','ALL','PUBLISHED','IMMEDIATE',null,null],
+  ['关于完善应用接入资料的通知','请整理应用目录、责任分工与接口字段，提交接入资料核验。','GOV','DRAFT',null,null,null],
+  ['公众服务事项办理指引','请在办事前核对材料清单，关注待办与消息中的办理要求。','CITIZEN','PUBLISHED','IMMEDIATE',null,null],
+  ['卫生健康统计报送安排','请核对本期统计报表，并在规定期限内完成报送。','GOV','SCHEDULED','SCHEDULED',at(720),null],
+  ['运行保障值班安排','请核对值班分工，及时记录运行问题与处理情况。','GOV','DRAFT',null,null,null],
+  ['信息发布审核工作安排','发布前须核对内容、发布范围与有效期。','ALL','DRAFT',null,null,null],
+  ['原维护时段安排撤回通知','原维护时段安排已撤回，后续安排另行通知。','ALL','WITHDRAWN','IMMEDIATE',null,null],
+  ['个人信息保护提示','请妥善保管账号，勿向他人提供验证码或身份核验资料。','ALL','EXPIRED','IMMEDIATE',null,at(-1)]
  ];
- const announcements=announcementRows.map(([title,content,scope,status],i)=>row('MOCK_ANN_'+(i+1),{
-  title,content,type:i===7?'提示':'通知',scope,status,orgKey:scope==='ORG'?'PORTAL':null,orgName:scope==='ORG'?'门户运行保障中心':null,
-  identitySource:scope==='ORG'?'闽政务':null,visibility:scope==='ORG'?'ADMIN_ONLY':'SCOPE',publisherId:status==='DRAFT'?null:actors[3].id,
-  publishedAt:status==='DRAFT'?null:at(-24-i),effectiveStart:status==='DRAFT'?null:at(-24-i),effectiveEnd:null,attachments:[]
+ const announcements=announcementRows.map(([title,content,scope,status,publishMode,scheduledPublishAt,effectiveEnd],i)=>row('MOCK_ANN_'+(i+1),{
+  title,content,type:i===7?'提示':'通知',scope,status,publishMode,scheduledPublishAt,effectiveEnd,submittedAt:['DRAFT'].includes(status)?null:at(-30-i),submittedBy:['DRAFT'].includes(status)?null:actors[3].id,
+  publisherId:['DRAFT'].includes(status)?null:actors[3].id,publishedAt:status==='PUBLISHED'?at(-24-i):null,withdrawnAt:status==='WITHDRAWN'?at(-6):null,attachments:[]
  }));
  const settingRows=[
   ['retention.message_days','消息留存周期（天）',90,'day'],['retention.todo_terminal_days','终态待办留存周期（天）',180,'day'],
