@@ -113,6 +113,8 @@ test('公告编辑主操作固定在Dialog Footer，正文单独滚动',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   assert(source.includes('<template #footer>'));
   assert(source.includes('class="announcement-form-actions"'));
+  const formDialog=source.split(':header="form.id?\'编辑公告\':\'新增公告\'"')[1]?.split('</t-dialog>')[0]||'';
+  assert(!formDialog.includes(':footer="false"'));
   const editorIndex=source.indexOf('<AnnouncementEditor');
   const footerIndex=source.indexOf('<template #footer>',editorIndex);
   assert(editorIndex>=0&&footerIndex>editorIndex);
@@ -129,4 +131,31 @@ test('我的应用隐藏正常关联状态，其它应用保留状态提示',()=
   assert(cards.includes("props.hideNormalState&&app.accessState==='BOUND'"));
   assert(cards.includes('class="portal-app-status-tag"'));
   assert(css.includes('.portal-app-status-tag,.portal-app-status-tag .t-tag__text{font-size:12px!important'));
+});
+
+
+test('公众用户个人中心不制造所属单位，组织字段按来源可选',()=>{
+  const profile=fs.readFileSync('src/components/portal/PersonalProfile.vue','utf8');
+  const seed=fs.readFileSync('src/mock/seed.js','utf8');
+  assert(profile.includes("props.user.userType!=='CITIZEN'"));
+  assert(profile.includes('v-if="showOrganization"'));
+  assert(seed.includes("userType:'CITIZEN',orgName:'',orgKey:''"));
+  assert(!seed.includes("userType:'CITIZEN',orgName:'公众服务'"));
+});
+
+test('我的申请Tab与列表保持16px间距',()=>{
+  const source=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert.equal((source.match(/class="my-applications-table"/g)||[]).length,2);
+  assert(css.includes('.my-applications-table{margin-top:16px}'));
+});
+
+test('编辑公告启用Dialog Footer且主操作不会被footer=false关闭',()=>{
+  const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  const formDialog=source.split(':header="form.id?\'编辑公告\':\'新增公告\'"')[1]?.split('</t-dialog>')[0]||'';
+  assert(formDialog.includes('<template #footer>'));
+  assert(!formDialog.includes(':footer="false"'));
+  assert(formDialog.includes('取消'));
+  assert(formDialog.includes('预览'));
+  assert(formDialog.includes('saveAnnouncement'));
 });
