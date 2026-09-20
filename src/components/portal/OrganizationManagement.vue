@@ -121,8 +121,8 @@ const columns=[
 const detailItems=computed(()=>{
   const row=detail.value||{};
   return [
-    ['code','组织编码',row.code],['name','组织名称',row.name],['type','组织类型',typeLabel(row.type)],['parentName','上级组织',row.parentName||'—'],
-    ['path','组织路径',row.path],['source','数据来源',sourceLabel(row.source)],['status','启用状态',label(row.status)],['remark','备注',row.remark||'—'],
+    ['code','组织编码',row.code],['name','组织名称',row.name],['type','组织类型',typeLabel(row.type)],['parentName','上级组织',row.parentName||'-'],
+    ['path','组织路径',row.path],['source','数据来源',sourceLabel(row.source)],['status','启用状态',label(row.status)],['remark','备注',row.remark||'-'],
     ['createdAt','创建时间',date(row.createdAt)],['updatedAt','更新时间',date(row.updatedAt)]
   ].map(([key,labelText,value])=>({key,label:labelText,value}));
 });
