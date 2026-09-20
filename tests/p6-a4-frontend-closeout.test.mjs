@@ -74,6 +74,6 @@ test('PG-002和PG-104文档状态已收口',()=>{
   assert(!pageList.includes('PG-104 | 用户端 | 待办任务 | /portal/todos | 待补字段/查询'));
   assert(pageSpec.includes('## PG-002 认证结果'));
   assert(pageSpec.includes('## PG-104 待办任务'));
-  assert(functionList.includes('| TD-02 | 用户端 | 待办 | 列表/详情/去处理'));
+  assert(functionList.includes('| F-08 | 用户端 | 待办任务 | 本人待办查询、详情、去处理、状态展示'));
   assert(functionList.includes('前端Mock已完成 / 真实跳转待C'));
 });
