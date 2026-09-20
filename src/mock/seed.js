@@ -42,7 +42,6 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
     externalUserId:'P4_SUBJECT_'+actor.id+'_'+app.sourceNo,status:'BOUND',bindingMethod:'ADMIN',externalAccountStatus:'ACTIVE',boundAt:at(-24),conflictReason:null
    }));
    const scenario=[
-    [5,'REVIEWING','SELF','ACTIVE','高权限账号验证通过，等待管理员审核'],
     [11,'FAILED','SELF','DISABLED','子系统账号已停用，请联系目标系统管理员'],
     [12,'CONFLICT','SELF','ACTIVE','该子系统账号已绑定其他统一用户，等待管理员处理']
    ].map(([sourceNo,status,bindingMethod,externalAccountStatus,conflictReason])=>{
