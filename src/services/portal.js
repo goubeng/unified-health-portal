@@ -108,7 +108,7 @@ export function createPortalService(provider,getActor){
    if(resource==='users'||resource==='identities')return (d.users||actors).map(user=>decorateUser(d,user));
    if(resource==='identityOverview')return d.users.map(user=>{
     const mappings=d.mappings.filter(m=>m.userId===user.id).map(m=>({...m,appName:d.apps.find(app=>app.id===m.appId)?.name||m.appName,todoCount:d.todos.filter(t=>t.userId===user.id&&t.appId===m.appId).length,messageCount:d.messages.filter(t=>t.userId===user.id&&t.appId===m.appId).length}));
-    return {...decorateUser(d,user),user:{...decorateUser(d,user),source:identitySourceName(user)},source:identitySourceName(user),mappings,boundCount:mappings.filter(m=>m.status==='BOUND').length,exceptionCount:mappings.filter(m=>['FAILED','CONFLICT'].includes(m.status)).length};
+    return {...decorateUser(d,user),user:{...decorateUser(d,user),source:identitySourceName(user)},source:identitySourceName(user),mappings,boundCount:mappings.filter(m=>m.status==='BOUND').length,reviewCount:mappings.filter(m=>m.status==='REVIEWING').length,exceptionCount:mappings.filter(m=>['FAILED','CONFLICT'].includes(m.status)).length};
    });
    if(resource==='identityMappings')return (d.users||actors).map(x=>({id:x.id,name:x.name,source:identitySourceName(x),status:'BOUND'}));
    if(resource==='exceptions')return d.mappings.filter(x=>x.status==='CONFLICT'||x.status==='FAILED');
