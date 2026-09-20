@@ -15,19 +15,25 @@
         </div>
       </div>
 
-      <t-alert theme="info" class="binding-demo-alert">
-        当前为 Mock 演示流程，不调用真实子系统、短信或身份平台。正式接入时页面流程不变，仅替换 Service/Provider。
-      </t-alert>
-
       <div v-if="error" class="error-note" role="alert">{{error}}</div>
 
       <section v-if="step===0" class="binding-stage">
         <h3>查找已有子系统账号</h3>
-        <p class="muted">优先尝试可信身份信息自动匹配；也可输入已有子系统账号辅助查找。姓名、手机号等只用于发现候选，不直接完成绑定。</p>
+        <p class="muted">可先使用当前可信身份信息自动查找；如已知子系统账号，也可按账号精确查找。候选匹配后仍需完成身份验证，不会直接绑定。</p>
+
+        <div class="binding-auto-search">
+          <div>
+            <strong>使用当前身份自动查找</strong>
+            <span>优先使用可信身份信息发现候选账号</span>
+          </div>
+          <t-button variant="outline" theme="primary" :loading="busy" @click="autoDiscover">自动查找</t-button>
+        </div>
+
+        <div class="binding-search-divider"><span>或输入已有子系统账号</span></div>
 
         <div class="binding-search-row">
-          <t-input v-model="externalAccount" clearable placeholder="已有子系统账号（可选）"/>
-          <t-button theme="primary" :loading="busy" @click="discover">查找账号</t-button>
+          <t-input v-model="externalAccount" clearable placeholder="请输入已有子系统账号" @enter="discoverByAccount"/>
+          <t-button theme="primary" :loading="busy" @click="discoverByAccount">按账号查找</t-button>
         </div>
 
         <template v-if="discovery?.state==='NO_ACCOUNT'">
@@ -233,8 +239,8 @@ async function call(action,payload){
  }catch(cause){error.value=cause.message;return null;}
  finally{busy.value=false;}
 }
-async function discover(){
- const data=await call('discoverApplicationAccountCandidates',{appId:props.app.id,externalAccount:externalAccount.value.trim()});
+async function discoverAccount(account=''){
+ const data=await call('discoverApplicationAccountCandidates',{appId:props.app.id,externalAccount:account});
  if(!data)return;
  discovery.value=data;
  if(data.state==='BOUND'){finish(data.mapping,'BOUND');return;}
@@ -242,6 +248,15 @@ async function discover(){
  if(data.state==='ACCOUNT_DISABLED'){finish(candidate.value,'ACCOUNT_DISABLED');return;}
  if(data.state==='CONFLICT'){finish(candidate.value,'CONFLICT');return;}
  if(candidate.value)verificationMethod.value=candidate.value.verificationMethods?.[0]||'';
+}
+function autoDiscover(){
+ externalAccount.value='';
+ return discoverAccount('');
+}
+function discoverByAccount(){
+ const account=externalAccount.value.trim();
+ if(!account){error.value='请输入已有子系统账号，或使用“自动查找”';return;}
+ return discoverAccount(account);
 }
 function goVerify(){step.value=1;}
 function showConflict(){finish(candidate.value,'CONFLICT');}
