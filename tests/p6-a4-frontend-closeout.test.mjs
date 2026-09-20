@@ -43,7 +43,8 @@ test('PG-104待办列表字段完整并支持标题查看详情',()=>{
   assert(source.includes('@click="openDetail(row)"'));
   assert(source.includes('header="待办详情"'));
   assert(source.includes('源待办ID'));
-  assert(source.includes('待办说明'));
+  assert(source.includes("{key:'summary',label:'待办说明',value:text(active.value.summary)||'-',wide:true}"));
+  assert(!source.includes('class="todo-detail-summary"'));
 });
 
 test('PG-104仅待处理状态显示去处理并复用openTodo校验',()=>{
