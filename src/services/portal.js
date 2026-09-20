@@ -94,7 +94,7 @@ export function createPortalService(provider,getActor){
    if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements;}
    if(resource==='profile')return decorateUser(d,a);
    if(resource==='myApplicationRequests'){
-    const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'APPLICATION_ACCESS',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName}));
+    const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>{const app=d.apps.find(item=>item.id===x.appId);return {...x,requestType:'APPLICATION_ACCESS',appName:app?.name||x.appName,accessMode:app?.accessMode||'REQUEST',postGrantMode:app?.postGrantMode||'DIRECT'};});
     const opening=(d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName}));
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
