@@ -18,7 +18,7 @@ test('应用逐项匹配原始需求42个未划除系统，描述与归组齐全
 });
 
 test('每人多条待办消息、应用关联、公告与日志有足够展示数据且无展示占位词',()=>{
- const d=createSeed();assert.equal(d.schemaVersion,4);assert.equal(d.users.length,5);
+ const d=createSeed();assert.equal(d.schemaVersion,5);assert.equal(d.users.length,5);
  for(const actor of actors.filter(x=>x.userType!=='LOCAL')){assert(d.todos.filter(x=>x.userId===actor.id&&x.status==='PENDING').length>=8);assert(d.messages.filter(x=>x.userId===actor.id&&x.status==='UNREAD').length>=8);assert(d.mappings.filter(x=>x.userId===actor.id&&x.status==='BOUND').length>=5);}
  const local=actors.find(x=>x.userType==='LOCAL');assert(local);assert.equal(d.todos.filter(x=>x.userId===local.id).length,0);assert.equal(d.messages.filter(x=>x.userId===local.id).length,0);assert.equal(d.mappings.filter(x=>x.userId===local.id).length,0);
  assert(d.announcements.length>=8);assert(d.integrations.length>=42);
@@ -33,9 +33,9 @@ test('公众仅查看适用应用且不能绑定政务限定应用',async()=>{
  assert.equal((await s.command('bind',{appId:gov.id,externalAccount:'account'})).error.code,'FORBIDDEN');
 });
 
-test('v4缓存与旧版本隔离，持久化失败不提交内存事务',()=>{
+test('v5缓存与旧版本隔离，持久化失败不提交内存事务',()=>{
  const keys=[];const storage={getItem:k=>{keys.push(k);return null;},setItem:()=>{throw new Error('quota');}};
- const p=createMockProvider(storage),before=p.read();assert.deepEqual(keys,['wj-portal-p4-demo-v4']);
+ const p=createMockProvider(storage),before=p.read();assert.deepEqual(keys,['wj-portal-p4-demo-v5']);
  assert.throws(()=>p.transact(d=>{d.apps=[];return true;}),/quota/);assert.deepEqual(p.read(),before);
 });
 
