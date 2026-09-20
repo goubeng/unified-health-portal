@@ -22,10 +22,10 @@ import EmptyState from './EmptyState.vue';
 import {Icon} from 'tdesign-icons-vue-next';
 import {text,label} from './presentation.js';
 
-defineProps({apps:{type:Array,default:()=>[]},compact:Boolean});
+const props=defineProps({apps:{type:Array,default:()=>[]},compact:Boolean,hideNormalState:Boolean});
 const emit=defineEmits(['detail','enter','bind','request','view-request','view-binding','view-conflict']);
 
-function showState(app){return Boolean(app.accessState)&&!['DIRECT'].includes(app.accessState);}
+function showState(app){if(!app.accessState||app.accessState==='DIRECT')return false;if(props.hideNormalState&&app.accessState==='BOUND')return false;return true;}
 function stateText(app){
  if(app.accessState==='BOUND')return '已关联';
  if(app.accessState==='UNBOUND')return '未关联';
