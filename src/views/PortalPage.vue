@@ -10,6 +10,17 @@
      <div class="admin-overview-grid">
       <button v-for="card in adminOverviewCards" :key="card.label" type="button" class="admin-overview-card" @click="card.path&&router.push(card.path)"><span>{{card.label}}</span><strong>{{card.value}}</strong><small>{{card.hint}}</small></button>
      </div>
+     <section v-if="overview.serviceHealth" class="panel admin-service-health-panel">
+      <div class="section-head"><h2>集成运行健康</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div>
+      <div class="admin-service-health-grid">
+       <button v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" type="button" class="admin-service-health-card" @click="can(actor,'integration')&&router.push('/admin/monitor')">
+        <strong>{{kind}}</strong>
+        <span><b>{{overview.serviceHealth[kind]?.normal??0}}</b> 正常</span>
+        <span><b class="is-danger">{{overview.serviceHealth[kind]?.abnormal??0}}</b> 异常</span>
+        <span><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b> 未配置/停用</span>
+       </button>
+      </div>
+     </section>
      <section class="panel admin-work-panel"><div class="section-head"><h2>管理工作</h2><span class="muted">按当前账号权限显示</span></div><div class="admin-entry-grid compact"><button v-if="can(actor,'announcement')" class="admin-entry-card compact" @click="openForm('saveAnnouncement')"><Icon name="notification"/><span><strong>发布公告</strong><small>公告内容维护</small></span></button><button v-for="item in adminShortcuts" :key="item.id" class="admin-entry-card compact" @click="router.push(item.path)"><Icon name="file"/><span><strong>{{text(item.title)}}</strong><small>{{adminShortcutHint(item.resource)}}</small></span></button></div></section>
      <div class="admin-home-grid">
       <section class="panel"><div class="section-head"><h2>管理提醒</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div><div class="admin-reminder-grid"><button v-for="item in adminReminders" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)"><span>{{item.label}}</span><strong :class="{'is-danger':item.danger}">{{item.value}}</strong><small>{{item.hint}}</small></button></div></section>
@@ -34,6 +45,8 @@
    <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
    <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load"/>
+   <MonitorManagement v-else-if="resource==='monitor'" :rows="rows"/>
+   <LogManagement v-else-if="resource.startsWith('logs:')" :rows="rows" :kind="resource.split(':')[1]" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
    <template v-else-if="resource==='announcementDetail'"><AnnouncementDetail v-if="detail" :record="detail" @download="download"/><section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section></template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
@@ -113,6 +126,8 @@ import RoleManagement from '../components/portal/RoleManagement.vue';
 import OrganizationManagement from '../components/portal/OrganizationManagement.vue';
 import DictionaryManagement from '../components/portal/DictionaryManagement.vue';
 import AnnouncementManagement from '../components/portal/AnnouncementManagement.vue';
+import MonitorManagement from '../components/portal/MonitorManagement.vue';
+import LogManagement from '../components/portal/LogManagement.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
@@ -137,18 +152,20 @@ const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.v
 const adminShortcuts=computed(()=>pages.filter(item=>['PG-220','PG-202','PG-205','PG-222','PG-225'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
  {label:'应用总数',value:overview.value.appCount??0,hint:'统一应用目录',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'已启用应用',value:overview.value.enabledCount??0,hint:'当前启用状态',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'待审核申请',value:overview.value.pendingAccessCount??0,hint:'应用入口资格',path:can(actor.value,'application')?'/admin/application-requests':''},
- {label:'正常接入项',value:overview.value.integrationCount??0,hint:'SSO / 待办 / 消息',path:can(actor.value,'integration')?'/admin/monitor':''},
- {label:'待处理异常',value:overview.value.exceptionCount??0,hint:'账号映射与接入异常',path:can(actor.value,'identity')?'/admin/mapping-exceptions':can(actor.value,'integration')?'/admin/monitor':''}
+ {label:'已启用应用',value:overview.value.enabledCount??0,hint:'当前启用',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'正常应用',value:overview.value.normalAppCount??0,hint:'运行状态正常',path:can(actor.value,'integration')?'/admin/monitor':''},
+ {label:'异常应用',value:overview.value.abnormalAppCount??0,hint:'运行状态异常',path:can(actor.value,'integration')?'/admin/monitor':''},
+ {label:'门户用户',value:overview.value.userCount??0,hint:'公众 / 政务 / 本地',path:can(actor.value,'system')?'/admin/users':''},
+ {label:'待审核申请',value:overview.value.pendingAccessCount??0,hint:'应用入口资格',path:can(actor.value,'application')?'/admin/application-requests':''}
 ]);
 const adminShortcutHint=resource=>({announcements:'公告内容维护',apps:'应用目录配置',identityOverview:'账号映射核对',monitor:'运行状态检查'}[resource]||(String(resource||'').startsWith('logs:')?'查看门户操作日志':'进入管理模块'));
 const adminReminders=computed(()=>[
- {label:'待审核申请',value:overview.value.pendingAccessCount??0,hint:'用户应用访问申请',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
- {label:'异常接入',value:overview.value.exceptionCount??0,hint:'需及时核查',path:can(actor.value,'integration')?'/admin/monitor':'',danger:(overview.value.exceptionCount??0)>0},
- {label:'停用应用',value:Math.max((overview.value.appCount??0)-(overview.value.enabledCount??0),0),hint:'检查目录启停',path:can(actor.value,'application')?'/admin/apps':'',danger:false},
- {label:'身份冲突',value:homeExceptions.value.filter(item=>String(item.status||'').includes('CONFLICT')).length,hint:'查看映射冲突',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:homeExceptions.value.some(item=>String(item.status||'').includes('CONFLICT'))},
- {label:'公告管理',value:can(actor.value,'announcement')?'已开通':'只读',hint:'维护公告发布',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
+ {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
+ {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
+ {label:'关联审核',value:overview.value.pendingBindingReviewCount??0,hint:'高权限账号待审核',path:can(actor.value,'identity')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
+ {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
+ {label:'未处理异常',value:overview.value.openErrorCount??0,hint:'异常日志处理',path:can(actor.value,'audit')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
+ {label:'定时公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
  ]);
 let loadVersion=0;
 async function read(key){const result=await portal.read(key);if(!result.ok)throw new Error(result.error.message);return result.data;}
@@ -177,7 +194,7 @@ async function load(){
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
    homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
-   homeExceptions.value=[...(data.monitor||[]).filter(item=>!['NORMAL','CONFIGURED'].includes(item.status)),...(data.exceptions||[])];
+   const monitorExceptions=(data.monitor||[]).filter(item=>['SSO','TODO','MESSAGE'].some(kind=>item.services?.[kind]?.status==='ABNORMAL')).map(item=>({...item,kind:'运行监控',status:'ABNORMAL',remark:['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.status==='ABNORMAL').join(' / ')+' 异常'}));homeExceptions.value=[...monitorExceptions,...(data.exceptions||[])];
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
