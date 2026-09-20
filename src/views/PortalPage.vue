@@ -31,6 +31,7 @@
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
    <PersonalProfile v-else-if="resource==='profile'" :user="actor"/>
+   <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
    <template v-else-if="resource==='announcementDetail'"><AnnouncementDetail v-if="detail" :record="detail" @download="download"/><section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section></template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
    <section v-else class="portal-list">
@@ -103,6 +104,7 @@ import IdentityMappings from '../components/portal/IdentityMappings.vue';
 import AccessConfigDetail from '../components/portal/AccessConfigDetail.vue';
 import AppCards from '../components/portal/AppCards.vue';
 import AccountBindingWizard from '../components/portal/AccountBindingWizard.vue';
+import MyApplications from '../components/portal/MyApplications.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
