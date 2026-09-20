@@ -18,7 +18,6 @@
        <span class="admin-overview-content">
         <span>{{card.label}}</span>
         <strong>{{card.value}}</strong>
-        <small>{{card.hint}}</small>
        </span>
       </button>
      </div>
@@ -210,10 +209,10 @@ const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
 const adminShortcuts=computed(()=>pages.filter(item=>['PG-202','PG-228','PG-205'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
- {label:'纳管应用',value:overview.value.appCount??0,hint:'统一应用目录',icon:'app',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'启用应用',value:overview.value.enabledCount??0,hint:'当前启用',icon:'check-circle',tone:'green',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'门户用户',value:overview.value.userCount??0,hint:'已建立统一用户索引',icon:'user',path:can(actor.value,'system')?'/admin/users':''},
- {label:'接入异常',value:overview.value.abnormalServiceCount??0,hint:'已配置服务运行异常',icon:'error-circle',path:can(actor.value,'integration')?'/admin/monitor':''}
+ {label:'纳管应用',value:overview.value.appCount??0,icon:'app',tone:'blue',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'启用应用',value:overview.value.enabledCount??0,icon:'check-circle',tone:'green',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'门户用户',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'system')?'/admin/users':''},
+ {label:'接入异常',value:overview.value.abnormalServiceCount??0,icon:'error-circle',tone:'red',path:can(actor.value,'integration')?'/admin/monitor':''}
 ]);
 const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户用户维护',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
 const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
