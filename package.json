@@ -1,6 +1,25 @@
 {
-  "name": "wj-xc-portal", "version": "0.2.0", "private": true, "type": "module",
-  "scripts": {"dev":"vite --host 127.0.0.1 --port 3800 --strictPort", "api":"node server/api.mjs", "build":"vite build", "preview":"vite preview --host 127.0.0.1 --port 3800 --strictPort", "test":"node --test tests/*.test.mjs", "check:p3":"node database/validation/verify-design.mjs"},
-  "dependencies":{"vue":"3.5.41","vue-router":"4.6.4","tdesign-vue-next":"1.20.6","tdesign-icons-vue-next":"0.3.7"},
-  "devDependencies":{"@vitejs/plugin-vue":"5.2.4","vite":"5.4.21"}
+  "name": "wj-xc-portal",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 3800 --strictPort",
+    "api": "node server/api.mjs",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 3800 --strictPort",
+    "test": "node --test tests/*.test.mjs",
+    "check:p3": "node database/validation/verify-design.mjs",
+    "api:db": "node server/api.mjs --db"
+  },
+  "dependencies": {
+    "vue": "3.5.41",
+    "vue-router": "4.6.4",
+    "tdesign-vue-next": "1.20.6",
+    "tdesign-icons-vue-next": "0.3.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "5.2.4",
+    "vite": "5.4.21"
+  }
 }
