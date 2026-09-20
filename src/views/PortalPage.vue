@@ -44,11 +44,21 @@
    <RoleManagement v-else-if="resource==='roles'" :rows="rows" @saved="load"/>
    <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
-   <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load"/>
+   <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load" @detail="openAdminAnnouncementDetail" @edit="openAdminAnnouncementEdit"/>
    <MonitorManagement v-else-if="resource==='monitor'" :rows="rows"/>
    <LogManagement v-else-if="resource.startsWith('logs:')" :rows="rows" :kind="resource.split(':')[1]" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
-   <template v-else-if="resource==='announcementDetail'"><AnnouncementDetail v-if="detail" :record="detail" @download="download"/><section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section></template>
+   <template v-else-if="resource==='announcementDetail'">
+    <AnnouncementEditPage
+      v-if="admin&&route.query.mode==='edit'&&detail"
+      :record="detail"
+      :type-items="dictItems"
+      @saved="handleAdminAnnouncementSaved"
+      @cancel="cancelAdminAnnouncementEdit"
+    />
+    <AnnouncementDetail v-else-if="detail" :record="detail" @download="download"/>
+    <section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section>
+   </template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
    <section v-else class="portal-list">
     <t-form layout="inline" class="portal-query list-toolbar">
@@ -126,6 +136,7 @@ import RoleManagement from '../components/portal/RoleManagement.vue';
 import OrganizationManagement from '../components/portal/OrganizationManagement.vue';
 import DictionaryManagement from '../components/portal/DictionaryManagement.vue';
 import AnnouncementManagement from '../components/portal/AnnouncementManagement.vue';
+import AnnouncementEditPage from '../components/portal/AnnouncementEditPage.vue';
 import MonitorManagement from '../components/portal/MonitorManagement.vue';
 import LogManagement from '../components/portal/LogManagement.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
@@ -185,7 +196,11 @@ async function load(){
   else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
   else if(key==='dictionaries'){tasks.dictionaryData=read('dictionaries');}
   else if(key==='announcements'&&isAdmin){tasks.rows=read('adminAnnouncements');if(can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');}
-  else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcementDetail'?(isAdmin?'adminAnnouncements':'announcements'):key==='announcements'&&isAdmin?'adminAnnouncements':key);
+  else if(key==='announcementDetail'){
+   tasks.rows=read(isAdmin?'adminAnnouncements':'announcements');
+   if(isAdmin&&route.query.mode==='edit'&&can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');
+  }
+  else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcements'&&isAdmin?'adminAnnouncements':key);
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
   if(version!==loadVersion)return;
   const data=Object.fromEntries(entries);allApps.value=data.apps;categories.value=data.categories||[];accessProfiles.value=data.accessProfiles||accessProfiles.value;systemRoles.value=data.systemRoles||(key==='roles'?data.rows:[])||[];organizations.value=data.organizations||organizations.value;dictTypes.value=data.dictionaryData?.types||[];dictItems.value=data.dictionaryData?.items||[];
@@ -405,6 +420,13 @@ async function showDetail(row,kind=listResource.value){
 }
 function closeDetail(visible){detailVisible.value=visible;if(!visible)detailAccessProfile.value=null;}
 function backToAnnouncements(){router.push(admin.value?'/admin/announcements':'/portal/announcements');}
+function openAdminAnnouncementDetail(row){router.push('/admin/announcements/'+encodeURIComponent(row.id));}
+function openAdminAnnouncementEdit(row){router.push({path:'/admin/announcements/'+encodeURIComponent(row.id),query:{mode:'edit'}});}
+function cancelAdminAnnouncementEdit(){router.push('/admin/announcements/'+encodeURIComponent(route.params.id));}
+function handleAdminAnnouncementSaved(saved){
+ detail.value=JSON.parse(JSON.stringify(saved));
+ router.replace('/admin/announcements/'+encodeURIComponent(saved.id||route.params.id));
+}
 async function downloadAccessSpec(){try{await downloadAccessContract();MessagePlugin.success('接口文件已下载');}catch(cause){MessagePlugin.error(cause.message);}}
 async function toggleAppStatus(row,enabled){const result=await command('setAppStatus',{id:row.id,version:row.version,status:enabled?'ENABLED':'DISABLED'});if(!result.ok){MessagePlugin.error(text(result.error.message));await load();return;}MessagePlugin.success(enabled?'应用已启用':'应用已停用');await load();}
 async function openConnectionConfig(app){
