@@ -30,15 +30,13 @@
         <template #empty><EmptyState description="暂无符合条件的用户"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #account="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.account)||'-'}}</button></template>
-        <template #userType="{row}"><t-tag variant="light">{{label(row.userType)}}</t-tag></template>
+        <template #userType="{row}"><t-tag :theme="userTypeTheme(row.userType)" variant="light">{{label(row.userType)}}</t-tag></template>
         <template #identitySource="{row}">{{text(row.identitySource)||source(row)}}</template>
         <template #roleLabels="{row}">{{text(row.roleLabels)||'无管理角色'}}</template>
         <template #status="{row}">
           <t-switch
-            class="user-status-switch"
             :value="row.status!=='DISABLED'"
             :disabled="row.userType==='LOCAL'&&!canSuper"
-            :label="['启用','停用']"
             @change="toggleStatus(row,$event)"
           />
         </template>
@@ -81,7 +79,7 @@
           <div class="form-field"><label>所属组织</label><t-select v-model="form.orgName" clearable filterable :options="orgOptions"/></div>
           <div class="form-field"><label>手机号</label><t-input v-model="form.mobile" placeholder="可选"/></div>
           <div class="form-field"><label>邮箱</label><t-input v-model="form.email" placeholder="可选"/></div>
-          <div class="form-field"><label>启用状态</label><t-switch class="user-status-switch" :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
+          <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <t-alert theme="info" class="user-source-alert">
@@ -91,7 +89,7 @@
       <template v-else>
         <DetailGrid :items="externalIdentityItems"/>
         <div class="form-grid user-external-maintenance">
-          <div class="form-field"><label>启用状态</label><t-switch class="user-status-switch" :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
+          <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <p class="muted">外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。</p>
@@ -122,6 +120,7 @@ const detailVisible=ref(false),detail=ref(null);
 const formVisible=ref(false),formMode=ref('edit'),form=reactive({}),formError=ref(''),saving=ref(false);
 
 const userTypeOptions=['CITIZEN','GOV','LOCAL'].map(value=>({value,label:label(value)}));
+const userTypeTheme=value=>({CITIZEN:'primary',GOV:'success',LOCAL:'warning'}[value]||'default');
 const sourceOptions=['闽政通','闽政务','门户本地'].map(value=>({value,label:value}));
 const statusOptions=[{value:'NORMAL',label:'启用'},{value:'DISABLED',label:'停用'}];
 const roleOptions=computed(()=>props.roles.filter(role=>role.status==='ENABLED'||form.roleIds?.includes(role.id)).map(role=>({value:role.id,label:role.roleName})));
