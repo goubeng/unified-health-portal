@@ -8,9 +8,6 @@
         <t-form-item class="portal-query-select query-width-source" label="来源应用">
           <t-select v-model="appName" clearable placeholder="全部" :options="appOptions"/>
         </t-form-item>
-        <t-form-item class="portal-query-select query-width-priority" label="优先级">
-          <t-select v-model="priority" clearable placeholder="全部" :options="priorityOptions"/>
-        </t-form-item>
         <t-form-item class="portal-query-select query-width-status" label="状态">
           <t-select v-model="status" clearable placeholder="全部" :options="statusOptions"/>
         </t-form-item>
@@ -27,14 +24,8 @@
         <template #title="{row}">
           <button class="portal-field-link" @click="openDetail(row)">{{text(row.title)||'-'}}</button>
         </template>
-        <template #priority="{row}">
-          <t-tag size="small" variant="light" :theme="priorityTheme(row.priority)">{{priorityText(row.priority)}}</t-tag>
-        </template>
         <template #status="{row}">
-          <div class="todo-status-cell">
-            <t-tag size="small" variant="light" :theme="statusTheme(row.status)">{{label(row.status)}}</t-tag>
-            <t-tag v-if="isOverdue(row)" size="small" variant="light" theme="danger">已逾期</t-tag>
-          </div>
+          <t-tag size="small" variant="light" :theme="statusTheme(row.status)">{{label(row.status)}}</t-tag>
         </template>
         <template #operation="{row}">
           <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="primary" @click="process(row)">去处理</t-button>
@@ -77,26 +68,20 @@ import {command} from '../../services/runtime.js';
 import {date,label,text} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
-const keyword=ref(''),appName=ref(''),priority=ref(''),status=ref('');
+const keyword=ref(''),appName=ref(''),status=ref('');
 const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),active=ref(null);
 
 const appOptions=computed(()=>[...new Set(props.rows.map(row=>row.appName).filter(Boolean))].map(value=>({value,label:value})));
-const priorityOptions=[
-  {value:'HIGH',label:'高'},
-  {value:'MEDIUM',label:'中'},
-  {value:'LOW',label:'低'}
-];
-const statusOptions=['PENDING','COMPLETED','WITHDRAWN','EXPIRED'].map(value=>({value,label:label(value)}));
+const statusOptions=['PENDING','COMPLETED','WITHDRAWN'].map(value=>({value,label:label(value)}));
 
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
   return props.rows.filter(row=>{
     const keywordMatched=!term||String(row.title||'').toLowerCase().includes(term);
     const appMatched=!appName.value||row.appName===appName.value;
-    const priorityMatched=!priority.value||row.priority===priority.value;
     const statusMatched=!status.value||row.status===status.value;
-    return keywordMatched&&appMatched&&priorityMatched&&statusMatched;
+    return keywordMatched&&appMatched&&statusMatched;
   }).sort((a,b)=>{
     if(a.status==='PENDING'&&b.status!=='PENDING')return -1;
     if(a.status!=='PENDING'&&b.status==='PENDING')return 1;
@@ -104,7 +89,7 @@ const filtered=computed(()=>{
   });
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
-watch([keyword,appName,priority,status,pageSize],()=>{page.value=1;});
+watch([keyword,appName,status,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 
 const columns=[
@@ -112,10 +97,8 @@ const columns=[
   {colKey:'title',title:'待办标题',minWidth:250,ellipsis:true},
   {colKey:'appName',title:'来源应用',width:220,ellipsis:true},
   {colKey:'businessType',title:'业务类型',width:120},
-  {colKey:'priority',title:'优先级',width:90},
-  {colKey:'status',title:'状态',width:150},
+  {colKey:'status',title:'状态',width:120},
   {colKey:'createdAt',title:'接收时间',width:170,cell:(_,context)=>date(context.row.createdAt)},
-  {colKey:'dueAt',title:'截止时间',width:170,cell:(_,context)=>date(context.row.dueAt)},
   {colKey:'operation',title:'操作',width:100,fixed:'right'}
 ];
 
@@ -124,19 +107,12 @@ const detailItems=computed(()=>active.value?[
   {key:'appName',label:'来源应用',value:text(active.value.appName)||'-'},
   {key:'title',label:'待办标题',value:text(active.value.title)||'-'},
   {key:'businessType',label:'业务类型',value:text(active.value.businessType)||'-'},
-  {key:'priority',label:'优先级',value:priorityText(active.value.priority)},
   {key:'status',label:'状态',value:label(active.value.status)},
   {key:'createdAt',label:'接收时间',value:date(active.value.createdAt)},
-  {key:'dueAt',label:'截止时间',value:date(active.value.dueAt)},
-  {key:'terminalAt',label:'终态时间',value:date(active.value.terminalAt)},
-  {key:'sourceRevision',label:'来源版本',value:text(active.value.sourceRevision)||'-'}
 ]:[]);
 
-function priorityText(value){return {HIGH:'高',MEDIUM:'中',LOW:'低'}[value]||'-';}
-function priorityTheme(value){return value==='HIGH'?'danger':value==='MEDIUM'?'warning':'default';}
 function statusTheme(value){return value==='PENDING'?'warning':value==='COMPLETED'?'success':'default';}
-function isOverdue(row){return row.status==='PENDING'&&row.dueAt&&Date.parse(row.dueAt)<Date.now();}
-function reset(){keyword.value='';appName.value='';priority.value='';status.value='';page.value=1;}
+function reset(){keyword.value='';appName.value='';status.value='';page.value=1;}
 function openDetail(row){active.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 async function process(row){
   try{
