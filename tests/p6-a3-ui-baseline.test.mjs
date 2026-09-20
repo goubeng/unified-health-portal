@@ -37,6 +37,20 @@ test('业务链接保持普通蓝色，不使用粗体强调',()=>{
   assert(css.includes('.portal-page .portal-field-link{color:#0052d9!important;font-weight:400!important}'));
 });
 
+test('管理首页按规模待处理接入健康异常和常用管理分层',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  for(const label of ['纳管应用','启用应用','门户用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
+  assert(!source.includes("{label:'正常应用'"));
+  assert(!source.includes("{label:'异常应用'"));
+  assert(!source.includes('<h2>管理提醒</h2>'));
+  assert(!source.includes('异常接入消息'));
+  assert(source.includes('adminPendingItems'));
+  assert(source.includes("overview.value.abnormalServiceCount??0"));
+  assert(source.includes("latest(homeExceptions,'lastCheckedAt')"));
+  assert(css.includes('.admin-reminder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}'));
+});
+
 test('核心信息卡片不恢复自定义hover阴影',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(!/\.app-card:hover\{[^}]*box-shadow/i.test(css));
