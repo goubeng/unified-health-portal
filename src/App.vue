@@ -28,10 +28,10 @@
    <template v-if="admin">
     <section v-for="group in menu" :key="group.name" class="menu-section">
      <button v-if="!collapsed" type="button" class="menu-group" @click="toggleMenuGroup(group.name)"><span>{{group.name}}</span><ChevronDownIcon size="12px" class="group-chevron" :class="{closed:collapsedGroups.has(group.name)}"/></button>
-     <div v-show="collapsed||!collapsedGroups.has(group.name)" class="menu-group-items"><router-link v-for="p in group.pages" :key="p.id" :to="p.path" class="menu-item" active-class="active" :title="collapsed?displayTitle(p.title):''"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></div>
+     <div v-show="collapsed||!collapsedGroups.has(group.name)" class="menu-group-items"><router-link v-for="p in group.pages" :key="p.id" :to="p.path" class="menu-item" active-class="active" :class="{active:isMenuActive(p)}" :title="collapsed?displayTitle(p.title):''"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></div>
     </section>
    </template>
-   <div v-else class="menu-group-items user-flat-menu"><router-link v-for="p in userMenu" :key="p.id" :to="p.path" class="menu-item" active-class="active" :title="collapsed?displayTitle(p.title):''"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></div>
+   <div v-else class="menu-group-items user-flat-menu"><router-link v-for="p in userMenu" :key="p.id" :to="p.path" class="menu-item" active-class="active" :class="{active:isMenuActive(p)}" :title="collapsed?displayTitle(p.title):''"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></div>
   </nav></aside>
    <main class="content"><div class="content-header"><div class="title-row"><button v-if="showBack" type="button" class="back-button" title="返回" aria-label="返回" @click="backToList"><ArrowLeftIcon/></button><h1>{{currentPageTitle}}</h1><div id="page-header-extra" class="page-header-extra-host"></div><div id="page-header-actions" class="page-header-actions-host"></div></div></div><div class="content-body"><router-view :key="route.fullPath+'|'+actor?.id"/></div></main>
   </div>
@@ -49,8 +49,21 @@ const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|�
 const typeLabel=user=>labels[user?.userType]||user?.userType||'用户';
 const displayTitle=title=>String(title||'').replace('上层身份映射','闽政通 / 闽政务身份映射').replace('上层公共服务接入','公共服务接入');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
-const currentPageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':displayTitle(route.meta.title));
-function backToList(){if(route.meta.resource==='messages'){const query={...route.query};delete query.messageId;router.replace({path:route.path,query});return;}if(route.meta.resource==='announcementDetail'){router.push(route.path.startsWith('/admin')?'/admin/announcements':'/portal/announcements');return;}}
+const currentPageTitle=computed(()=>{
+ if(route.meta.resource==='announcementDetail'&&admin.value&&route.query.mode==='edit')return '编辑公告';
+ return route.meta.resource==='messages'&&route.query.messageId?'消息详情':displayTitle(route.meta.title);
+});
+const isMenuActive=page=>{
+ if(route.meta.resource==='announcementDetail'&&page.resource==='announcements')return page.path===(admin.value?'/admin/announcements':'/portal/announcements');
+ return route.path===page.path;
+};
+function backToList(){
+ if(route.meta.resource==='messages'){const query={...route.query};delete query.messageId;router.replace({path:route.path,query});return;}
+ if(route.meta.resource==='announcementDetail'){
+  if(admin.value&&route.query.mode==='edit'){router.push('/admin/announcements/'+encodeURIComponent(route.params.id));return;}
+  router.push(admin.value?'/admin/announcements':'/portal/announcements');return;
+ }
+}
 const userOptions=computed(()=>availableUsers.value.map(user=>({value:user.id,label:displayName(user)+'（'+typeLabel(user)+(user.kind==='ADMIN'?' / 管理员':'')+'）'})));
 const menu=computed(()=>{
  const list=pages.filter(p=>!p.hidden&&p.path.startsWith('/admin')&&!p.path.includes(':')&&can(actor.value,p.scope));
