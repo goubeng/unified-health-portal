@@ -27,7 +27,7 @@
      <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/mine">应用中心</router-link></div><AppCards :apps="homeApps" compact @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
    </template>
-   <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)"/>
+   <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
    <PersonalProfile v-else-if="resource==='profile'" :user="actor"/>
@@ -280,7 +280,7 @@ const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',annou
 const createScope={apps:'application',categories:'application',announcements:'announcement',roles:'super'};
 const canCreate=computed(()=>admin.value&&!!createAction.value&&can(actor.value,createScope[resource.value]));
 const createLabel=computed(()=>({apps:'新增应用',categories:'新增分类',announcements:'新增公告',roles:'新增角色'})[resource.value]);
-const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑系统用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
+const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑系统用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',rejectBindingReview:'驳回账号关联审核',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
 const opt=values=>values.map(value=>({value,label:label(value)}));
 const formFields=computed(()=>{
  const f=(key,labelText,type='text',required=false,options=null,full=false)=>({key,label:labelText,type,required,options,full});
@@ -294,6 +294,7 @@ const formFields=computed(()=>{
   bind:[f('externalAccount','已有子系统账号','text',true,null,true)],
   submitApplicationRequest:[f('reason','申请原因','textarea',true,null,true),f('contact','联系方式','text',false),f('remark','备注','textarea',false,null,true)],
   rejectApplicationRequest:[f('reviewNote','驳回原因','textarea',true,null,true)],
+  rejectBindingReview:[f('reviewNote','驳回原因','textarea',true,null,true)],
   savePortalUser:[f('status','启用状态'),f('roleIds','系统角色','text',false,roleOpts,true)],
   saveSystemRole:[f('roleCode','角色编码','text',true),f('roleName','角色名称','text',true),f('status','启用状态'),f('scopes','门户权限范围','text',true,Object.entries(scopes).map(([value,labelText])=>({value,label:labelText})),true),f('description','角色描述','textarea',false,null,true)],
   saveConfig:[f('value','配置值（使用当前参数标注单位）','number',true,null,true)],
@@ -329,6 +330,7 @@ async function saveForm(){
   if(formAction.value==='bind')payload={appId:form.appId,externalAccount:form.externalAccount.trim()};
   if(formAction.value==='submitApplicationRequest')payload={appId:form.appId,reason:form.reason.trim(),contact:form.contact?.trim()||'',remark:form.remark?.trim()||''};
   if(formAction.value==='rejectApplicationRequest')payload={id:form.id,version:form.version,reviewNote:form.reviewNote.trim()};
+  if(formAction.value==='rejectBindingReview')payload={id:form.id,version:form.version,reviewNote:form.reviewNote.trim()};
   for(const key of ['effectiveStart','effectiveEnd'])if(payload[key])payload[key]=new Date(String(payload[key]).replace(' ','T')).toISOString();
   const result=await command(formAction.value,payload);
   if(!result.ok){formError.value=result.error.message;return;}
@@ -338,7 +340,7 @@ async function saveForm(){
    return;
   }
   formVisible.value=false;
-  const successText=formAction.value==='saveAnnouncement'?'公告草稿已保存，请在公告管理中发布':formAction.value==='submitApplicationRequest'?'申请已提交，可在“我的申请”查看进度':formAction.value==='rejectApplicationRequest'?'申请已驳回':'保存成功';
+  const successText=formAction.value==='saveAnnouncement'?'公告草稿已保存，请在公告管理中发布':formAction.value==='submitApplicationRequest'?'申请已提交，可在“我的申请”查看进度':formAction.value==='rejectApplicationRequest'?'申请已驳回':formAction.value==='rejectBindingReview'?'账号关联审核已驳回':'保存成功';
   MessagePlugin.success(successText);
  }catch(cause){formError.value=cause.message;}finally{saving.value=false;}
 }
