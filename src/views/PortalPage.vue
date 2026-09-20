@@ -24,7 +24,7 @@
 
      <div class="admin-workbench-grid">
       <section class="panel admin-pending-panel">
-       <div class="section-head"><h2>待处理事项</h2><span class="muted">按当前账号权限显示</span></div>
+       <div class="section-head"><h2>待处理事项</h2></div>
        <div class="admin-reminder-grid">
         <button v-for="item in adminPendingItems" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)">
          <span>{{item.label}}</span>
@@ -35,11 +35,11 @@
       </section>
 
       <section class="panel admin-work-panel">
-       <div class="section-head"><h2>常用管理</h2><span class="muted">快速进入常用管理模块</span></div>
+       <div class="section-head"><h2>常用管理</h2></div>
        <div class="admin-shortcut-grid">
-        <button v-if="can(actor,'announcement')" class="admin-shortcut-card" @click="router.push('/admin/announcements')">
+        <button v-if="can(actor,'announcement')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
          <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
-         <span><strong>通知公告管理</strong><small>公告内容与发布维护</small></span>
+         <span><strong>新增公告</strong><small>创建并发布门户公告</small></span>
         </button>
         <button v-for="item in adminShortcuts" :key="item.id" class="admin-shortcut-card" @click="router.push(item.path)">
          <span class="admin-shortcut-icon" :class="'tone-'+adminShortcutTone(item.resource)"><Icon :name="adminShortcutIcon(item.resource)"/></span>
