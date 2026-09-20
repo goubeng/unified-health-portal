@@ -37,17 +37,18 @@
         <template #identitySource="{row}">{{text(row.identitySource)||source(row)}}</template>
         <template #roleLabels="{row}">{{text(row.roleLabels)||'无管理角色'}}</template>
         <template #status="{row}">
-          <t-switch
-            :value="row.status!=='DISABLED'"
-            :disabled="row.userType==='LOCAL'&&!canSuper"
-            :label="['启用','停用']"
-            @change="toggleStatus(row,$event)"
-          />
+          <div class="form-switch-control is-table">
+            <t-switch
+              :value="row.status!=='DISABLED'"
+              :disabled="row.userType==='LOCAL'&&!canSuper"
+              @change="toggleStatus(row,$event)"
+            />
+            <span>{{row.status==='DISABLED'?'停用':'启用'}}</span>
+          </div>
         </template>
         <template #lastLoginAt="{row}">{{date(row.lastLoginAt)}}</template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button size="small" variant="text" theme="primary" @click="openDetail(row)">详情</t-button>
             <t-button v-if="canSuper" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
             <t-button v-if="canSuper&&row.userType==='LOCAL'" size="small" variant="text" theme="primary" @click="resetPassword(row)">重置密码</t-button>
             <t-button v-if="canSuper&&row.userType==='LOCAL'&&row.lockedUntil" size="small" variant="text" theme="primary" @click="unlock(row)">解除锁定</t-button>
@@ -84,7 +85,7 @@
           <div class="form-field"><label>所属组织</label><t-select v-model="form.orgName" clearable filterable :options="orgOptions"/></div>
           <div class="form-field"><label>手机号</label><t-input v-model="form.mobile" placeholder="可选"/></div>
           <div class="form-field"><label>邮箱</label><t-input v-model="form.email" placeholder="可选"/></div>
-          <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
+          <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/><span>{{form.status==='DISABLED'?'停用':'启用'}}</span></div></div>
           <div class="form-field full"><label>门户角色</label><t-select v-model="form.roleIds" multiple clearable :options="roleOptions"/></div>
         </div>
         <t-alert theme="info" class="user-source-alert">
@@ -94,7 +95,7 @@
       <template v-else>
         <DetailGrid :items="externalIdentityItems"/>
         <div class="form-grid user-external-maintenance">
-          <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
+          <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/><span>{{form.status==='DISABLED'?'停用':'启用'}}</span></div></div>
           <div class="form-field full"><label>门户角色</label><t-select v-model="form.roleIds" multiple clearable :options="roleOptions"/></div>
         </div>
         <p class="muted">外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。</p>
@@ -154,7 +155,7 @@ const columns=[
   {colKey:'roleLabels',title:'门户角色',width:190,ellipsis:true},
   {colKey:'status',title:'启用状态',width:120},
   {colKey:'lastLoginAt',title:'最近登录',width:180},
-  {colKey:'operation',title:'操作',width:250,fixed:'right'}
+  {colKey:'operation',title:'操作',width:210,fixed:'right'}
 ];
 
 const detailItems=computed(()=>{
