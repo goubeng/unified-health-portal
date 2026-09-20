@@ -13,15 +13,42 @@
    <template v-if="isHome">
     <template v-if="admin">
      <div class="admin-overview-grid">
-      <button v-for="card in adminOverviewCards" :key="card.label" type="button" class="admin-overview-card" @click="card.path&&router.push(card.path)"><span>{{card.label}}</span><strong>{{card.value}}</strong><small>{{card.hint}}</small></button>
+      <button v-for="card in adminOverviewCards" :key="card.label" type="button" class="admin-overview-card" @click="card.path&&router.push(card.path)">
+       <div class="admin-overview-head">
+        <span class="admin-overview-icon" :class="'tone-'+card.tone"><Icon :name="card.icon"/></span>
+        <span>{{card.label}}</span>
+       </div>
+       <strong>{{card.value}}</strong>
+       <small>{{card.hint}}</small>
+      </button>
      </div>
 
-     <section class="panel admin-pending-panel">
-      <div class="section-head"><h2>待处理事项</h2><span class="muted">按当前账号权限显示</span></div>
-      <div class="admin-reminder-grid">
-       <button v-for="item in adminPendingItems" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)"><span>{{item.label}}</span><strong :class="{'is-danger':item.danger}">{{item.value}}</strong><small>{{item.hint}}</small></button>
-      </div>
-     </section>
+     <div class="admin-workbench-grid">
+      <section class="panel admin-pending-panel">
+       <div class="section-head"><h2>待处理事项</h2><span class="muted">按当前账号权限显示</span></div>
+       <div class="admin-reminder-grid">
+        <button v-for="item in adminPendingItems" :key="item.label" type="button" class="admin-reminder-card" :class="'tone-'+item.tone" @click="item.path&&router.push(item.path)">
+         <span>{{item.label}}</span>
+         <strong :class="{'is-danger':item.danger}">{{item.value}}</strong>
+         <small>{{item.hint}}</small>
+        </button>
+       </div>
+      </section>
+
+      <section class="panel admin-work-panel">
+       <div class="section-head"><h2>常用管理</h2><span class="muted">快速进入常用管理模块</span></div>
+       <div class="admin-shortcut-grid">
+        <button v-if="can(actor,'announcement')" class="admin-shortcut-card" @click="router.push('/admin/announcements')">
+         <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
+         <span><strong>通知公告管理</strong><small>公告内容与发布维护</small></span>
+        </button>
+        <button v-for="item in adminShortcuts" :key="item.id" class="admin-shortcut-card" @click="router.push(item.path)">
+         <span class="admin-shortcut-icon" :class="'tone-'+adminShortcutTone(item.resource)"><Icon :name="adminShortcutIcon(item.resource)"/></span>
+         <span><strong>{{text(item.title)}}</strong><small>{{adminShortcutHint(item.resource)}}</small></span>
+        </button>
+       </div>
+      </section>
+     </div>
 
      <section v-if="overview.serviceHealth" class="panel admin-service-health-panel">
       <div class="section-head"><h2>接入运行状态</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div>
@@ -41,13 +68,6 @@
       <EmptyState v-if="!homeExceptions.length" :description="can(actor,'integration')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
      </section>
 
-     <section class="panel admin-work-panel">
-      <div class="section-head"><h2>常用管理</h2><span class="muted">快速进入常用管理模块</span></div>
-      <div class="admin-entry-grid compact">
-       <button v-if="can(actor,'announcement')" class="admin-entry-card compact" @click="router.push('/admin/announcements')"><Icon name="notification"/><span><strong>通知公告管理</strong><small>公告内容与发布维护</small></span></button>
-       <button v-for="item in adminShortcuts" :key="item.id" class="admin-entry-card compact" @click="router.push(item.path)"><Icon :name="adminShortcutIcon(item.resource)"/><span><strong>{{text(item.title)}}</strong><small>{{adminShortcutHint(item.resource)}}</small></span></button>
-      </div>
-     </section>
     </template>
     <template v-else>
      <div class="portal-home-feeds">
@@ -188,20 +208,21 @@ const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
 const adminShortcuts=computed(()=>pages.filter(item=>['PG-202','PG-228','PG-205'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
- {label:'纳管应用',value:overview.value.appCount??0,hint:'统一应用目录',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'启用应用',value:overview.value.enabledCount??0,hint:'当前启用',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'门户用户',value:overview.value.userCount??0,hint:'已建立统一用户索引',path:can(actor.value,'system')?'/admin/users':''},
- {label:'接入异常',value:overview.value.abnormalServiceCount??0,hint:'已配置服务运行异常',path:can(actor.value,'integration')?'/admin/monitor':''}
+ {label:'纳管应用',value:overview.value.appCount??0,hint:'统一应用目录',icon:'app',tone:'blue',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'启用应用',value:overview.value.enabledCount??0,hint:'当前启用',icon:'check-circle',tone:'green',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'门户用户',value:overview.value.userCount??0,hint:'已建立统一用户索引',icon:'user',tone:'purple',path:can(actor.value,'system')?'/admin/users':''},
+ {label:'接入异常',value:overview.value.abnormalServiceCount??0,hint:'已配置服务运行异常',icon:'error-circle',tone:'red',path:can(actor.value,'integration')?'/admin/monitor':''}
 ]);
 const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户用户维护',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
 const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
+const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
 const adminPendingItems=computed(()=>[
- {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
- {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
- {label:'账号确认审核',value:overview.value.pendingBindingReviewCount??0,hint:'高风险账号待审核',path:can(actor.value,'identity')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
- {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
- {label:'异常日志',value:overview.value.openErrorCount??0,hint:'待处理异常日志',path:can(actor.value,'audit')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
- {label:'待发布公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
+ {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',tone:'blue',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
+ {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',tone:'cyan',path:can(actor.value,'application')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
+ {label:'账号确认审核',value:overview.value.pendingBindingReviewCount??0,hint:'高风险账号待审核',tone:'orange',path:can(actor.value,'identity')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
+ {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',tone:'red',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
+ {label:'异常日志',value:overview.value.openErrorCount??0,hint:'待处理异常日志',tone:'yellow',path:can(actor.value,'audit')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
+ {label:'待发布公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',tone:'purple',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
  ]);
 let loadVersion=0;
 async function read(key){const result=await portal.read(key);if(!result.ok)throw new Error(result.error.message);return result.data;}
