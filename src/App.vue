@@ -61,7 +61,7 @@ const userMenu=computed(()=>{
  const list=pages.filter(p=>!p.hidden&&p.path.startsWith('/portal')&&!p.path.includes(':')&&can(actor.value,p.scope));
  return order.map(resource=>list.find(p=>p.resource===resource)).filter(Boolean);
 });
-const icons={home:HomeIcon,adminHome:ChartBarIcon,mine:AppIcon,apps:AppIcon,myApplicationRequests:FileIcon,applicationRequests:LinkIcon,todos:TaskIcon,messages:MailIcon,announcements:NotificationIcon,profile:UserIcon,users:UserIcon,categories:FolderIcon,access:LinkIcon,identities:UserIcon,identityMappings:LinkIcon,mappings:LinkIcon,exceptions:NotificationIcon,roles:UserSafetyIcon,permissions:UserSafetyIcon,sso:LinkIcon,todoIntegration:TaskIcon,messageIntegration:MailIcon,external:LinkIcon,settings:SettingIcon,monitor:ChartBarIcon};
+const icons={home:HomeIcon,adminHome:ChartBarIcon,mine:AppIcon,apps:AppIcon,myApplicationRequests:FileIcon,applicationRequests:LinkIcon,accountOpeningRequests:LinkIcon,todos:TaskIcon,messages:MailIcon,announcements:NotificationIcon,profile:UserIcon,users:UserIcon,categories:FolderIcon,organizations:FolderIcon,dictionaries:FolderIcon,access:LinkIcon,identities:UserIcon,identityMappings:LinkIcon,mappings:LinkIcon,exceptions:NotificationIcon,roles:UserSafetyIcon,permissions:UserSafetyIcon,sso:LinkIcon,todoIntegration:TaskIcon,messageIntegration:MailIcon,external:LinkIcon,settings:SettingIcon,monitor:ChartBarIcon};
 const iconFor=resource=>icons[resource]||FileIcon;
 function toggleMenuGroup(name){const next=new Set(collapsedGroups.value);next.has(name)?next.delete(name):next.add(name);collapsedGroups.value=next;}
 async function switchUser(id){
