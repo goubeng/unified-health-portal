@@ -8,7 +8,8 @@
   </Teleport>
   <div v-if="error" role="alert" class="error-note">{{text(error)}} <t-button variant="text" theme="primary" @click="load">重试</t-button></div>
   <t-loading :loading="loading" :show-overlay="false" size="small">
-   <template v-if="pageReady">
+   <div v-if="!pageReady" class="portal-loading-placeholder" aria-hidden="true"></div>
+   <template v-else>
    <template v-if="isHome">
     <template v-if="admin">
      <div class="admin-overview-grid">
