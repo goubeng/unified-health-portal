@@ -173,7 +173,43 @@ readMonitorProfiles只返回真实服务状态：
 
 详情不再返回用于展示的冗余综合status。
 
-## 10. 建议错误码
+## 10. TODO / MESSAGE 接入
+
+TODO PUSH最小标准字段：
+
+- eventId；
+- sourceTodoId；
+- userId；
+- status；
+- title。
+
+TODO不再要求：
+
+- priority；
+- dueAt；
+- sourceRevision；
+- terminalAt。
+
+TODO标准状态首期只支持：
+
+- PENDING；
+- COMPLETED；
+- WITHDRAWN。
+
+处理规则：
+
+1. application + eventId 负责幂等；
+2. application + sourceTodoId 识别同一来源待办；
+3. 首次推送必须为PENDING；
+4. PENDING可更新为COMPLETED或WITHDRAWN；
+5. 终态不得回退；
+6. 门户“去处理”不修改来源状态；
+7. 门户不计算逾期，不接收截止时间；
+8. 来源系统仍是业务状态权威方。
+
+MESSAGE契约维持现有 eventId / sourceMessageId / userId / title / content。
+
+## 11. 建议错误码
 
 - LOCAL_ACCOUNT_DISABLED
 - LOCAL_ACCOUNT_LOCKED
