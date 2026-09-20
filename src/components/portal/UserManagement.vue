@@ -32,7 +32,7 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的用户"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #account="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.account)||'—'}}</button></template>
+        <template #account="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.account)||'-'}}</button></template>
         <template #userType="{row}"><t-tag variant="light">{{label(row.userType)}}</t-tag></template>
         <template #identitySource="{row}">{{text(row.identitySource)||source(row)}}</template>
         <template #roleLabels="{row}">{{text(row.roleLabels)||'无管理角色'}}</template>
@@ -162,16 +162,16 @@ const detailItems=computed(()=>{
   const row=detail.value||{};
   return [
     ['account','用户账号',row.account],['name','姓名',row.name],['userType','用户类别',label(row.userType)],['identitySource','身份来源',row.identitySource||source(row)],
-    ['orgName','所属组织',row.orgName||'—'],['roleLabels','门户角色',row.roleLabels||'无管理角色'],['status','启用状态',row.status==='DISABLED'?'停用':'启用'],
+    ['orgName','所属组织',row.orgName||'-'],['roleLabels','门户角色',row.roleLabels||'无管理角色'],['status','启用状态',row.status==='DISABLED'?'停用':'启用'],
     ['firstLoginAt','首次登录',date(row.firstLoginAt)],['lastLoginAt','最近登录',date(row.lastLoginAt)],['lockedUntil','锁定至',date(row.lockedUntil)]
   ].map(([key,labelText,value])=>({key,label:labelText,value}));
 });
 const externalIdentityItems=computed(()=>[
-  {key:'account',label:'用户账号',value:form.account||'—'},
-  {key:'name',label:'姓名',value:form.name||'—'},
+  {key:'account',label:'用户账号',value:form.account||'-'},
+  {key:'name',label:'姓名',value:form.name||'-'},
   {key:'userType',label:'用户类别',value:label(form.userType)},
   {key:'identitySource',label:'身份来源',value:form.identitySource||source(form)},
-  {key:'orgName',label:'所属组织',value:form.orgName||'—'}
+  {key:'orgName',label:'所属组织',value:form.orgName||'-'}
 ]);
 
 function reset(){keyword.value='';userType.value='';identitySource.value='';orgName.value='';roleId.value='';status.value='';page.value=1;}
