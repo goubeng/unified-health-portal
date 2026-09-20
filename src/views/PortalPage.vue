@@ -3,7 +3,7 @@
   <Teleport v-if="admin&&resource==='apps'&&canCreate" to="#page-header-actions"><t-button variant="outline" theme="primary" @click="downloadAccessSpec"><template #icon><Icon name="download"/></template>下载接口文件</t-button><t-button theme="primary" @click="openForm('saveApp')"><template #icon><Icon name="add"/></template>新增应用</t-button></Teleport>
   <Teleport v-if="admin&&resource==='categories'&&canCreate" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveCategory')"><template #icon><Icon name="add"/></template>新增分类</t-button></Teleport>
   <Teleport v-if="resource==='todos'" to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
-  <Teleport v-if="admin&&resource==='announcementDetail'&&route.query.mode!=='edit'&&detail&&['DRAFT','SCHEDULED','PUBLISHED'].includes(detail.status)" to="#page-header-actions">
+  <Teleport v-if="admin&&resource==='announcementDetail'&&detail&&['DRAFT','SCHEDULED','PUBLISHED'].includes(detail.status)" to="#page-header-actions">
    <t-button theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
   </Teleport>
   <div v-if="error" role="alert" class="error-note">{{text(error)}} <t-button variant="text" theme="primary" @click="load">重试</t-button></div>
@@ -67,20 +67,20 @@
    <RoleManagement v-else-if="resource==='roles'" :rows="rows" @saved="load"/>
    <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
-   <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load" @detail="openAdminAnnouncementDetail" @edit="openAdminAnnouncementEdit"/>
+   <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load" @detail="openAdminAnnouncementDetail"/>
    <MonitorManagement v-else-if="resource==='monitor'" :rows="rows"/>
    <LogManagement v-else-if="resource.startsWith('logs:')" :rows="rows" :kind="resource.split(':')[1]" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
    <template v-else-if="resource==='announcementDetail'">
+    <AnnouncementDetail v-if="detail" :record="detail" @download="download"/>
+    <section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section>
     <AnnouncementEditPage
-      v-if="admin&&route.query.mode==='edit'&&detail"
+      v-if="admin&&detail"
+      v-model:visible="announcementEditVisible"
       :record="detail"
       :type-items="dictItems"
       @saved="handleAdminAnnouncementSaved"
-      @cancel="cancelAdminAnnouncementEdit"
     />
-    <AnnouncementDetail v-else-if="detail" :record="detail" @download="download"/>
-    <section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section>
    </template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
    <section v-else class="portal-list">
@@ -182,6 +182,7 @@ const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filter
 const appPageSize=ref(24),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
+const announcementEditVisible=ref(false);
 const accessDialogVisible=ref(false),accessProfile=ref(null),accessSaving=ref(false);
 const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
@@ -221,7 +222,7 @@ async function load(){
   else if(key==='announcements'&&isAdmin){tasks.rows=read('adminAnnouncements');if(can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');}
   else if(key==='announcementDetail'){
    tasks.rows=read(isAdmin?'adminAnnouncements':'announcements');
-   if(isAdmin&&route.query.mode==='edit'&&can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');
+   if(isAdmin&&can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');
   }
   else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcements'&&isAdmin?'adminAnnouncements':key);
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
@@ -249,7 +250,7 @@ function resetQuery(){
  for(const key of Object.keys(filterValues))delete filterValues[key];
  page.value=1;appPages.mine=1;appPages.other=1;
 }
-watch(()=>route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
+watch(()=>route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
 watch(revision,load);
 const queryWidthClass=key=>({
  category:'query-width-category',
@@ -458,11 +459,10 @@ async function showDetail(row,kind=listResource.value){
 function closeDetail(visible){detailVisible.value=visible;if(!visible)detailAccessProfile.value=null;}
 function backToAnnouncements(){router.push(admin.value?'/admin/announcements':'/portal/announcements');}
 function openAdminAnnouncementDetail(row){router.push('/admin/announcements/'+encodeURIComponent(row.id));}
-function openAdminAnnouncementEdit(row){router.push({path:'/admin/announcements/'+encodeURIComponent(row.id),query:{mode:'edit'}});}
-function cancelAdminAnnouncementEdit(){router.push('/admin/announcements/'+encodeURIComponent(route.params.id));}
+function openAdminAnnouncementEdit(row){detail.value=JSON.parse(JSON.stringify(row));announcementEditVisible.value=true;}
 function handleAdminAnnouncementSaved(saved){
  detail.value=JSON.parse(JSON.stringify(saved));
- router.replace('/admin/announcements/'+encodeURIComponent(saved.id||route.params.id));
+ announcementEditVisible.value=false;
 }
 async function downloadAccessSpec(){try{await downloadAccessContract();MessagePlugin.success('接口文件已下载');}catch(cause){MessagePlugin.error(cause.message);}}
 async function toggleAppStatus(row,enabled){const result=await command('setAppStatus',{id:row.id,version:row.version,status:enabled?'ENABLED':'DISABLED'});if(!result.ok){MessagePlugin.error(text(result.error.message));await load();return;}MessagePlugin.success(enabled?'应用已启用':'应用已停用');await load();}
