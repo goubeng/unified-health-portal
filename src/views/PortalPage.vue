@@ -63,7 +63,7 @@
      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium" empty="暂无符合条件的记录">
       <template #empty><EmptyState description="暂无符合条件的记录"/></template>
       <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-      <template #primary="{row}"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'—'}}</button></template>
+      <template #primary="{row}"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></template>
       <template v-if="resource==='apps'" #status="{row}"><t-switch :value="row.status==='ENABLED'" :label="['启用','停用']" @change="toggleAppStatus(row,$event)"/></template>
       <template #operation="{row}"><div class="row-actions">
        <template v-if="resource==='apps'&&admin&&can(actor,'application')"><t-button size="small" variant="text" theme="primary" @click="openForm('saveApp',row)">编辑</t-button><t-button size="small" variant="text" theme="primary" @click="openConnectionConfig(row)">连接配置</t-button></template>
