@@ -1,7 +1,7 @@
 <template>
   <section class="portal-message-center">
     <Teleport v-if="!activeMessage" to="#page-header-extra">
-      <span class="message-header-count">（共{{ rows.length }}封，其中<span>{{ unreadCount }}</span>封未读）</span>
+      <span class="message-header-count">（共<span>{{ unreadCount }}</span>封未读）</span>
     </Teleport>
     <Teleport v-if="!activeMessage" to="#page-header-actions">
       <t-button variant="outline" size="medium" :disabled="!selectedIds.length" @click="confirmDelete(selectedIds)">删除</t-button>
