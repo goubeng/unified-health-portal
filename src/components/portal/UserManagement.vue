@@ -37,14 +37,13 @@
         <template #identitySource="{row}">{{text(row.identitySource)||source(row)}}</template>
         <template #roleLabels="{row}">{{text(row.roleLabels)||'无管理角色'}}</template>
         <template #status="{row}">
-          <div class="form-switch-control is-table">
-            <t-switch
-              :value="row.status!=='DISABLED'"
-              :disabled="row.userType==='LOCAL'&&!canSuper"
-              @change="toggleStatus(row,$event)"
-            />
-            <span>{{row.status==='DISABLED'?'停用':'启用'}}</span>
-          </div>
+          <t-switch
+            class="user-status-switch"
+            :value="row.status!=='DISABLED'"
+            :disabled="row.userType==='LOCAL'&&!canSuper"
+            :label="['启用','停用']"
+            @change="toggleStatus(row,$event)"
+          />
         </template>
         <template #lastLoginAt="{row}">{{date(row.lastLoginAt)}}</template>
         <template #operation="{row}">
@@ -85,7 +84,7 @@
           <div class="form-field"><label>所属组织</label><t-select v-model="form.orgName" clearable filterable :options="orgOptions"/></div>
           <div class="form-field"><label>手机号</label><t-input v-model="form.mobile" placeholder="可选"/></div>
           <div class="form-field"><label>邮箱</label><t-input v-model="form.email" placeholder="可选"/></div>
-          <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/><span>{{form.status==='DISABLED'?'停用':'启用'}}</span></div></div>
+          <div class="form-field"><label>启用状态</label><t-switch class="user-status-switch" :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
           <div class="form-field full"><label>门户角色</label><t-select v-model="form.roleIds" multiple clearable :options="roleOptions"/></div>
         </div>
         <t-alert theme="info" class="user-source-alert">
@@ -95,7 +94,7 @@
       <template v-else>
         <DetailGrid :items="externalIdentityItems"/>
         <div class="form-grid user-external-maintenance">
-          <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/><span>{{form.status==='DISABLED'?'停用':'启用'}}</span></div></div>
+          <div class="form-field"><label>启用状态</label><t-switch class="user-status-switch" :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
           <div class="form-field full"><label>门户角色</label><t-select v-model="form.roleIds" multiple clearable :options="roleOptions"/></div>
         </div>
         <p class="muted">外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。</p>
