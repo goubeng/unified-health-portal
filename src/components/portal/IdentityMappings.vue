@@ -11,7 +11,7 @@
    <t-table row-key="user.id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
     <template #empty><EmptyState description="暂无符合条件的用户"/></template>
     <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-    <template #name="{row}"><button class="portal-field-link" @click="selectedId=row.user.id">{{text(row.user.name)||'—'}}</button></template>
+    <template #name="{row}"><button class="portal-field-link" @click="selectedId=row.user.id">{{text(row.user.name)||'-'}}</button></template>
     <template #operation="{row}"><t-button size="small" variant="text" theme="primary" @click="selectedId=row.user.id">查看映射</t-button></template>
    </t-table>
    <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -27,7 +27,7 @@
       <t-button v-if="canManage&&row.status==='REVIEWING'" size="small" variant="text" theme="primary" @click="$emit('approve',row)">通过</t-button>
       <t-button v-if="canManage&&row.status==='REVIEWING'" size="small" variant="text" theme="danger" @click="$emit('reject',row)">驳回</t-button>
       <t-button v-if="canManage&&row.status==='CONFLICT'" size="small" variant="text" theme="primary" @click="$emit('resolve',row)">处理冲突</t-button>
-      <span v-if="!canManage||!['BOUND','REVIEWING','CONFLICT'].includes(row.status)" class="muted">—</span>
+      <span v-if="!canManage||!['BOUND','REVIEWING','CONFLICT'].includes(row.status)" class="muted">-</span>
      </div></template>
     </t-table>
    </template>
@@ -48,7 +48,7 @@ const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=
 const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label:'政务用户'},{value:'LOCAL',label:'门户本地用户'}];
 const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'},{value:'门户本地',label:'门户本地'}];
 const mappingOptions=[{value:'bound',label:'已关联'},{value:'review',label:'待审核'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
-const identitySource=user=>text(user.source)||({CITIZEN:'闽政通',GOV:'闽政务',LOCAL:'门户本地'}[user.userType]||'—');
+const identitySource=user=>text(user.source)||({CITIZEN:'闽政通',GOV:'闽政务',LOCAL:'门户本地'}[user.userType]||'-');
 const filtered=computed(()=>props.rows.filter(row=>{
  const term=keyword.value.trim().toLowerCase(),user=row.user||{};
  const matchesMapping=!mappingFilter.value||({bound:row.boundCount>0,review:(row.reviewCount||0)>0,exception:row.exceptionCount>0,none:row.boundCount===0&&(row.reviewCount||0)===0}[mappingFilter.value]);
