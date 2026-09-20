@@ -33,7 +33,7 @@
           <span v-if="row.status==='SCHEDULED'">{{date(row.scheduledPublishAt)}}</span>
           <span v-else>{{date(row.publishedAt)}}</span>
         </template>
-        <template #effectiveEnd="{row}">{{row.effectiveEnd?date(row.effectiveEnd):'永久有效'}}</template>
+        <template #effectiveEnd="{row}">{{row.effectiveEnd?dateOnly(row.effectiveEnd):'永久有效'}}</template>
         <template #operation="{row}">
           <div class="row-actions">
             <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="$emit('edit',row)">编辑</t-button>
@@ -114,7 +114,7 @@ import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
-import {date,label,text} from './presentation.js';
+import {date,dateOnly,label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,default:()=>[]}});
@@ -146,7 +146,7 @@ const columns=[
   {colKey:'scope',title:'发布范围',width:110},
   {colKey:'status',title:'状态',width:110},
   {colKey:'publishAt',title:'发布/计划时间',width:180},
-  {colKey:'effectiveEnd',title:'失效时间',width:180},
+  {colKey:'effectiveEnd',title:'失效日期',width:140},
   {colKey:'updatedAt',title:'更新时间',width:180,cell:(_,ctx)=>date(ctx.row.updatedAt)},
   {colKey:'operation',title:'操作',width:220,fixed:'right'}
 ];
