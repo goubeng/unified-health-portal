@@ -20,7 +20,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const roles = [
   row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',scopes:['super','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
   row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',scopes:['application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
- ]
+ ];
  const apps = applicationCatalog.map(entry => {
   const n=entry.sourceNo;
   const ci=n<=2?0:n<=17?1:n<=23?2:n<=28?3:n<=33?2:n<=38?4:5;
