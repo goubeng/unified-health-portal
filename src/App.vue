@@ -72,7 +72,7 @@ async function switchUser(id){
  finally{switching.value=false;}
 }
 function openProfile(){accountOpen.value=false;router.push('/portal/profile');}
-function changePassword(){accountOpen.value=false;window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
+function changePassword(){accountOpen.value=false;if(actor.value?.userType==='LOCAL'){window.alert('当前为前端Mock阶段，本地账号密码修改将在数据库改造阶段接入真实凭证服务。');return;}window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
 async function exitSystem(){accountOpen.value=false;try{await logout();router.replace('/login');}catch(error){window.alert(error.message);}}
 watch(()=>route.fullPath,()=>{accountOpen.value=false;});
 watch([actor,revision],async(_,__,onCleanup)=>{
