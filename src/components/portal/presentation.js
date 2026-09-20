@@ -16,11 +16,16 @@ export function richText(value){
 }
 export const label=value=>text(labels[value]||value)||'-';
 export const date=value=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('zh-CN',{hour12:false}):'-';
+export const dateOnly=value=>{
+  if(!value||!Number.isFinite(Date.parse(value)))return '-';
+  const d=new Date(value),pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+};
 export const source=user=>user?.userType==='CITIZEN'?'闽政通':user?.userType==='LOCAL'?'门户本地':'闽政务';
 export const theme=value=>['ENABLED','NORMAL','BOUND','READ','SUCCESS','PUBLISHED','CONFIGURED','APPROVED','DIRECT'].includes(value)?'success':['DISABLED','FAILED','FAILURE','DENIED','CONFLICT','ABNORMAL','REJECTED'].includes(value)?'danger':['PENDING','UNREAD','VERIFYING','REVIEWING','OPEN','REQUEST_PENDING','SCHEDULED'].includes(value)?'warning':'default';
 export const scopeText=values=>(values||[]).map(value=>scopes[value]||value).join('、')||'本人门户数据';
 export const latest=(rows,key='createdAt',limit=5)=>[...rows].sort((a,b)=>(Date.parse(b[key])||0)-(Date.parse(a[key])||0)).slice(0,limit);
-export const titles={name:'名称',account:'登录账号',code:'编码',title:'标题',category:'系统分类',userType:'用户类别',status:'状态',runtimeStatus:'运行状态',appName:'来源应用',appCode:'应用编码',ssoStatus:'SSO状态',ssoRemark:'SSO备注',todoStatus:'TODO状态',todoRemark:'TODO备注',messageStatus:'MESSAGE状态',messageRemark:'MESSAGE备注',lastCheckedAt:'最近检测时间',priority:'优先级',messageType:'消息类型',createdAt:'创建时间',publishedAt:'发布时间',content:'正文',summary:'说明',description:'说明',scope:'发布范围',scopes:'门户权限范围',scopeLabels:'门户权限范围',roleIds:'系统角色',roleLabels:'系统角色',roleCode:'角色编码',roleName:'角色名称',externalAccount:'子系统账号',userId:'统一身份标识',source:'身份来源',kind:'接入类型',mode:'接入模式',value:'配置值',remark:'备注',url:'入口地址',mappingStatus:'账号关联状态',orgName:'所属单位',actor:'操作人',sourceRevision:'来源版本',effectiveStart:'生效时间',effectiveEnd:'失效时间',type:'公告类型',phone:'手机号',email:'邮箱',requestId:'请求ID',requestNo:'申请编号',userName:'申请人',reason:'申请原因',submittedAt:'申请时间',reviewedAt:'审核时间',reviewNote:'审核意见',contact:'联系方式',accessMode:'访问模式',postGrantMode:'申请通过后',accountBindingMode:'关联方式',accountOpeningMode:'未找到账号时',accessState:'访问状态',requestType:'申请类型',handleNote:'处理说明',handledAt:'处理时间'};
+export const titles={name:'名称',account:'登录账号',code:'编码',title:'标题',category:'系统分类',userType:'用户类别',status:'状态',runtimeStatus:'运行状态',appName:'来源应用',appCode:'应用编码',ssoStatus:'SSO状态',ssoRemark:'SSO备注',todoStatus:'TODO状态',todoRemark:'TODO备注',messageStatus:'MESSAGE状态',messageRemark:'MESSAGE备注',lastCheckedAt:'最近检测时间',priority:'优先级',messageType:'消息类型',createdAt:'创建时间',publishedAt:'发布时间',content:'正文',summary:'说明',description:'说明',scope:'发布范围',scopes:'门户权限范围',scopeLabels:'门户权限范围',roleIds:'系统角色',roleLabels:'系统角色',roleCode:'角色编码',roleName:'角色名称',externalAccount:'子系统账号',userId:'统一身份标识',source:'身份来源',kind:'接入类型',mode:'接入模式',value:'配置值',remark:'备注',url:'入口地址',mappingStatus:'账号关联状态',orgName:'所属单位',actor:'操作人',sourceRevision:'来源版本',effectiveStart:'生效时间',effectiveEnd:'失效日期',type:'公告类型',phone:'手机号',email:'邮箱',requestId:'请求ID',requestNo:'申请编号',userName:'申请人',reason:'申请原因',submittedAt:'申请时间',reviewedAt:'审核时间',reviewNote:'审核意见',contact:'联系方式',accessMode:'访问模式',postGrantMode:'申请通过后',accountBindingMode:'关联方式',accountOpeningMode:'未找到账号时',accessState:'访问状态',requestType:'申请类型',handleNote:'处理说明',handledAt:'处理时间'};
 export function display(key,value){
   if(key==='scopes')return scopeText(value);
   if(key==='roleIds'||key==='roleNames')return Array.isArray(value)?value.join('、')||'普通用户':text(value)||'普通用户';
