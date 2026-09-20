@@ -96,7 +96,7 @@
         <t-button v-if="row.requestType==='ACCOUNT_OPENING'&&row.status==='COMPLETED'" size="small" variant="text" theme="primary" @click="bindByRequest(row)">去关联</t-button>
        </template>
        <template v-if="resource==='applicationRequests'&&row.status==='PENDING'"><t-button size="small" variant="text" theme="primary" @click="confirm('approveApplicationRequest',row,'确认通过此应用访问申请？通过后仅授予门户入口资格。')">通过</t-button><t-button size="small" variant="text" theme="danger" @click="openForm('rejectApplicationRequest',row)">驳回</t-button></template>
-       <template v-if="resource==='accountOpeningRequests'&&['PENDING','PROCESSING'].includes(row.status)"><t-button size="small" variant="text" theme="primary" @click="confirm('completeMockAccountOpeningRequest',row,'演示环境：确认模拟目标子系统已完成账号开通？此操作不会创建真实子系统账号。')">模拟已开通</t-button></template>
+       <template v-if="resource==='accountOpeningRequests'&&['PENDING','PROCESSING'].includes(row.status)"><t-button size="small" variant="text" theme="primary" @click="confirm('completeMockAccountOpeningRequest',row,'确认目标子系统已完成账号开通？此操作仅更新门户侧处理状态。')">标记已开通</t-button></template>
       </div></template>
      </t-table>
      <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -106,7 +106,7 @@
   </t-loading>
   <t-dialog v-model:visible="formVisible" placement="center" :header="formTitle" :width="formAction==='saveAnnouncement'?'min(1180px, calc(100vw - 48px))':'720px'" :confirm-btn="{content:formAction==='bind'?'核验并关联':formAction==='submitApplicationRequest'?'提交申请':formAction==='rejectApplicationRequest'?'确认驳回':'保存',loading:saving,disabled:saving}" :close-on-overlay-click="false" @confirm="saveForm">
    <p v-if="formAction==='bind'" class="inline-note">当前应用已在此账号的可见范围内。请输入已开通的子系统账号，提交后查看关联结果。</p>
-   <p v-if="formAction==='submitApplicationRequest'" class="inline-note">申请应用：{{text(form.appName)}}。当前申请仅授予统一门户入口资格；如果目标应用还需要账号关联，审核通过后继续执行BIND。</p>
+   <p v-if="formAction==='submitApplicationRequest'" class="inline-note">申请应用：{{text(form.appName)}}。申请通过后，如目标系统还需要完成账号确认，门户会提示下一步操作。</p>
    <p v-if="formAction==='rejectApplicationRequest'" class="inline-note">请填写驳回原因。驳回后用户可在“我的申请”中查看并重新申请。</p>
    <p v-if="formAction==='saveIntegration'" class="inline-note">待办和消息采用PUSH方式接收。凭据填写服务端环境变量名，不填写密钥。SSO参数可维护，认证适配器尚未接入。</p>
    <template v-if="formAction==='savePortalUser'"><h3>身份信息</h3><DetailGrid :items="userFormIdentity"/><p class="muted">身份资料由{{source(form)}}提供；此处仅维护启用状态和系统角色，不授予子系统业务权限。</p></template>
@@ -394,7 +394,7 @@ async function saveForm(){
   if(!result.ok){formError.value=result.error.message;return;}
   if(formAction.value==='bind'){
    const state=result.data.status;
-   bindFeedback.value={theme:state==='BOUND'?'success':state==='CONFLICT'?'warning':'error',message:state==='BOUND'?'账号关联已保存。':state==='CONFLICT'?'该账号存在关联冲突，请联系管理员核查。':'账号关联未通过，请核对账号后重试。'};
+   bindFeedback.value={theme:state==='BOUND'?'success':state==='CONFLICT'?'warning':'error',message:state==='BOUND'?'账号确认已完成。':state==='CONFLICT'?'账号信息存在异常，请联系管理员核查。':'账号确认未完成，请重新处理。'};
    return;
   }
   formVisible.value=false;
