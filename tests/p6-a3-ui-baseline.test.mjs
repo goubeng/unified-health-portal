@@ -161,9 +161,10 @@ test('新增公告启用Dialog Footer且主操作不会被footer=false关闭',()
 });
 
 
-test('公告详情正文默认最小高度为350px',()=>{
+test('公告详情正文默认最小高度为350px且不被后续样式覆盖',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.portal-announcement-body{min-height:350px;'));
+  assert(css.includes('.portal-announcement-body{min-height:350px!important'));
+  assert(!css.includes('.portal-announcement-body{min-height:0!important'));
 });
 
 test('系统空值占位统一使用英文半角短横线',()=>{
@@ -204,6 +205,39 @@ test('管理端公告详情与编辑在右侧内容区打开，不使用详情�
   assert(page.includes("@edit=\"openAdminAnnouncementEdit\""));
   assert(editor.includes('class="announcement-admin-edit-page"'));
   assert(editor.includes('to="#page-header-actions"'));
+});
+
+test('新增公告支持立即发布和定时发布且失效日期按当天235959处理',()=>{
+  const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  const createDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
+  assert(createDialog.includes('v-model="form.publishMode"'));
+  assert(createDialog.includes('value="IMMEDIATE"'));
+  assert(createDialog.includes('value="SCHEDULED"'));
+  assert(createDialog.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
+  assert(createDialog.includes('v-model="form.scheduledPublishAt"'));
+  assert(createDialog.includes('v-model="form.effectiveEnd"'));
+  assert(createDialog.includes('format="YYYY-MM-DD"'));
+  assert(!createDialog.includes('v-model="form.effectiveEnd" enable-time-picker'));
+  assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
+  assert(source.includes('async function saveAndPublish()'));
+  assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
+});
+
+test('公告编辑失效时间同样只录日期并按当天235959保存',()=>{
+  const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
+  assert(source.includes('<label>失效日期</label>'));
+  assert(source.includes('format="YYYY-MM-DD"'));
+  assert(!source.includes('v-model="form.effectiveEnd" enable-time-picker'));
+  assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
+});
+
+test('折叠菜单为主要页面和五类日志显式分配可区分图标',()=>{
+  const source=fs.readFileSync('src/App.vue','utf8');
+  for(const mapping of [
+    'home:HomeIcon','todos:TaskIcon','myApplicationRequests:FileIcon','messages:MailIcon','announcements:NotificationIcon','profile:UserIcon','apps:AppIcon',
+    'users:UserIcon','roles:UserSafetyIcon','organizations:FolderIcon','dictionaries:FileIcon','identityOverview:LinkIcon','settings:SettingIcon','monitor:ChartBarIcon',
+    "'logs:login':UserSafetyIcon","'logs:access':LinkIcon","'logs:operation':TaskIcon","'logs:api':AppIcon","'logs:error':NotificationIcon"
+  ])assert(source.includes(mapping),mapping+' 未配置');
 });
 
 test('公告撤回删除确认分别使用warning和danger提示主题',()=>{
@@ -252,15 +286,15 @@ test('页面编号唯一且管理端公告详情使用PG-235',()=>{
   assert(source.includes("p('PG-229','/admin/organizations','组织管理'"));
 });
 
-test('最近页面文档与用户公告交互基线一致',()=>{
-  const pageList=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/页面清单.md','utf8');
-  const pageSpec=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/页面规格.md','utf8');
+test('主需求规格说明书作为唯一权威需求且功能清单保持模块级',()=>{
+  const srs=fs.readFileSync('docs/01-需求/02-当前基线/卫健统一门户系统需求规格说明书.md','utf8');
   const functionList=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/功能清单.md','utf8');
-  assert(pageList.includes('| PG-235 | 管理端 | 公告详情/编辑 | /admin/announcements/:id |'));
-  assert(pageSpec.includes('## PG-220 / PG-235 公告管理'));
-  assert(pageSpec.includes('不提供“所属组织”查询'));
-  assert(functionList.includes('查询不含所属组织，列表不显示所属组织'));
-  assert(functionList.includes('新增/编辑用户采用Checkbox平铺多选'));
+  assert(srs.includes('# 卫健统一门户系统需求规格说明书'));
+  assert(srs.includes('当前唯一权威需求基线'));
+  assert(srs.includes('## 30. 通知公告管理'));
+  assert(srs.includes('## 37. 全局 UI 与交互规范'));
+  assert(functionList.includes('| F-23 | 管理端 | 通知公告管理 |'));
+  assert(functionList.includes('页面字段、状态、交互、业务规则等详细要求统一以《卫健统一门户系统需求规格说明书》为准'));
 });
 
 
