@@ -65,12 +65,12 @@
 
 
 /* 2026-09-18 v5 final alignment: office-house query boxes, blue business links and stable actions. */
-/* 可点击业务标题统一采用蓝色加粗；红色仅用于未读数量/状态提示。 */
+/* 可点击业务文字统一使用常规字重；未读仅通过数量/状态提示，不再通过加粗区分。 */
 .portal-page .portal-home-feeds .portal-field-link,
 .portal-page .portal-table-panel .portal-field-link,
 .portal-page .portal-app-info .portal-field-link,
 .portal-page .portal-field-link.is-unread,
-.portal-page .portal-field-link.is-attention{color:#0052d9!important;font-weight:600!important}
+.portal-page .portal-field-link.is-attention{color:#0052d9!important;font-weight:400!important}
 .portal-page .portal-home-feeds .portal-field-link:hover,
 .portal-page .portal-table-panel .portal-field-link:hover{color:#003cab!important}
 .portal-home-feeds .dot{background:#e34d59!important}
@@ -109,7 +109,7 @@
 /* 2026-09-18 v7: endpoint icon, secondary todo actions and softer application cards. */
 .portal-switch-button .portal-endpoint-icon{width:16px!important;height:16px!important;color:#667085!important}.portal-switch-button:hover .portal-endpoint-icon{color:#2454ff!important}
 .todo-action-button{background:#fff!important;border-color:#94b5f5!important;color:#0052d9!important;box-shadow:none!important}.todo-action-button:hover:not(:disabled){background:#f3f7ff!important;border-color:#0052d9!important;color:#003cab!important}.todo-action-button:active:not(:disabled){background:#eaf1ff!important}
-.portal-app-card{display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;align-items:center!important;gap:10px!important;padding:13px 14px!important;border-color:#e4eaf3!important;background:#f8fbff!important;transition:border-color .16s,background .16s,box-shadow .16s!important}.portal-app-card.tone-1{background:linear-gradient(135deg,#f7faff 0%,#fff 76%)!important}.portal-app-card.tone-2{background:linear-gradient(135deg,#f7fcfb 0%,#fff 76%)!important}.portal-app-card.tone-3{background:linear-gradient(135deg,#faf8ff 0%,#fff 76%)!important}.portal-app-card.tone-4{background:linear-gradient(135deg,#fffaf5 0%,#fff 76%)!important}.portal-app-card:hover{border-color:#abc2ec!important;background:#fbfdff!important;box-shadow:0 3px 12px rgba(36,84,255,.05)!important}.portal-app-card.tone-1 .portal-app-logo{background:#eaf2ff!important;color:#2454ff!important}.portal-app-card.tone-2 .portal-app-logo{background:#eaf8f5!important;color:#16856b!important}.portal-app-card.tone-3 .portal-app-logo{background:#f1edff!important;color:#6554c0!important}.portal-app-card.tone-4 .portal-app-logo{background:#fff1e5!important;color:#b65b12!important}.portal-app-info{min-width:0!important}.portal-app-info .portal-app-name{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:13px!important;font-weight:600!important;line-height:22px!important}.portal-app-meta{display:flex;min-width:0;height:24px;align-items:center;gap:8px;margin-top:5px;white-space:nowrap}.portal-app-category{min-width:0;max-width:76px;overflow:hidden;color:#667085;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.portal-app-state{display:inline-flex;flex:none;align-items:center;gap:3px;color:#667085;font-size:12px;line-height:20px}.portal-app-state .t-icon{color:#5b7fc0}.portal-app-state-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#98a2b3}.portal-app-state.is-normal{color:#25855a}.portal-app-state.is-normal .portal-app-state-dot{background:#2ba471}.portal-app-state.is-abnormal{color:#d54941}.portal-app-state.is-abnormal .portal-app-state-dot{background:#e34d59}.portal-app-state.is-restricted{min-width:0;overflow:hidden;color:#9a6700;text-overflow:ellipsis}.portal-app-state.is-restricted .portal-app-state-dot{background:#ed7b2f}.portal-app-enter{min-width:auto!important;height:24px!important;margin-left:auto!important;padding:0 2px!important;flex:none!important;font-size:12px!important;font-weight:500!important}.portal-app-enter .t-button__text{white-space:nowrap}
+.portal-app-card{display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;align-items:center!important;gap:10px!important;padding:13px 14px!important;border-color:#e4eaf3!important;background:#f8fbff!important;transition:border-color .16s,background .16s,box-shadow .16s!important}.portal-app-card.tone-1{background:linear-gradient(135deg,#f7faff 0%,#fff 76%)!important}.portal-app-card.tone-2{background:linear-gradient(135deg,#f7fcfb 0%,#fff 76%)!important}.portal-app-card.tone-3{background:linear-gradient(135deg,#faf8ff 0%,#fff 76%)!important}.portal-app-card.tone-4{background:linear-gradient(135deg,#fffaf5 0%,#fff 76%)!important}.portal-app-card:hover{border-color:#abc2ec!important;background:#fbfdff!important;box-shadow:0 3px 12px rgba(36,84,255,.05)!important}.portal-app-card.tone-1 .portal-app-logo{background:#eaf2ff!important;color:#2454ff!important}.portal-app-card.tone-2 .portal-app-logo{background:#eaf8f5!important;color:#16856b!important}.portal-app-card.tone-3 .portal-app-logo{background:#f1edff!important;color:#6554c0!important}.portal-app-card.tone-4 .portal-app-logo{background:#fff1e5!important;color:#b65b12!important}.portal-app-info{min-width:0!important}.portal-app-info .portal-app-name{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:13px!important;font-weight:400!important;line-height:22px!important}.portal-app-meta{display:flex;min-width:0;height:24px;align-items:center;gap:8px;margin-top:5px;white-space:nowrap}.portal-app-category{min-width:0;max-width:76px;overflow:hidden;color:#667085;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.portal-app-state{display:inline-flex;flex:none;align-items:center;gap:3px;color:#667085;font-size:12px;line-height:20px}.portal-app-state .t-icon{color:#5b7fc0}.portal-app-state-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#98a2b3}.portal-app-state.is-normal{color:#25855a}.portal-app-state.is-normal .portal-app-state-dot{background:#2ba471}.portal-app-state.is-abnormal{color:#d54941}.portal-app-state.is-abnormal .portal-app-state-dot{background:#e34d59}.portal-app-state.is-restricted{min-width:0;overflow:hidden;color:#9a6700;text-overflow:ellipsis}.portal-app-state.is-restricted .portal-app-state-dot{background:#ed7b2f}.portal-app-enter{min-width:auto!important;height:24px!important;margin-left:auto!important;padding:0 2px!important;flex:none!important;font-size:12px!important;font-weight:500!important}.portal-app-enter .t-button__text{white-space:nowrap}
 @media(max-width:520px){.portal-app-meta{gap:6px}.portal-app-category{max-width:62px}.portal-app-state{font-size:11px}}
 
 
@@ -180,7 +180,7 @@
 /* 2026-09-18 latest round: compact rules, app counts, message center parity and clean detail surfaces. */
 .portal-field-link,.portal-field-link.is-unread,.portal-page .t-table .portal-field-link{font-weight:400!important}
 .portal-section-count,.portal-title-count,.message-header-count{font-size:13px;font-weight:400;color:#697386}.message-header-count>span{color:#e34d59}
-.portal-app-section .section-head h2{display:flex;align-items:center;gap:2px}.portal-app-info .portal-app-name{font-weight:500!important}.portal-app-info .portal-app-name:hover{font-weight:500!important}
+.portal-app-section .section-head h2{display:flex;align-items:center;gap:2px}.portal-app-info .portal-app-name{font-weight:400!important}.portal-app-info .portal-app-name:hover{font-weight:400!important}
 .portal-generic-detail{padding:20px 24px 24px}.portal-message-wrap{background:#fff!important;padding:0!important}.portal-message-panel{width:100%!important;padding:0!important;background:#fff!important}.portal-message-letter{padding:24px!important;border-top:4px solid #2454ff!important}
 .portal-message-center{min-width:0}.message-filters{margin-bottom:16px!important}.message-list-panel{padding:16px}.message-title-link{font-weight:400!important}.message-detail-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px}.message-letter-wrap{display:flex;justify-content:center;align-items:flex-start;background:transparent}.message-letter-panel{box-sizing:border-box;width:min(960px,100%);padding:0;background:transparent}.message-letter{box-sizing:border-box;width:100%;padding:24px;border:1px solid #e5e8ef;border-top:4px solid #2454ff;border-radius:4px;background:#fff;color:#344054;line-height:2}.message-letter h2{margin:8px 0 26px;color:#101828;font-size:20px;line-height:1.5}.message-letter p{margin:0 0 12px}.message-letter-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin:0 0 28px;padding:16px 18px;background:#f6f8fb}.message-letter-meta>div{min-width:0;display:grid;grid-template-columns:18px 72px minmax(0,1fr);align-items:start;gap:8px;color:#697386;line-height:22px}.message-letter-meta .t-icon{margin-top:3px;color:#2454ff}.message-letter-meta strong{min-width:0;color:#344054;font-weight:500;word-break:break-word}.message-letter-body{white-space:pre-wrap;word-break:break-word}.message-business-detail{margin-top:28px;padding-top:22px;border-top:1px solid #e5e8ef}.message-business-detail h3{margin:0 0 14px;color:#101828;font-size:14px}.message-business-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e5e8ef;border-left:1px solid #e5e8ef}.message-business-grid>div{min-width:0;display:grid;grid-template-columns:112px minmax(0,1fr);border-right:1px solid #e5e8ef;border-bottom:1px solid #e5e8ef;font-size:13px;line-height:20px}.message-business-grid>div>span{padding:12px 14px;border-right:1px solid #e5e8ef;background:#f8fafc;color:#697386;white-space:nowrap}.message-business-grid>div>strong{min-width:0;padding:12px 14px;color:#344054;font-weight:500;word-break:break-word}.message-letter-actions{display:flex;gap:10px;margin:26px 0 0}.portal-page .t-pagination{margin-top:10px!important;gap:2px!important}.portal-page .t-pagination .t-pagination__btn{margin:0 1px!important}
 @media(max-width:900px){.message-letter-panel{width:100%}.message-letter{padding:16px}.message-letter-meta,.message-business-grid{grid-template-columns:1fr}}
@@ -680,4 +680,31 @@
 }
 @media(max-width:650px){
   .admin-reminder-grid,.admin-shortcut-grid{grid-template-columns:1fr!important}
+}
+
+
+/* 2026-09-20 global content-link typography normalization. */
+.portal-page .portal-field-link,
+.portal-page .portal-field-link.is-unread,
+.portal-page .portal-field-link.is-attention,
+.portal-page .portal-app-name,
+.portal-page .message-title-link,
+.portal-page .section-head a,
+.portal-page .empty-conditional a{
+  color:#0052d9!important;
+  font-size:13px!important;
+  font-weight:400!important;
+  line-height:1.6!important;
+  text-decoration:none!important;
+}
+.portal-page .portal-field-link:hover,
+.portal-page .portal-field-link.is-unread:hover,
+.portal-page .portal-field-link.is-attention:hover,
+.portal-page .portal-app-name:hover,
+.portal-page .message-title-link:hover,
+.portal-page .section-head a:hover,
+.portal-page .empty-conditional a:hover{
+  color:#003cab!important;
+  font-weight:400!important;
+  text-decoration:underline!important;
 }
