@@ -83,7 +83,7 @@ const icons={
  profile:UserIcon,
  mine:AppIcon,
  apps:AppIcon,
- adminHome:ChartBarIcon,
+ adminHome:HomeIcon,
  applicationRequests:TaskIcon,
  accountOpeningRequests:LinkIcon,
  users:UserIcon,
