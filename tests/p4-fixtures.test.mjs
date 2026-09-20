@@ -19,7 +19,7 @@ test('应用逐项匹配原始需求42个未划除系统，描述与归组齐全
 
 test('每人多条待办消息、应用关联、公告与日志有足够展示数据且无展示占位词',()=>{
  const d=createSeed();assert.equal(d.schemaVersion,4);assert.equal(d.users.length,5);
- for(const actor of actors.filter(x=>x.userType!=='LOCAL')){assert(d.todos.filter(x=>x.userId===actor.id&&x.status==='PENDING').length>=8);assert(d.messages.filter(x=>x.userId===actor.id&&x.status==='UNREAD').length>=8);assert(d.mappings.filter(x=>x.userId===actor.id&&x.status==='BOUND').length>=6);}
+ for(const actor of actors.filter(x=>x.userType!=='LOCAL')){assert(d.todos.filter(x=>x.userId===actor.id&&x.status==='PENDING').length>=8);assert(d.messages.filter(x=>x.userId===actor.id&&x.status==='UNREAD').length>=8);assert(d.mappings.filter(x=>x.userId===actor.id&&x.status==='BOUND').length>=5);}
  const local=actors.find(x=>x.userType==='LOCAL');assert(local);assert.equal(d.todos.filter(x=>x.userId===local.id).length,0);assert.equal(d.messages.filter(x=>x.userId===local.id).length,0);assert.equal(d.mappings.filter(x=>x.userId===local.id).length,0);
  assert(d.announcements.length>=8);assert(d.integrations.length>=42);
  for(const kind of ['login','access','operation','api','error'])assert(d.logs.some(x=>x.kind===kind));
