@@ -36,7 +36,7 @@
         <template #effectiveEnd="{row}">{{row.effectiveEnd?dateOnly(row.effectiveEnd):'永久有效'}}</template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="$emit('edit',row)">编辑</t-button>
+            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
             <t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openSubmit(row)">提交</t-button>
             <t-button v-if="['SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="danger" @click="withdraw(row)">撤回</t-button>
             <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(row.status)" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
@@ -58,7 +58,7 @@
         <div class="form-field full"><label>公告标题 <span class="portal-required">*</span></label><t-input v-model="form.title" :maxlength="120"/></div>
         <div class="form-field"><label>公告类型</label><t-select v-model="form.type" :options="typeOptions"/></div>
         <div class="form-field"><label>发布范围</label><t-select v-model="form.scope" :options="scopeOptions"/></div>
-        <div class="announcement-publish-row">
+        <div class="announcement-publish-row" :class="{'is-scheduled':form.publishMode==='SCHEDULED'}">
           <div class="form-field announcement-publish-mode-field">
             <label>发布方式 <span class="portal-required">*</span></label>
             <t-radio-group v-model="form.publishMode">
@@ -66,15 +66,14 @@
               <t-radio value="SCHEDULED">定时发布</t-radio>
             </t-radio-group>
           </div>
-          <div class="form-field announcement-schedule-field">
-            <label>定时发布时间 <span v-if="form.publishMode==='SCHEDULED'" class="portal-required">*</span></label>
+          <div v-if="form.publishMode==='SCHEDULED'" class="form-field announcement-schedule-field">
+            <label>定时发布时间 <span class="portal-required">*</span></label>
             <t-date-picker
               v-model="form.scheduledPublishAt"
               enable-time-picker
               format="YYYY-MM-DD HH:mm:ss"
               value-type="YYYY-MM-DD HH:mm:ss"
-              :disabled="form.publishMode!=='SCHEDULED'"
-              :placeholder="form.publishMode==='SCHEDULED'?'请选择未来发布时间':'立即发布无需选择'"
+              placeholder="请选择未来发布时间"
             />
           </div>
           <div class="form-field announcement-expiry-field">
@@ -110,6 +109,14 @@
       </div>
     </t-dialog>
 
+    <AnnouncementEditPage
+      v-if="editRow"
+      v-model:visible="editVisible"
+      :record="editRow"
+      :type-items="typeItems"
+      @saved="handleEditSaved"
+    />
+
     <t-dialog v-model:visible="previewVisible" placement="center" header="公告预览" width="min(1040px, calc(100vw - 48px))" :footer="false">
       <AnnouncementDetail :record="previewRecord" @download="download"/>
     </t-dialog>
@@ -122,16 +129,18 @@ import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
+import AnnouncementEditPage from './AnnouncementEditPage.vue';
 import {date,dateOnly,label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,default:()=>[]}});
-const emit=defineEmits(['saved','detail','edit']);
+const emit=defineEmits(['saved','detail']);
 
 const keyword=ref(''),type=ref(''),scope=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
 const formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false),uploadFiles=ref([]);
 const submitVisible=ref(false),submitRow=ref(null),publishMode=ref('IMMEDIATE'),scheduledPublishAt=ref('');
 const previewVisible=ref(false),previewRecord=ref(null);
+const editVisible=ref(false),editRow=ref(null);
 
 const typeOptions=computed(()=>{
   const items=props.typeItems.filter(item=>item.typeCode==='announcement_type'&&item.status==='ENABLED');
@@ -169,6 +178,8 @@ function assign(row){
   uploadFiles.value=(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),originAttachment:JSON.parse(JSON.stringify(file))}));
 }
 function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',publishMode:'IMMEDIATE',scheduledPublishAt:'',effectiveEnd:'',content:'',attachments:[]});formError.value='';formVisible.value=true;}
+function openEdit(row){editRow.value=JSON.parse(JSON.stringify(row));editVisible.value=true;}
+function handleEditSaved(){editVisible.value=false;editRow.value=null;emit('saved');}
 function previewForm(){previewRecord.value={...JSON.parse(JSON.stringify(form)),attachments:uploadFiles.value.map(file=>file.originAttachment||{id:file.id,name:file.name,size:file.size||0})};previewVisible.value=true;}
 function openSubmit(row){submitRow.value=JSON.parse(JSON.stringify(row));publishMode.value='IMMEDIATE';scheduledPublishAt.value='';formError.value='';submitVisible.value=true;}
 function toDateValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'').slice(0,10);const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
