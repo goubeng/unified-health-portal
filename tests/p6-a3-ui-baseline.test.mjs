@@ -37,7 +37,7 @@ test('业务链接保持普通蓝色，不使用粗体强调',()=>{
   assert(css.includes('.portal-page .portal-field-link{color:#0052d9!important;font-weight:400!important}'));
 });
 
-test('管理首页按规模待处理接入健康异常和常用管理分层',()=>{
+test('管理首页按规模待处理与常用管理同屏接入健康异常分层',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   for(const label of ['纳管应用','启用应用','门户用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
@@ -45,10 +45,22 @@ test('管理首页按规模待处理接入健康异常和常用管理分层',()=
   assert(!source.includes("{label:'异常应用'"));
   assert(!source.includes('<h2>管理提醒</h2>'));
   assert(!source.includes('异常接入消息'));
+  assert(source.includes('class="admin-workbench-grid"'));
+  assert(source.includes('class="admin-overview-icon"'));
+  assert(source.includes('class="admin-shortcut-grid"'));
+  assert(source.includes('class="admin-shortcut-card"'));
+  assert(source.includes("icon:'app',tone:'blue'"));
+  assert(source.includes("icon:'check-circle',tone:'green'"));
+  assert(source.includes("icon:'user',tone:'purple'"));
+  assert(source.includes("icon:'error-circle',tone:'red'"));
+  for(const tone of ['blue','cyan','orange','red','yellow','purple'])assert(source.includes("tone:'"+tone+"'"),tone+' 待处理背景未配置');
   assert(source.includes('adminPendingItems'));
   assert(source.includes("overview.value.abnormalServiceCount??0"));
   assert(source.includes("latest(homeExceptions,'lastCheckedAt')"));
-  assert(css.includes('.admin-reminder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}'));
+  assert(css.includes('.admin-workbench-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.95fr)'));
+  assert(css.includes('.admin-shortcut-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}'));
+  assert(css.includes('.admin-reminder-card.tone-blue{background:#f2f7ff!important'));
+  assert(css.includes('.admin-overview-icon.tone-green'));
 });
 
 test('核心信息卡片不恢复自定义hover阴影',()=>{
