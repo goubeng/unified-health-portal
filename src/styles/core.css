@@ -570,7 +570,7 @@
 .user-source-alert,.organization-source-alert,.role-permission-note,.dictionary-lock-alert{margin-top:14px}.user-external-maintenance{margin-top:16px}.role-basic-form{margin-bottom:18px}.role-permission-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:6px 0 12px}.role-permission-title h3,.dictionary-items-head h2{margin:0;color:#1d2129;font-size:14px;font-weight:600}.role-permission-title p,.dictionary-items-head p{margin:5px 0 0;color:#86909c;font-size:12px;line-height:1.6}.role-permission-groups{display:flex;flex-direction:column;gap:10px;max-height:none;overflow:visible;padding-right:0}.role-permission-group{border:1px solid #e5e8ef;border-radius:4px;background:#fff}.role-permission-group-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px;border-bottom:1px solid #eef0f4;background:#fafbfc}.role-permission-group-head>span{color:#86909c;font-size:12px}.role-permission-pages{padding:4px 12px}.role-permission-page{display:grid;grid-template-columns:180px minmax(0,1fr);align-items:center;gap:12px;min-height:42px;border-bottom:1px solid #f2f3f5}.role-permission-page:last-child{border-bottom:0}.role-permission-page>strong{color:#4e5969;font-size:13px;font-weight:500}.role-permission-actions{display:flex;flex-wrap:wrap;gap:6px}.dictionary-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}.dictionary-types-panel,.dictionary-items-panel{min-height:620px}.dictionary-types-panel>.t-input{margin:4px 0 12px}.dictionary-type-list{display:flex;flex-direction:column;gap:4px;max-height:540px;overflow:auto}.dictionary-type-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:54px;padding:8px 10px;border:1px solid transparent;border-radius:4px;background:transparent;text-align:left;cursor:pointer}.dictionary-type-item:hover{background:#f7f8fa}.dictionary-type-item.active{border-color:#b8d4ff;background:#f2f7ff}.dictionary-type-item>span{display:flex;min-width:0;flex-direction:column;gap:3px}.dictionary-type-item strong{overflow:hidden;color:#344054;font-size:13px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}.dictionary-type-item small{overflow:hidden;color:#86909c;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.dictionary-items-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}.dictionary-type-actions{display:flex;align-items:center;gap:6px}.dictionary-query{margin-top:12px}.organization-management .portal-table-panel,.user-management .portal-table-panel,.role-management .portal-table-panel{overflow:hidden}@media(max-width:960px){.dictionary-layout{grid-template-columns:1fr}.dictionary-types-panel,.dictionary-items-panel{min-height:auto}.role-permission-page{grid-template-columns:1fr;gap:6px;padding:8px 0}}
 
 /* 0.3.0-A3 announcement, monitoring and audit pages. */
-.editor-hidden-input{display:none}.rich-editor-content img{display:block;max-width:100%;height:auto;margin:10px auto}.announcement-form-grid{margin-bottom:14px}.announcement-form-grid .form-helper{display:block;margin-top:6px;color:#86909c;font-size:12px;line-height:1.6}.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:minmax(240px,.9fr) minmax(260px,1fr);gap:18px;align-items:start}.announcement-publish-row.is-scheduled{grid-template-columns:minmax(220px,.9fr) minmax(300px,1.2fr) minmax(250px,1fr)}.announcement-publish-row>.form-field{min-width:0}.announcement-publish-mode-field .t-radio-group{display:flex;min-height:32px;align-items:center;gap:18px;flex-wrap:wrap}.announcement-publish-row .t-date-picker{width:100%!important}.announcement-form-actions{display:flex;width:100%;justify-content:flex-end;gap:10px;margin:0;padding:0;border:0}@media(max-width:900px){.announcement-publish-row,.announcement-publish-row.is-scheduled{grid-template-columns:1fr 1fr}.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:1/-1}}@media(max-width:650px){.announcement-publish-row,.announcement-publish-row.is-scheduled{grid-template-columns:1fr}.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:auto}}.announcement-submit-options{display:flex;flex-direction:column;gap:16px}.announcement-submit-options .form-field{max-width:360px}.admin-service-health-panel{margin-top:16px}.admin-service-health-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.admin-service-health-card{display:grid;grid-template-columns:minmax(72px,1fr) repeat(3,auto);align-items:center;gap:12px;min-height:58px;padding:10px 14px;border:1px solid #e5e8ef;border-radius:4px;background:#fff;text-align:left;cursor:pointer}.admin-service-health-card:hover{border-color:#b8d4ff;background:#f8fbff}.admin-service-health-card>strong{color:#1d2129;font-size:13px;font-weight:600}.admin-service-health-card>span{color:#86909c;font-size:12px;white-space:nowrap}.admin-service-health-card b{margin-right:2px;color:#344054;font-size:14px;font-weight:600}.admin-service-health-card b.is-danger{color:#d54941}.monitor-service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.monitor-service-card{min-width:0;border:1px solid #e5e8ef;border-radius:4px;background:#fff;overflow:hidden}.monitor-service-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;border-bottom:1px solid #eef0f4;background:#fafbfc}.monitor-service-card-head>strong{color:#344054;font-size:13px;font-weight:600}.monitor-service-card .detail-grid{margin:0}.monitor-mock-note{margin-top:14px}.log-resolution-note{margin-top:16px}.log-management .portal-table-panel,.monitor-management .portal-table-panel,.announcement-management .portal-table-panel{overflow:hidden}@media(max-width:1100px){.admin-service-health-grid,.monitor-service-grid{grid-template-columns:1fr}.admin-service-health-card{grid-template-columns:minmax(80px,1fr) repeat(3,auto)}}
+.editor-hidden-input{display:none}.rich-editor-content img{display:block;max-width:100%;height:auto;margin:10px auto}.announcement-form-grid{margin-bottom:14px}.announcement-form-grid .form-helper{display:block;margin-top:6px;color:#86909c;font-size:12px;line-height:1.6}.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;align-items:start}.announcement-publish-row .announcement-publish-mode-field{grid-column:span 6}.announcement-publish-row .announcement-expiry-field{grid-column:span 6}.announcement-publish-row.is-scheduled .announcement-publish-mode-field{grid-column:span 3}.announcement-publish-row.is-scheduled .announcement-schedule-field{grid-column:span 3}.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:span 6}.announcement-publish-row>.form-field{min-width:0}.announcement-publish-mode-field .t-radio-group{display:flex;min-height:32px;align-items:center;gap:18px;flex-wrap:wrap}.announcement-publish-row .t-date-picker{width:100%!important}.announcement-form-actions{display:flex;width:100%;justify-content:flex-end;gap:10px;margin:0;padding:0;border:0}@media(max-width:900px){.announcement-publish-row,.announcement-publish-row.is-scheduled{grid-template-columns:1fr 1fr}.announcement-publish-row .announcement-publish-mode-field,.announcement-publish-row .announcement-expiry-field,.announcement-publish-row.is-scheduled .announcement-publish-mode-field,.announcement-publish-row.is-scheduled .announcement-schedule-field{grid-column:auto}.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:1/-1}}@media(max-width:650px){.announcement-publish-row,.announcement-publish-row.is-scheduled{grid-template-columns:1fr}.announcement-publish-row .announcement-publish-mode-field,.announcement-publish-row .announcement-expiry-field,.announcement-publish-row.is-scheduled .announcement-publish-mode-field,.announcement-publish-row.is-scheduled .announcement-schedule-field,.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:auto}}.announcement-submit-options{display:flex;flex-direction:column;gap:16px}.announcement-submit-options .form-field{max-width:360px}.admin-service-health-panel{margin-top:16px}.admin-service-health-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.admin-service-health-card{display:grid;grid-template-columns:minmax(72px,1fr) repeat(3,auto);align-items:center;gap:12px;min-height:58px;padding:10px 14px;border:1px solid #e5e8ef;border-radius:4px;background:#fff;text-align:left;cursor:pointer}.admin-service-health-card:hover{border-color:#b8d4ff;background:#f8fbff}.admin-service-health-card>strong{color:#1d2129;font-size:13px;font-weight:600}.admin-service-health-card>span{color:#86909c;font-size:12px;white-space:nowrap}.admin-service-health-card b{margin-right:2px;color:#344054;font-size:14px;font-weight:600}.admin-service-health-card b.is-danger{color:#d54941}.monitor-service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.monitor-service-card{min-width:0;border:1px solid #e5e8ef;border-radius:4px;background:#fff;overflow:hidden}.monitor-service-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;border-bottom:1px solid #eef0f4;background:#fafbfc}.monitor-service-card-head>strong{color:#344054;font-size:13px;font-weight:600}.monitor-service-card .detail-grid{margin:0}.monitor-mock-note{margin-top:14px}.log-resolution-note{margin-top:16px}.log-management .portal-table-panel,.monitor-management .portal-table-panel,.announcement-management .portal-table-panel{overflow:hidden}@media(max-width:1100px){.admin-service-health-grid,.monitor-service-grid{grid-template-columns:1fr}.admin-service-health-card{grid-template-columns:minmax(80px,1fr) repeat(3,auto)}}
 
 
 /* Local admin demo form: fields are visual only in phase A. */
@@ -598,10 +598,13 @@
 .portal-loading-placeholder{min-height:320px;width:100%}.role-permission-note{margin:0 0 14px!important;padding:6px 10px!important;min-height:32px!important;font-size:13px!important;line-height:20px!important}.role-permission-note :is(.t-alert__message,.t-alert__description){font-size:13px!important;line-height:20px!important}.identity-mapping-section+.identity-mapping-section{margin-top:20px}.identity-mapping-section-title{margin:0 0 10px;color:#1d2129;font-size:14px;font-weight:600;line-height:22px}.identity-mapping-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px}.identity-mapping-section-head .identity-mapping-section-title{margin:0}.identity-mappings-summary{display:flex;align-items:center;gap:12px;color:#697386;font-size:13px}.identity-mappings-dialog .t-pagination{margin-top:14px}.identity-mappings-dialog .t-dialog__body{max-height:72vh}.access-switch-line{gap:0!important}.form-field>.t-switch{align-self:flex-start}
 
 
-/* 2026-09-20 admin home visual refinement: icon overview + pending/shortcut workbench row. */
+/* 2026-09-20 admin home visual refinement: icon-left overview + unified pending + health/exception row. */
 .admin-overview-card{
   min-height:104px!important;
+  flex-direction:row!important;
+  align-items:center!important;
   justify-content:flex-start!important;
+  gap:14px!important;
   padding:16px 18px!important;
   background:#fff!important;
   border:0!important;
@@ -609,12 +612,12 @@
   box-shadow:none!important;
 }
 .admin-overview-card:hover{background:#fbfcfe!important;box-shadow:none!important}
-.admin-overview-head{display:flex;align-items:center;gap:10px;min-width:0;color:#697386;font-size:13px}
-.admin-overview-head>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.admin-overview-icon{display:inline-flex;width:34px;height:34px;flex:none;align-items:center;justify-content:center;border-radius:4px}
-.admin-overview-icon>.t-icon{width:18px;height:18px}
-.admin-overview-card>strong{margin:10px 0 2px!important;color:#1d2129!important;font-size:26px!important;line-height:1.2!important;font-weight:600!important}
-.admin-overview-card>small{color:#98a2b3!important;font-size:12px!important}
+.admin-overview-icon{display:inline-flex;width:38px;height:38px;flex:none;align-items:center;justify-content:center;border-radius:4px}
+.admin-overview-icon>.t-icon{width:19px;height:19px}
+.admin-overview-content{display:flex;min-width:0;flex:1;flex-direction:column;align-items:flex-start;gap:3px}
+.admin-overview-content>span{max-width:100%;overflow:hidden;color:#697386;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.admin-overview-content>strong{margin:0!important;color:#1d2129!important;font-size:26px!important;line-height:1.25!important;font-weight:600!important}
+.admin-overview-content>small{max-width:100%;overflow:hidden;color:#98a2b3!important;font-size:12px!important;text-overflow:ellipsis;white-space:nowrap}
 
 .admin-workbench-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.95fr);gap:16px;align-items:stretch;margin-bottom:16px}
 .admin-workbench-grid>.panel{min-width:0;margin:0!important}
@@ -627,11 +630,12 @@
   justify-content:center!important;
   gap:3px!important;
   padding:14px 15px!important;
-  border:1px solid transparent!important;
+  border:1px solid #eef0f4!important;
   border-radius:0!important;
+  background:#f6f8fb!important;
   box-shadow:none!important;
 }
-.admin-reminder-card:hover{filter:brightness(.99);box-shadow:none!important}
+.admin-reminder-card:hover{border-color:#dfe5ee!important;background:#f3f6fa!important;box-shadow:none!important}
 .admin-reminder-card>span{color:#4e5969!important;font-size:13px!important}
 .admin-reminder-card>strong{color:#1d2129!important;font-size:21px!important;line-height:1.25!important;font-weight:600!important}
 .admin-reminder-card>strong.is-danger{color:#d54941!important}
@@ -657,16 +661,19 @@
 .admin-shortcut-icon.tone-cyan{background:#eaf8fb;color:#029cd4}
 .admin-shortcut-icon.tone-gray{background:#f2f3f5;color:#697386}
 
-.admin-reminder-card.tone-blue{background:#f2f7ff!important;border-color:#dce9ff!important}
-.admin-reminder-card.tone-cyan{background:#f1f9fb!important;border-color:#d9eef4!important}
-.admin-reminder-card.tone-orange{background:#fff7e8!important;border-color:#ffebc2!important}
-.admin-reminder-card.tone-red{background:#fff3f1!important;border-color:#ffdeda!important}
-.admin-reminder-card.tone-yellow{background:#fffae8!important;border-color:#fff0b8!important}
-.admin-reminder-card.tone-purple{background:#f6f2ff!important;border-color:#e8defe!important}
+.admin-health-workbench-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px;align-items:stretch;margin-bottom:16px}
+.admin-health-workbench-grid>.panel{min-width:0;height:100%;margin:0!important}
+.admin-service-health-panel{margin:0!important}
+.admin-service-health-grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+.admin-service-health-card{min-height:58px!important}
+.admin-exception-panel{margin:0!important}
 
 @media(max-width:1200px){
   .admin-workbench-grid{grid-template-columns:1fr}
   .admin-shortcut-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+  .admin-health-workbench-grid{grid-template-columns:1fr}
 }
 @media(max-width:900px){
   .admin-reminder-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
