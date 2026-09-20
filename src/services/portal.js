@@ -5,13 +5,14 @@ import {integrationFields,terminalStatuses} from '../config/integration-contract
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
+const identitySourceName=user=>user?.userType==='GOV'?'闽政务':user?.userType==='LOCAL'?'门户本地':'闽政通';
 const visible=(x,a)=>x.status==='PUBLISHED'&&(!x.effectiveStart||Date.parse(x.effectiveStart)<=Date.now())&&(!x.effectiveEnd||Date.parse(x.effectiveEnd)>Date.now())&&(x.scope==='ALL'||x.scope===a.userType);
 const checkUrl=url=>{try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();return u;}catch{fail('VALIDATION_ERROR','请输入有效的 HTTP/HTTPS 地址');}};
 export function createPortalService(provider,getActor){
  const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED')fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:crypto.randomUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:crypto.randomUUID()};}};
  const auth=(a,s)=>{if(!can(a,s))fail('FORBIDDEN','当前身份没有该权限范围');};
  const requireRow=(list,id,version)=>{const row=list.find(x=>x.id===id);if(!row)fail('NOT_FOUND','记录不存在');if(version!==undefined&&row.version!==version)fail('VERSION_CONFLICT','记录已更新，请刷新后重试');return row;};
- const decorate=(d,a)=>d.apps.map(x=>({...x,applicable:x.userType==='BOTH'||x.userType===a.userType,mappingStatus:d.mappings.find(m=>m.appId===x.id&&own(m,a))?.status||'UNBOUND'}));
+ const decorate=(d,a)=>d.apps.map(x=>({...x,applicable:a.userType!=='LOCAL'&&(x.userType==='BOTH'||x.userType===a.userType),mappingStatus:d.mappings.find(m=>m.appId===x.id&&own(m,a))?.status||'UNBOUND'}));
  const accountApps=(d,a)=>{
   const ids=new Set();
   d.mappings.filter(x=>own(x,a)&&x.status!=='UNBOUND').forEach(x=>ids.add(x.appId));
@@ -79,9 +80,9 @@ export function createPortalService(provider,getActor){
    if(resource==='users'||resource==='identities')return (d.users||actors).map(user=>decorateUser(d,user));
    if(resource==='identityOverview')return d.users.map(user=>{
     const mappings=d.mappings.filter(m=>m.userId===user.id).map(m=>({...m,appName:d.apps.find(app=>app.id===m.appId)?.name||m.appName,todoCount:d.todos.filter(t=>t.userId===user.id&&t.appId===m.appId).length,messageCount:d.messages.filter(t=>t.userId===user.id&&t.appId===m.appId).length}));
-    return {...decorateUser(d,user),user:{...decorateUser(d,user),source:user.userType==='GOV'?'闽政务':'闽政通'},source:user.userType==='GOV'?'闽政务':'闽政通',mappings,boundCount:mappings.filter(m=>m.status==='BOUND').length,exceptionCount:mappings.filter(m=>['FAILED','CONFLICT'].includes(m.status)).length};
+    return {...decorateUser(d,user),user:{...decorateUser(d,user),source:identitySourceName(user)},source:identitySourceName(user),mappings,boundCount:mappings.filter(m=>m.status==='BOUND').length,exceptionCount:mappings.filter(m=>['FAILED','CONFLICT'].includes(m.status)).length};
    });
-   if(resource==='identityMappings')return (d.users||actors).map(x=>({id:x.id,name:x.name,source:x.userType==='GOV'?'闽政务':'闽政通',status:'BOUND'}));
+   if(resource==='identityMappings')return (d.users||actors).map(x=>({id:x.id,name:x.name,source:identitySourceName(x),status:'BOUND'}));
    if(resource==='exceptions')return d.mappings.filter(x=>x.status==='CONFLICT'||x.status==='FAILED');
    if(resource==='roles')return (d.roles||[]).map(role=>({...role,scopeLabels:(role.scopes||[]).map(s=>scopes[s]||s).join('、')||'无门户管理权限'}));
    if(resource==='permissions')return Object.entries(scopes).map(([code,name])=>({id:code,code,name,description:'用于控制卫健统一门户内部页面与操作权限；不授予任何子系统业务权限。',status:'ENABLED'}));
