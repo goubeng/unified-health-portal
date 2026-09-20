@@ -79,6 +79,7 @@
   <t-dialog v-model:visible="accessDialogVisible" placement="center" :header="accessDialogTitle" width="1180px" :footer="false" :close-on-overlay-click="false">
    <AccessConfigDetail :profile="accessProfile" :saving="accessSaving" @save="saveAccessIntegration"/>
   </t-dialog>
+  <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp" @completed="handleBindingCompleted" @view-request="viewBindingRequests"/>
   <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download"/>
  </div>
 </template>
@@ -96,6 +97,7 @@ import MessageCenter from '../components/portal/MessageCenter.vue';
 import IdentityMappings from '../components/portal/IdentityMappings.vue';
 import AccessConfigDetail from '../components/portal/AccessConfigDetail.vue';
 import AppCards from '../components/portal/AppCards.vue';
+import AccountBindingWizard from '../components/portal/AccountBindingWizard.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
@@ -115,6 +117,7 @@ const appPageSize=ref(24),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
 const accessDialogVisible=ref(false),accessProfile=ref(null),accessSaving=ref(false);
+const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
 const adminShortcuts=computed(()=>pages.filter(item=>['PG-220','PG-202','PG-205','PG-222','PG-225'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
@@ -172,7 +175,7 @@ function resetQuery(){
  for(const key of Object.keys(filterValues))delete filterValues[key];
  page.value=1;appPages.mine=1;appPages.other=1;
 }
-watch(()=>route.fullPath,()=>{resetQuery();detailVisible.value=false;formVisible.value=false;accessDialogVisible.value=false;load();},{immediate:true});
+watch(()=>route.fullPath,()=>{resetQuery();detailVisible.value=false;formVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
 watch(revision,load);
 const queryWidthClass=key=>({
  category:'query-width-category',
@@ -338,11 +341,14 @@ async function run(action,payload,show=false){
  try{const result=await command(action,payload);if(!result.ok){MessagePlugin.error(text(result.error.message));return;}if(show)DialogPlugin.alert({placement:'center',header:'应用访问',body:text(result.data.message),confirmBtn:'知道了'});else MessagePlugin.success('操作成功');return result;}catch(cause){MessagePlugin.error(text(cause.message));}
 }
 const enterApp=app=>run('enterApp',{id:app.id},true);
-const bindApp=app=>openForm('bind',{appId:app.id,appName:app.name});
+function openBinding(app){bindingApp.value=JSON.parse(JSON.stringify(app));bindingVisible.value=true;}
+const bindApp=app=>openBinding(app);
 const requestApp=app=>openForm('submitApplicationRequest',{appId:app.id,appName:app.name});
 const viewApplicationRequest=()=>router.push('/portal/applications');
-const viewBinding=app=>showDetail(app,'apps');
-const viewConflict=()=>router.push('/portal/applications');
+const viewBinding=app=>openBinding(app);
+const viewConflict=app=>openBinding(app);
+function handleBindingCompleted(){load();}
+function viewBindingRequests(){router.push('/portal/applications');}
 function confirm(action,row,body){const dialog=DialogPlugin.confirm({placement:'center',header:'操作确认',body,onConfirm:async()=>{if(await run(action,{...row}))dialog.hide();}});}
 async function showDetail(row,kind=listResource.value){
  if(kind==='announcements'){await router.push(`${admin.value?'/admin':'/portal'}/announcements/${encodeURIComponent(row.id)}`);return;}
