@@ -24,8 +24,10 @@
      <template #empty><EmptyState description="该用户暂无子系统账号映射"/></template>
      <template #operation="{row}"><div class="row-actions">
       <t-button v-if="canManage&&row.status==='BOUND'" size="small" variant="text" theme="primary" @click="$emit('unbind',row)">解绑</t-button>
+      <t-button v-if="canManage&&row.status==='REVIEWING'" size="small" variant="text" theme="primary" @click="$emit('approve',row)">通过</t-button>
+      <t-button v-if="canManage&&row.status==='REVIEWING'" size="small" variant="text" theme="danger" @click="$emit('reject',row)">驳回</t-button>
       <t-button v-if="canManage&&row.status==='CONFLICT'" size="small" variant="text" theme="primary" @click="$emit('resolve',row)">处理冲突</t-button>
-      <span v-if="!canManage||!['BOUND','CONFLICT'].includes(row.status)" class="muted">—</span>
+      <span v-if="!canManage||!['BOUND','REVIEWING','CONFLICT'].includes(row.status)" class="muted">—</span>
      </div></template>
     </t-table>
    </template>
@@ -41,15 +43,15 @@ import DetailGrid from './DetailGrid.vue';
 import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},canManage:Boolean,exceptionsOnly:Boolean});
-defineEmits(['unbind','resolve']);
+defineEmits(['unbind','resolve','approve','reject']);
 const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),selectedId=ref(null);
-const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label:'政务用户'}];
-const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'}];
-const mappingOptions=[{value:'bound',label:'已关联'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
-const identitySource=user=>text(user.source)||({CITIZEN:'闽政通',GOV:'闽政务'}[user.userType]||'—');
+const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label:'政务用户'},{value:'LOCAL',label:'门户本地用户'}];
+const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'},{value:'门户本地',label:'门户本地'}];
+const mappingOptions=[{value:'bound',label:'已关联'},{value:'review',label:'待审核'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
+const identitySource=user=>text(user.source)||({CITIZEN:'闽政通',GOV:'闽政务',LOCAL:'门户本地'}[user.userType]||'—');
 const filtered=computed(()=>props.rows.filter(row=>{
  const term=keyword.value.trim().toLowerCase(),user=row.user||{};
- const matchesMapping=!mappingFilter.value||({bound:row.boundCount>0,exception:row.exceptionCount>0,none:row.boundCount===0}[mappingFilter.value]);
+ const matchesMapping=!mappingFilter.value||({bound:row.boundCount>0,review:(row.reviewCount||0)>0,exception:row.exceptionCount>0,none:row.boundCount===0&&(row.reviewCount||0)===0}[mappingFilter.value]);
  const values=[user.id,user.name,user.account,user.orgName,...(row.mappings||[]).flatMap(mapping=>[mapping.appName,mapping.externalAccount])];
  return matchesMapping&&(!userTypeFilter.value||user.userType===userTypeFilter.value)&&(!sourceFilter.value||identitySource(user)===sourceFilter.value)&&(!term||values.some(value=>text(value).toLowerCase().includes(term)));
 }));
@@ -72,10 +74,12 @@ const columns=[
 const mappingColumns=[
  {colKey:'appName',title:'系统名称',width:240,ellipsis:true},
  {colKey:'externalAccount',title:'子系统账号',width:180,ellipsis:true},
+ {colKey:'bindingMethod',title:'关联方式',width:100,cell:(_,context)=>label(context.row.bindingMethod)},
+ {colKey:'verificationMethod',title:'验证方式',width:150,cell:(_,context)=>label(context.row.verificationMethod)},
+ {colKey:'riskLevel',title:'风险级别',width:100,cell:(_,context)=>label(context.row.riskLevel)},
  {colKey:'status',title:'映射状态',width:110,cell:(_,context)=>statusCell(context.row.status)},
- {colKey:'todoCount',title:'待办数量',width:100},{colKey:'messageCount',title:'消息数量',width:100},
  {colKey:'boundAt',title:'关联时间',width:180,cell:(_,context)=>date(context.row.boundAt)},
- {colKey:'operation',title:'操作',width:110,fixed:'right'}
+ {colKey:'operation',title:'操作',width:150,fixed:'right'}
 ];
 function resetFilters(){keyword.value='';userTypeFilter.value='';sourceFilter.value='';mappingFilter.value=props.exceptionsOnly?'exception':'';page.value=1;}
 function closeDialog(visible){if(!visible)selectedId.value=null;}
