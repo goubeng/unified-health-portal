@@ -63,7 +63,7 @@
         <div class="form-field"><label>组织类型</label><t-select v-model="form.type" :options="typeOptions"/></div>
         <div class="form-field"><label>上级组织</label><t-select v-model="form.parentId" clearable filterable :options="parentOptions"/></div>
         <div class="form-field"><label>数据来源</label><t-input value="门户本地" disabled/></div>
-        <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status==='ENABLED'" @change="form.status=$event?'ENABLED':'DISABLED'"/><span>{{form.status==='ENABLED'?'启用':'停用'}}</span></div></div>
+        <div class="form-field"><label>启用状态</label><t-switch :value="form.status==='ENABLED'" @change="form.status=$event?'ENABLED':'DISABLED'"/></div>
         <div class="form-field full"><label>备注</label><t-textarea v-model="form.remark" :autosize="{minRows:3,maxRows:5}"/></div>
       </div>
     </t-dialog>
