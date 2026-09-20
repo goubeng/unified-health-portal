@@ -244,9 +244,15 @@ export function createPortalService(provider,getActor){
     }else if(action==='saveApp'){
      if(!p.name?.trim()||!p.code?.trim())fail('VALIDATION_ERROR','应用名称与编码为必填');checkUrl(p.url);
      if(!['CITIZEN','GOV','BOTH'].includes(p.userType))fail('VALIDATION_ERROR','请选择适用用户类型');
+     if(!['DIRECT','BIND','REQUEST'].includes(p.accessMode))fail('VALIDATION_ERROR','请选择有效访问模式');
+     if(p.accessMode==='BIND'&&!['AUTO','SELF','REVIEW','ADMIN'].includes(p.accountBindingMode))fail('VALIDATION_ERROR','请选择有效账号关联方式');
+     if(p.accessMode==='REQUEST'&&!['DIRECT','BIND'].includes(p.postGrantMode))fail('VALIDATION_ERROR','请选择申请通过后的访问方式');
+     if(p.accessMode==='REQUEST'&&p.postGrantMode==='BIND'&&!['AUTO','SELF','REVIEW','ADMIN'].includes(p.accountBindingMode))fail('VALIDATION_ERROR','请选择有效账号关联方式');
      if(d.apps.some(x=>x.code===p.code.trim()&&x.id!==p.id))fail('VALIDATION_ERROR','应用编码已存在');
      const x=p.id?requireRow(d.apps,p.id,p.version):{id:id(),version:0,createdAt:now,status:'DISABLED',runtimeStatus:'UNCONFIGURED'};
-     Object.assign(x,{name:p.name.trim(),code:p.code.trim(),category:p.category||'未分类',description:p.description||'',url:p.url,userType:p.userType,sortOrder:Number(p.sortOrder)||0});stamp(x);if(!p.id)d.apps.push(x);result=x;
+     Object.assign(x,{name:p.name.trim(),code:p.code.trim(),category:p.category||'未分类',description:p.description||'',url:p.url,userType:p.userType,
+      accessMode:p.accessMode,postGrantMode:p.accessMode==='REQUEST'?p.postGrantMode:'DIRECT',accountBindingMode:p.accessMode==='DIRECT'?'NONE':p.accountBindingMode,
+      accountOpeningMode:p.accountOpeningMode||'NONE',sortOrder:Number(p.sortOrder)||0});stamp(x);if(!p.id)d.apps.push(x);result=x;
     }else if(action==='setAppStatus'){const x=requireRow(d.apps,p.id,p.version);if(!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');x.status=p.status;result=stamp(x);
     }else if(action==='saveCategory'){
      if(!p.name?.trim()||!p.code?.trim())fail('VALIDATION_ERROR','名称与编码为必填');if(d.categories.some(x=>(x.code===p.code||x.name===p.name)&&x.id!==p.id))fail('VALIDATION_ERROR','分类名称或编码重复');
