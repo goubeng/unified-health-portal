@@ -7,7 +7,7 @@ export const actors = [
  {id:'MOCK_USER_1',name:'林晓',account:'linxiao',kind:'USER',userType:'CITIZEN',orgName:'公众服务',orgKey:'PUBLIC',scopes:[],roleIds:[],roleName:'普通用户',department:'个人服务',jobTitle:'办事人员',identitySource:'闽政通'},
  {id:'MOCK_USER_2',name:'陈宁',account:'chenning',kind:'USER',userType:'GOV',orgName:'卫生健康业务处',orgKey:'HEALTH',scopes:[],roleIds:[],roleName:'普通用户',department:'业务协同科',jobTitle:'业务经办',identitySource:'闽政务'},
  {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
- {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['announcement'],roleIds:['ROLE_CONTENT'],roleName:'内容管理员',scopeDescription:'公告权限',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
+ {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',scopeDescription:'日常门户维护',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
  {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
 ].map(actor => ({...actor,status:'NORMAL',mobile:'未提供',email:'未提供'}));
 
@@ -18,13 +18,9 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const row = (id, values) => ({id,version:1,createdAt:at(-48),updatedAt:at(-1),...values});
  const categories = ['公众服务','政务协同','行业监管','培训考试','卫生监督','疾病防控'].map((name,i) => row('MOCK_CAT_'+(i+1), {name,code:['PUBLIC','GOV','REGULATION','TRAINING','SUPERVISION','PREVENTION'][i],status:'ENABLED',sortOrder:i}));
  const roles = [
-  row('ROLE_SUPER',{roleCode:'PORTAL_SUPER_ADMIN',roleName:'门户超级管理员',description:'负责门户系统自身的用户、角色、应用、集成、内容、审计等管理，不授予子系统业务权限。',scopes:['super','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
-  row('ROLE_APP',{roleCode:'PORTAL_APP_ADMIN',roleName:'应用管理员',description:'维护门户应用目录、分类及应用接入信息。',scopes:['application'],status:'ENABLED',builtIn:true}),
-  row('ROLE_CONTENT',{roleCode:'PORTAL_CONTENT_ADMIN',roleName:'内容管理员',description:'维护通知公告等门户内容。',scopes:['announcement'],status:'ENABLED',builtIn:true}),
-  row('ROLE_INTEGRATION',{roleCode:'PORTAL_INTEGRATION_ADMIN',roleName:'集成管理员',description:'查看SSO、TODO、MESSAGE等接入运行状态、异常与监控信息。',scopes:['integration'],status:'ENABLED',builtIn:true}),
-  row('ROLE_IDENTITY',{roleCode:'PORTAL_IDENTITY_ADMIN',roleName:'身份映射管理员',description:'维护统一身份索引与子系统账号映射。',scopes:['identity'],status:'ENABLED',builtIn:true}),
-  row('ROLE_AUDIT',{roleCode:'PORTAL_AUDITOR',roleName:'审计员',description:'查看门户登录、访问、操作、接口及异常日志。',scopes:['audit'],status:'ENABLED',builtIn:true})
- ];
+  row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',scopes:['super','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
+  row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',scopes:['application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
+ ]
  const apps = applicationCatalog.map(entry => {
   const n=entry.sourceNo;
   const ci=n<=2?0:n<=17?1:n<=23?2:n<=28?3:n<=33?2:n<=38?4:5;
