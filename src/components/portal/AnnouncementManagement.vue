@@ -74,7 +74,6 @@
           <t-date-picker v-model="form.effectiveEnd" clearable format="YYYY-MM-DD" value-type="YYYY-MM-DD" placeholder="留空表示永久有效"/>
           <small class="form-helper">选择日期后，于当天 23:59:59 后失效。</small>
         </div>
-        <div class="form-field"><label>当前状态</label><t-input :value="label(form.status||'DRAFT')" disabled/></div>
       </div>
       <AnnouncementEditor v-model="form.content" v-model:files="uploadFiles"/>
       <template #footer>
@@ -195,6 +194,7 @@ async function saveAndPublish(){
       effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments
     });
     if(!saved.ok){formError.value=saved.error.message;return;}
+    Object.assign(form,{id:saved.data.id,version:saved.data.version,status:saved.data.status||'DRAFT'});
     const published=await command('submitAnnouncement',{
       id:saved.data.id,version:saved.data.version,publishMode:form.publishMode,
       scheduledPublishAt:form.publishMode==='SCHEDULED'?toIso(form.scheduledPublishAt):null
