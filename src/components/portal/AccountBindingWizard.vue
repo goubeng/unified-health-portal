@@ -48,7 +48,7 @@
               variant="outline"
               theme="primary"
               :loading="busy"
-              @click="evaluate"
+              @click="retry"
             >重新检测</t-button>
             <t-button theme="primary" @click="close">{{closeButtonText}}</t-button>
           </div>
@@ -129,7 +129,7 @@ async function call(action,payload){
   }
 }
 
-async function evaluate(){
+async function evaluate(ignoreCurrent=false){
   if(!props.app?.id)return;
   error.value='';externalHandoff.value=false;
   const current=props.app.accessState;
@@ -137,6 +137,7 @@ async function evaluate(){
   if(current==='REVIEWING'){setResult(props.app,'REVIEWING');return;}
   if(current==='CONFLICT'){setResult(props.app,'CONFLICT');return;}
   if(current==='FAILED'&&props.app.externalAccountStatus==='DISABLED'){setResult(props.app,'ACCOUNT_DISABLED');return;}
+  if(current==='FAILED'&&!ignoreCurrent){setResult(props.app,'FAILED');return;}
 
   const data=await call('discoverApplicationAccountCandidates',{appId:props.app.id,externalAccount:''});
   if(!data){setResult({},'FAILED');return;}
@@ -167,7 +168,10 @@ function goSubsystem(){
 }
 
 async function recheck(){
-  await evaluate();
+  await evaluate(true);
+}
+async function retry(){
+  await evaluate(true);
 }
 
 watch(()=>props.visible,async visible=>{
