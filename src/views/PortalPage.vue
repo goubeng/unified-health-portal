@@ -3,6 +3,9 @@
   <Teleport v-if="admin&&resource==='apps'&&canCreate" to="#page-header-actions"><t-button variant="outline" theme="primary" @click="downloadAccessSpec"><template #icon><Icon name="download"/></template>下载接口文件</t-button><t-button theme="primary" @click="openForm('saveApp')"><template #icon><Icon name="add"/></template>新增应用</t-button></Teleport>
   <Teleport v-if="admin&&resource==='categories'&&canCreate" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveCategory')"><template #icon><Icon name="add"/></template>新增分类</t-button></Teleport>
   <Teleport v-if="resource==='todos'" to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
+  <Teleport v-if="admin&&resource==='announcementDetail'&&route.query.mode!=='edit'&&detail&&['DRAFT','SCHEDULED','PUBLISHED'].includes(detail.status)" to="#page-header-actions">
+   <t-button theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
+  </Teleport>
   <div v-if="error" role="alert" class="error-note">{{text(error)}} <t-button variant="text" theme="primary" @click="load">重试</t-button></div>
   <t-loading :loading="loading" :show-overlay="false" size="small">
    <template v-if="isHome">
