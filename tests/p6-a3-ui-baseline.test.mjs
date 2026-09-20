@@ -37,7 +37,7 @@ test('业务链接保持普通蓝色，不使用粗体强调',()=>{
   assert(css.includes('.portal-page .portal-field-link{color:#0052d9!important;font-weight:400!important}'));
 });
 
-test('管理首页概览左图右三行且工作台与运行健康按双栏布局',()=>{
+test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   for(const label of ['纳管应用','启用应用','门户用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
@@ -45,6 +45,11 @@ test('管理首页概览左图右三行且工作台与运行健康按双栏布�
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
   assert(source.includes('class="admin-overview-content"'));
+  assert(!source.includes('{{card.hint}}'));
+  assert(!source.includes("hint:'统一应用目录'"));
+  assert(!source.includes("hint:'当前启用'"));
+  assert(!source.includes("hint:'已建立统一用户索引'"));
+  assert(!source.includes("hint:'已配置服务运行异常'"));
   assert(source.includes('class="admin-workbench-grid"'));
   assert(source.includes('class="admin-health-workbench-grid"'));
   assert(source.includes('class="admin-shortcut-grid"'));
@@ -60,6 +65,8 @@ test('管理首页概览左图右三行且工作台与运行健康按双栏布�
   assert(css.includes('.admin-overview-card{'));
   assert(css.includes('flex-direction:row!important'));
   assert(css.includes('.admin-overview-content{display:flex;min-width:0;flex:1;flex-direction:column'));
+  assert(css.includes('.admin-overview-icon{display:inline-flex;width:38px;height:38px;flex:none;align-items:center;justify-content:center;border-radius:4px;background:#f2f3f5;color:#697386}'));
+  for(const tone of ['blue','green','purple','red'])assert(css.includes('.admin-overview-icon.tone-'+tone),tone+' 图标背景未配置');
   assert(css.includes('.admin-reminder-card{'));
   assert(css.includes('background:#f6f8fb!important'));
   assert(!css.includes('.admin-reminder-card.tone-blue{'));
