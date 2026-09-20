@@ -31,6 +31,10 @@
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
    <PersonalProfile v-else-if="resource==='profile'" :user="actor"/>
+   <UserManagement v-else-if="resource==='users'" :rows="rows" :roles="systemRoles" :organizations="organizations" :can-super="can(actor,'super')" @saved="load"/>
+   <RoleManagement v-else-if="resource==='roles'" :rows="rows" @saved="load"/>
+   <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
+   <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
    <template v-else-if="resource==='announcementDetail'"><AnnouncementDetail v-if="detail" :record="detail" @download="download"/><section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section></template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
@@ -105,6 +109,10 @@ import AccessConfigDetail from '../components/portal/AccessConfigDetail.vue';
 import AppCards from '../components/portal/AppCards.vue';
 import AccountBindingWizard from '../components/portal/AccountBindingWizard.vue';
 import MyApplications from '../components/portal/MyApplications.vue';
+import UserManagement from '../components/portal/UserManagement.vue';
+import RoleManagement from '../components/portal/RoleManagement.vue';
+import OrganizationManagement from '../components/portal/OrganizationManagement.vue';
+import DictionaryManagement from '../components/portal/DictionaryManagement.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
@@ -117,7 +125,7 @@ const resource=computed(()=>route.meta.resource||''),admin=computed(()=>route.pa
 const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
-const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),mineIds=ref([]),accessProfiles=ref([]);
+const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
 const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
 const error=ref(''),loading=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10);
 const appPageSize=ref(24),appPages=reactive({mine:1,other:1});
@@ -150,17 +158,19 @@ async function load(){
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
   const tasks={apps:read(isAdmin?'adminApps':'apps')};
   if(can(actor.value,'application')){tasks.categories=read('categories');if(isAdmin&&key==='apps')tasks.accessProfiles=read('access');}
-  if(can(actor.value,'super')&&key==='users')tasks.systemRoles=read('roles');
   if(home){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'integration'))tasks.monitor=read('monitor');
    if(isAdmin&&can(actor.value,'identity'))tasks.exceptions=read('exceptions');
   }else if(center)tasks.mine=read('mine');
+  else if(key==='users'){tasks.rows=read('users');tasks.systemRoles=read('roles');tasks.organizations=read('organizations');}
+  else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
+  else if(key==='dictionaries'){tasks.dictionaryData=read('dictionaries');}
   else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcementDetail'?(isAdmin?'adminAnnouncements':'announcements'):key==='announcements'&&isAdmin?'adminAnnouncements':key);
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
   if(version!==loadVersion)return;
-  const data=Object.fromEntries(entries);allApps.value=data.apps;categories.value=data.categories||[];accessProfiles.value=data.accessProfiles||accessProfiles.value;systemRoles.value=data.systemRoles||(key==='roles'?data.rows:[])||[];
+  const data=Object.fromEntries(entries);allApps.value=data.apps;categories.value=data.categories||[];accessProfiles.value=data.accessProfiles||accessProfiles.value;systemRoles.value=data.systemRoles||(key==='roles'?data.rows:[])||[];organizations.value=data.organizations||organizations.value;dictTypes.value=data.dictionaryData?.types||[];dictItems.value=data.dictionaryData?.items||[];
   if(home){
    overview.value=data.overview;
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
@@ -168,7 +178,7 @@ async function load(){
    homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
    homeExceptions.value=[...(data.monitor||[]).filter(item=>!['NORMAL','CONFIGURED'].includes(item.status)),...(data.exceptions||[])];
   }
-  mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:data.rows||[];
+  mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
    const article=rows.value.find(item=>item.id===route.params.id);
    if(!article){detail.value=null;error.value='公告不存在或不在当前用户的可见范围';}
