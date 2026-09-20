@@ -35,20 +35,23 @@
     </form>
    </template>
 
-   <div v-else class="local-auth demo-admin-auth">
-    <p class="inline-note">管理账号仅用于原型演示。当前直接使用默认门户超级管理员进入平台管理端，不访问本地数据库。</p>
-    <div class="demo-admin-card">
-     <div class="demo-admin-avatar">管</div>
-     <div class="demo-admin-info">
-      <strong>门户超级管理员</strong>
-      <span>admin01</span>
-      <small>PORTAL_LOCAL · SUPER_ADMIN</small>
-     </div>
-     <t-tag theme="success" variant="light">演示账号</t-tag>
+   <form v-else class="local-auth phone-auth" @submit.prevent="enterLocalAdmin">
+    <p class="inline-note">管理账号当前仅用于原型演示。以下账号、密码、验证码组件仅展示正式登录形态，点击“登录”后直接进入平台管理端，不做真实校验，也不访问本地数据库。</p>
+    <label for="local-account" class="field-label">用户账号</label>
+    <t-input id="local-account" v-model="localAccount" autocomplete="username" placeholder="请输入用户账号"/>
+    <label for="local-password" class="field-label">登录密码</label>
+    <t-input id="local-password" v-model="localPassword" type="password" autocomplete="current-password" placeholder="请输入登录密码"/>
+    <label for="local-captcha" class="field-label">验证码</label>
+    <div class="local-captcha-row">
+     <t-input id="local-captcha" v-model="localCaptchaInput" autocomplete="off" :maxlength="4" placeholder="请输入验证码"/>
+     <button type="button" class="local-captcha-code" title="点击刷新验证码" aria-label="刷新验证码" @click="refreshLocalCaptcha">
+      <span>{{localCaptchaCode}}</span>
+     </button>
     </div>
-    <t-button block theme="primary" class="login-submit" :loading="localLoggingIn" @click="enterLocalAdmin">进入平台管理端</t-button>
-    <p class="local-auth-tip">正式环境的本地账号、密码、锁定与安全校验在后续认证/数据库阶段实现，本原型不模拟输入过程。</p>
-   </div>
+    <p class="local-captcha-tip">演示验证码仅用于页面展示，不参与登录校验</p>
+    <t-button block type="submit" theme="primary" class="login-submit" :loading="localLoggingIn">登录</t-button>
+    <p class="local-auth-tip">演示账号默认：admin01；密码和验证码可任意填写或保持默认值，登录时统一进入门户超级管理员演示账号。</p>
+   </form>
 
    <p v-if="notice" class="inline-note" role="status">{{notice}}</p>
    <div v-if="identityType!=='LOCAL'" class="login-assist-row">
@@ -67,7 +70,7 @@ import {actor,login} from '../services/runtime.js';
 
 const router=useRouter();
 const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
-const localLoggingIn=ref(false);
+const localLoggingIn=ref(false),localAccount=ref('admin01'),localPassword=ref('123456'),localCaptchaInput=ref('A7K9'),localCaptchaCode=ref('A7K9');
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
 const platformLink=computed(()=>identityType.value==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn');
 const qrPrompt=computed(()=>`请使用${platform.value}扫一扫登录`);
@@ -77,9 +80,15 @@ const displayCountdown=computed(()=>`${String(Math.floor(qrSeconds.value/60)).pa
 let timer,qrExpireTimer,qrSuccessTimer,qrCountdownTimer;
 
 function clearTimers(){clearInterval(timer);clearInterval(qrCountdownTimer);clearTimeout(qrExpireTimer);clearTimeout(qrSuccessTimer);}
+function createLocalCaptcha(){
+ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',values=new Uint32Array(4);
+ crypto.getRandomValues(values);
+ return Array.from(values,value=>chars[value%chars.length]).join('');
+}
+function refreshLocalCaptcha(){localCaptchaCode.value=createLocalCaptcha();}
 function reset(){
  clearTimers();phone.value='';code.value='';slide.value=0;verified.value=false;codeRequested.value=false;countdown.value=0;notice.value='';localLoggingIn.value=false;
- if(identityType.value!=='LOCAL')startQr();
+ if(identityType.value==='LOCAL')refreshLocalCaptcha();else startQr();
 }
 function startQr(){
  qrNonce.value=crypto.randomUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);
