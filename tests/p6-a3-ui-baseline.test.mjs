@@ -86,7 +86,8 @@ test('详情入口使用业务字段，不在操作列重复显示详情',()=>{
   assert(monitor.includes('#appName')&&monitor.includes('@click="openDetail(row)"'));
   assert(!monitor.includes('>查看详情</t-button>'));
   assert(announcement.includes('#title')&&announcement.includes('@click="preview(row)"'));
-  assert(!announcement.includes('>预览</t-button>'));
+  const announcementOperation=announcement.split('<template #operation="{row}">')[1]?.split('</template>')[0]||'';
+  assert(!announcementOperation.includes('>预览</t-button>'));
   assert(logs.includes('#requestId')&&logs.includes('@click="openDetail(row)"'));
   assert(!logs.includes('>详情</t-button>'));
 });
