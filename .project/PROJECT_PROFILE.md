@@ -3,7 +3,7 @@
 - 项目名称：卫健XC统一门户系统
 - 项目简称：卫健XC统一门户
 - 项目类型：new
-- 当前阶段：P4核心Mock已运行；下一阶段0.3.0改造规划中
+- 当前阶段：P4核心Mock已运行；0.3.0-A前端Mock改造进行中
 - 当前代码版本：0.2.0
 - 当前目标设计：V20260920-03
 - 技术栈：Vue 3 + Vite + TDesign Vue Next
@@ -76,3 +76,11 @@ LOCAL是门户自有身份，首期主要用于平台维护人员登录管理端
 7. 公告升级
 8. 日志/监控
 9. Loading/UI
+
+## 0.3.0实施边界
+
+- A阶段先完成Vue/TDesign前端、Mock Seed、Mock Service与可演示业务闭环；
+- A阶段不执行本地数据库请求、不运行Migration、不修改NocoDB真实表；
+- B阶段在A阶段验收后单独进行数据库Migration/Schema/Seed/回读；
+- C阶段再把Mock Provider替换为真实Provider并开展外部联调；
+- 所有涉及本地数据库的执行必须单独留目标库、脚本、结果和回读记录。
