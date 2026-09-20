@@ -107,3 +107,26 @@ test('管理表单启用状态使用紧凑TDesign开关，不把label写进开�
   assert(css.includes('.form-switch-control{'));
   assert(css.includes('.form-switch-control .t-switch{flex:none!important;width:auto!important'));
 });
+
+
+test('公告编辑主操作固定在Dialog Footer，正文单独滚动',()=>{
+  const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  assert(source.includes('<template #footer>'));
+  assert(source.includes('class="announcement-form-actions"'));
+  const editorIndex=source.indexOf('<AnnouncementEditor');
+  const footerIndex=source.indexOf('<template #footer>',editorIndex);
+  assert(editorIndex>=0&&footerIndex>editorIndex);
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.t-dialog__body{max-height:65vh;overflow:auto}'));
+});
+
+test('我的应用隐藏正常关联状态，其它应用保留状态提示',()=>{
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(page.includes('compact hide-normal-state'));
+  assert(page.includes(':hide-normal-state="group.key===\'mine\'"'));
+  assert(cards.includes("props.hideNormalState&&app.accessState==='BOUND'"));
+  assert(cards.includes('class="portal-app-status-tag"'));
+  assert(css.includes('.portal-app-status-tag,.portal-app-status-tag .t-tag__text{font-size:12px!important'));
+});
