@@ -37,30 +37,34 @@ test('业务链接保持普通蓝色，不使用粗体强调',()=>{
   assert(css.includes('.portal-page .portal-field-link{color:#0052d9!important;font-weight:400!important}'));
 });
 
-test('管理首页按规模待处理与常用管理同屏接入健康异常分层',()=>{
+test('管理首页概览左图右三行且工作台与运行健康按双栏布局',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   for(const label of ['纳管应用','启用应用','门户用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
-  assert(!source.includes('<h2>管理提醒</h2>'));
-  assert(!source.includes('异常接入消息'));
-  assert(source.includes('class="admin-workbench-grid"'));
   assert(source.includes('class="admin-overview-icon"'));
+  assert(source.includes('class="admin-overview-content"'));
+  assert(source.includes('class="admin-workbench-grid"'));
+  assert(source.includes('class="admin-health-workbench-grid"'));
   assert(source.includes('class="admin-shortcut-grid"'));
   assert(source.includes('class="admin-shortcut-card"'));
   assert(source.includes("icon:'app',tone:'blue'"));
   assert(source.includes("icon:'check-circle',tone:'green'"));
   assert(source.includes("icon:'user',tone:'purple'"));
   assert(source.includes("icon:'error-circle',tone:'red'"));
-  for(const tone of ['blue','cyan','orange','red','yellow','purple'])assert(source.includes("tone:'"+tone+"'"),tone+' 待处理背景未配置');
   assert(source.includes('adminPendingItems'));
+  assert(!/adminPendingItems=computed\(\(\)=>\[[\s\S]*tone:'(?:blue|cyan|orange|red|yellow|purple)'/.test(source));
   assert(source.includes("overview.value.abnormalServiceCount??0"));
   assert(source.includes("latest(homeExceptions,'lastCheckedAt')"));
-  assert(css.includes('.admin-workbench-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.95fr)'));
-  assert(css.includes('.admin-shortcut-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}'));
-  assert(css.includes('.admin-reminder-card.tone-blue{background:#f2f7ff!important'));
-  assert(css.includes('.admin-overview-icon.tone-green'));
+  assert(css.includes('.admin-overview-card{'));
+  assert(css.includes('flex-direction:row!important'));
+  assert(css.includes('.admin-overview-content{display:flex;min-width:0;flex:1;flex-direction:column'));
+  assert(css.includes('.admin-reminder-card{'));
+  assert(css.includes('background:#f6f8fb!important'));
+  assert(!css.includes('.admin-reminder-card.tone-blue{'));
+  assert(css.includes('.admin-health-workbench-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)'));
+  assert(css.includes('.admin-service-health-grid{display:grid!important;grid-template-columns:1fr!important'));
 });
 
 test('核心信息卡片不恢复自定义hover阴影',()=>{
@@ -250,20 +254,28 @@ test('新增公告仅定时发布时显示定时发布时间且失效日期按�
   assert(createDialog.includes('v-model="form.effectiveEnd"'));
   assert(createDialog.includes('format="YYYY-MM-DD"'));
   assert(!createDialog.includes('v-model="form.effectiveEnd" enable-time-picker'));
-  assert(css.includes('.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:minmax(240px,.9fr) minmax(260px,1fr)'));
-  assert(css.includes('.announcement-publish-row.is-scheduled{grid-template-columns:minmax(220px,.9fr) minmax(300px,1.2fr) minmax(250px,1fr)}'));
+  assert(css.includes('.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr))'));
+  assert(css.includes('.announcement-publish-row .announcement-publish-mode-field{grid-column:span 6}'));
+  assert(css.includes('.announcement-publish-row .announcement-expiry-field{grid-column:span 6}'));
+  assert(css.includes('.announcement-publish-row.is-scheduled .announcement-publish-mode-field{grid-column:span 3}'));
+  assert(css.includes('.announcement-publish-row.is-scheduled .announcement-schedule-field{grid-column:span 3}'));
+  assert(css.includes('.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:span 6}'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
   assert(source.includes('async function saveAndPublish()'));
   assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
 });
 
-test('草稿编辑可选择发布方式而已发布编辑保存后直接生效',()=>{
+test('草稿编辑与新增公告共用发布方式布局而已发布编辑保存后直接生效',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes("const isDraft=computed(()=>form.status==='DRAFT')"));
   assert(source.includes("const isPublished=computed(()=>form.status==='PUBLISHED')"));
   assert(source.includes('v-if="isDraft"'));
   assert(source.includes('v-model="form.publishMode"'));
   assert(source.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
+  assert(source.includes("class=\"announcement-publish-row\""));
+  assert(css.includes('.announcement-publish-row .announcement-publish-mode-field{grid-column:span 6}'));
+  assert(css.includes('.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:span 6}'));
   assert(source.includes('@click="saveDraft"'));
   assert(source.includes('@click="publishDraft"'));
   assert(source.includes('<t-button v-else theme="primary" :loading="saving" @click="saveCurrent">保存修改</t-button>'));
