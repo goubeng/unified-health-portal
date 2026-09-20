@@ -39,12 +39,16 @@
     <p class="inline-note">管理账号仅用于门户本地维护人员。当前为 Mock 演示，不访问本地数据库。</p>
     <label for="local-account" class="field-label">登录账号</label><t-input id="local-account" v-model="localAccount" autocomplete="username" placeholder="请输入登录账号"/>
     <label for="local-password" class="field-label">登录密码</label><t-input id="local-password" v-model="localPassword" type="password" autocomplete="current-password" placeholder="请输入登录密码"/>
-    <div class="slide-verification" :class="{verified}">
-     <div class="slide-verification-head"><span>{{verified?'安全验证已完成':'安全验证'}}</span><strong>{{verified?'验证通过':'请拖动滑块到最右侧'}}</strong></div>
-     <input id="local-slider" v-model.number="slide" type="range" min="0" max="100" :disabled="verified" :style="{'--slide-progress':slide+'%'}" aria-label="向右滑动完成验证" @input="verifySlide"/>
+    <label for="local-captcha" class="field-label">验证码</label>
+    <div class="local-captcha-row">
+     <t-input id="local-captcha" v-model="localCaptchaInput" autocomplete="off" maxlength="4" placeholder="请输入验证码"/>
+     <button type="button" class="local-captcha-code" title="点击刷新验证码" aria-label="刷新验证码" @click="refreshLocalCaptcha">
+      <span>{{localCaptchaCode}}</span>
+     </button>
     </div>
+    <p class="local-captcha-tip">看不清？点击验证码可刷新</p>
     <t-button block type="submit" class="login-submit">登录</t-button>
-    <p class="local-auth-tip">演示环境：账号填写 <strong>admin01</strong>，密码填写任意非空内容即可；正式密码校验在数据库阶段实现。</p>
+    <p class="local-auth-tip">演示环境：账号填写 <strong>admin01</strong>，密码填写任意非空内容；验证码按右侧显示内容录入。正式密码与验证码校验在后续服务接入阶段实现。</p>
    </form>
 
    <p v-if="notice" class="inline-note" role="status">{{notice}}</p>
@@ -65,7 +69,7 @@ import {actor,login} from '../services/runtime.js';
 
 const router=useRouter();
 const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
-const localAccount=ref('admin01'),localPassword=ref('');
+const localAccount=ref('admin01'),localPassword=ref(''),localCaptchaInput=ref(''),localCaptchaCode=ref('');
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
 const platformLink=computed(()=>identityType.value==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn');
 const qrPrompt=computed(()=>`请使用${platform.value}扫一扫登录`);
@@ -75,9 +79,15 @@ const displayCountdown=computed(()=>`${String(Math.floor(qrSeconds.value/60)).pa
 let timer,qrExpireTimer,qrSuccessTimer,qrCountdownTimer;
 
 function clearTimers(){clearInterval(timer);clearInterval(qrCountdownTimer);clearTimeout(qrExpireTimer);clearTimeout(qrSuccessTimer);}
+function createCaptcha(){
+ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',values=new Uint32Array(4);
+ crypto.getRandomValues(values);
+ return Array.from(values,value=>chars[value%chars.length]).join('');
+}
+function refreshLocalCaptcha(){localCaptchaCode.value=createCaptcha();localCaptchaInput.value='';}
 function reset(){
  clearTimers();phone.value='';code.value='';slide.value=0;verified.value=false;codeRequested.value=false;countdown.value=0;notice.value='';
- if(identityType.value!=='LOCAL')startQr();
+ if(identityType.value==='LOCAL')refreshLocalCaptcha();else startQr();
 }
 function startQr(){
  qrNonce.value=crypto.randomUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);
@@ -99,8 +109,9 @@ async function enter(){
  if(identityType.value==='LOCAL'){
   if(!localAccount.value.trim()){notice.value='请输入登录账号。';return;}
   if(!localPassword.value){notice.value='请输入登录密码。';return;}
-  if(!verified.value){notice.value='请先完成安全验证。';return;}
-  if(localAccount.value.trim()!=='admin01'){notice.value='演示环境仅提供 admin01 管理账号。';return;}
+  if(!localCaptchaInput.value.trim()){notice.value='请输入验证码。';return;}
+  if(localCaptchaInput.value.trim().toUpperCase()!==localCaptchaCode.value){notice.value='验证码错误，请重新输入。';refreshLocalCaptcha();return;}
+  if(localAccount.value.trim()!=='admin01'){notice.value='演示环境仅提供 admin01 管理账号。';refreshLocalCaptcha();return;}
   try{await login('MOCK_LOCAL_ADMIN');}catch(error){notice.value=error.message;return;}
   if(!actor.value){notice.value='当前账号不可用，请联系门户超级管理员。';return;}
   router.replace('/admin/home');return;
