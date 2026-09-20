@@ -40,6 +40,7 @@
     </template>
    </template>
    <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
+   <TodoCenter v-else-if="resource==='todos'" :rows="rows"/>
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
    <PersonalProfile v-else-if="resource==='profile'" :user="actor"/>
@@ -129,6 +130,7 @@ import {actor,portal,command,revision,availableUsers,downloadAccessContract} fro
 import {scopes,pages,can} from '../config/pages.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
 import MessageCenter from '../components/portal/MessageCenter.vue';
+import TodoCenter from '../components/portal/TodoCenter.vue';
 import IdentityMappings from '../components/portal/IdentityMappings.vue';
 import AccessConfigDetail from '../components/portal/AccessConfigDetail.vue';
 import AppCards from '../components/portal/AppCards.vue';
