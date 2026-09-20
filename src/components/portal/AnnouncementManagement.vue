@@ -36,7 +36,6 @@
         <template #effectiveEnd="{row}">{{row.effectiveEnd?date(row.effectiveEnd):'永久有效'}}</template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button size="small" variant="text" theme="primary" @click="preview(row)">预览</t-button>
             <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
             <t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openSubmit(row)">提交</t-button>
             <t-button v-if="['SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="danger" @click="withdraw(row)">撤回</t-button>
@@ -132,7 +131,7 @@ const columns=[
   {colKey:'publishAt',title:'发布/计划时间',width:180},
   {colKey:'effectiveEnd',title:'失效时间',width:180},
   {colKey:'updatedAt',title:'更新时间',width:180,cell:(_,ctx)=>date(ctx.row.updatedAt)},
-  {colKey:'operation',title:'操作',width:260,fixed:'right'}
+  {colKey:'operation',title:'操作',width:220,fixed:'right'}
 ];
 
 function reset(){keyword.value='';type.value='';scope.value='';status.value='';page.value=1;}
