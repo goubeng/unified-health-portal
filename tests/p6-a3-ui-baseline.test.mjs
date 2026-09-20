@@ -50,6 +50,10 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(!source.includes("hint:'当前启用'"));
   assert(!source.includes("hint:'已建立统一用户索引'"));
   assert(!source.includes("hint:'已配置服务运行异常'"));
+  assert(!source.includes('按当前账号权限显示'));
+  assert(!source.includes('快速进入常用管理模块'));
+  assert(source.includes('<strong>新增公告</strong>'));
+  assert(source.includes("router.push({path:'/admin/announcements',query:{action:'create'}})"));
   assert(source.includes('class="admin-workbench-grid"'));
   assert(source.includes('class="admin-health-workbench-grid"'));
   assert(source.includes('class="admin-shortcut-grid"'));
@@ -72,6 +76,16 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(!css.includes('.admin-reminder-card.tone-blue{'));
   assert(css.includes('.admin-health-workbench-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)'));
   assert(css.includes('.admin-service-health-grid{display:grid!important;grid-template-columns:1fr!important'));
+});
+
+test('管理首页新增公告快捷入口进入公告管理并自动打开新增弹窗',()=>{
+  const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  assert(source.includes("import {useRoute,useRouter} from 'vue-router'"));
+  assert(source.includes("watch(()=>route.query.action,value=>"));
+  assert(source.includes("if(value!=='create')return"));
+  assert(source.includes('openCreate();'));
+  assert(source.includes('delete query.action;'));
+  assert(source.includes("router.replace({path:route.path,query})"));
 });
 
 test('核心信息卡片不恢复自定义hover阴影',()=>{
