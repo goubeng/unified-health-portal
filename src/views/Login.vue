@@ -1,44 +1,59 @@
 <template>
  <div class="login-shell"><div class="login-brand">卫健XC统一门户系统</div><div class="login-layout">
-  <section class="login-intro"><span class="eyebrow">HEALTH · CONNECTION · SERVICE</span><h1>一个入口<br>连接协同服务</h1><p>应用统一导航、待办集中展示、消息及时触达。<br>面向公众与政务用户的统一服务门户。</p><div class="login-features"><span>统一身份</span><span>应用集成</span><span>安全协同</span></div></section>
+  <section class="login-intro"><span class="eyebrow">HEALTH · CONNECTION · SERVICE</span><h1>一个入口<br>连接协同服务</h1><p>应用统一导航、待办集中展示、消息及时触达。<br>面向公众、政务用户与门户维护人员的统一入口。</p><div class="login-features"><span>统一身份</span><span>应用集成</span><span>安全协同</span></div></section>
   <section class="login-card">
    <div class="login-identity-switch" role="tablist" aria-label="身份切换">
     <button type="button" class="identity-pill" :class="{active:identityType==='CITIZEN'}" @click="identityType='CITIZEN'"><span>公众用户</span></button>
     <button type="button" class="identity-pill" :class="{active:identityType==='GOV'}" @click="identityType='GOV'"><span>政务用户</span></button>
+    <button type="button" class="identity-pill" :class="{active:identityType==='LOCAL'}" @click="identityType='LOCAL'"><span>管理账号</span></button>
    </div>
-   <div class="auth-method-pills" role="tablist" aria-label="登录方式切换">
-    <button type="button" class="method-pill" :class="{active:method==='qr'}" @click="method='qr'">扫码登录</button>
-    <button type="button" class="method-pill" :class="{active:method==='phone'}" @click="method='phone'">手机号登录</button>
-   </div>
-   <div v-if="method==='qr'" class="qr-auth">
-    <button type="button" class="qr-frame-button" :class="{'is-expired':qrStage==='expired','is-success':qrStage==='success'}" :disabled="qrStage==='success'" @click="handleQrClick">
-     <div class="qr-frame">
-      <t-qrcode v-if="qrStage!=='success'" :value="qrPayload" type="svg" :size="188" borderless/>
-      <template v-else>
-       <CheckCircleIcon size="48px"/>
-       <span>扫码成功</span>
-      </template>
-      <div v-if="qrStage==='expired'" class="qr-expired-mask">
-       <RefreshIcon size="34px"/>
-       <strong>点击重新刷新</strong>
+
+   <template v-if="identityType!=='LOCAL'">
+    <div class="auth-method-pills" role="tablist" aria-label="登录方式切换">
+     <button type="button" class="method-pill" :class="{active:method==='qr'}" @click="method='qr'">扫码登录</button>
+     <button type="button" class="method-pill" :class="{active:method==='phone'}" @click="method='phone'">手机号登录</button>
+    </div>
+    <div v-if="method==='qr'" class="qr-auth">
+     <button type="button" class="qr-frame-button" :class="{'is-expired':qrStage==='expired','is-success':qrStage==='success'}" :disabled="qrStage==='success'" @click="handleQrClick">
+      <div class="qr-frame">
+       <t-qrcode v-if="qrStage!=='success'" :value="qrPayload" type="svg" :size="188" borderless/>
+       <template v-else><CheckCircleIcon size="48px"/><span>扫码成功</span></template>
+       <div v-if="qrStage==='expired'" class="qr-expired-mask"><RefreshIcon size="34px"/><strong>点击重新刷新</strong></div>
       </div>
+     </button>
+     <strong class="qr-tip-title">{{qrPrompt}}</strong>
+     <p class="qr-expire-text">{{qrStage==='expired'?'二维码已过期，请刷新':`二维码将在 ${displayCountdown} 后失效`}}</p>
+    </div>
+    <form v-else class="phone-auth" @submit.prevent="enter">
+     <label for="login-phone" class="field-label">手机号</label><t-input id="login-phone" v-model="phone" autocomplete="tel" placeholder="请输入手机号"/>
+     <div class="slide-verification" :class="{verified}">
+      <div class="slide-verification-head"><span>{{verified?'安全验证已完成':'安全验证'}}</span><strong>{{verified?'验证通过':'请拖动滑块到最右侧'}}</strong></div>
+      <input id="login-slider" v-model.number="slide" type="range" min="0" max="100" :disabled="verified" :style="{'--slide-progress':slide+'%'}" aria-label="向右滑动完成验证" @input="verifySlide"/>
      </div>
-    </button>
-    <strong class="qr-tip-title">{{qrPrompt}}</strong>
-    <p class="qr-expire-text">{{qrStage==='expired'?'二维码已过期，请刷新':`二维码将在 ${displayCountdown} 后失效`}}</p>
-   </div>
-   <form v-else class="phone-auth" @submit.prevent="enter">
-    <label for="login-phone" class="field-label">手机号</label><t-input id="login-phone" v-model="phone" autocomplete="tel" placeholder="请输入手机号"/>
-    <div class="slide-verification" :class="{verified}"><div class="slide-verification-head"><span>{{verified?'安全验证已完成':'安全验证'}}</span><strong>{{verified?'验证通过':'请拖动滑块到最右侧'}}</strong></div><input id="login-slider" v-model.number="slide" type="range" min="0" max="100" :disabled="verified" :style="{'--slide-progress':slide+'%'}" aria-label="向右滑动完成验证" @input="verifySlide"/><div class="slide-verification-tip"><span>{{verified?'✓':'→'}}</span>{{verified?'已通过人机验证':'按住滑块向右拖动'}}</div></div>
-    <label for="login-code" class="field-label">验证码</label><div class="code-input-row"><t-input id="login-code" v-model="code" autocomplete="one-time-code" placeholder="请输入验证码"/><t-button variant="outline" :disabled="!verified||countdown>0" @click="getCode">{{countdown?countdown+'秒后重试':'获取验证码'}}</t-button></div>
+     <label for="login-code" class="field-label">验证码</label><div class="code-input-row"><t-input id="login-code" v-model="code" autocomplete="one-time-code" placeholder="请输入验证码"/><t-button variant="outline" :disabled="!verified||countdown>0" @click="getCode">{{countdown?countdown+'秒后重试':'获取验证码'}}</t-button></div>
+     <t-button block type="submit" class="login-submit">登录</t-button>
+    </form>
+   </template>
+
+   <form v-else class="local-auth phone-auth" @submit.prevent="enter">
+    <p class="inline-note">管理账号仅用于门户本地维护人员。当前为 Mock 演示，不访问本地数据库。</p>
+    <label for="local-account" class="field-label">登录账号</label><t-input id="local-account" v-model="localAccount" autocomplete="username" placeholder="请输入登录账号"/>
+    <label for="local-password" class="field-label">登录密码</label><t-input id="local-password" v-model="localPassword" type="password" autocomplete="current-password" placeholder="请输入登录密码"/>
+    <div class="slide-verification" :class="{verified}">
+     <div class="slide-verification-head"><span>{{verified?'安全验证已完成':'安全验证'}}</span><strong>{{verified?'验证通过':'请拖动滑块到最右侧'}}</strong></div>
+     <input id="local-slider" v-model.number="slide" type="range" min="0" max="100" :disabled="verified" :style="{'--slide-progress':slide+'%'}" aria-label="向右滑动完成验证" @input="verifySlide"/>
+    </div>
     <t-button block type="submit" class="login-submit">登录</t-button>
+    <p class="local-auth-tip">演示环境：账号填写 <strong>admin01</strong>，密码填写任意非空内容即可；正式密码校验在数据库阶段实现。</p>
    </form>
+
    <p v-if="notice" class="inline-note" role="status">{{notice}}</p>
-   <div class="login-assist-row">
+   <div v-if="identityType!=='LOCAL'" class="login-assist-row">
     <button type="button" class="assist-link" @click="openRegister">尚未注册？<span>立即注册</span></button>
     <span class="assist-divider">|</span>
     <button type="button" class="assist-link" @click="openForgot">忘记密码</button>
    </div>
+   <div v-else class="login-assist-row"><span class="local-help-text">忘记密码请联系门户超级管理员</span></div>
   </section>
  </div><footer>卫健XC统一门户 · 由中电福富提供技术支持</footer></div>
 </template>
@@ -47,7 +62,10 @@ import {computed,onBeforeUnmount,ref,watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {CheckCircleIcon,RefreshIcon} from 'tdesign-icons-vue-next';
 import {actor,login} from '../services/runtime.js';
-const router=useRouter(),identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
+
+const router=useRouter();
+const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
+const localAccount=ref('admin01'),localPassword=ref('');
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
 const platformLink=computed(()=>identityType.value==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn');
 const qrPrompt=computed(()=>`请使用${platform.value}扫一扫登录`);
@@ -55,13 +73,22 @@ const qrNonce=ref(crypto.randomUUID()),qrPayload=computed(()=>'WJ-PORTAL:'+ident
 const qrSeconds=ref(5);
 const displayCountdown=computed(()=>`${String(Math.floor(qrSeconds.value/60)).padStart(2,'0')}:${String(qrSeconds.value%60).padStart(2,'0')}`);
 let timer,qrExpireTimer,qrSuccessTimer,qrCountdownTimer;
+
 function clearTimers(){clearInterval(timer);clearInterval(qrCountdownTimer);clearTimeout(qrExpireTimer);clearTimeout(qrSuccessTimer);}
-function reset(){clearTimers();phone.value='';code.value='';slide.value=0;verified.value=false;codeRequested.value=false;countdown.value=0;notice.value='';startQr();}
-function startQr(){qrNonce.value=crypto.randomUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);if(method.value!=='qr')return;qrCountdownTimer=setInterval(()=>{if(qrSeconds.value>0)qrSeconds.value--;else clearInterval(qrCountdownTimer);},1000);qrExpireTimer=setTimeout(()=>{if(qrStage.value==='ready'){qrSeconds.value=0;qrStage.value='expired';clearInterval(qrCountdownTimer);}},5000);}
+function reset(){
+ clearTimers();phone.value='';code.value='';slide.value=0;verified.value=false;codeRequested.value=false;countdown.value=0;notice.value='';
+ if(identityType.value!=='LOCAL')startQr();
+}
+function startQr(){
+ qrNonce.value=crypto.randomUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);
+ if(identityType.value==='LOCAL'||method.value!=='qr')return;
+ qrCountdownTimer=setInterval(()=>{if(qrSeconds.value>0)qrSeconds.value--;else clearInterval(qrCountdownTimer);},1000);
+ qrExpireTimer=setTimeout(()=>{if(qrStage.value==='ready'){qrSeconds.value=0;qrStage.value='expired';clearInterval(qrCountdownTimer);}},5000);
+}
 function verifySlide(event){verified.value=Number(event.target.value)>=100;if(verified.value)slide.value=100;}
 function getCode(){
  if(!verified.value||countdown.value)return;
- codeRequested.value=true;countdown.value=60;notice.value='';
+ codeRequested.value=true;countdown.value=60;notice.value='演示环境：验证码流程仅模拟，不发送真实短信。';
  timer=setInterval(()=>{countdown.value--;if(!countdown.value)clearInterval(timer);},1000);
 }
 function refreshQr(){startQr();notice.value='';}
@@ -69,6 +96,16 @@ function handleQrClick(){if(qrStage.value==='expired'){refreshQr();return;}if(qr
 function openRegister(){window.open(platformLink.value,'_blank','noopener');}
 function openForgot(){window.open(platformLink.value,'_blank','noopener');}
 async function enter(){
+ if(identityType.value==='LOCAL'){
+  if(!localAccount.value.trim()){notice.value='请输入登录账号。';return;}
+  if(!localPassword.value){notice.value='请输入登录密码。';return;}
+  if(!verified.value){notice.value='请先完成安全验证。';return;}
+  if(localAccount.value.trim()!=='admin01'){notice.value='演示环境仅提供 admin01 管理账号。';return;}
+  try{await login('MOCK_LOCAL_ADMIN');}catch(error){notice.value=error.message;return;}
+  if(!actor.value){notice.value='当前账号不可用，请联系门户超级管理员。';return;}
+  router.replace('/admin/home');return;
+ }
+ if(method.value==='phone'&&!verified.value){notice.value='请先完成安全验证。';return;}
  try{await login(identityType.value==='GOV'?'MOCK_USER_2':'MOCK_USER_1');}catch(error){notice.value=error.message;return;}
  if(!actor.value){notice.value='当前账号不可用，请联系管理员。';return;}
  router.replace('/portal/home');
