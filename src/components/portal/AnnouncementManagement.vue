@@ -125,6 +125,7 @@
 
 <script setup>
 import {computed,reactive,ref,watch} from 'vue';
+import {useRoute,useRouter} from 'vue-router';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import AnnouncementEditor from './AnnouncementEditor.vue';
@@ -134,6 +135,7 @@ import {date,dateOnly,label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,default:()=>[]}});
+const route=useRoute(),router=useRouter();
 const emit=defineEmits(['saved','detail']);
 
 const keyword=ref(''),type=ref(''),scope=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
@@ -268,6 +270,13 @@ async function normalizeFiles(files,originals){
 }
 function download(file){if(!file?.data?.startsWith('data:')){MessagePlugin.warning('附件内容不可用');return;}const link=document.createElement('a');link.href=file.data;link.download=file.name;link.click();}
 watch(()=>form.publishMode,value=>{if(value!=='SCHEDULED')form.scheduledPublishAt='';});
+watch(()=>route.query.action,value=>{
+  if(value!=='create')return;
+  openCreate();
+  const query={...route.query};delete query.action;
+  router.replace({path:route.path,query});
+},{immediate:true});
+
 watch([keyword,type,scope,status,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 </script>
