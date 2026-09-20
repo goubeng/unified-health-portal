@@ -8,10 +8,10 @@ export const pages=[
  p('PG-201','/admin/home','管理首页','工作台','adminHome','any'),
  // 通知公告管理归入管理首页所在工作台分组，不再单独显示“内容管理”一级菜单。
  p('PG-220','/admin/announcements','通知公告管理','工作台','announcements','announcement'),p('PG-229','/admin/announcements/:id','公告详情','工作台','announcementDetail','announcement'),
- p('PG-202','/admin/apps','应用列表','应用管理','apps','application'),p('PG-231','/admin/application-requests','应用访问申请','应用管理','applicationRequests','application'),p('PG-234','/admin/account-opening-requests','子系统账号开通申请','应用管理','accountOpeningRequests','application'),p('PG-203','/admin/app-categories','系统分类','应用管理','categories','application'),
+ p('PG-202','/admin/apps','应用列表','应用管理','apps','application'),p('PG-231','/admin/application-requests','应用访问申请','应用管理','applicationRequests','application'),p('PG-234','/admin/account-opening-requests','子系统账号开通申请','应用管理','accountOpeningRequests','application'),{...p('PG-203','/admin/app-categories','系统分类','应用管理','categories','application'),hidden:true},
 
  // 门户只维护自身访问权限，不替代子系统业务授权。
- p('PG-228','/admin/users','系统用户','系统管理','users','super'),p('PG-209','/admin/roles','系统角色','系统管理','roles','super'),p('PG-210','/admin/permissions','门户权限配置','系统管理','permissions','super'),
+ p('PG-228','/admin/users','用户管理','系统管理','users','any'),p('PG-209','/admin/roles','角色管理','系统管理','roles','super'),{...p('PG-210','/admin/permissions','门户权限配置','系统管理','permissions','super'),hidden:true},p('PG-229','/admin/organizations','组织管理','系统管理','organizations','any'),p('PG-230','/admin/dictionaries','字典管理','系统管理','dictionaries','any'),
  // 身份与子系统映射归入“系统管理”，不再单独显示“身份与映射”一级菜单。
  p('PG-205','/admin/identities','身份与子系统映射','系统管理','identityOverview','identity'),
  ...[['PG-206','/admin/identity-mappings'],['PG-207','/admin/account-mappings'],['PG-208','/admin/mapping-exceptions']].map(([id,path])=>({...p(id,path,'身份与子系统映射','系统管理','identityOverview','identity'),hidden:true})),
