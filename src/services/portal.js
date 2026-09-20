@@ -136,8 +136,8 @@ export function createPortalService(provider,getActor){
       abnormal:monitor.filter(row=>row.services[kind].status==='ABNORMAL').length,
       unconfigured:monitor.filter(row=>['UNCONFIGURED','DISABLED'].includes(row.services[kind].status)).length
     };
-    return {appCount:d.apps.length,enabledCount:d.apps.filter(x=>x.status==='ENABLED').length,normalAppCount:d.apps.filter(x=>x.status==='ENABLED'&&x.runtimeStatus==='NORMAL').length,
-     abnormalAppCount:d.apps.filter(x=>x.runtimeStatus==='ABNORMAL').length,userCount:(d.users||[]).length,enabledUserCount:(d.users||[]).filter(x=>x.status!=='DISABLED').length,
+    return {appCount:d.apps.length,enabledCount:d.apps.filter(x=>x.status==='ENABLED').length,
+     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:(d.users||[]).length,enabledUserCount:(d.users||[]).filter(x=>x.status!=='DISABLED').length,
      pendingAccessCount:(d.applicationRequests||[]).filter(x=>x.status==='PENDING').length,pendingAccountOpeningCount:(d.accountOpeningRequests||[]).filter(x=>['PENDING','PROCESSING'].includes(x.status)).length,
      pendingBindingReviewCount:(d.mappings||[]).filter(x=>x.status==='REVIEWING').length,mappingExceptionCount:(d.mappings||[]).filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,
      openErrorCount:(d.logs||[]).filter(x=>x.kind==='error'&&x.resolutionStatus==='OPEN').length,scheduledAnnouncementCount:(d.announcements||[]).filter(x=>announcementStatus(x)==='SCHEDULED').length,
