@@ -8,6 +8,7 @@
   </Teleport>
   <div v-if="error" role="alert" class="error-note">{{text(error)}} <t-button variant="text" theme="primary" @click="load">重试</t-button></div>
   <t-loading :loading="loading" :show-overlay="false" size="small">
+   <template v-if="pageReady">
    <template v-if="isHome">
     <template v-if="admin">
      <div class="admin-overview-grid">
@@ -100,6 +101,7 @@
      <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
    </section>
+   </template>
   </t-loading>
   <t-dialog v-model:visible="formVisible" placement="center" :header="formTitle" :width="formAction==='saveAnnouncement'?'min(1180px, calc(100vw - 48px))':'720px'" :confirm-btn="{content:formAction==='bind'?'核验并关联':formAction==='submitApplicationRequest'?'提交申请':formAction==='rejectApplicationRequest'?'确认驳回':'保存',loading:saving,disabled:saving}" :close-on-overlay-click="false" @confirm="saveForm">
    <p v-if="formAction==='bind'" class="inline-note">当前应用已在此账号的可见范围内。请输入已开通的子系统账号，提交后查看关联结果。</p>
@@ -158,7 +160,7 @@ const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.v
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
 const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
 const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
-const error=ref(''),loading=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10);
+const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10);
 const appPageSize=ref(24),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
@@ -186,7 +188,7 @@ const adminReminders=computed(()=>[
 let loadVersion=0;
 async function read(key){const result=await portal.read(key);if(!result.ok)throw new Error(result.error.message);return result.data;}
 async function load(){
- const version=++loadVersion;loading.value=true;error.value='';
+ const version=++loadVersion;loading.value=true;pageReady.value=false;error.value='';
  try{
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
   const tasks={apps:read(isAdmin?'adminApps':'apps')};
@@ -222,6 +224,7 @@ async function load(){
    if(!article){detail.value=null;error.value='公告不存在或不在当前用户的可见范围';}
    else{detail.value=JSON.parse(JSON.stringify(article));detailKind.value='announcements';if(!isAdmin&&article.readStatus==='UNREAD'){const marked=await command('markAnnouncementRead',{id:article.id});if(marked.ok)detail.value.readStatus='READ';}}
   }
+  if(version===loadVersion&&!error.value)pageReady.value=true;
  }catch(cause){if(version===loadVersion)error.value=cause.message;}
  finally{if(version===loadVersion)loading.value=false;}
 }
