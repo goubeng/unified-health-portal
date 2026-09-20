@@ -67,3 +67,6 @@
 .user-flat-menu{padding-top:4px}
 .user-flat-menu .menu-item{margin:2px 0}
 .collapsed .user-flat-menu{padding-top:0}
+
+/* 0.3.0-A local admin mock login. */
+.local-auth .inline-note{margin:0 0 14px}.local-auth-tip{margin:12px 0 0;color:#86909c;font-size:12px;line-height:1.7;text-align:center}.local-auth-tip strong{color:#344054;font-weight:500}.local-help-text{color:#86909c;font-size:12px}.login-identity-switch:has(.identity-pill:nth-child(3)){gap:24px;padding:0 8px}.login-identity-switch:has(.identity-pill:nth-child(3)) .identity-pill>span{font-size:17px}
