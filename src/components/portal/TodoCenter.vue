@@ -50,18 +50,20 @@
       />
     </section>
 
-    <t-dialog v-model:visible="detailVisible" placement="center" header="待办详情" width="760px" :footer="false">
+    <t-dialog v-model:visible="detailVisible" placement="center" header="待办详情" width="760px">
       <section v-if="active" class="todo-detail">
         <DetailGrid :items="detailItems"/>
         <section class="todo-detail-summary">
           <h3>待办说明</h3>
           <p>{{text(active.summary)||'-'}}</p>
         </section>
-        <div class="dialog-bottom-actions">
-          <t-button variant="outline" @click="detailVisible=false">关闭</t-button>
-          <t-button v-if="active.status==='PENDING'" theme="primary" @click="process(active)">去处理</t-button>
-        </div>
       </section>
+      <template #footer>
+        <div class="todo-detail-footer">
+          <t-button variant="outline" @click="detailVisible=false">关闭</t-button>
+          <t-button v-if="active?.status==='PENDING'" theme="primary" @click="process(active)">去处理</t-button>
+        </div>
+      </template>
     </t-dialog>
   </section>
 </template>
