@@ -35,6 +35,7 @@ test('系统内容区链接统一13px常规蓝色且首页未读不再加粗',()
   assert(!/portal-page \.portal-field-link(?:\.is-unread|\.is-attention)?\{[^}]*font-weight:600/i.test(css));
   assert(!/portal-home-feeds>\.panel:first-child \.portal-field-link\{[^}]*font-weight:600/i.test(css));
   assert(css.includes('/* 2026-09-20 global content-link typography normalization. */'));
+  assert(css.includes('.portal-page a,'));
   assert(css.includes('.portal-page .portal-field-link.is-unread,'));
   assert(css.includes('.portal-page .portal-app-name,'));
   assert(css.includes('.portal-page .section-head a,'));
