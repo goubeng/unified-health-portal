@@ -93,8 +93,11 @@ export function createPortalService(provider,getActor){
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...x,readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
    if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements;}
    if(resource==='profile')return decorateUser(d,a);
-   if(resource==='myApplicationRequests')return (d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'APPLICATION_ACCESS',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
-   if(resource==='myAccountOpeningRequests')return (d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
+   if(resource==='myApplicationRequests'){
+    const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'APPLICATION_ACCESS',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName}));
+    const opening=(d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName}));
+    return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
+   }
    if(resource==='home')return {appCount:userApps.length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
    const permissions={categories:'application',access:'application',applicationRequests:'application',accountOpeningRequests:'application',identityOverview:'identity',identities:'identity',identityMappings:'identity',mappings:'identity',exceptions:'identity',roles:'super',permissions:'super',sso:'integration',todoIntegration:'integration',messageIntegration:'integration',external:'integration',settings:'super',monitor:'integration',adminHome:'any',users:'super'};
    auth(a,resource.startsWith('logs:')?'audit':permissions[resource]||'super');
@@ -162,11 +165,13 @@ export function createPortalService(provider,getActor){
      const requiresBinding=app.accessMode==='BIND'||(app.accessMode==='REQUEST'&&app.postGrantMode==='BIND');if(!requiresBinding)fail('INVALID_TRANSITION','该应用无需账号关联');
      const existing=d.mappings.find(m=>m.userId===a.id&&m.appId===app.id&&m.status==='BOUND');if(existing)return {state:'BOUND',candidates:[],mapping:existing};
      const scenario=app.mockScenario||'BOUND_EXISTING';
-     if(scenario==='NO_ACCOUNT')return {state:'NO_ACCOUNT',candidates:[],accountOpeningMode:app.accountOpeningMode||'REQUEST',message:'未找到与当前身份匹配的有效子系统账号'};
-     const account=p.externalAccount?.trim()||(scenario==='CREDENTIAL_BIND'?'demo01':scenario==='CONFLICT'?'conflict01':a.account+'_'+String(app.sourceNo).padStart(2,'0'));
+     const openingCompleted=(d.accountOpeningRequests||[]).some(x=>x.userId===a.id&&x.appId===app.id&&x.status==='COMPLETED');
+     if(scenario==='NO_ACCOUNT'&&!openingCompleted)return {state:'NO_ACCOUNT',candidates:[],accountOpeningMode:app.accountOpeningMode||'REQUEST',message:'未找到与当前身份匹配的有效子系统账号'};
+     const effectiveScenario=scenario==='NO_ACCOUNT'&&openingCompleted?'OTP_BIND':scenario;
+     const account=p.externalAccount?.trim()||(effectiveScenario==='CREDENTIAL_BIND'?'demo01':effectiveScenario==='CONFLICT'?'conflict01':openingCompleted?'opened_'+a.account:a.account+'_'+String(app.sourceNo).padStart(2,'0'));
      const candidate={externalUserId:'DEMO_SUBJECT_'+a.id+'_'+app.sourceNo,externalAccount:account,name:a.name,maskedPhone:'138****1234',orgName:a.orgName,
-      accountStatus:scenario==='ACCOUNT_DISABLED'?'DISABLED':'ACTIVE',highPrivilege:scenario==='REVIEW_BIND',conflict:scenario==='CONFLICT',
-      verificationMethods:scenario==='AUTO_BIND'?['TRUSTED_ID']:scenario==='CREDENTIAL_BIND'?['SUBSYSTEM_CREDENTIAL']:['SUBSYSTEM_OTP','UPSTREAM_REAUTH']};
+      accountStatus:effectiveScenario==='ACCOUNT_DISABLED'?'DISABLED':'ACTIVE',highPrivilege:effectiveScenario==='REVIEW_BIND',conflict:effectiveScenario==='CONFLICT',
+      verificationMethods:effectiveScenario==='AUTO_BIND'?['TRUSTED_ID']:effectiveScenario==='CREDENTIAL_BIND'?['SUBSYSTEM_CREDENTIAL']:['SUBSYSTEM_OTP','UPSTREAM_REAUTH']};
      return {state:candidate.accountStatus==='DISABLED'?'ACCOUNT_DISABLED':candidate.conflict?'CONFLICT':'CANDIDATE_FOUND',candidates:[candidate],accountOpeningMode:app.accountOpeningMode||'NONE'};
     }else if(action==='startApplicationAccountBinding'){
      const app=requireRow(d.apps,p.appId);if(app.mockScenario!=='AUTO_BIND')fail('INVALID_TRANSITION','该应用不支持可信标识自动关联');
