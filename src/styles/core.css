@@ -576,3 +576,6 @@
 
 /* Local admin demo form: fields are visual only in phase A. */
 .local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.local-captcha-tip{margin:6px 0 0;color:#86909c;font-size:12px;text-align:right}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
+
+/* Compact status switch: keep TDesign switch intrinsic width and show state text beside it. */
+.form-switch-control{display:inline-flex;align-items:center;align-self:flex-start;gap:8px;min-height:32px;width:auto;max-width:100%;color:#4e5969;font-size:13px}.form-switch-control .t-switch{flex:none!important;width:auto!important;min-width:40px!important;max-width:max-content!important}.form-switch-control.is-table{min-height:28px;white-space:nowrap}.form-switch-control.is-table>span{font-size:12px;color:#697386}
