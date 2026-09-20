@@ -15,13 +15,7 @@
 
 ## 当前角色基线
 
-默认只预置：
-- SUPER_ADMIN
-- PORTAL_ADMIN
-
-保留RBAC菜单/页面/操作扩展能力。
-
-首期默认ALL_PORTAL，不优先实现复杂数据范围。
+默认只预置SUPER_ADMIN和PORTAL_ADMIN，保留MENU/PAGE/ACTION RBAC扩展能力。
 
 ## 当前事实
 
@@ -32,11 +26,11 @@
 
 ## 当前权威文档
 
-1. docs/统一门户系统需求规格说明书_V1.0.md
-2. docs/product/角色清单.md
-3. docs/product/功能清单.md
-4. docs/product/未实现功能及下一阶段整改需求说明_V1.0.md
-5. docs/product当前V1.0文档
-6. docs/development当前目标设计
+1. `docs/README.md`
+2. `docs/01-需求/02-当前基线/统一门户系统需求规格说明书_V1.0.md`
+3. `docs/01-需求/02-当前基线/细化需求/角色清单.md`
+4. `docs/01-需求/02-当前基线/细化需求/功能清单.md`
+5. `docs/02-开发/03-计划/下一阶段整改需求说明_V1.1.md`
+6. `docs/02-开发/01-设计/`
 
-历史V0.9、P1/P3阶段基线和review只用于追溯。
+历史需求、P1/P3阶段基线和Review只用于追溯。
