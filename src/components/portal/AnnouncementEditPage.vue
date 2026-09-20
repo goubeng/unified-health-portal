@@ -22,8 +22,9 @@
           <t-select v-model="form.scope" :options="scopeOptions"/>
         </div>
         <div class="form-field">
-          <label>失效时间</label>
-          <t-date-picker v-model="form.effectiveEnd" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="留空表示永久有效"/>
+          <label>失效日期</label>
+          <t-date-picker v-model="form.effectiveEnd" clearable format="YYYY-MM-DD" value-type="YYYY-MM-DD" placeholder="留空表示永久有效"/>
+          <small class="form-helper">选择日期后，于当天 23:59:59 后失效。</small>
         </div>
         <div class="form-field">
           <label>当前状态</label>
@@ -65,18 +66,18 @@ const typeOptions=computed(()=>{
 });
 const scopeOptions=['ALL','CITIZEN','GOV'].map(value=>({value,label:label(value)}));
 
-function toDateTimeValue(value){
+function toDateValue(value){
   const d=new Date(value);
-  if(!Number.isFinite(d.getTime()))return String(value||'');
+  if(!Number.isFinite(d.getTime()))return String(value||'').slice(0,10);
   const pad=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-function toIso(value){return value?new Date(String(value).replace(' ','T')).toISOString():null;}
+function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}
 
 function assign(record){
   Object.keys(form).forEach(key=>delete form[key]);
   Object.assign(form,JSON.parse(JSON.stringify(record||{})));
-  if(form.effectiveEnd)form.effectiveEnd=toDateTimeValue(form.effectiveEnd);
+  if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
   uploadFiles.value=(form.attachments||[]).map(file=>({
     name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),
     originAttachment:JSON.parse(JSON.stringify(file))
@@ -127,7 +128,7 @@ async function save(){
     const attachments=await normalizeFiles(uploadFiles.value,form.attachments||[]);
     const result=await command('saveAnnouncement',{
       id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,
-      effectiveEnd:toIso(form.effectiveEnd),content:form.content,attachments
+      effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments
     });
     if(!result.ok){formError.value=result.error.message;return;}
     MessagePlugin.success('公告修改已保存');
