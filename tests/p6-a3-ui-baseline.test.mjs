@@ -197,56 +197,67 @@ test('系统空值占位统一使用英文半角短横线',()=>{
 });
 
 
-test('公告详情与编辑保持通知公告菜单选中',()=>{
+test('公告详情保持通知公告菜单选中且返回直接回列表',()=>{
   const app=fs.readFileSync('src/App.vue','utf8');
   assert(app.includes('const isMenuActive=page=>'));
   assert(app.includes("route.meta.resource==='announcementDetail'&&page.resource==='announcements'"));
   assert(app.includes(":class=\"{active:isMenuActive(p)}\""));
-  assert(app.includes("route.query.mode==='edit'"));
-  assert(app.includes("return '编辑公告'"));
+  assert(!app.includes('route.query.mode'));
+  assert(app.includes("router.push(admin.value?'/admin/announcements':'/portal/announcements')"));
 });
 
-test('管理端公告详情与编辑在右侧内容区打开，不使用详情编辑弹窗',()=>{
+test('管理端公告详情保留右侧内容区而编辑统一使用弹窗',()=>{
   const list=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const editor=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
   assert(list.includes('@click="$emit(\'detail\',row)"'));
-  assert(list.includes('@click="$emit(\'edit\',row)"'));
-  assert(!list.includes('function openEdit(row)'));
-  assert(page.includes('<AnnouncementEditPage'));
-  assert(page.includes("route.query.mode==='edit'"));
+  assert(list.includes('@click="openEdit(row)"'));
+  assert(list.includes('function openEdit(row){editRow.value=JSON.parse(JSON.stringify(row));editVisible.value=true;}'));
+  assert(list.includes('v-model:visible="editVisible"'));
+  assert(!list.includes('@edit="openAdminAnnouncementEdit"'));
+  assert(page.includes('v-model:visible="announcementEditVisible"'));
   assert(page.includes("@detail=\"openAdminAnnouncementDetail\""));
-  assert(page.includes("@edit=\"openAdminAnnouncementEdit\""));
-  assert(editor.includes('class="announcement-admin-edit-page"'));
-  assert(editor.includes('to="#page-header-actions"'));
+  assert(!page.includes('route.query.mode'));
+  assert(editor.includes('<t-dialog'));
+  assert(editor.includes('header="编辑公告"'));
+  assert(!editor.includes('to="#page-header-actions"'));
 });
 
-test('新增公告发布方式定时发布时间失效日期同一行且失效日期按当天235959处理',()=>{
+test('新增公告仅定时发布时显示定时发布时间且失效日期按当天235959处理',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   const createDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
-  assert(createDialog.includes('class="announcement-publish-row"'));
+  assert(createDialog.includes("class=\"announcement-publish-row\" :class=\"{'is-scheduled':form.publishMode==='SCHEDULED'}\""));
   assert(createDialog.includes('v-model="form.publishMode"'));
   assert(createDialog.includes('value="IMMEDIATE"'));
   assert(createDialog.includes('value="SCHEDULED"'));
+  assert(createDialog.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
   assert(createDialog.includes('v-model="form.scheduledPublishAt"'));
-  assert(createDialog.includes(":disabled=\"form.publishMode!=='SCHEDULED'\""));
-  assert(createDialog.includes("form.publishMode==='SCHEDULED'?'请选择未来发布时间':'立即发布无需选择'"));
+  assert(!createDialog.includes(":disabled=\"form.publishMode!=='SCHEDULED'\""));
+  assert(!createDialog.includes('立即发布无需选择'));
   assert(createDialog.includes('v-model="form.effectiveEnd"'));
   assert(createDialog.includes('format="YYYY-MM-DD"'));
   assert(!createDialog.includes('v-model="form.effectiveEnd" enable-time-picker'));
-  assert(css.includes('.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:minmax(220px,.9fr) minmax(300px,1.2fr) minmax(250px,1fr)'));
-  assert(css.includes('@media(max-width:900px){.announcement-publish-row{grid-template-columns:1fr 1fr}'));
+  assert(css.includes('.announcement-publish-row{grid-column:1/-1;display:grid;grid-template-columns:minmax(240px,.9fr) minmax(260px,1fr)'));
+  assert(css.includes('.announcement-publish-row.is-scheduled{grid-template-columns:minmax(220px,.9fr) minmax(300px,1.2fr) minmax(250px,1fr)}'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
   assert(source.includes('async function saveAndPublish()'));
   assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
 });
 
-test('公告编辑失效时间同样只录日期并按当天235959保存',()=>{
+test('草稿编辑可选择发布方式而已发布编辑保存后直接生效',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
+  assert(source.includes("const isDraft=computed(()=>form.status==='DRAFT')"));
+  assert(source.includes("const isPublished=computed(()=>form.status==='PUBLISHED')"));
+  assert(source.includes('v-if="isDraft"'));
+  assert(source.includes('v-model="form.publishMode"'));
+  assert(source.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
+  assert(source.includes('@click="saveDraft"'));
+  assert(source.includes('@click="publishDraft"'));
+  assert(source.includes('<t-button v-else theme="primary" :loading="saving" @click="saveCurrent">保存修改</t-button>'));
+  assert(source.includes("MessagePlugin.success(isPublished.value?'公告修改已生效':'定时公告修改已保存')"));
   assert(source.includes('<label>失效日期</label>'));
   assert(source.includes('format="YYYY-MM-DD"'));
-  assert(!source.includes('v-model="form.effectiveEnd" enable-time-picker'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
 });
 
