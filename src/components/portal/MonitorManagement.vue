@@ -87,9 +87,9 @@ function serviceDetails(kind){
     {key:'lastSuccessAt',label:'最近成功',value:date(item.lastSuccessAt)},
     {key:'lastFailureAt',label:'最近失败',value:date(item.lastFailureAt)},
     {key:'failureCount',label:'失败次数',value:String(item.failureCount??0)},
-    {key:'responseTimeMs',label:'响应耗时',value:item.responseTimeMs==null?'—':String(item.responseTimeMs)+' ms'},
-    {key:'lastError',label:'最近错误',value:text(item.lastError)||'—'},
-    {key:'remark',label:'接入说明',value:text(item.remark)||'—'}
+    {key:'responseTimeMs',label:'响应耗时',value:item.responseTimeMs==null?'-':String(item.responseTimeMs)+' ms'},
+    {key:'lastError',label:'最近错误',value:text(item.lastError)||'-'},
+    {key:'remark',label:'接入说明',value:text(item.remark)||'-'}
   ];
 }
 watch([keyword,ssoStatus,todoStatus,messageStatus,pageSize],()=>{page.value=1;});
