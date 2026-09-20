@@ -48,8 +48,31 @@ export function makeEvent({actor,action,payload={},state,result,kind}){
  const appId=payload.appId||todo?.appId||related?.appId||(['enterApp','saveApp','setAppStatus'].includes(action)?payload.id||result?.data?.id:null);
  return {id:'P4EV_'+randomUUID(),at:new Date().toISOString(),kind:kind||(result?.ok===false?'ERROR':['enterApp','openTodo'].includes(action)?'ACCESS':action.startsWith('push')?'API':'OPERATION'),action,actorId:actor?.id||null,actorKind:actor?'USER':'SYSTEM',appId:state.apps.some(x=>x.id===appId)?appId:null,objectId:payload.id||result?.data?.entityId||result?.data?.id||null,result:result?.ok===false?(result.error?.code==='FORBIDDEN'?'DENIED':'FAILURE'):'SUCCESS',summary:result?.ok===false?result.error.message:action,requestId:result?.requestId||randomUUID(),details:{actorName:actor?.name||'系统任务',applicationName:state.apps.find(x=>x.id===appId)?.name||null,objectType:action==='openTodo'?'todo':appId?'application':action.includes('Announcement')?'announcement':'portal',previousActor:payload.previousActor||null,objectIds:payload.ids||[],accessOutcome:['enterApp','openTodo'].includes(action)?'ENTRY_REQUEST_ONLY':null}};
 }
+
+export function createMemoryRepository(initialState=createSeed()){
+ let current=ensureRules(structuredClone(initialState)),version=1;
+ const eventLog=event=>({
+  id:event.id,kind:String(event.kind||'OPERATION').toLowerCase(),name:event.action||'操作记录',actor:event.details?.actorName||'系统任务',
+  userId:event.actorId||null,appId:event.appId||null,appName:event.details?.applicationName||null,status:event.result||'SUCCESS',
+  description:event.summary||event.action||'操作已记录',createdAt:event.at,requestId:event.requestId,details:event.details||{}
+ });
+ return {
+  mode:'MEMORY_A',database:null,schema:null,
+  async load(){return {state:structuredClone(current),version};},
+  async commit(before,after,expectedVersion,event){
+   if(Number(expectedVersion)!==version)throw new Error('STATE_VERSION_CONFLICT');
+   const next=structuredClone(after);
+   const beforeLogs=JSON.stringify(before?.logs||[]),afterLogs=JSON.stringify(after?.logs||[]);
+   if(event&&beforeLogs===afterLogs){next.logs??=[];next.logs.unshift(eventLog(event));}
+   current=ensureRules(next);version+=1;
+  },
+  async logs(kind){return structuredClone((current.logs||[]).filter(x=>kind==='login'?['login','auth'].includes(String(x.kind||'').toLowerCase()):String(x.kind||'').toLowerCase()===String(kind||'').toLowerCase()).slice(0,1000));}
+ };
+}
+
 export function createRepository(query=sqlQuery){
  return {
+  mode:'DATABASE',database:'nocodb_data',schema,
   async load(){
    const raw=await query(`SELECT json_build_object('version',version,'state',value::jsonb) FROM ${table('system_config')} WHERE id='P4RUN_STATE';`);
    if(raw){const record=JSON.parse(raw);ensureRules(record.state);return record;}
