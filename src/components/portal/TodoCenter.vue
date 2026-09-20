@@ -42,23 +42,7 @@
     </section>
 
     <t-dialog v-model:visible="detailVisible" placement="center" header="待办详情" width="900px">
-      <article v-if="active" class="todo-detail-article">
-        <header class="todo-detail-header">
-          <h2>{{text(active.title)||'-'}}</h2>
-          <div class="todo-detail-meta-inline">
-            <span><Icon name="app"/><em>来源应用</em><strong>{{text(active.appName)||'-'}}</strong></span>
-            <span><Icon name="task"/><em>业务类型</em><strong>{{text(active.businessType)||'-'}}</strong></span>
-            <span><Icon name="time"/><em>接收时间</em><strong>{{date(active.createdAt)}}</strong></span>
-            <span><Icon name="check-circle"/><em>状态</em><t-tag size="small" variant="light" :theme="statusTheme(active.status)">{{label(active.status)}}</t-tag></span>
-          </div>
-          <div class="todo-detail-divider"></div>
-        </header>
-
-        <section class="todo-detail-body">
-          <h3>待办说明</h3>
-          <p>{{text(active.summary)||'-'}}</p>
-        </section>
-      </article>
+      <TodoDetailContent :record="active"/>
       <template #footer>
         <div class="todo-detail-footer">
           <t-button variant="outline" @click="detailVisible=false">关闭</t-button>
@@ -72,8 +56,8 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
-import {Icon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
+import TodoDetailContent from './TodoDetailContent.vue';
 import {command} from '../../services/runtime.js';
 import {date,label,text} from './presentation.js';
 
