@@ -186,9 +186,10 @@ export function createPortalService(provider,getActor){
      if(!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','请选择有效启用状态');
      const parent=p.parentId?(d.organizations||[]).find(org=>org.id===p.parentId):null;
      if(p.parentId&&!parent)fail('VALIDATION_ERROR','上级组织不存在');
-     const x=p.id?requireRow(d.organizations,p.id,p.version):{id:id(),version:0,createdAt:now};
+     const x=p.id?requireRow(d.organizations,p.id,p.version):{id:id(),version:0,createdAt:now,source:'PORTAL_LOCAL'};
+     if(x.source==='MINZHENGWU'&&(p.code.trim()!==x.code||p.name.trim()!==x.name||p.type!==x.type||String(p.parentId||'')!==String(x.parentId||'')))fail('INVALID_TRANSITION','闽政务来源组织主数据只读');
      Object.assign(x,{code:p.code.trim(),name:p.name.trim(),type:p.type||'OTHER',parentId:p.parentId||null,parentName:parent?.name||null,
-      path:parent?parent.path+' / '+p.name.trim():p.name.trim(),source:p.source||'PORTAL_LOCAL',status:p.status,sortOrder:Number(p.sortOrder)||0,remark:p.remark?.trim()||''});
+      path:parent?parent.path+' / '+p.name.trim():p.name.trim(),source:x.source||'PORTAL_LOCAL',status:p.status,sortOrder:Number(p.sortOrder)||0,remark:p.remark?.trim()||''});
      stamp(x);if(!p.id)d.organizations.push(x);result=x;
     }else if(action==='removeOrganization'){
      const x=requireRow(d.organizations||[],p.id,p.version);
