@@ -58,16 +58,17 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
    boundAt:i<8?at(-24):null,conflictReason:i===8?'账号核验未通过，待补充关联资料':i===9?'身份资料不一致，待人工核查':null
   }));
  });
+ const accessibleBusinessApps=actor=>{const bound=new Set(mappings.filter(m=>m.userId===actor.id&&m.status==='BOUND').map(m=>m.appId));const rows=available(actor).filter(app=>app.accessMode==='DIRECT'||bound.has(app.id));return rows.length?rows:available(actor).slice(0,1);};
  const actions=['核对服务申请资料','补充业务登记信息','确认服务安排','查看材料核验意见','核对信息更新内容','确认事项办理进度','完善服务联系说明','查看后续办理要求','资料核验已完成','业务申请已撤回','办理期限已结束'];
  const todos=businessActors.flatMap((actor,ai)=>actions.map((title,i)=>{
-  const app=available(actor)[i%8],status=i<8?'PENDING':['COMPLETED','WITHDRAWN','EXPIRED'][i-8];
+  const pool=accessibleBusinessApps(actor),app=pool[i%pool.length],status=i<8?'PENDING':['COMPLETED','WITHDRAWN','EXPIRED'][i-8];
   return row('MOCK_TODO_'+ai+'_'+i,{userId:actor.id,appId:app.id,appName:app.name,sourceTodoId:'P4_TODO_'+ai+'_'+i,title,
    summary:app.name+'：'+title+'。请在来源系统查看业务详情。',businessType:'服务事项',status,priority:['HIGH','MEDIUM','LOW'][i%3],
    createdAt:at(-i-2),dueAt:at(i<3?-i-1:i*4),terminalAt:i<8?null:at(-1),sourceRevision:i<8?1:2,url:app.url});
  }));
  const messageTitles=['服务申请已受理','资料核验进度通知','办理期限提醒','服务安排更新','账号关联结果通知','业务信息变更提醒','材料补正通知','办理意见已反馈','门户维护安排','信息安全提醒'];
  const messages=businessActors.flatMap((actor,ai)=>messageTitles.map((title,i)=>{
-  const app=available(actor)[i%8],portal=i>=8;
+  const pool=accessibleBusinessApps(actor),app=pool[i%pool.length],portal=i>=8;
   return row('MOCK_MSG_'+ai+'_'+i,{userId:actor.id,appId:portal?null:app.id,appName:portal?'统一门户':app.name,
    sourceMessageId:'P4_MSG_'+ai+'_'+i,title,content:title+'。请查看相关事项详情并按办理要求完成后续操作。',
    sourceKind:portal?'PORTAL':'APPLICATION',messageType:portal?'SYSTEM':i===2?'TODO_REMINDER':'BUSINESS',
