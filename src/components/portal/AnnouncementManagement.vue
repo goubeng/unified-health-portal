@@ -58,7 +58,22 @@
         <div class="form-field full"><label>公告标题 <span class="portal-required">*</span></label><t-input v-model="form.title" :maxlength="120"/></div>
         <div class="form-field"><label>公告类型</label><t-select v-model="form.type" :options="typeOptions"/></div>
         <div class="form-field"><label>发布范围</label><t-select v-model="form.scope" :options="scopeOptions"/></div>
-        <div class="form-field"><label>失效时间</label><t-date-picker v-model="form.effectiveEnd" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="留空表示永久有效"/></div>
+        <div class="form-field">
+          <label>发布方式 <span class="portal-required">*</span></label>
+          <t-radio-group v-model="form.publishMode">
+            <t-radio value="IMMEDIATE">立即发布</t-radio>
+            <t-radio value="SCHEDULED">定时发布</t-radio>
+          </t-radio-group>
+        </div>
+        <div v-if="form.publishMode==='SCHEDULED'" class="form-field">
+          <label>定时发布时间 <span class="portal-required">*</span></label>
+          <t-date-picker v-model="form.scheduledPublishAt" enable-time-picker format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择未来发布时间"/>
+        </div>
+        <div class="form-field">
+          <label>失效日期</label>
+          <t-date-picker v-model="form.effectiveEnd" clearable format="YYYY-MM-DD" value-type="YYYY-MM-DD" placeholder="留空表示永久有效"/>
+          <small class="form-helper">选择日期后，于当天 23:59:59 后失效。</small>
+        </div>
         <div class="form-field"><label>当前状态</label><t-input :value="label(form.status||'DRAFT')" disabled/></div>
       </div>
       <AnnouncementEditor v-model="form.content" v-model:files="uploadFiles"/>
@@ -66,7 +81,8 @@
         <div class="announcement-form-actions">
           <t-button variant="outline" @click="formVisible=false">取消</t-button>
           <t-button variant="outline" theme="primary" @click="previewForm">预览</t-button>
-          <t-button theme="primary" :loading="saving" @click="saveAnnouncement">保存草稿</t-button>
+          <t-button variant="outline" theme="primary" :loading="saving" @click="saveAnnouncement">保存草稿</t-button>
+          <t-button theme="primary" :loading="saving" @click="saveAndPublish">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>
         </div>
       </template>
     </t-dialog>
@@ -140,14 +156,17 @@ function assign(row){
   Object.keys(form).forEach(key=>delete form[key]);
   Object.assign(form,JSON.parse(JSON.stringify(row)));
   if(!form.status)form.status='DRAFT';
-  if(form.effectiveEnd)form.effectiveEnd=toDateTimeValue(form.effectiveEnd);
+  if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
+  if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
   uploadFiles.value=(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),originAttachment:JSON.parse(JSON.stringify(file))}));
 }
-function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',effectiveEnd:'',content:'',attachments:[]});formError.value='';formVisible.value=true;}
+function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',publishMode:'IMMEDIATE',scheduledPublishAt:'',effectiveEnd:'',content:'',attachments:[]});formError.value='';formVisible.value=true;}
 function previewForm(){previewRecord.value={...JSON.parse(JSON.stringify(form)),attachments:uploadFiles.value.map(file=>file.originAttachment||{id:file.id,name:file.name,size:file.size||0})};previewVisible.value=true;}
 function openSubmit(row){submitRow.value=JSON.parse(JSON.stringify(row));publishMode.value='IMMEDIATE';scheduledPublishAt.value='';formError.value='';submitVisible.value=true;}
+function toDateValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'').slice(0,10);const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function toIso(value){return value?new Date(String(value).replace(' ','T')).toISOString():null;}
+function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}
 
 async function saveAnnouncement(){
   if(saving.value)return;
@@ -156,10 +175,34 @@ async function saveAnnouncement(){
   saving.value=true;formError.value='';
   try{
     const attachments=await normalizeFiles(uploadFiles.value,form.attachments||[]);
-    const payload={id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,effectiveEnd:toIso(form.effectiveEnd),content:form.content,attachments};
+    const payload={id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments};
     const result=await command('saveAnnouncement',payload);
     if(!result.ok){formError.value=result.error.message;return;}
     formVisible.value=false;MessagePlugin.success('公告草稿已保存');emit('saved');
+  }catch(cause){formError.value=cause.message;}
+  finally{saving.value=false;}
+}
+async function saveAndPublish(){
+  if(saving.value)return;
+  if(!form.title?.trim()){formError.value='请填写公告标题';return;}
+  if(!String(form.content||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/gi,' ').trim()){formError.value='请填写公告正文';return;}
+  if(form.publishMode==='SCHEDULED'&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
+  saving.value=true;formError.value='';
+  try{
+    const attachments=await normalizeFiles(uploadFiles.value,form.attachments||[]);
+    const saved=await command('saveAnnouncement',{
+      id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,
+      effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments
+    });
+    if(!saved.ok){formError.value=saved.error.message;return;}
+    const published=await command('submitAnnouncement',{
+      id:saved.data.id,version:saved.data.version,publishMode:form.publishMode,
+      scheduledPublishAt:form.publishMode==='SCHEDULED'?toIso(form.scheduledPublishAt):null
+    });
+    if(!published.ok){formError.value=published.error.message;return;}
+    formVisible.value=false;
+    MessagePlugin.success(form.publishMode==='SCHEDULED'?'公告已设置定时发布':'公告已发布');
+    emit('saved');
   }catch(cause){formError.value=cause.message;}
   finally{saving.value=false;}
 }
