@@ -8,7 +8,7 @@
           <template #operation="{row}"><div class="row-actions">
             <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="danger" @click="emit('withdraw',row)">撤回</t-button>
             <t-button v-if="row.status==='REJECTED'" size="small" variant="text" theme="primary" @click="emit('reapply',row)">重新申请</t-button>
-            <t-button v-if="row.status==='APPROVED'&&row.postGrantMode==='BIND'" size="small" variant="text" theme="primary" @click="emit('bind',row)">继续关联</t-button>
+            <t-button v-if="row.status==='APPROVED'&&row.postGrantMode==='BIND'" size="small" variant="text" theme="primary" @click="emit('bind',row)">完成账号确认</t-button>
           </div></template>
         </t-table>
       </t-tab-panel>
