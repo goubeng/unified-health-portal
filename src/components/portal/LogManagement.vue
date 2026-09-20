@@ -23,9 +23,9 @@
         <template #empty><EmptyState description="暂无符合条件的日志"/></template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #resolutionStatus="{row}"><t-tag :theme="row.resolutionStatus==='RESOLVED'?'success':'warning'" variant="light">{{label(row.resolutionStatus||'OPEN')}}</t-tag></template>
+        <template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'—'}}</button></template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button size="small" variant="text" theme="primary" @click="openDetail(row)">详情</t-button>
             <t-button v-if="kind==='error'&&row.resolutionStatus!=='RESOLVED'" size="small" variant="text" theme="primary" @click="openResolve(row)">处理</t-button>
           </div>
         </template>
@@ -84,28 +84,28 @@ const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page
 
 const columns=computed(()=>{
   const commonStatus={colKey:'status',title:props.kind==='login'?'登录结果':'结果',width:100};
-  const operation={colKey:'operation',title:'操作',width:props.kind==='error'?130:90,fixed:'right'};
+  const operation={colKey:'operation',title:'操作',width:100,fixed:'right'};
   if(props.kind==='login')return [
     {colKey:'createdAt',title:'登录时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},
     {colKey:'userName',title:'登录用户',width:120,ellipsis:true},{colKey:'account',title:'登录账号',width:150,ellipsis:true},
     {colKey:'userType',title:'用户类别',width:120,cell:(_,ctx)=>label(ctx.row.userType)},{colKey:'identitySource',title:'身份来源',width:120,cell:(_,ctx)=>label(ctx.row.identitySource)},
     {colKey:'loginSource',title:'登录来源',width:110},{colKey:'loginMethod',title:'登录方式',width:110,cell:(_,ctx)=>label(ctx.row.loginMethod)},
-    commonStatus,{colKey:'failureReason',title:'失败原因',minWidth:180,ellipsis:true},{colKey:'ip',title:'IP',width:130},{colKey:'client',title:'客户端',width:160,ellipsis:true},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true},operation
+    commonStatus,{colKey:'failureReason',title:'失败原因',minWidth:180,ellipsis:true},{colKey:'ip',title:'IP',width:130},{colKey:'client',title:'客户端',width:160,ellipsis:true},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
   ];
   if(props.kind==='access')return [
     {colKey:'createdAt',title:'访问时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'userName',title:'用户',width:120},{colKey:'account',title:'账号',width:150},
     {colKey:'appName',title:'来源应用',minWidth:230,ellipsis:true},{colKey:'accessMode',title:'访问模式',width:110,cell:(_,ctx)=>label(ctx.row.accessMode)},commonStatus,
-    {colKey:'ip',title:'IP',width:130},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true},operation
+    {colKey:'ip',title:'IP',width:130},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
   ];
   if(props.kind==='operation')return [
     {colKey:'createdAt',title:'操作时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'actor',title:'操作人',width:120},{colKey:'moduleName',title:'模块',width:130},
     {colKey:'pageName',title:'页面',width:140},{colKey:'actionName',title:'操作动作',width:140},{colKey:'objectType',title:'对象类型',width:120},commonStatus,
-    {colKey:'requestId',title:'请求ID',width:190,ellipsis:true},operation
+    {colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
   ];
   if(props.kind==='api')return [
     {colKey:'createdAt',title:'调用时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true},
     {colKey:'interfaceName',title:'接口',minWidth:250,ellipsis:true},{colKey:'httpMethod',title:'方法',width:90},{colKey:'statusCode',title:'状态码',width:90},
-    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true},commonStatus,{colKey:'requestId',title:'请求ID',width:190,ellipsis:true},operation
+    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true},commonStatus,{colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
   ];
   return [
     {colKey:'createdAt',title:'发生时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'severity',title:'级别',width:90,cell:(_,ctx)=>label(ctx.row.severity)},
