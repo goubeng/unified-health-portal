@@ -684,6 +684,7 @@
 
 
 /* 2026-09-20 global content-link typography normalization. */
+.portal-page a,
 .portal-page .portal-field-link,
 .portal-page .portal-field-link.is-unread,
 .portal-page .portal-field-link.is-attention,
@@ -697,6 +698,7 @@
   line-height:1.6!important;
   text-decoration:none!important;
 }
+.portal-page a:hover,
 .portal-page .portal-field-link:hover,
 .portal-page .portal-field-link.is-unread:hover,
 .portal-page .portal-field-link.is-attention:hover,
