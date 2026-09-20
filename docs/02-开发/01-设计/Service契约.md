@@ -79,6 +79,60 @@ updatePortalUser不得修改外部权威身份属性。
 
 LOCAL首期默认不进入普通应用访问流程，但服务端不应通过硬编码角色实现此规则，应依据产品入口/适用用户配置。
 
+### 5.1 子系统账号映射
+
+建议Service：
+
+- discoverApplicationAccountCandidates
+- startApplicationAccountBinding
+- verifyBindingBySubsystemRedirect
+- sendSubsystemBindingOtp
+- verifyBindingOtp
+- verifyBindingByUpstreamReauth
+- verifyBindingBySubsystemCredential
+- submitBindingReview
+- approveBindingReview
+- rejectBindingReview
+- bindApplicationAccountByAdmin
+- unbindApplicationAccount
+- resolveMappingConflict
+- readApplicationMappings
+- readMappingVerificationHistory
+
+强制规则：
+
+1. 候选匹配与正式绑定分离；
+2. NAME_PHONE只返回候选，不直接写BOUND；
+3. SUBSYSTEM_OTP只能向子系统原账号登记手机号发送；
+4. 子系统密码/OTP/Token只用于当前验证，不得持久化或进入审计details；
+5. 高权限账号可在验证成功后返回REVIEW_REQUIRED并进入REVIEWING；
+6. application_id + external_user_id已存在其它有效BOUND时返回冲突，禁止覆盖；
+7. 解绑/重绑必须审计；
+8. 子系统账号DISABLED时拒绝进入应用，但不删除已有映射历史。
+
+enterApp顺序：
+
+```text
+适用用户
+→ 应用启用
+→ access_mode
+→ REQUEST入口资格
+→ BIND映射状态（如需要）
+→ 子系统账号状态
+→ SSO
+```
+
+### 5.2 外部身份候选关联
+
+如未来实现CITIZEN/GOV跨身份源自然人关联：
+
+- discoverIdentityLinkCandidates
+- verifyIdentityLinkByUpstreamReauth
+- confirmIdentityLink
+- rejectIdentityLink
+
+禁止仅凭姓名+手机号直接合并统一用户。
+
 ## 6. 公告
 
 - saveAnnouncementDraft
