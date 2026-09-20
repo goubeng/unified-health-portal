@@ -92,9 +92,17 @@ test('详情入口使用业务字段，不在操作列重复显示详情',()=>{
   assert(!logs.includes('>详情</t-button>'));
 });
 
-test('管理表单启用状态使用紧凑TDesign开关，不把label写进开关轨道',()=>{
+test('用户管理启用状态文字显示在开关内部并保持固定宽度',()=>{
+  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert((source.match(/class="user-status-switch"/g)||[]).length>=3);
+  assert(source.includes(':label="[\'启用\',\'停用\']"'));
+  assert(!source.includes("form.status==='DISABLED'?'停用':'启用'</span>"));
+  assert(css.includes('.user-status-switch.t-switch{width:64px!important;min-width:64px!important;max-width:64px!important'));
+});
+
+test('组织角色字典仍使用紧凑开关加右侧状态文字',()=>{
   for(const file of [
-    'src/components/portal/UserManagement.vue',
     'src/components/portal/OrganizationManagement.vue',
     'src/components/portal/RoleManagement.vue',
     'src/components/portal/DictionaryManagement.vue'
@@ -103,9 +111,6 @@ test('管理表单启用状态使用紧凑TDesign开关，不把label写进开�
     assert(!source.includes(':label="[\'启用\',\'停用\']"'),file+' 不应使用会拉伸开关的label数组');
     assert(source.includes('form-switch-control'),file+' 应使用统一紧凑开关容器');
   }
-  const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.form-switch-control{'));
-  assert(css.includes('.form-switch-control .t-switch{flex:none!important;width:auto!important'));
 });
 
 
