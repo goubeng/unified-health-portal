@@ -189,7 +189,7 @@ const adminReminders=computed(()=>[
 let loadVersion=0;
 async function read(key){const result=await portal.read(key);if(!result.ok)throw new Error(result.error.message);return result.data;}
 async function load(){
- const version=++loadVersion;loading.value=true;pageReady.value=false;error.value='';
+ const version=++loadVersion;loading.value=true;error.value='';
  try{
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
   const tasks={apps:read(isAdmin?'adminApps':'apps')};
@@ -234,7 +234,7 @@ function resetQuery(){
  for(const key of Object.keys(filterValues))delete filterValues[key];
  page.value=1;appPages.mine=1;appPages.other=1;
 }
-watch(()=>route.fullPath,()=>{resetQuery();detailVisible.value=false;formVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
+watch(()=>route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
 watch(revision,load);
 const queryWidthClass=key=>({
  category:'query-width-category',
