@@ -85,7 +85,7 @@ test('identityOverview解绑后更新聚合计数，保留映射历史且不影�
 for (const action of ['pushTodo', 'pushMessage']) {
   const payload = {appId: 'MOCK_APP_3', userId: actors[0].id, eventId: `identity-${action}`,
     title: '身份门禁测试', ...(action === 'pushTodo'
-      ? {sourceTodoId: 'identity-todo', sourceRevision: 1, status: 'PENDING'}
+      ? {sourceTodoId: 'identity-todo', status: 'PENDING'}
       : {sourceMessageId: 'identity-message', content: '仅内存测试'})};
 
   for (const status of ['ABSENT', 'UNBOUND', 'CONFLICT', 'FAILED']) {
