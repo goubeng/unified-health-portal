@@ -265,21 +265,24 @@ test('新增公告仅定时发布时显示定时发布时间且失效日期按�
   assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
 });
 
-test('草稿编辑与新增公告共用发布方式布局而已发布编辑保存后直接生效',()=>{
+test('草稿和定时公告编辑均显示发布方式且定时公告可切立即发布',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes("const isDraft=computed(()=>form.status==='DRAFT')"));
+  assert(source.includes("const isScheduled=computed(()=>form.status==='SCHEDULED')"));
   assert(source.includes("const isPublished=computed(()=>form.status==='PUBLISHED')"));
-  assert(source.includes('v-if="isDraft"'));
+  assert(source.includes('v-if="isDraft||isScheduled"'));
   assert(source.includes('v-model="form.publishMode"'));
   assert(source.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
+  assert(source.includes("if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE'"));
+  assert(source.includes("{{isScheduled&&form.publishMode==='IMMEDIATE'?'立即发布':'保存修改'}}"));
+  assert(source.includes("form.publishMode==='IMMEDIATE'?'公告已立即发布':'定时公告修改已保存'"));
+  assert(source.includes("command('submitAnnouncement'"));
   assert(source.includes("class=\"announcement-publish-row\""));
   assert(css.includes('.announcement-publish-row .announcement-publish-mode-field{grid-column:span 6}'));
   assert(css.includes('.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:span 6}'));
   assert(source.includes('@click="saveDraft"'));
   assert(source.includes('@click="publishDraft"'));
-  assert(source.includes('<t-button v-else theme="primary" :loading="saving" @click="saveCurrent">保存修改</t-button>'));
-  assert(source.includes("MessagePlugin.success(isPublished.value?'公告修改已生效':'定时公告修改已保存')"));
   assert(source.includes('<label>失效日期</label>'));
   assert(source.includes('format="YYYY-MM-DD"'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
