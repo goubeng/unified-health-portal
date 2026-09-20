@@ -8,7 +8,7 @@ export const actors = [
  {id:'MOCK_USER_2',name:'陈宁',account:'chenning',kind:'USER',userType:'GOV',orgName:'卫生健康业务处',orgKey:'HEALTH',scopes:[],roleIds:[],roleName:'普通用户',department:'业务协同科',jobTitle:'业务经办',identitySource:'闽政务'},
  {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
  {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['system','application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',scopeDescription:'日常门户维护',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
- {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
+ {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
 ].map(actor => ({...actor,status:'NORMAL',mobile:'未提供',email:'未提供'}));
 
 export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
@@ -39,8 +39,8 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   ...[['OIDC','OIDC'],['SAML2','SAML2'],['CUSTOM','CUSTOM'],['PUSH','PUSH']].map(([value,label],index)=>row('MOCK_DICT_PROTOCOL_'+index,{typeCode:'integration_protocol',label,value,sortOrder:index+1,status:'ENABLED',remark:'仅展示代码已支持协议',systemLocked:true}))
  ];
  const roles = [
-  row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',scopes:['super','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
-  row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',scopes:['application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
+  row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',scopes:['super','system','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
+  row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',scopes:['system','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
  ];
  const apps = applicationCatalog.map(entry => {
   const n=entry.sourceNo;
