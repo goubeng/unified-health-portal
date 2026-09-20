@@ -1,7 +1,8 @@
 <template>
-  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="kind==='messages'?'1120px':'920px'" :footer="false" @update:visible="$emit('update:visible',$event)">
+  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="kind==='messages'?'1120px':kind==='todos'?'900px':'920px'" :footer="false" @update:visible="$emit('update:visible',$event)">
     <template v-if="record">
-      <article v-if="kind==='messages'" class="portal-message-letter">
+      <TodoDetailContent v-if="kind==='todos'" :record="record"/>
+      <article v-else-if="kind==='messages'" class="portal-message-letter">
             <h2>{{text(record.title)}}</h2>
             <div class="portal-message-meta">
               <div><Icon name="user"/><span>接收对象</span><strong>{{text(receiver)||'当前登录用户'}}</strong></div>
@@ -46,6 +47,7 @@
 import {computed} from 'vue';
 import {Icon} from 'tdesign-icons-vue-next';
 import DetailGrid from './DetailGrid.vue';
+import TodoDetailContent from './TodoDetailContent.vue';
 import {text,label,date,titles,display,richText,theme} from './presentation.js';
 const props=defineProps({visible:Boolean,record:Object,kind:String,receiver:String,accessProfile:{type:Object,default:null},showConnection:{type:Boolean,default:false}});
 defineEmits(['update:visible','download']);
@@ -65,7 +67,7 @@ const auditEventLabels={
 };
 const isAuditLog=computed(()=>String(props.kind||'').startsWith('logs:'));
 const showBasicSectionTitle=computed(()=>props.kind==='apps'&&props.showConnection);
-const dialogTitle=computed(()=>props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':auditTitles[props.kind]||'详情');
+const dialogTitle=computed(()=>props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':auditTitles[props.kind]||'详情');
 const detailTitle=(key)=>{
  const overrides={
   apps:{name:'应用名称',code:'应用编码',status:'启用状态'},
