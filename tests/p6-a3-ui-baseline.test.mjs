@@ -221,3 +221,30 @@ test('公告撤回删除确认分别使用warning和danger提示主题',()=>{
   assert(remove.includes("theme:'danger'"));
   assert(remove.includes("confirmBtn:{content:'确认删除',theme:'danger'}"));
 });
+
+
+test('用户管理查询去组织字段并缩小姓名账号宽度',()=>{
+  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  const queryBlock=source.split('<t-form layout="inline" class="portal-query list-toolbar">')[1]?.split('</t-form>')[0]||'';
+  assert(queryBlock.includes('class="portal-query-keyword user-query-keyword"'));
+  assert(!queryBlock.includes('label="所属组织"'));
+  assert(!source.includes("{colKey:'orgName',title:'所属组织'"));
+  assert(css.includes('.user-management .portal-query .user-query-keyword{width:220px!important}'));
+});
+
+test('新增编辑用户门户角色使用平铺多选项',()=>{
+  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert.equal((source.match(/<t-checkbox-group v-model="form.roleIds" class="user-role-options">/g)||[]).length,2);
+  assert(source.includes('v-for="option in roleOptions"'));
+  assert(!source.includes('<t-select v-model="form.roleIds" multiple'));
+  assert(css.includes('.user-role-options{display:flex!important;align-items:center;flex-wrap:wrap'));
+});
+
+test('角色权限配置只保留Dialog外层滚动条',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.t-dialog__body{max-height:65vh;overflow:auto}'));
+  assert(css.includes('.role-permission-groups{display:flex;flex-direction:column;gap:10px;max-height:none;overflow:visible;padding-right:0}'));
+  assert(!css.includes('.role-permission-groups{display:flex;flex-direction:column;gap:10px;max-height:430px;overflow:auto'));
+});
