@@ -268,3 +268,23 @@ test('最近页面文档与用户公告交互基线一致',()=>{
   assert(functionList.includes('查询不含所属组织，列表不显示所属组织'));
   assert(functionList.includes('新增/编辑用户采用Checkbox平铺多选'));
 });
+
+
+test('应用访问提示点击知道了直接关闭',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const block=source.split('async function run(action,payload,show=false){')[1]?.split('const enterApp=')[0]||'';
+  assert(block.includes("confirmBtn:'知道了'"));
+  assert(block.includes('onConfirm:()=>dialog.hide()'));
+});
+
+test('其他应用关联流程不显示Mock演示提示并区分自动与账号查找',()=>{
+  const source=fs.readFileSync('src/components/portal/AccountBindingWizard.vue','utf8');
+  assert(!source.includes('当前为 Mock 演示流程，不调用真实子系统、短信或身份平台'));
+  assert(source.includes('使用当前身份自动查找'));
+  assert(source.includes('或输入已有子系统账号'));
+  assert(source.includes('placeholder="请输入已有子系统账号"'));
+  assert(!source.includes('已有子系统账号（可选）'));
+  assert(source.includes('@click="autoDiscover"'));
+  assert(source.includes('@click="discoverByAccount"'));
+  assert(source.includes("if(!account){error.value='请输入已有子系统账号，或使用“自动查找”';return;}"));
+});
