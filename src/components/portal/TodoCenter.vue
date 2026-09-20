@@ -44,10 +44,6 @@
     <t-dialog v-model:visible="detailVisible" placement="center" header="待办详情" width="760px">
       <section v-if="active" class="todo-detail">
         <DetailGrid :items="detailItems"/>
-        <section class="todo-detail-summary">
-          <h3>待办说明</h3>
-          <p>{{text(active.summary)||'-'}}</p>
-        </section>
       </section>
       <template #footer>
         <div class="todo-detail-footer">
@@ -109,6 +105,7 @@ const detailItems=computed(()=>active.value?[
   {key:'businessType',label:'业务类型',value:text(active.value.businessType)||'-'},
   {key:'status',label:'状态',value:label(active.value.status)},
   {key:'createdAt',label:'接收时间',value:date(active.value.createdAt)},
+  {key:'summary',label:'待办说明',value:text(active.value.summary)||'-',wide:true},
 ]:[]);
 
 function statusTheme(value){return value==='PENDING'?'warning':value==='COMPLETED'?'success':'default';}
