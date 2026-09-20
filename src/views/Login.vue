@@ -41,7 +41,7 @@
     <label for="local-password" class="field-label">登录密码</label><t-input id="local-password" v-model="localPassword" type="password" autocomplete="current-password" placeholder="请输入登录密码"/>
     <label for="local-captcha" class="field-label">验证码</label>
     <div class="local-captcha-row">
-     <t-input id="local-captcha" v-model="localCaptchaInput" autocomplete="off" maxlength="4" placeholder="请输入验证码"/>
+     <t-input id="local-captcha" v-model="localCaptchaInput" autocomplete="off" :maxlength="4" placeholder="请输入验证码"/>
      <button type="button" class="local-captcha-code" title="点击刷新验证码" aria-label="刷新验证码" @click="refreshLocalCaptcha">
       <span>{{localCaptchaCode}}</span>
      </button>
