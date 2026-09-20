@@ -30,6 +30,15 @@ test('登录页不恢复滑块下方冗余提示',()=>{
   assert(!source.includes('按住滑块向右拖动'));
 });
 
+test('消息中心头部只显示未读总数且数量加粗',()=>{
+  const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('（共<span>{{ unreadCount }}</span>封未读）'));
+  assert(!source.includes('其中<span>{{ unreadCount }}</span>封未读'));
+  assert(!source.includes('共{{ rows.length }}封'));
+  assert(css.includes('.message-header-count>span{color:#e34d59;font-weight:600}'));
+});
+
 test('系统内容区链接统一13px常规蓝色且首页未读不再加粗',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(!/portal-page \.portal-field-link(?:\.is-unread|\.is-attention)?\{[^}]*font-weight:600/i.test(css));
