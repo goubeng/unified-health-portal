@@ -28,14 +28,14 @@ const emit=defineEmits(['detail','enter','bind','request','view-request','view-b
 function showState(app){if(!app.accessState||app.accessState==='DIRECT')return false;if(props.hideNormalState&&app.accessState==='BOUND')return false;return true;}
 function stateText(app){
  if(app.accessState==='BOUND')return '已关联';
- if(app.accessState==='UNBOUND')return '未关联';
- if(app.accessState==='VERIFYING')return '验证中';
- if(app.accessState==='REVIEWING')return '待审核';
- if(app.accessState==='FAILED')return app.externalAccountStatus==='DISABLED'?'账号停用':'关联失败';
- if(app.accessState==='CONFLICT')return '关联异常';
- if(app.accessState==='REQUEST_REQUIRED')return '未申请';
- if(app.accessState==='REQUEST_PENDING')return '审核中';
- if(app.accessState==='REQUEST_REJECTED')return '已驳回';
+ if(app.accessState==='UNBOUND')return '需确认账号';
+ if(app.accessState==='VERIFYING')return '待继续处理';
+ if(app.accessState==='REVIEWING')return '处理中';
+ if(app.accessState==='FAILED')return app.externalAccountStatus==='DISABLED'?'账号不可用':'处理失败';
+ if(app.accessState==='CONFLICT')return '账号异常';
+ if(app.accessState==='REQUEST_REQUIRED')return '待申请';
+ if(app.accessState==='REQUEST_PENDING')return '申请处理中';
+ if(app.accessState==='REQUEST_REJECTED')return '申请未通过';
  return label(app.accessState);
 }
 function stateTheme(state){
@@ -47,10 +47,10 @@ function stateTheme(state){
 function buttonText(app){
  return {
   ENTER:'进入应用',
-  BIND:'关联账号',
-  CONTINUE_BIND:'继续验证',
+  BIND:'完成账号确认',
+  CONTINUE_BIND:'继续处理',
   VIEW_BINDING:'查看进度',
-  VIEW_CONFLICT:'查看异常',
+  VIEW_CONFLICT:'查看原因',
   REQUEST:'申请使用',
   VIEW_REQUEST:'查看申请'
  }[app.primaryAction]||'';
