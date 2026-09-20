@@ -223,9 +223,11 @@ export function createPortalService(provider,getActor){
      if(!p.roleName?.trim()||!p.roleCode?.trim())fail('VALIDATION_ERROR','角色名称与角色编码为必填');
      const requested=Array.isArray(p.scopes)?[...new Set(p.scopes)]:[];
      if(requested.some(s=>!Object.hasOwn(scopes,s))||!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','请选择有效的门户权限范围与启用状态');
+     if(p.id!=='ROLE_SUPER'&&requested.includes('super'))fail('INVALID_TRANSITION','超级管理权限仅保留给内置门户超级管理员角色');
      if((d.roles||[]).some(role=>role.roleCode===p.roleCode.trim()&&role.id!==p.id))fail('VALIDATION_ERROR','角色编码已存在');
      if(p.id==='ROLE_SUPER'&&(!requested.includes('super')||p.status==='DISABLED'))fail('INVALID_TRANSITION','门户超级管理员角色必须保持启用并保留超级管理权限');
      const x=p.id?requireRow(d.roles,p.id,p.version):{id:id(),version:0,createdAt:now,builtIn:false};
+     if(x.builtIn&&(p.roleCode.trim()!==x.roleCode||p.roleName.trim()!==x.roleName))fail('INVALID_TRANSITION','内置角色名称与编码不可修改');
      Object.assign(x,{roleName:p.roleName.trim(),roleCode:p.roleCode.trim(),description:p.description||'',scopes:requested,status:p.status});stamp(x);if(!p.id)d.roles.push(x);
      (d.users||[]).forEach(user=>{if((user.roleIds||[]).includes(x.id)){syncUserRoleScopes(d,user);stamp(user);}});
      const current=(d.users||[]).find(user=>user.id===a.id);if(current&&!current.scopes.includes('super'))fail('INVALID_TRANSITION','本次角色修改会移除当前账号超级管理权限，请先调整用户角色');
