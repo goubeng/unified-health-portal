@@ -15,8 +15,16 @@
      <div class="admin-overview-grid">
       <button v-for="card in adminOverviewCards" :key="card.label" type="button" class="admin-overview-card" @click="card.path&&router.push(card.path)"><span>{{card.label}}</span><strong>{{card.value}}</strong><small>{{card.hint}}</small></button>
      </div>
+
+     <section class="panel admin-pending-panel">
+      <div class="section-head"><h2>待处理事项</h2><span class="muted">按当前账号权限显示</span></div>
+      <div class="admin-reminder-grid">
+       <button v-for="item in adminPendingItems" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)"><span>{{item.label}}</span><strong :class="{'is-danger':item.danger}">{{item.value}}</strong><small>{{item.hint}}</small></button>
+      </div>
+     </section>
+
      <section v-if="overview.serviceHealth" class="panel admin-service-health-panel">
-      <div class="section-head"><h2>集成运行健康</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div>
+      <div class="section-head"><h2>接入运行状态</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div>
       <div class="admin-service-health-grid">
        <button v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" type="button" class="admin-service-health-card" @click="can(actor,'integration')&&router.push('/admin/monitor')">
         <strong>{{kind}}</strong>
@@ -26,11 +34,20 @@
        </button>
       </div>
      </section>
-     <section class="panel admin-work-panel"><div class="section-head"><h2>管理工作</h2><span class="muted">按当前账号权限显示</span></div><div class="admin-entry-grid compact"><button v-if="can(actor,'announcement')" class="admin-entry-card compact" @click="router.push('/admin/announcements')"><Icon name="notification"/><span><strong>通知公告管理</strong><small>草稿、提交、发布与撤回</small></span></button><button v-for="item in adminShortcuts" :key="item.id" class="admin-entry-card compact" @click="router.push(item.path)"><Icon name="file"/><span><strong>{{text(item.title)}}</strong><small>{{adminShortcutHint(item.resource)}}</small></span></button></div></section>
-     <div class="admin-home-grid">
-      <section class="panel"><div class="section-head"><h2>管理提醒</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div><div class="admin-reminder-grid"><button v-for="item in adminReminders" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)"><span>{{item.label}}</span><strong :class="{'is-danger':item.danger}">{{item.value}}</strong><small>{{item.hint}}</small></button></div></section>
-      <section class="panel"><div class="section-head"><h2>异常接入消息 <span class="portal-count">{{homeExceptions.length}}</span></h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">全部异常</router-link></div><div v-for="item in latest(homeExceptions).slice(0,5)" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button><p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p></div><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></div><EmptyState v-if="!homeExceptions.length" :description="can(actor,'integration')||can(actor,'identity')?'暂无异常接入消息':'当前权限范围暂无接入消息'"/></section>
-     </div>
+
+     <section class="panel admin-exception-panel">
+      <div class="section-head"><h2>接入异常 <span class="portal-count">{{homeExceptions.length}}</span></h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看全部</router-link></div>
+      <div v-for="item in latest(homeExceptions).slice(0,5)" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button><p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p></div><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></div>
+      <EmptyState v-if="!homeExceptions.length" :description="can(actor,'integration')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
+     </section>
+
+     <section class="panel admin-work-panel">
+      <div class="section-head"><h2>常用管理</h2><span class="muted">快速进入常用管理模块</span></div>
+      <div class="admin-entry-grid compact">
+       <button v-if="can(actor,'announcement')" class="admin-entry-card compact" @click="router.push('/admin/announcements')"><Icon name="notification"/><span><strong>通知公告管理</strong><small>公告内容与发布维护</small></span></button>
+       <button v-for="item in adminShortcuts" :key="item.id" class="admin-entry-card compact" @click="router.push(item.path)"><Icon :name="adminShortcutIcon(item.resource)"/><span><strong>{{text(item.title)}}</strong><small>{{adminShortcutHint(item.resource)}}</small></span></button>
+      </div>
+     </section>
     </template>
     <template v-else>
      <div class="portal-home-feeds">
@@ -168,23 +185,22 @@ const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessP
 const accessDialogVisible=ref(false),accessProfile=ref(null),accessSaving=ref(false);
 const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
-const adminShortcuts=computed(()=>pages.filter(item=>['PG-220','PG-202','PG-205','PG-222','PG-225'].includes(item.id)&&can(actor.value,item.scope)));
+const adminShortcuts=computed(()=>pages.filter(item=>['PG-202','PG-228','PG-205'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
- {label:'应用总数',value:overview.value.appCount??0,hint:'统一应用目录',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'已启用应用',value:overview.value.enabledCount??0,hint:'当前启用',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'正常应用',value:overview.value.normalAppCount??0,hint:'运行状态正常',path:can(actor.value,'integration')?'/admin/monitor':''},
- {label:'异常应用',value:overview.value.abnormalAppCount??0,hint:'运行状态异常',path:can(actor.value,'integration')?'/admin/monitor':''},
- {label:'门户用户',value:overview.value.userCount??0,hint:'公众 / 政务 / 本地',path:can(actor.value,'system')?'/admin/users':''},
- {label:'待审核申请',value:overview.value.pendingAccessCount??0,hint:'应用入口资格',path:can(actor.value,'application')?'/admin/application-requests':''}
+ {label:'纳管应用',value:overview.value.appCount??0,hint:'统一应用目录',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'启用应用',value:overview.value.enabledCount??0,hint:'当前启用',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'门户用户',value:overview.value.userCount??0,hint:'已建立统一用户索引',path:can(actor.value,'system')?'/admin/users':''},
+ {label:'接入异常',value:overview.value.abnormalServiceCount??0,hint:'已配置服务运行异常',path:can(actor.value,'integration')?'/admin/monitor':''}
 ]);
-const adminShortcutHint=resource=>({announcements:'公告内容维护',apps:'应用目录配置',identityOverview:'账号映射核对',monitor:'运行状态检查'}[resource]||(String(resource||'').startsWith('logs:')?'查看门户操作日志':'进入管理模块'));
-const adminReminders=computed(()=>[
+const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户用户维护',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
+const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
+const adminPendingItems=computed(()=>[
  {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
  {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
- {label:'关联审核',value:overview.value.pendingBindingReviewCount??0,hint:'高权限账号待审核',path:can(actor.value,'identity')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
+ {label:'账号确认审核',value:overview.value.pendingBindingReviewCount??0,hint:'高风险账号待审核',path:can(actor.value,'identity')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
  {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
- {label:'未处理异常',value:overview.value.openErrorCount??0,hint:'异常日志处理',path:can(actor.value,'audit')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
- {label:'定时公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
+ {label:'异常日志',value:overview.value.openErrorCount??0,hint:'待处理异常日志',path:can(actor.value,'audit')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
+ {label:'待发布公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
  ]);
 let loadVersion=0;
 async function read(key){const result=await portal.read(key);if(!result.ok)throw new Error(result.error.message);return result.data;}
@@ -198,7 +214,6 @@ async function load(){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'integration'))tasks.monitor=read('monitor');
-   if(isAdmin&&can(actor.value,'identity'))tasks.exceptions=read('exceptions');
   }else if(center)tasks.mine=read('mine');
   else if(key==='users'){tasks.rows=read('users');tasks.systemRoles=read('roles');tasks.organizations=read('organizations');}
   else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
@@ -217,7 +232,7 @@ async function load(){
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
    homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
-   const monitorExceptions=(data.monitor||[]).filter(item=>['SSO','TODO','MESSAGE'].some(kind=>item.services?.[kind]?.status==='ABNORMAL')).map(item=>({...item,kind:'运行监控',status:'ABNORMAL',remark:['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.status==='ABNORMAL').join(' / ')+' 异常'}));homeExceptions.value=[...monitorExceptions,...(data.exceptions||[])];
+   const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.status==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
