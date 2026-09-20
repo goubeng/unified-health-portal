@@ -35,16 +35,26 @@ test('PG-104待办任务使用独立TodoCenter',()=>{
   assert(source.includes('label="状态"'));
 });
 
-test('PG-104待办列表字段完整并支持标题查看详情',()=>{
+test('PG-104待办列表字段完整且详情使用公告式信息层级',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
   for(const title of ['待办标题','来源应用','业务类型','状态','接收时间','操作']){
     assert(source.includes("title:'"+title+"'"),'缺少待办列表字段 '+title);
   }
   assert(source.includes('@click="openDetail(row)"'));
   assert(source.includes('header="待办详情"'));
-  assert(source.includes('源待办ID'));
-  assert(source.includes("{key:'summary',label:'待办说明',value:text(active.value.summary)||'-',wide:true}"));
-  assert(!source.includes('class="todo-detail-summary"'));
+  assert(source.includes('class="todo-detail-article"'));
+  assert(source.includes('<h2>{{text(active.title)||\'-\'}}</h2>'));
+  for(const meta of ['来源应用','业务类型','接收时间','状态'])assert(source.includes('<em>'+meta+'</em>'),meta+' 未显示');
+  assert(source.includes('<Icon name="app"/>'));
+  assert(source.includes('<Icon name="task"/>'));
+  assert(source.includes('<Icon name="time"/>'));
+  assert(source.includes('<Icon name="check-circle"/>'));
+  assert(source.includes('class="todo-detail-divider"'));
+  assert(source.includes('<h3>待办说明</h3>'));
+  assert(!source.includes('DetailGrid'));
+  assert(!source.includes('源待办ID'));
+  assert(css.includes('.todo-detail-meta-inline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))'));
 });
 
 test('PG-104仅待处理状态显示去处理并复用openTodo校验',()=>{
