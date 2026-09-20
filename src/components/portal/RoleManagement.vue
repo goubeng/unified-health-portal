@@ -42,6 +42,9 @@
       @confirm="save"
     >
       <div v-if="formError" class="error-note">{{formError}}</div>
+      <t-alert v-if="form.id==='ROLE_SUPER'" theme="warning" class="role-permission-note">
+        门户超级管理员必须保持启用并保留超级管理权限；系统同时保护最后一个有效超级管理员账号。
+      </t-alert>
       <div class="form-grid role-basic-form">
         <div class="form-field"><label>角色编码 <span class="portal-required">*</span></label><t-input v-model="form.roleCode" :disabled="Boolean(form.builtIn)" placeholder="例如 CUSTOM_OPERATOR"/></div>
         <div class="form-field"><label>角色名称 <span class="portal-required">*</span></label><t-input v-model="form.roleName" :disabled="Boolean(form.builtIn)" placeholder="请输入角色名称"/></div>
@@ -78,9 +81,7 @@
         </section>
       </div>
 
-      <t-alert v-if="form.id==='ROLE_SUPER'" theme="warning" class="role-permission-note">
-        门户超级管理员必须保持启用并保留超级管理权限；系统同时保护最后一个有效超级管理员账号。
-      </t-alert>
+
     </t-dialog>
   </section>
 </template>
