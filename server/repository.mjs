@@ -46,16 +46,25 @@ export function makeEvent({actor,action,payload={},state,result,kind}){
  const todo=action==='openTodo'?state.todos.find(x=>x.id===payload.id):null;
  const related=[...(state.integrations||[]),...(state.mappings||[]),...(state.messages||[])].find(x=>x.id===payload.id);
  const appId=payload.appId||todo?.appId||related?.appId||(['enterApp','saveApp','setAppStatus'].includes(action)?payload.id||result?.data?.id:null);
- return {id:'P4EV_'+randomUUID(),at:new Date().toISOString(),kind:kind||(result?.ok===false?'ERROR':['enterApp','openTodo'].includes(action)?'ACCESS':action.startsWith('push')?'API':'OPERATION'),action,actorId:actor?.id||null,actorKind:actor?'USER':'SYSTEM',appId:state.apps.some(x=>x.id===appId)?appId:null,objectId:payload.id||result?.data?.entityId||result?.data?.id||null,result:result?.ok===false?(result.error?.code==='FORBIDDEN'?'DENIED':'FAILURE'):'SUCCESS',summary:result?.ok===false?result.error.message:action,requestId:result?.requestId||randomUUID(),details:{actorName:actor?.name||'系统任务',applicationName:state.apps.find(x=>x.id===appId)?.name||null,objectType:action==='openTodo'?'todo':appId?'application':action.includes('Announcement')?'announcement':'portal',previousActor:payload.previousActor||null,objectIds:payload.ids||[],accessOutcome:['enterApp','openTodo'].includes(action)?'ENTRY_REQUEST_ONLY':null}};
+ const eventKind=kind||(result?.ok===false?'ERROR':['enterApp','openTodo'].includes(action)?'ACCESS':action.startsWith('push')?'API':'OPERATION');
+ const identitySource=actor?.userType==='LOCAL'?'PORTAL_LOCAL':actor?.userType==='GOV'?'MINZHENGWU':actor?.userType==='CITIZEN'?'MINZHENGTONG':null;
+ return {id:'P4EV_'+randomUUID(),at:new Date().toISOString(),kind:eventKind,action,actorId:actor?.id||null,actorKind:actor?'USER':'SYSTEM',appId:state.apps.some(x=>x.id===appId)?appId:null,objectId:payload.id||result?.data?.entityId||result?.data?.id||null,result:result?.ok===false?(result.error?.code==='FORBIDDEN'?'DENIED':'FAILURE'):'SUCCESS',summary:result?.ok===false?result.error.message:action,requestId:result?.requestId||randomUUID(),details:{actorName:actor?.name||'系统任务',actorAccount:actor?.account||null,userType:actor?.userType||null,identitySource,loginMethod:actor?.userType==='LOCAL'?'PASSWORD':'QR',errorCode:result?.error?.code||null,applicationName:state.apps.find(x=>x.id===appId)?.name||null,accessMode:state.apps.find(x=>x.id===appId)?.accessMode||null,objectType:action==='openTodo'?'todo':appId?'application':action.includes('Announcement')?'announcement':'portal',previousActor:payload.previousActor||null,objectIds:payload.ids||[],accessOutcome:['enterApp','openTodo'].includes(action)?'ENTRY_REQUEST_ONLY':null}};
 }
 
 export function createMemoryRepository(initialState=createSeed()){
  let current=ensureRules(structuredClone(initialState)),version=1;
- const eventLog=event=>({
-  id:event.id,kind:String(event.kind||'OPERATION').toLowerCase(),name:event.action||'操作记录',actor:event.details?.actorName||'系统任务',
-  userId:event.actorId||null,appId:event.appId||null,appName:event.details?.applicationName||null,status:event.result||'SUCCESS',
-  description:event.summary||event.action||'操作已记录',createdAt:event.at,requestId:event.requestId,details:event.details||{}
- });
+ const eventLog=event=>{
+  const kind=String(event.kind||'OPERATION').toLowerCase(),details=event.details||{};
+  const base={id:event.id,version:1,kind,name:event.action||'操作记录',actor:details.actorName||'系统任务',userId:event.actorId||null,userName:details.actorName||null,
+   account:details.actorAccount||null,userType:details.userType||null,identitySource:details.identitySource||null,appId:event.appId||null,appName:details.applicationName||null,
+   status:event.result||'SUCCESS',description:event.summary||event.action||'操作已记录',createdAt:event.at,requestId:event.requestId,ip:'127.0.0.1',client:'Chrome / Windows',details};
+  if(kind==='login')Object.assign(base,{loginSource:'统一登录',loginMethod:details.loginMethod||'QR',failureReason:event.result==='SUCCESS'?null:event.summary});
+  if(kind==='error')Object.assign(base,{severity:'HIGH',moduleName:details.applicationName?'应用集成':'统一门户',errorCode:details.errorCode||'PORTAL_ERROR',errorMessage:event.summary||'服务异常',resolutionStatus:'OPEN',resolutionNote:'',resolvedAt:null,resolvedBy:null});
+  if(kind==='api')Object.assign(base,{interfaceName:details.interfaceName||'PUSH接口',httpMethod:'POST',statusCode:event.result==='SUCCESS'?200:400,durationMs:null,errorMessage:event.result==='SUCCESS'?null:event.summary});
+  if(kind==='access')Object.assign(base,{accessMethod:'门户入口',accessMode:details.accessMode||null});
+  if(kind==='operation')Object.assign(base,{moduleName:details.moduleName||'统一门户',pageName:details.pageName||'系统操作',actionName:event.action||'操作记录',objectType:details.objectType||'PORTAL',objectId:event.objectId||null});
+  return base;
+ };
  return {
   mode:'MEMORY_A',database:null,schema:null,
   async load(){return {state:structuredClone(current),version};},
