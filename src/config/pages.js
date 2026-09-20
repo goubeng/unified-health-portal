@@ -7,7 +7,7 @@ export const pages=[
 
  p('PG-201','/admin/home','管理首页','工作台','adminHome','any'),
  // 通知公告管理归入管理首页所在工作台分组，不再单独显示“内容管理”一级菜单。
- p('PG-220','/admin/announcements','通知公告管理','工作台','announcements','announcement'),p('PG-229','/admin/announcements/:id','公告详情','工作台','announcementDetail','announcement'),
+ p('PG-220','/admin/announcements','通知公告管理','工作台','announcements','announcement'),p('PG-235','/admin/announcements/:id','公告详情','工作台','announcementDetail','announcement'),
  p('PG-202','/admin/apps','应用列表','应用管理','apps','application'),p('PG-231','/admin/application-requests','应用访问申请','应用管理','applicationRequests','application'),p('PG-234','/admin/account-opening-requests','子系统账号开通申请','应用管理','accountOpeningRequests','application'),{...p('PG-203','/admin/app-categories','系统分类','应用管理','categories','application'),hidden:true},
 
  // 门户只维护自身访问权限，不替代子系统业务授权。
