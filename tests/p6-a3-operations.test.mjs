@@ -97,17 +97,24 @@ test('运行监控只输出SSO TODO MESSAGE服务状态，不包含冗余综合s
   }
 });
 
-test('管理首页包含用户、申请、异常与三类集成健康统计',async()=>{
+test('管理首页按服务级口径输出规模待办与三类接入健康统计',async()=>{
   const h=setup();
   const home=await h.read('adminHome');
+  assert.equal(typeof home.appCount,'number');
+  assert.equal(typeof home.enabledCount,'number');
   assert.equal(typeof home.userCount,'number');
   assert.equal(typeof home.pendingAccessCount,'number');
   assert.equal(typeof home.mappingExceptionCount,'number');
   assert.equal(typeof home.openErrorCount,'number');
+  assert(!Object.hasOwn(home,'normalAppCount'));
+  assert(!Object.hasOwn(home,'abnormalAppCount'));
+  let abnormalTotal=0;
   for(const kind of ['SSO','TODO','MESSAGE']){
     assert(home.serviceHealth?.[kind]);
     assert.equal(typeof home.serviceHealth[kind].normal,'number');
     assert.equal(typeof home.serviceHealth[kind].abnormal,'number');
     assert.equal(typeof home.serviceHealth[kind].unconfigured,'number');
+    abnormalTotal+=home.serviceHealth[kind].abnormal;
   }
+  assert.equal(home.abnormalServiceCount,abnormalTotal);
 });
