@@ -24,7 +24,7 @@
       <section class="panel"><div class="section-head"><h2>通知公告 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadAnnouncementCount??0}}</t-tag></h2><router-link to="/portal/announcements">全部公告</router-link></div><div v-for="item in homeAnnouncements" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.readStatus==='UNREAD'}" @click="showDetail(item,'announcements')">{{text(item.title)}}</button><p>{{date(item.publishedAt)}}</p></div></div><EmptyState v-if="!homeAnnouncements.length" description="暂无公告"/></section>
       <section class="panel"><div class="section-head"><h2>消息 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadCount??0}}</t-tag></h2><router-link to="/portal/messages">全部消息</router-link></div><div v-for="item in homeMessages" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.status==='UNREAD'}" @click="showDetail(item,'messages')">{{text(item.title)}}</button><p>{{text(item.appName)}} · {{date(item.createdAt)}}</p></div></div><EmptyState v-if="!homeMessages.length" description="暂无消息"/></section>
      </div>
-     <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/mine">应用中心</router-link></div><AppCards :apps="homeApps" compact @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp"/></section>
+     <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/mine">应用中心</router-link></div><AppCards :apps="homeApps" compact @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
    </template>
    <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)"/>
@@ -40,7 +40,7 @@
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
     </t-form>
     <template v-if="isAppCenter">
-     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（{{group.total}}）</span></h2></div><AppCards :apps="group.rows" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp"/><t-pagination v-if="group.total" :current="group.page" :page-size="appPageSize" :total="group.total" :page-size-options="[12,24,48]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="appPageSize=$event"/></section>
+     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（{{group.total}}）</span></h2></div><AppCards :apps="group.rows" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="appPageSize" :total="group.total" :page-size-options="[12,24,48]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="appPageSize=$event"/></section>
     </template>
     <section v-else class="panel portal-table-panel">
      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium" empty="暂无符合条件的记录">
@@ -57,14 +57,18 @@
        <template v-if="resource==='announcements'&&admin"><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="danger" @click="confirm('removeAnnouncement',row,'确认删除此草稿？删除后退出公告列表，回收档案保留。')">删除</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openForm('saveAnnouncement',row)">编辑</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="confirm('publish',row,'确认发布公告？发布后不可直接编辑。')">发布</t-button><t-button v-if="row.status==='PUBLISHED'" size="small" variant="text" theme="danger" @click="confirm('withdraw',row,'确认撤回公告？撤回后用户将不可见。')">撤回</t-button></template>
        <t-button v-if="resource==='mappings'&&row.status==='BOUND'" size="small" variant="text" theme="danger" @click="confirm('unbind',row,'确认解除此账号关联？不会修改子系统账号或授权。')">解绑</t-button>
        <t-button v-if="resource==='exceptions'&&row.status==='CONFLICT'" size="small" variant="text" theme="primary" @click="openForm('resolveMapping',row)">处理冲突</t-button>
+       <template v-if="resource==='myApplicationRequests'"><t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="danger" @click="confirm('withdrawApplicationRequest',row,'确认撤回此应用访问申请？')">撤回</t-button><t-button v-if="row.status==='REJECTED'" size="small" variant="text" theme="primary" @click="openForm('submitApplicationRequest',{appId:row.appId,appName:row.appName})">重新申请</t-button></template>
+       <template v-if="resource==='applicationRequests'&&row.status==='PENDING'"><t-button size="small" variant="text" theme="primary" @click="confirm('approveApplicationRequest',row,'确认通过此应用访问申请？通过后仅授予门户入口资格。')">通过</t-button><t-button size="small" variant="text" theme="danger" @click="openForm('rejectApplicationRequest',row)">驳回</t-button></template>
       </div></template>
      </t-table>
      <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
    </section>
   </t-loading>
-  <t-dialog v-model:visible="formVisible" placement="center" :header="formTitle" :width="formAction==='saveAnnouncement'?'min(1180px, calc(100vw - 48px))':'720px'" :confirm-btn="{content:formAction==='bind'?'核验并关联':'保存',loading:saving,disabled:saving}" :close-on-overlay-click="false" @confirm="saveForm">
+  <t-dialog v-model:visible="formVisible" placement="center" :header="formTitle" :width="formAction==='saveAnnouncement'?'min(1180px, calc(100vw - 48px))':'720px'" :confirm-btn="{content:formAction==='bind'?'核验并关联':formAction==='submitApplicationRequest'?'提交申请':formAction==='rejectApplicationRequest'?'确认驳回':'保存',loading:saving,disabled:saving}" :close-on-overlay-click="false" @confirm="saveForm">
    <p v-if="formAction==='bind'" class="inline-note">当前应用已在此账号的可见范围内。请输入已开通的子系统账号，提交后查看关联结果。</p>
+   <p v-if="formAction==='submitApplicationRequest'" class="inline-note">申请应用：{{text(form.appName)}}。当前申请仅授予统一门户入口资格；如果目标应用还需要账号关联，审核通过后继续执行BIND。</p>
+   <p v-if="formAction==='rejectApplicationRequest'" class="inline-note">请填写驳回原因。驳回后用户可在“我的申请”中查看并重新申请。</p>
    <p v-if="formAction==='saveIntegration'" class="inline-note">待办和消息采用PUSH方式接收。凭据填写服务端环境变量名，不填写密钥。SSO参数可维护，认证适配器尚未接入。</p>
    <template v-if="formAction==='savePortalUser'"><h3>身份信息</h3><DetailGrid :items="userFormIdentity"/><p class="muted">身份资料由{{source(form)}}提供；此处仅维护启用状态和系统角色，不授予子系统业务权限。</p></template>
    <template v-if="formAction==='saveSystemRole'"><p class="inline-note">系统角色仅控制卫健统一门户自身页面与操作权限。应用内部业务权限仍由各子系统自行管理。</p></template>
@@ -116,11 +120,13 @@ const adminShortcuts=computed(()=>pages.filter(item=>['PG-220','PG-202','PG-205'
 const adminOverviewCards=computed(()=>[
  {label:'应用总数',value:overview.value.appCount??0,hint:'统一应用目录',path:can(actor.value,'application')?'/admin/apps':''},
  {label:'已启用应用',value:overview.value.enabledCount??0,hint:'当前启用状态',path:can(actor.value,'application')?'/admin/apps':''},
+ {label:'待审核申请',value:overview.value.pendingAccessCount??0,hint:'应用入口资格',path:can(actor.value,'application')?'/admin/application-requests':''},
  {label:'正常接入项',value:overview.value.integrationCount??0,hint:'SSO / 待办 / 消息',path:can(actor.value,'integration')?'/admin/monitor':''},
  {label:'待处理异常',value:overview.value.exceptionCount??0,hint:'账号映射与接入异常',path:can(actor.value,'identity')?'/admin/mapping-exceptions':can(actor.value,'integration')?'/admin/monitor':''}
 ]);
 const adminShortcutHint=resource=>({announcements:'公告内容维护',apps:'应用目录配置',identityOverview:'账号映射核对',monitor:'运行状态检查'}[resource]||(String(resource||'').startsWith('logs:')?'查看门户操作日志':'进入管理模块'));
 const adminReminders=computed(()=>[
+ {label:'待审核申请',value:overview.value.pendingAccessCount??0,hint:'用户应用访问申请',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
  {label:'异常接入',value:overview.value.exceptionCount??0,hint:'需及时核查',path:can(actor.value,'integration')?'/admin/monitor':'',danger:(overview.value.exceptionCount??0)>0},
  {label:'停用应用',value:Math.max((overview.value.appCount??0)-(overview.value.enabledCount??0),0),hint:'检查目录启停',path:can(actor.value,'application')?'/admin/apps':'',danger:false},
  {label:'身份冲突',value:homeExceptions.value.filter(item=>String(item.status||'').includes('CONFLICT')).length,hint:'查看映射冲突',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:homeExceptions.value.some(item=>String(item.status||'').includes('CONFLICT'))},
@@ -202,6 +208,7 @@ const querySpec=computed(()=>{
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
  if(key==='users')return {keywordPlaceholder:'姓名 / 登录账号 / 所属单位',keywordFields:['name','account','orgName'],filters:[filterDef('userType','用户类别','请选择用户类别',fixedOptions(['CITIZEN','GOV']),'userType'),filterDef('status','启用状态','请选择启用状态',fixedOptions(['NORMAL','DISABLED']),'status')]};
  if(key==='roles')return {keywordPlaceholder:'角色名称 / 角色编码 / 描述',keywordFields:['roleName','roleCode','description'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
+ if(key==='myApplicationRequests'||key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='permissions')return {keywordPlaceholder:'权限名称 / 权限编码',keywordFields:['name','code'],filters:[]};
  if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='announcements')return admin.value
@@ -227,10 +234,10 @@ watch([search,()=>JSON.stringify(filterValues),pageSize,appPageSize],()=>{page.v
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 const appGroups=computed(()=>['mine','other'].map(key=>{const entries=filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'));const current=Math.min(appPages[key],Math.max(1,Math.ceil(entries.length/appPageSize.value)));return {key,title:key==='mine'?'我的应用':'其它应用',page:current,total:entries.length,rows:entries.slice((current-1)*appPageSize.value,current*appPageSize.value)};}));
 function setAppPage(key,value){appPages[key]=value;}
-const fieldMap={apps:['name','code','category','userType','runtimeStatus','status'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','userType','runtimeStatus','status'],myApplicationRequests:['requestNo','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
-const hasOperations=computed(()=>['apps','categories','users','roles','todos','messages','settings','mappings','exceptions'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
+const hasOperations=computed(()=>['apps','categories','users','roles','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
 const columnTitle=(key)=>{
  const resourceKey=listResource.value;
  const overrides={
@@ -265,7 +272,7 @@ const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',annou
 const createScope={apps:'application',categories:'application',announcements:'announcement',roles:'super'};
 const canCreate=computed(()=>admin.value&&!!createAction.value&&can(actor.value,createScope[resource.value]));
 const createLabel=computed(()=>({apps:'新增应用',categories:'新增分类',announcements:'新增公告',roles:'新增角色'})[resource.value]);
-const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑系统用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
+const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑系统用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
 const opt=values=>values.map(value=>({value,label:label(value)}));
 const formFields=computed(()=>{
  const f=(key,labelText,type='text',required=false,options=null,full=false)=>({key,label:labelText,type,required,options,full});
@@ -277,6 +284,8 @@ const formFields=computed(()=>{
   saveCategory:[f('name','分类名称','text',true),f('code','分类编码','text',true),f('sortOrder','排序','number')],
   saveAnnouncement:[f('title','公告标题','text',true,null,true),f('type','公告类型'),f('scope','发布范围','text',true,opt(['ALL','CITIZEN','GOV'])),f('effectiveStart','生效时间','date'),f('effectiveEnd','失效时间','date')],
   bind:[f('externalAccount','已有子系统账号','text',true,null,true)],
+  submitApplicationRequest:[f('reason','申请原因','textarea',true,null,true),f('contact','联系方式','text',false),f('remark','备注','textarea',false,null,true)],
+  rejectApplicationRequest:[f('reviewNote','驳回原因','textarea',true,null,true)],
   savePortalUser:[f('status','启用状态'),f('roleIds','系统角色','text',false,roleOpts,true)],
   saveSystemRole:[f('roleCode','角色编码','text',true),f('roleName','角色名称','text',true),f('status','启用状态'),f('scopes','门户权限范围','text',true,Object.entries(scopes).map(([value,labelText])=>({value,label:labelText})),true),f('description','角色描述','textarea',false,null,true)],
   saveConfig:[f('value','配置值（使用当前参数标注单位）','number',true,null,true)],
@@ -289,7 +298,7 @@ const userFormIdentity=computed(()=>['name','account','orgName','userType'].map(
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function openForm(action,row={}){
  Object.keys(form).forEach(key=>delete form[key]);
- const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,sourceRevision:1,status:'PENDING',eventId:crypto.randomUUID(),sourceTodoId:'',sourceMessageId:''};
+ const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,sourceRevision:1,status:'PENDING',eventId:crypto.randomUUID(),sourceTodoId:'',sourceMessageId:''};
  if(action==='savePortalUser')defaults.status='NORMAL';
  if(action==='saveSystemRole')defaults.status='ENABLED';
  Object.assign(form,defaults,JSON.parse(JSON.stringify(row)));
@@ -310,6 +319,8 @@ async function saveForm(){
   if(formAction.value==='saveAnnouncement')payload.attachments=await normalizeAnnouncementFiles(announcementUploadFiles.value);
   if(formAction.value==='savePortalUser')payload={id:form.id,version:form.version,status:form.status,roleIds:[...(form.roleIds||[])]};
   if(formAction.value==='bind')payload={appId:form.appId,externalAccount:form.externalAccount.trim()};
+  if(formAction.value==='submitApplicationRequest')payload={appId:form.appId,reason:form.reason.trim(),contact:form.contact?.trim()||'',remark:form.remark?.trim()||''};
+  if(formAction.value==='rejectApplicationRequest')payload={id:form.id,version:form.version,reviewNote:form.reviewNote.trim()};
   for(const key of ['effectiveStart','effectiveEnd'])if(payload[key])payload[key]=new Date(String(payload[key]).replace(' ','T')).toISOString();
   const result=await command(formAction.value,payload);
   if(!result.ok){formError.value=result.error.message;return;}
@@ -318,13 +329,20 @@ async function saveForm(){
    bindFeedback.value={theme:state==='BOUND'?'success':state==='CONFLICT'?'warning':'error',message:state==='BOUND'?'账号关联已保存。':state==='CONFLICT'?'该账号存在关联冲突，请联系管理员核查。':'账号关联未通过，请核对账号后重试。'};
    return;
   }
-  formVisible.value=false;MessagePlugin.success(formAction.value==='saveAnnouncement'?'公告草稿已保存，请在公告管理中发布':'保存成功');
+  formVisible.value=false;
+  const successText=formAction.value==='saveAnnouncement'?'公告草稿已保存，请在公告管理中发布':formAction.value==='submitApplicationRequest'?'申请已提交，可在“我的申请”查看进度':formAction.value==='rejectApplicationRequest'?'申请已驳回':'保存成功';
+  MessagePlugin.success(successText);
  }catch(cause){formError.value=cause.message;}finally{saving.value=false;}
 }
 async function run(action,payload,show=false){
  try{const result=await command(action,payload);if(!result.ok){MessagePlugin.error(text(result.error.message));return;}if(show)DialogPlugin.alert({placement:'center',header:'应用访问',body:text(result.data.message),confirmBtn:'知道了'});else MessagePlugin.success('操作成功');return result;}catch(cause){MessagePlugin.error(text(cause.message));}
 }
-const enterApp=app=>run('enterApp',{id:app.id},true),bindApp=app=>openForm('bind',{appId:app.id});
+const enterApp=app=>run('enterApp',{id:app.id},true);
+const bindApp=app=>openForm('bind',{appId:app.id,appName:app.name});
+const requestApp=app=>openForm('submitApplicationRequest',{appId:app.id,appName:app.name});
+const viewApplicationRequest=()=>router.push('/portal/applications');
+const viewBinding=app=>showDetail(app,'apps');
+const viewConflict=()=>router.push('/portal/applications');
 function confirm(action,row,body){const dialog=DialogPlugin.confirm({placement:'center',header:'操作确认',body,onConfirm:async()=>{if(await run(action,{...row}))dialog.hide();}});}
 async function showDetail(row,kind=listResource.value){
  if(kind==='announcements'){await router.push(`${admin.value?'/admin':'/portal'}/announcements/${encodeURIComponent(row.id)}`);return;}
