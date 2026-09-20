@@ -5,6 +5,7 @@ import {integrationFields,terminalStatuses} from '../config/integration-contract
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
+const appRequiresBinding=app=>app?.accessMode==='BIND'||(app?.accessMode==='REQUEST'&&app?.postGrantMode==='BIND');
 const identitySourceName=user=>user?.userType==='GOV'?'闽政务':user?.userType==='LOCAL'?'门户本地':'闽政通';
 const visible=(x,a)=>x.status==='PUBLISHED'&&(!x.effectiveStart||Date.parse(x.effectiveStart)<=Date.now())&&(!x.effectiveEnd||Date.parse(x.effectiveEnd)>Date.now())&&(x.scope==='ALL'||x.scope===a.userType);
 const checkUrl=url=>{try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();return u;}catch{fail('VALIDATION_ERROR','请输入有效的 HTTP/HTTPS 地址');}};
@@ -19,7 +20,7 @@ export function createPortalService(provider,getActor){
   const mapping=d.mappings.find(m=>m.appId===app.id&&own(m,a)&&m.status!=='UNBOUND')||null;
   const request=requestFor(d,a,app.id),grant=grantFor(d,a,app.id);
   const accessMode=app.accessMode||'BIND';
-  const requiresBinding=accessMode==='BIND'||(accessMode==='REQUEST'&&app.postGrantMode==='BIND'&&Boolean(grant));
+  const requiresBinding=appRequiresBinding(app)&&Boolean(accessMode!=='REQUEST'||grant);
   let accessState='UNBOUND';
   if(!applicable)accessState='NOT_APPLICABLE';
   else if(app.status!=='ENABLED')accessState='APP_DISABLED';
@@ -162,7 +163,7 @@ export function createPortalService(provider,getActor){
      const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能关联');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先完成应用访问申请');
-     const requiresBinding=app.accessMode==='BIND'||(app.accessMode==='REQUEST'&&app.postGrantMode==='BIND');if(!requiresBinding)fail('INVALID_TRANSITION','该应用无需账号关联');
+     const requiresBinding=appRequiresBinding(app);if(!requiresBinding)fail('INVALID_TRANSITION','该应用无需账号关联');
      const existing=d.mappings.find(m=>m.userId===a.id&&m.appId===app.id&&m.status==='BOUND');if(existing)return {state:'BOUND',candidates:[],mapping:existing};
      const scenario=app.mockScenario||'BOUND_EXISTING';
      const openingCompleted=(d.accountOpeningRequests||[]).some(x=>x.userId===a.id&&x.appId===app.id&&x.status==='COMPLETED');
@@ -271,13 +272,14 @@ export function createPortalService(provider,getActor){
      const app=requireRow(d.apps,p.id);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
-     const requiresBinding=app.accessMode==='BIND'||(app.accessMode==='REQUEST'&&app.postGrantMode==='BIND');
+     const requiresBinding=appRequiresBinding(app);
      if(requiresBinding&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('ACCOUNT_BINDING_REQUIRED','请先完成子系统账号关联');
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock访问校验已通过。当前未连接真实子系统，正式SSO将在联调阶段接入。'};
     }else if(action==='openTodo'){
      const todo=requireRow(d.todos,p.id);if(!own(todo,a))fail('NOT_FOUND','待办不存在');if(todo.status!=='PENDING')fail('INVALID_TRANSITION','该待办已终结');
      const app=requireRow(d.apps,todo.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
-     if(!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
+     if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','当前用户尚未获得该应用入口资格');
+     if(appRequiresBinding(app)&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock待办跳转校验已通过。真实子系统连接尚未开放。'};
     }else if(action==='bind'){
      const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能关联');if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');if(!p.externalAccount?.trim())fail('VALIDATION_ERROR','请输入已有子系统账号');
@@ -321,9 +323,9 @@ export function createPortalService(provider,getActor){
      const selected={valueMapping,targetKeyKind:'UNIFIED_USER_ID',enabled:p.enabled,protocol:p.protocol||'PUSH',mode:x.kind==='SSO'?'SSO':'PUSH',credentialRef:p.credentialRef||'',clientId:p.clientId||'',authorizeUrl:p.authorizeUrl||'',tokenUrl:p.tokenUrl||'',callbackUrl:p.callbackUrl||'',fieldMapping:mapping,remark:p.remark||''};
      Object.assign(x,selected,{status:p.enabled==='DISABLED'?'DISABLED':'UNCONFIGURED',configurationStatus:'CONFIGURED',connectionStatus:'UNCONFIGURED'});result=stamp(x);
     }else if(action==='pushTodo'){
-     requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');if(!p.sourceTodoId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!Number.isSafeInteger(p.sourceRevision)||p.sourceRevision<1)fail('VALIDATION_ERROR','事件ID、源事项ID、标题及正整数版本必填');
+     const targetApp=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');if(!p.sourceTodoId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!Number.isSafeInteger(p.sourceRevision)||p.sourceRevision<1)fail('VALIDATION_ERROR','事件ID、源事项ID、标题及正整数版本必填');
      const payload=canonical(Object.fromEntries(['appId',...integrationFields.TODO].map(key=>[key,p[key]]))),receipt=d.receipts.find(x=>x.appId===p.appId&&x.eventId===p.eventId&&(x.kind||'TODO')==='TODO');if(receipt){if(canonical(JSON.parse(receipt.payload))!==canonical(JSON.parse(payload)))fail('IDEMPOTENCY_CONFLICT','相同事件ID载荷不同');return receipt.result;}
-     if(!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
+     if(appRequiresBinding(targetApp)&&!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      let x=d.todos.find(x=>x.appId===p.appId&&x.sourceTodoId===p.sourceTodoId);if(x){if(x.userId!==p.userId)fail('INVALID_TRANSITION','不能变更接收人');if(p.sourceRevision<=x.sourceRevision)fail('STALE_EVENT','事件版本未递增');if(x.status!=='PENDING'||!['COMPLETED','WITHDRAWN','EXPIRED'].includes(p.status))fail('INVALID_TRANSITION','不允许终态回退或非法迁移');x.status=p.status;x.sourceRevision=p.sourceRevision;stamp(x);}else{if(p.status!=='PENDING')fail('INVALID_TRANSITION','首次推送须为待处理');const app=requireRow(d.apps,p.appId);x={id:id(),version:1,createdAt:now,updatedAt:now,...p,appName:app.name,summary:'来源系统推送',priority:'MEDIUM',url:app.url};d.todos.push(x);}result={entityId:x.id,disposition:'APPLIED',sourceRevision:x.sourceRevision};d.receipts.push({kind:'TODO',appId:p.appId,eventId:p.eventId,payload,result});
     }else if(action==='pushMessage'){
      const app=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');
@@ -331,7 +333,7 @@ export function createPortalService(provider,getActor){
      const payload=canonical({appId:p.appId,userId:p.userId,sourceMessageId:p.sourceMessageId,eventId:p.eventId,title:p.title,content:p.content});
      const receipt=d.receipts.find(x=>x.appId===p.appId&&x.eventId===p.eventId&&(x.kind||'MESSAGE')==='MESSAGE');
      if(receipt){if(canonical(JSON.parse(receipt.payload))!==canonical(JSON.parse(payload)))fail('IDEMPOTENCY_CONFLICT','相同事件ID载荷不同');return receipt.result;}
-     if(!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
+     if(appRequiresBinding(app)&&!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      const existing=d.messages.find(x=>x.appId===p.appId&&x.sourceMessageId===p.sourceMessageId&&x.userId===p.userId);
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
