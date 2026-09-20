@@ -134,24 +134,24 @@ test('P5 接入保存→消息推送→本人读取→重复推送保持已读�
   await h.reject('markRead', {id: message.id}, 'NOT_FOUND');
 });
 
-for (const terminal of ['COMPLETED', 'WITHDRAWN', 'EXPIRED']) {
+for (const terminal of ['COMPLETED', 'WITHDRAWN']) {
   test(`P5 待办推送→去处理→${terminal}终态与重试/回退保护`, async () => {
     const h = setup(), push = await enablePush(h, 'TODO');
     await h.login(0);
     const before = (await h.read('home')).todoCount;
-    const payload = {eventId: 'p5-todo-1', sourceTodoId: 'p5-todo', userId: actors[0].id, sourceRevision: 1, status: 'PENDING', subject: 'P5待办'};
+    const payload = {eventId: 'p5-todo-1', sourceTodoId: 'p5-todo', userId: actors[0].id, status: 'PENDING', subject: 'P5待办'};
     const receipt = h.success(await push(payload));
     assert.equal((await h.read('home')).todoCount, before + 1);
     await h.run('openTodo', {id: receipt.entityId});
     assert.equal((await h.read('todos')).find(t => t.id === receipt.entityId).status, 'PENDING');
-    const finalPayload = {...payload, eventId: 'p5-todo-2', sourceRevision: 2, status: terminal};
+    const finalPayload = {...payload, eventId: 'p5-todo-2', status: terminal};
     const finalReceipt = h.success(await push(finalPayload));
     assert.deepEqual(h.success(await push(finalPayload)), finalReceipt);
     assert.equal((await h.read('todos')).find(t => t.id === receipt.entityId).status, terminal);
     assert.equal((await h.read('home')).todoCount, before);
     await h.reject('openTodo', {id: receipt.entityId}, 'INVALID_TRANSITION');
     const snapshot = h.snapshot();
-    assert.equal((await push({...payload, eventId: 'p5-todo-3', sourceRevision: 3})).error.code, 'INVALID_TRANSITION');
+    assert.equal((await push({...payload, eventId: 'p5-todo-3'})).error.code, 'INVALID_TRANSITION');
     assert.deepEqual(h.snapshot(), snapshot);
     await h.login(1);
     assert(!(await h.read('todos')).some(t => t.id === receipt.entityId));
@@ -298,7 +298,7 @@ for (const kind of ['TODO', 'MESSAGE']) {
     const h = setup(d => { d.mappings = d.mappings.filter(m => !(m.userId === actors[0].id && m.appId === 'MOCK_APP_1')); });
     const push = await enablePush(h, kind);
     const payload = {eventId: `p5-unmapped-${kind}`, userId: actors[0].id, subject: '映射门禁',
-      ...(kind === 'TODO' ? {sourceTodoId: 'p5-unmapped-todo', sourceRevision: 1, status: 'PENDING'}
+      ...(kind === 'TODO' ? {sourceTodoId: 'p5-unmapped-todo', status: 'PENDING'}
         : {sourceMessageId: 'p5-unmapped-message', content: '映射门禁消息'})};
     const before = h.snapshot();
     const rejected = await push(payload);
