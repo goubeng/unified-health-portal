@@ -1,4 +1,4 @@
-export const scopes={super:'超级管理权限',application:'应用管理权限',integration:'集成管理权限',announcement:'公告管理权限',audit:'审计权限',identity:'身份映射权限'};
+export const scopes={super:'超级管理权限',system:'系统管理权限',application:'应用管理权限',integration:'集成管理权限',announcement:'公告管理权限',audit:'审计权限',identity:'身份映射权限'};
 const p=(id,path,title,group,resource,scope=null)=>({id,path,title,group,resource,scope});
 export const pages=[
  p('PG-001','/login','统一登录','登录','login'),p('PG-002','/auth/result','认证结果','登录','auth'),
@@ -11,7 +11,7 @@ export const pages=[
  p('PG-202','/admin/apps','应用列表','应用管理','apps','application'),p('PG-231','/admin/application-requests','应用访问申请','应用管理','applicationRequests','application'),p('PG-234','/admin/account-opening-requests','子系统账号开通申请','应用管理','accountOpeningRequests','application'),{...p('PG-203','/admin/app-categories','系统分类','应用管理','categories','application'),hidden:true},
 
  // 门户只维护自身访问权限，不替代子系统业务授权。
- p('PG-228','/admin/users','用户管理','系统管理','users','any'),p('PG-209','/admin/roles','角色管理','系统管理','roles','super'),{...p('PG-210','/admin/permissions','门户权限配置','系统管理','permissions','super'),hidden:true},p('PG-229','/admin/organizations','组织管理','系统管理','organizations','any'),p('PG-230','/admin/dictionaries','字典管理','系统管理','dictionaries','any'),
+ p('PG-228','/admin/users','用户管理','系统管理','users','system'),p('PG-209','/admin/roles','角色管理','系统管理','roles','super'),{...p('PG-210','/admin/permissions','门户权限配置','系统管理','permissions','super'),hidden:true},p('PG-229','/admin/organizations','组织管理','系统管理','organizations','system'),p('PG-230','/admin/dictionaries','字典管理','系统管理','dictionaries','system'),
  // 身份与子系统映射归入“系统管理”，不再单独显示“身份与映射”一级菜单。
  p('PG-205','/admin/identities','身份与子系统映射','系统管理','identityOverview','identity'),
  ...[['PG-206','/admin/identity-mappings'],['PG-207','/admin/account-mappings'],['PG-208','/admin/mapping-exceptions']].map(([id,path])=>({...p(id,path,'身份与子系统映射','系统管理','identityOverview','identity'),hidden:true})),
