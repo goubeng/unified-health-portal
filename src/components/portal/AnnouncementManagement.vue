@@ -26,7 +26,7 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的公告"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #title="{row}"><button class="portal-field-link" @click="preview(row)">{{text(row.title)}}</button></template>
+        <template #title="{row}"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></template>
         <template #scope="{row}">{{label(row.scope)}}</template>
         <template #status="{row}"><t-tag :theme="statusTheme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
         <template #publishAt="{row}">
@@ -36,7 +36,7 @@
         <template #effectiveEnd="{row}">{{row.effectiveEnd?date(row.effectiveEnd):'永久有效'}}</template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
+            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="$emit('edit',row)">编辑</t-button>
             <t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openSubmit(row)">提交</t-button>
             <t-button v-if="['SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="danger" @click="withdraw(row)">撤回</t-button>
             <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(row.status)" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
@@ -49,7 +49,7 @@
     <t-dialog
       v-model:visible="formVisible"
       placement="center"
-      :header="form.id?'编辑公告':'新增公告'"
+      header="新增公告"
       width="min(1180px, calc(100vw - 48px))"
       :close-on-overlay-click="false"
     >
@@ -66,7 +66,7 @@
         <div class="announcement-form-actions">
           <t-button variant="outline" @click="formVisible=false">取消</t-button>
           <t-button variant="outline" theme="primary" @click="previewForm">预览</t-button>
-          <t-button theme="primary" :loading="saving" @click="saveAnnouncement">{{form.status==='PUBLISHED'?'保存修改':form.status==='SCHEDULED'?'保存修改':'保存草稿'}}</t-button>
+          <t-button theme="primary" :loading="saving" @click="saveAnnouncement">保存草稿</t-button>
         </div>
       </template>
     </t-dialog>
@@ -102,7 +102,7 @@ import {date,label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,default:()=>[]}});
-const emit=defineEmits(['saved']);
+const emit=defineEmits(['saved','detail','edit']);
 
 const keyword=ref(''),type=ref(''),scope=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
 const formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false),uploadFiles=ref([]);
@@ -144,8 +144,6 @@ function assign(row){
   uploadFiles.value=(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),originAttachment:JSON.parse(JSON.stringify(file))}));
 }
 function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',effectiveEnd:'',content:'',attachments:[]});formError.value='';formVisible.value=true;}
-function openEdit(row){assign(row);formError.value='';formVisible.value=true;}
-function preview(row){previewRecord.value=JSON.parse(JSON.stringify(row));previewVisible.value=true;}
 function previewForm(){previewRecord.value={...JSON.parse(JSON.stringify(form)),attachments:uploadFiles.value.map(file=>file.originAttachment||{id:file.id,name:file.name,size:file.size||0})};previewVisible.value=true;}
 function openSubmit(row){submitRow.value=JSON.parse(JSON.stringify(row));publishMode.value='IMMEDIATE';scheduledPublishAt.value='';formError.value='';submitVisible.value=true;}
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
@@ -161,7 +159,7 @@ async function saveAnnouncement(){
     const payload={id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,effectiveEnd:toIso(form.effectiveEnd),content:form.content,attachments};
     const result=await command('saveAnnouncement',payload);
     if(!result.ok){formError.value=result.error.message;return;}
-    formVisible.value=false;MessagePlugin.success(form.id?'公告修改已保存':'公告草稿已保存');emit('saved');
+    formVisible.value=false;MessagePlugin.success('公告草稿已保存');emit('saved');
   }catch(cause){formError.value=cause.message;}
   finally{saving.value=false;}
 }
@@ -178,14 +176,14 @@ async function submitAnnouncement(){
   submitVisible.value=false;MessagePlugin.success(publishMode.value==='SCHEDULED'?'已提交定时发布':'公告已发布');emit('saved');
 }
 function withdraw(row){
-  const dialog=DialogPlugin.confirm({placement:'center',header:'撤回公告',body:'确认撤回该公告？撤回后用户端立即不可见。',onConfirm:async()=>{
+  const dialog=DialogPlugin.confirm({placement:'center',theme:'warning',header:'撤回公告',body:'确认撤回该公告？撤回后用户端立即不可见。',confirmBtn:{content:'确认撤回',theme:'warning'},onConfirm:async()=>{
     const result=await command('withdraw',{id:row.id,version:row.version,reason:'管理端撤回'});
     if(!result.ok){MessagePlugin.error(result.error.message);return;}
     dialog.hide();MessagePlugin.success('公告已撤回');emit('saved');
   }});
 }
 function remove(row){
-  const dialog=DialogPlugin.confirm({placement:'center',header:'删除公告',body:'确认删除该公告？删除后将退出公告列表，Mock回收档案仍保留。',onConfirm:async()=>{
+  const dialog=DialogPlugin.confirm({placement:'center',theme:'danger',header:'删除公告',body:'确认删除该公告？删除后将退出公告列表，且不可从当前列表恢复。',confirmBtn:{content:'确认删除',theme:'danger'},onConfirm:async()=>{
     const result=await command('removeAnnouncement',{id:row.id,version:row.version});
     if(!result.ok){MessagePlugin.error(result.error.message);return;}
     dialog.hide();MessagePlugin.success('公告已删除');emit('saved');
