@@ -35,21 +35,20 @@
     </form>
    </template>
 
-   <form v-else class="local-auth phone-auth" @submit.prevent="enter">
-    <p class="inline-note">管理账号仅用于门户本地维护人员。当前为 Mock 演示，不访问本地数据库。</p>
-    <label for="local-account" class="field-label">登录账号</label><t-input id="local-account" v-model="localAccount" autocomplete="username" placeholder="请输入登录账号"/>
-    <label for="local-password" class="field-label">登录密码</label><t-input id="local-password" v-model="localPassword" type="password" autocomplete="current-password" placeholder="请输入登录密码"/>
-    <label for="local-captcha" class="field-label">验证码</label>
-    <div class="local-captcha-row">
-     <t-input id="local-captcha" v-model="localCaptchaInput" autocomplete="off" :maxlength="4" placeholder="请输入验证码"/>
-     <button type="button" class="local-captcha-code" title="点击刷新验证码" aria-label="刷新验证码" @click="refreshLocalCaptcha">
-      <span>{{localCaptchaCode}}</span>
-     </button>
+   <div v-else class="local-auth demo-admin-auth">
+    <p class="inline-note">管理账号仅用于原型演示。当前直接使用默认门户超级管理员进入平台管理端，不访问本地数据库。</p>
+    <div class="demo-admin-card">
+     <div class="demo-admin-avatar">管</div>
+     <div class="demo-admin-info">
+      <strong>门户超级管理员</strong>
+      <span>admin01</span>
+      <small>PORTAL_LOCAL · SUPER_ADMIN</small>
+     </div>
+     <t-tag theme="success" variant="light">演示账号</t-tag>
     </div>
-    <p class="local-captcha-tip">看不清？点击验证码可刷新</p>
-    <t-button block type="submit" class="login-submit">登录</t-button>
-    <p class="local-auth-tip">演示环境：账号填写 <strong>admin01</strong>，密码填写任意非空内容；验证码按右侧显示内容录入。正式密码与验证码校验在后续服务接入阶段实现。</p>
-   </form>
+    <t-button block theme="primary" class="login-submit" :loading="localLoggingIn" @click="enterLocalAdmin">进入平台管理端</t-button>
+    <p class="local-auth-tip">正式环境的本地账号、密码、锁定与安全校验在后续认证/数据库阶段实现，本原型不模拟输入过程。</p>
+   </div>
 
    <p v-if="notice" class="inline-note" role="status">{{notice}}</p>
    <div v-if="identityType!=='LOCAL'" class="login-assist-row">
@@ -57,7 +56,6 @@
     <span class="assist-divider">|</span>
     <button type="button" class="assist-link" @click="openForgot">忘记密码</button>
    </div>
-   <div v-else class="login-assist-row"><span class="local-help-text">忘记密码请联系门户超级管理员</span></div>
   </section>
  </div><footer>卫健XC统一门户 · 由中电福富提供技术支持</footer></div>
 </template>
@@ -69,7 +67,7 @@ import {actor,login} from '../services/runtime.js';
 
 const router=useRouter();
 const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
-const localAccount=ref('admin01'),localPassword=ref(''),localCaptchaInput=ref(''),localCaptchaCode=ref('');
+const localLoggingIn=ref(false);
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
 const platformLink=computed(()=>identityType.value==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn');
 const qrPrompt=computed(()=>`请使用${platform.value}扫一扫登录`);
@@ -79,15 +77,9 @@ const displayCountdown=computed(()=>`${String(Math.floor(qrSeconds.value/60)).pa
 let timer,qrExpireTimer,qrSuccessTimer,qrCountdownTimer;
 
 function clearTimers(){clearInterval(timer);clearInterval(qrCountdownTimer);clearTimeout(qrExpireTimer);clearTimeout(qrSuccessTimer);}
-function createCaptcha(){
- const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',values=new Uint32Array(4);
- crypto.getRandomValues(values);
- return Array.from(values,value=>chars[value%chars.length]).join('');
-}
-function refreshLocalCaptcha(){localCaptchaCode.value=createCaptcha();localCaptchaInput.value='';}
 function reset(){
- clearTimers();phone.value='';code.value='';slide.value=0;verified.value=false;codeRequested.value=false;countdown.value=0;notice.value='';
- if(identityType.value==='LOCAL')refreshLocalCaptcha();else startQr();
+ clearTimers();phone.value='';code.value='';slide.value=0;verified.value=false;codeRequested.value=false;countdown.value=0;notice.value='';localLoggingIn.value=false;
+ if(identityType.value!=='LOCAL')startQr();
 }
 function startQr(){
  qrNonce.value=crypto.randomUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);
@@ -105,17 +97,16 @@ function refreshQr(){startQr();notice.value='';}
 function handleQrClick(){if(qrStage.value==='expired'){refreshQr();return;}if(qrStage.value!=='ready')return;qrStage.value='success';notice.value='';clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);qrSuccessTimer=setTimeout(()=>enter(),420);}
 function openRegister(){window.open(platformLink.value,'_blank','noopener');}
 function openForgot(){window.open(platformLink.value,'_blank','noopener');}
+async function enterLocalAdmin(){
+ if(localLoggingIn.value)return;
+ localLoggingIn.value=true;notice.value='';
+ try{await login('MOCK_LOCAL_ADMIN');}
+ catch(error){notice.value=error.message;localLoggingIn.value=false;return;}
+ if(!actor.value){notice.value='当前演示管理账号不可用。';localLoggingIn.value=false;return;}
+ router.replace('/admin/home');
+}
 async function enter(){
- if(identityType.value==='LOCAL'){
-  if(!localAccount.value.trim()){notice.value='请输入登录账号。';return;}
-  if(!localPassword.value){notice.value='请输入登录密码。';return;}
-  if(!localCaptchaInput.value.trim()){notice.value='请输入验证码。';return;}
-  if(localCaptchaInput.value.trim().toUpperCase()!==localCaptchaCode.value){notice.value='验证码错误，请重新输入。';refreshLocalCaptcha();return;}
-  if(localAccount.value.trim()!=='admin01'){notice.value='演示环境仅提供 admin01 管理账号。';refreshLocalCaptcha();return;}
-  try{await login('MOCK_LOCAL_ADMIN');}catch(error){notice.value=error.message;return;}
-  if(!actor.value){notice.value='当前账号不可用，请联系门户超级管理员。';return;}
-  router.replace('/admin/home');return;
- }
+ if(identityType.value==='LOCAL'){await enterLocalAdmin();return;}
  if(method.value==='phone'&&!verified.value){notice.value='请先完成安全验证。';return;}
  try{await login(identityType.value==='GOV'?'MOCK_USER_2':'MOCK_USER_1');}catch(error){notice.value=error.message;return;}
  if(!actor.value){notice.value='当前账号不可用，请联系管理员。';return;}
