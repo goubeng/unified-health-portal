@@ -33,8 +33,9 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
    status:n===43?'DISABLED':'ENABLED',runtimeStatus:n===43?'DISABLED':n===38?'ABNORMAL':n===40?'UNCONFIGURED':'NORMAL',
    url:'https://p4.invalid/app/'+n,sortOrder:n,connectionStatus:'UNCONFIGURED',integrationNote:'服务地址与接入参数待配置'});
  });
+ const businessActors=actors.filter(actor=>actor.userType!=='LOCAL');
  const available = actor => apps.filter(app => app.status==='ENABLED' && app.runtimeStatus==='NORMAL' && (app.userType==='BOTH'||app.userType===actor.userType));
- const mappings = actors.flatMap(actor => {
+ const mappings = businessActors.flatMap(actor => {
   if(actor.id==='MOCK_USER_1'){
    const bound=available(actor).filter(app=>app.sourceNo>=14&&!['REQUEST'].includes(app.accessMode)).slice(0,8).map(app=>row('MOCK_MAP_'+actor.id+'_'+app.sourceNo,{
     userId:actor.id,userName:actor.name,appId:app.id,appName:app.name,externalAccount:actor.account+'_'+String(app.sourceNo).padStart(2,'0'),
@@ -59,14 +60,14 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   }));
  });
  const actions=['核对服务申请资料','补充业务登记信息','确认服务安排','查看材料核验意见','核对信息更新内容','确认事项办理进度','完善服务联系说明','查看后续办理要求','资料核验已完成','业务申请已撤回','办理期限已结束'];
- const todos=actors.flatMap((actor,ai)=>actions.map((title,i)=>{
+ const todos=businessActors.flatMap((actor,ai)=>actions.map((title,i)=>{
   const app=available(actor)[i%8],status=i<8?'PENDING':['COMPLETED','WITHDRAWN','EXPIRED'][i-8];
   return row('MOCK_TODO_'+ai+'_'+i,{userId:actor.id,appId:app.id,appName:app.name,sourceTodoId:'P4_TODO_'+ai+'_'+i,title,
    summary:app.name+'：'+title+'。请在来源系统查看业务详情。',businessType:'服务事项',status,priority:['HIGH','MEDIUM','LOW'][i%3],
    createdAt:at(-i-2),dueAt:at(i<3?-i-1:i*4),terminalAt:i<8?null:at(-1),sourceRevision:i<8?1:2,url:app.url});
  }));
  const messageTitles=['服务申请已受理','资料核验进度通知','办理期限提醒','服务安排更新','账号关联结果通知','业务信息变更提醒','材料补正通知','办理意见已反馈','门户维护安排','信息安全提醒'];
- const messages=actors.flatMap((actor,ai)=>messageTitles.map((title,i)=>{
+ const messages=businessActors.flatMap((actor,ai)=>messageTitles.map((title,i)=>{
   const app=available(actor)[i%8],portal=i>=8;
   return row('MOCK_MSG_'+ai+'_'+i,{userId:actor.id,appId:portal?null:app.id,appName:portal?'统一门户':app.name,
    sourceMessageId:'P4_MSG_'+ai+'_'+i,title,content:title+'。请查看相关事项详情并按办理要求完成后续操作。',
@@ -107,7 +108,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   status:kind==='error'?'FAILURE':kind==='auth'&&i===3?'DENIED':'SUCCESS',
   description:kind==='error'?'接入参数未配置，需核对接口资料':logNames[k]+'记录',createdAt:at(-k*4-i),requestId:'P4_REQUEST_'+k+'_'+i
  })));
- const visits=actors.flatMap(actor=>available(actor).slice(0,4).map((app,i)=>({userId:actor.id,appId:app.id,at:at(-i-1)})));
+ const visits=businessActors.flatMap(actor=>available(actor).slice(0,4).map((app,i)=>({userId:actor.id,appId:app.id,at:at(-i-1)})));
  const applicationRequests=[
   row('MOCK_REQ_GOV_REJECTED',{requestNo:'REQ-20260918-00001',userId:'MOCK_USER_2',userName:'陈宁',appId:'MOCK_APP_13',appName:apps.find(x=>x.id==='MOCK_APP_13')?.name||'应用',reason:'申请业务使用权限',status:'REJECTED',submittedAt:at(-20),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-18),reviewNote:'演示：资料不完整，可重新申请'})
  ];
