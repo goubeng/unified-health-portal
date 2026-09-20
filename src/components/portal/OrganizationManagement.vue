@@ -32,7 +32,6 @@
         <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button size="small" variant="text" theme="primary" @click="openDetail(row)">详情</t-button>
             <t-button v-if="row.source==='PORTAL_LOCAL'" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
             <t-button v-if="canSuper&&row.source==='PORTAL_LOCAL'" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
           </div>
@@ -64,7 +63,7 @@
         <div class="form-field"><label>组织类型</label><t-select v-model="form.type" :options="typeOptions"/></div>
         <div class="form-field"><label>上级组织</label><t-select v-model="form.parentId" clearable filterable :options="parentOptions"/></div>
         <div class="form-field"><label>数据来源</label><t-input value="门户本地" disabled/></div>
-        <div class="form-field"><label>启用状态</label><t-switch :value="form.status==='ENABLED'" :label="['启用','停用']" @change="form.status=$event?'ENABLED':'DISABLED'"/></div>
+        <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="form.status==='ENABLED'" @change="form.status=$event?'ENABLED':'DISABLED'"/><span>{{form.status==='ENABLED'?'启用':'停用'}}</span></div></div>
         <div class="form-field full"><label>备注</label><t-textarea v-model="form.remark" :autosize="{minRows:3,maxRows:5}"/></div>
       </div>
     </t-dialog>
@@ -117,7 +116,7 @@ const columns=[
   {colKey:'path',title:'组织路径',minWidth:260,ellipsis:true},
   {colKey:'source',title:'数据来源',width:110},
   {colKey:'status',title:'启用状态',width:100},
-  {colKey:'operation',title:'操作',width:170,fixed:'right'}
+  {colKey:'operation',title:'操作',width:130,fixed:'right'}
 ];
 const detailItems=computed(()=>{
   const row=detail.value||{};
