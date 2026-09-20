@@ -585,3 +585,6 @@
 
 /* My Applications: keep TDesign tabs visually separated from the list. */
 .my-applications-table{margin-top:16px}
+
+/* User management uses one consistent TDesign switch with status text inside. */
+.user-status-switch.t-switch{width:64px!important;min-width:64px!important;max-width:64px!important;flex:none!important}.user-status-switch .t-switch__content{font-size:12px!important;white-space:nowrap!important}
