@@ -4,7 +4,7 @@ import {pathToFileURL} from 'node:url';
 import {createPortalService} from '../src/services/portal.js';
 import {archiveExpired} from '../src/config/rules.js';
 import {can} from '../src/config/pages.js';
-import {createRepository,makeEvent} from './repository.mjs';
+import {createRepository,createMemoryRepository,makeEvent} from './repository.mjs';
 
 const resultError=(code,message)=>({ok:false,error:{code,message,retryable:false}});
 export {appContract as contract} from '../src/config/integration-contract.js';
@@ -13,7 +13,8 @@ const statusFor=r=>r.ok?200:({UNAUTHENTICATED:401,FORBIDDEN:403,NOT_FOUND:404,ID
 const hash=v=>createHash('sha256').update(v).digest();
 function stateProvider(state){let current=structuredClone(state);return {kind:'mock',read:()=>structuredClone(current),transact(fn){const next=structuredClone(current),out=fn(next);current=next;return structuredClone(out);}};}
 async function body(req){let data='';for await(const chunk of req){data+=chunk;if(data.length>12*1024*1024)throw Error('请求内容过大');}return data?JSON.parse(data):{};}
-export function createPortalApi({repository=createRepository(),env=process.env}={}){
+export function createPortalApi({repository=null,env=process.env}={}){
+ repository??=String(env.PORTAL_REPOSITORY||'memory').toLowerCase()==='db'?createRepository():createMemoryRepository();
  const sessions=new Map();let queue=Promise.resolve();
  const serial=fn=>{const next=queue.then(fn,fn);queue=next.catch(()=>{});return next;};
  const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({...data,requestId:data.requestId||randomUUID()}));};
@@ -27,7 +28,7 @@ export function createPortalApi({repository=createRepository(),env=process.env}=
    const payload=req.method==='POST'?await body(req):{};
    await serial(async()=>{
     const {state,version}=await repository.load();const actor=resolveActor(req,state);
-    if(path==='/api/portal/health')return send(res,200,{ok:true,data:{database:'pb3gir75kkooyea',mode:'LOCAL_P4',version}});
+    if(path==='/api/portal/health')return send(res,200,{ok:true,data:{repository:repository.mode||'UNKNOWN',database:repository.database||null,schema:repository.schema||null,phase:repository.mode==='DATABASE'?'0.3.0-B/C':'0.3.0-A',version}});
     if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:{actor,users:state.users.filter(x=>x.status!=='DISABLED')}});
     if(path==='/api/portal/session'&&req.method==='POST'){
      const next=state.users.find(x=>x.id===payload.userId&&x.status!=='DISABLED');if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
@@ -86,6 +87,9 @@ export function createPortalApi({repository=createRepository(),env=process.env}=
  return {handle,cleanup};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
- const api=createPortalApi();createServer(api.handle).listen(3801,'127.0.0.1',()=>console.log('Portal local API ready: http://127.0.0.1:3801'));
+ const dbRequested=process.argv.includes('--db');
+ const env={...process.env,PORTAL_REPOSITORY:dbRequested?'db':process.env.PORTAL_REPOSITORY||'memory'};
+ const api=createPortalApi({env});
+ createServer(api.handle).listen(3801,'127.0.0.1',()=>console.log(`Portal local API ready: http://127.0.0.1:3801 · repository=${String(env.PORTAL_REPOSITORY).toUpperCase()}`));
  setInterval(()=>api.cleanup().catch(e=>console.error('[retention]',e.message)),60000).unref();
 }
