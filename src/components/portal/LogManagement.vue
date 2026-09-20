@@ -23,7 +23,7 @@
         <template #empty><EmptyState description="暂无符合条件的日志"/></template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #resolutionStatus="{row}"><t-tag :theme="row.resolutionStatus==='RESOLVED'?'success':'warning'" variant="light">{{label(row.resolutionStatus||'OPEN')}}</t-tag></template>
-        <template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'—'}}</button></template>
+        <template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'-'}}</button></template>
         <template #operation="{row}">
           <div class="row-actions">
             <t-button v-if="kind==='error'&&row.resolutionStatus!=='RESOLVED'" size="small" variant="text" theme="primary" @click="openResolve(row)">处理</t-button>
@@ -40,9 +40,9 @@
     <t-dialog v-model:visible="resolveVisible" placement="center" header="处理异常" width="680px" :confirm-btn="{content:'确认处理',loading:saving}" :close-on-overlay-click="false" @confirm="resolveError">
       <div v-if="formError" class="error-note">{{formError}}</div>
       <DetailGrid v-if="resolveRow" :items="[
-        {key:'errorCode',label:'错误编码',value:resolveRow.errorCode||'—'},
-        {key:'errorMessage',label:'异常信息',value:resolveRow.errorMessage||resolveRow.description||'—'},
-        {key:'requestId',label:'请求ID',value:resolveRow.requestId||'—'}
+        {key:'errorCode',label:'错误编码',value:resolveRow.errorCode||'-'},
+        {key:'errorMessage',label:'异常信息',value:resolveRow.errorMessage||resolveRow.description||'-'},
+        {key:'requestId',label:'请求ID',value:resolveRow.requestId||'-'}
       ]"/>
       <div class="form-field log-resolution-note"><label>处理说明 <span class="portal-required">*</span></label><t-textarea v-model="resolutionNote" :autosize="{minRows:4,maxRows:7}" placeholder="请填写排查与处理结果"/></div>
     </t-dialog>
@@ -122,7 +122,7 @@ const detailKeys=computed(()=>({
   api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['status','结果'],['requestId','请求ID']],
   error:[['createdAt','发生时间'],['severity','级别'],['moduleName','模块'],['errorCode','错误编码'],['errorMessage','异常信息'],['resolutionStatus','处理状态'],['resolutionNote','处理说明'],['resolvedAt','处理时间'],['requestId','请求ID']]
 }[props.kind]||[]));
-const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>({key,label:labelText,value:key.endsWith('At')||key==='createdAt'?date(detail.value?.[key]):['status','userType','identitySource','loginMethod','accessMode','severity','resolutionStatus'].includes(key)?label(detail.value?.[key]):text(detail.value?.[key])||'—'})));
+const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>({key,label:labelText,value:key.endsWith('At')||key==='createdAt'?date(detail.value?.[key]):['status','userType','identitySource','loginMethod','accessMode','severity','resolutionStatus'].includes(key)?label(detail.value?.[key]):text(detail.value?.[key])||'-'})));
 
 function reset(){keyword.value='';appName.value='';status.value='';resolutionStatus.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
