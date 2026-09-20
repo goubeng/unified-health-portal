@@ -121,12 +121,18 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   status:app.status==='DISABLED'?'DISABLED':['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'][(i+k)%4],
   connectionStatus:'UNCONFIGURED',remark:'接入参数待业务系统确认',lastCheckedAt:at(-k-1)
  })));
- const logNames=['身份登录','访问权限核验','应用访问','公告维护','数据接收','接入异常'];
- const logs=['login','auth','access','operation','api','error'].flatMap((kind,k)=>actors.map((actor,i)=>row('MOCK_LOG_'+kind+'_'+i,{
-  kind,name:logNames[k],actor:actor.name,userId:actor.id,appId:apps[i].id,appName:apps[i].name,
-  status:kind==='error'?'FAILURE':kind==='auth'&&i===3?'DENIED':'SUCCESS',
-  description:kind==='error'?'接入参数未配置，需核对接口资料':logNames[k]+'记录',createdAt:at(-k*4-i),requestId:'P4_REQUEST_'+k+'_'+i
- })));
+ const identityCode=actor=>actor.userType==='LOCAL'?'PORTAL_LOCAL':actor.userType==='GOV'?'MINZHENGWU':'MINZHENGTONG';
+ const logs=['login','access','operation','api','error'].flatMap((kind,k)=>actors.map((actor,i)=>{
+  const app=apps[i],failed=kind==='login'&&i===3,errorOpen=kind==='error'&&i%2===0;
+  const common={kind,actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,identitySource:identityCode(actor),
+   appId:app.id,appName:app.name,status:kind==='error'?'FAILURE':failed?'FAILURE':'SUCCESS',createdAt:at(-k*4-i),requestId:'P4_REQUEST_'+k+'_'+i,ip:'127.0.0.1',client:'Chrome / Windows'};
+  if(kind==='login')return row('MOCK_LOG_login_'+i,{...common,name:'身份登录',loginSource:'统一登录',loginMethod:actor.userType==='LOCAL'?'PASSWORD':'QR',failureReason:failed?'上层认证超时':null,description:failed?'登录认证失败':'登录成功'});
+  if(kind==='access')return row('MOCK_LOG_access_'+i,{...common,name:'应用访问',accessMethod:'门户入口',accessMode:app.accessMode,description:'访问应用 '+app.name});
+  if(kind==='operation')return row('MOCK_LOG_operation_'+i,{...common,name:'门户操作',moduleName:i%2?'系统管理':'应用管理',pageName:i%2?'用户管理':'应用列表',actionName:i%2?'维护用户':'维护应用',objectType:i%2?'USER':'APPLICATION',objectId:i%2?actor.id:app.id,description:'门户管理操作记录'});
+  if(kind==='api')return row('MOCK_LOG_api_'+i,{...common,name:'接口调用',interfaceName:i%2?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:i===4?500:200,durationMs:80+i*35,errorMessage:i===4?'模拟接口响应异常':null,description:'接口调用记录'});
+  return row('MOCK_LOG_error_'+i,{...common,name:'接入异常',severity:i%2?'MEDIUM':'HIGH',moduleName:i%2?'运行监控':'身份映射',errorCode:i%2?'UPSTREAM_TIMEOUT':'ACCOUNT_MAPPING_CONFLICT',
+   errorMessage:i%2?'上游服务响应超时':'子系统账号关联冲突',resolutionStatus:errorOpen?'OPEN':'RESOLVED',resolutionNote:errorOpen?'':'已完成Mock核查',resolvedAt:errorOpen?null:at(-1),resolvedBy:errorOpen?null:actors[2].id,description:i%2?'上游服务响应超时':'子系统账号关联冲突'});
+ }));
  const visits=businessActors.flatMap(actor=>available(actor).slice(0,4).map((app,i)=>({userId:actor.id,appId:app.id,at:at(-i-1)})));
  const applicationRequests=[
   row('MOCK_REQ_GOV_REJECTED',{requestNo:'REQ-20260918-00001',userId:'MOCK_USER_2',userName:'陈宁',appId:'MOCK_APP_13',appName:apps.find(x=>x.id==='MOCK_APP_13')?.name||'应用',reason:'申请业务使用权限',status:'REJECTED',submittedAt:at(-20),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-18),reviewNote:'演示：资料不完整，可重新申请'})
