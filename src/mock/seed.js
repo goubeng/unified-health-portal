@@ -17,6 +17,27 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const at = hours => new Date(epoch + hours * 3600000).toISOString();
  const row = (id, values) => ({id,version:1,createdAt:at(-48),updatedAt:at(-1),...values});
  const categories = ['公众服务','政务协同','行业监管','培训考试','卫生监督','疾病防控'].map((name,i) => row('MOCK_CAT_'+(i+1), {name,code:['PUBLIC','GOV','REGULATION','TRAINING','SUPERVISION','PREVENTION'][i],status:'ENABLED',sortOrder:i}));
+ const organizations = [
+  row('MOCK_ORG_PORTAL',{code:'ORG_PORTAL',name:'门户运行保障中心',type:'PORTAL_UNIT',parentId:null,parentName:null,path:'门户运行保障中心',source:'PORTAL_LOCAL',status:'ENABLED',sortOrder:1,remark:'门户本地维护组织'}),
+  row('MOCK_ORG_HEALTH',{code:'ORG_HEALTH',name:'卫生健康业务处',type:'GOV_DEPARTMENT',parentId:null,parentName:null,path:'卫生健康业务处',source:'MINZHENGWU',status:'ENABLED',sortOrder:2,remark:'政务组织索引'}),
+  row('MOCK_ORG_PUBLISH',{code:'ORG_PUBLISH',name:'信息发布科',type:'GOV_DEPARTMENT',parentId:'MOCK_ORG_PORTAL',parentName:'门户运行保障中心',path:'门户运行保障中心 / 信息发布科',source:'PORTAL_LOCAL',status:'ENABLED',sortOrder:3,remark:'公告与信息发布维护'})
+ ];
+ const dictTypes=[
+  row('MOCK_DICT_TYPE_APP_CATEGORY',{code:'application_category',name:'应用系统分类',description:'应用目录使用的业务分类',status:'ENABLED',sortOrder:1,systemLocked:false}),
+  row('MOCK_DICT_TYPE_ANN_TYPE',{code:'announcement_type',name:'公告类型',description:'通知公告业务类型',status:'ENABLED',sortOrder:2,systemLocked:false}),
+  row('MOCK_DICT_TYPE_ORG_TYPE',{code:'organization_type',name:'组织类型',description:'门户组织索引类型',status:'ENABLED',sortOrder:3,systemLocked:false}),
+  row('MOCK_DICT_TYPE_ENABLE',{code:'enable_status',name:'启用状态',description:'系统受控状态字典',status:'ENABLED',sortOrder:90,systemLocked:true}),
+  row('MOCK_DICT_TYPE_RUNTIME',{code:'runtime_status',name:'运行状态',description:'系统受控运行状态',status:'ENABLED',sortOrder:91,systemLocked:true}),
+  row('MOCK_DICT_TYPE_PROTOCOL',{code:'integration_protocol',name:'接入协议',description:'代码已支持的接入协议',status:'ENABLED',sortOrder:92,systemLocked:true})
+ ];
+ const dictItems=[
+  ...categories.map((item,index)=>row('MOCK_DICT_APP_'+item.code,{typeCode:'application_category',label:item.name,value:item.code,sortOrder:index+1,status:item.status,remark:'应用分类',systemLocked:false})),
+  ...['通知','提示','工作安排'].map((label,index)=>row('MOCK_DICT_ANN_'+index,{typeCode:'announcement_type',label,value:['NOTICE','TIP','WORK'][index],sortOrder:index+1,status:'ENABLED',remark:'',systemLocked:false})),
+  ...[['PORTAL_UNIT','门户单位'],['GOV_DEPARTMENT','政务部门'],['OTHER','其他组织']].map(([value,label],index)=>row('MOCK_DICT_ORG_'+index,{typeCode:'organization_type',label,value,sortOrder:index+1,status:'ENABLED',remark:'',systemLocked:false})),
+  ...[['ENABLED','启用'],['DISABLED','停用']].map(([value,label],index)=>row('MOCK_DICT_ENABLE_'+index,{typeCode:'enable_status',label,value,sortOrder:index+1,status:'ENABLED',remark:'系统受控',systemLocked:true})),
+  ...[['NORMAL','正常'],['ABNORMAL','异常'],['UNCONFIGURED','未配置'],['DISABLED','停用']].map(([value,label],index)=>row('MOCK_DICT_RUNTIME_'+index,{typeCode:'runtime_status',label,value,sortOrder:index+1,status:'ENABLED',remark:'系统受控',systemLocked:true})),
+  ...[['OIDC','OIDC'],['SAML2','SAML2'],['CUSTOM','CUSTOM'],['PUSH','PUSH']].map(([value,label],index)=>row('MOCK_DICT_PROTOCOL_'+index,{typeCode:'integration_protocol',label,value,sortOrder:index+1,status:'ENABLED',remark:'仅展示代码已支持协议',systemLocked:true}))
+ ];
  const roles = [
   row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',scopes:['super','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
   row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',scopes:['application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
@@ -115,7 +136,8 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const applicationGrants=[];
  const accountOpeningRequests=[];
  const mappingVerificationEvents=[];
- return {schemaVersion:4,users:structuredClone(actors),roles,apps,platforms:structuredClone(platforms),categories,mappings,
+ const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.userType==='LOCAL'?false:null}));
+ return {schemaVersion:5,users,roles,apps,platforms:structuredClone(platforms),categories,organizations,dictTypes,dictItems,mappings,
   applicationRequests,applicationGrants,accountOpeningRequests,mappingVerificationEvents,
   todos,messages,announcements,announcementReads:[],settings,integrations,logs,visits,receipts:[]};
 }
