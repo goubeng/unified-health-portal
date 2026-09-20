@@ -1,5 +1,20 @@
 # 项目修订履历
 
+## 0.3.0-A - 2026-09-20 · A3管理端与公共模块改造
+
+- 新增专用用户管理、角色管理、组织管理、字典管理页面，减少PortalPage通用表格承担的业务职责。
+- 新增system门户权限范围；PORTAL_ADMIN默认拥有system，super继续仅SUPER_ADMIN拥有。
+- 用户管理区分外部权威身份与门户LOCAL；LOCAL高风险账号操作继续仅SUPER_ADMIN。
+- 角色管理按菜单→页面→操作展示；默认ALL_PORTAL；内置角色名称/编码受保护，super不能授予普通角色。
+- 系统分类菜单隐藏并由字典管理承接；受控状态/协议禁止新增代码未支持值。
+- 公告升级DRAFT/SCHEDULED/PUBLISHED/WITHDRAWN/EXPIRED，支持提交立即/定时发布、已发布编辑、撤回、失效/撤回删除、预览和正文插图。
+- Word导入入口已预留，HTML/TXT可导入；.doc/.docx正文解析依赖尚未接入，不宣称完成。
+- 登录/访问/操作/接口/异常日志改为分类字段；LOCAL日志使用PORTAL_LOCAL/PASSWORD；异常增加OPEN→RESOLVED处理。
+- 运行监控取消额外综合状态，按SSO/TODO/MESSAGE展示服务级状态与错误信息。
+- 管理首页增加用户、申请、映射异常、未处理异常、定时公告及三类集成健康统计。
+- Mock schema升级v5，并新增A3专项回归测试。
+- 本轮仍处于MEMORY_A前端阶段：数据库请求、Migration执行、NocoDB写入均为0；npm test/build待用户本地运行验收。
+
 ## 0.3.0-A - 2026-09-20 · 前端Mock改造启动
 
 - 正式采用分阶段改造：A前端Mock原型 → B数据库Migration/Schema/Seed → C真实Provider与外部联调。
