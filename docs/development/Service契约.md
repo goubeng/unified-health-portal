@@ -1,46 +1,72 @@
 # Service契约（V1.0目标）
 
-> 基线：V20260920-02。当前P4服务只实现其中一部分。
+> 基线：V20260920-03。
 
-## 1. 身份来源
+## 1. 身份与登录
 
-门户认证适配层必须明确两个来源：
+外部：
 
-- 闽政通 → CITIZEN / 公众用户
-- 闽政务 → GOV / 政务用户
+- consumeMinZhengTongAuth → CITIZEN
+- consumeMinZhengWuAuth → GOV
 
-服务端不得通过角色或后台编辑修改该来源映射。
+本地：
 
-建议能力：
+- authenticateLocalUser
+- changeLocalPassword
+- resetLocalPassword
+- unlockLocalCredential
 
-- resolveIdentitySource
-- consumeIdentityCallback
+登录成功统一进入：
 - upsertUnifiedIdentity
 - createPortalSession
+- recordAuditEvent
 
-## 2. 用户与角色
+authenticateLocalUser必须校验：
+- identitySource=PORTAL_LOCAL
+- userType=LOCAL
+- 用户启用
+- 未锁定
+- 密码Hash
+- 有效管理角色
+
+## 2. 用户管理
 
 - readUsers
+- readUserDetail
 - updatePortalUser
-- readRoles
-- saveRole
-- saveRolePermissions
+- createLocalUser
+- updateLocalUser
+- setUserStatus
+- resetLocalUserPassword
 - assignUserRoles
 
-updatePortalUser只允许修改门户状态、门户组织索引和门户角色，不得修改闽政通/闽政务身份来源、公众/政务用户类别及权威身份资料。
+updatePortalUser不得修改外部权威身份属性。
 
-角色服务只处理门户权限，不接受子系统业务角色。
+## 3. 角色与权限
 
-## 3. 组织
+- readRoles
+- saveRole
+- setRoleStatus
+- saveRolePermissions
+- readRoleUsers
+
+默认角色：
+- SUPER_ADMIN
+- PORTAL_ADMIN
+
+首期主要权限类型：
+- MENU
+- PAGE
+- ACTION
+
+## 4. 组织
 
 - readOrganizationTree
 - saveOrganization
 - setOrganizationStatus
 - syncOrganizationIndex
 
-政务组织优先从闽政务建立索引；公众用户组织允许为空。
-
-## 4. 应用访问申请
+## 5. 应用访问
 
 - submitApplicationRequest
 - withdrawApplicationRequest
@@ -49,28 +75,9 @@ updatePortalUser只允许修改门户状态、门户组织索引和门户角色�
 - approveApplicationRequest
 - rejectApplicationRequest
 - readApplicationGrant
-
-审核结果只产生门户入口资格。
-
-## 5. 应用入口
-
-- readApps
-- saveApp
-- setAppStatus
-- saveConnectionConfig
 - enterApp
 
-enterApp依次检查：
-
-1. 门户Session和用户状态；
-2. 应用启用状态；
-3. 用户类别与应用适用范围；
-4. DIRECT/BIND/REQUEST访问模式；
-5. 必要的入口授权；
-6. 必要的子系统账号映射；
-7. SSO/跳转条件。
-
-进入子系统后，子系统继续自行校验业务权限。
+LOCAL首期默认不进入普通应用访问流程，但服务端不应通过硬编码角色实现此规则，应依据产品入口/适用用户配置。
 
 ## 6. 公告
 
@@ -81,7 +88,6 @@ enterApp依次检查：
 - withdrawAnnouncement
 - deleteAnnouncement
 - previewAnnouncement
-- markAnnouncementRead
 - publishScheduledAnnouncements
 - expireAnnouncements
 
@@ -93,36 +99,34 @@ enterApp依次检查：
 - saveDictionaryItem
 - setDictionaryStatus
 
-应用系统分类最终从字典读取。
+## 8. 审计
 
-system_locked对象禁止非法增删状态和协议。
+recordAuditEvent。
 
-## 8. 日志
+本地登录必须写：
+- userType=LOCAL
+- identitySource=PORTAL_LOCAL
+- loginMethod=PASSWORD
 
-统一写入recordAuditEvent。
-
-登录审计必须写入：
-
-- userType
-- identitySource
-- loginSource
-- loginMethod
-
-操作审计必须写入：
-
-- module
-- page
-- action
-- objectType/objectId
-- result
-- summary
-
-读取日志按kind生成专用DTO。
+不得写密码、验证码、Token、password_hash。
 
 ## 9. 运行监控
 
-readMonitorProfiles返回应用及SSO/TODO/MESSAGE三个服务状态。
+readMonitorProfiles只返回真实服务状态：
+- SSO
+- TODO
+- MESSAGE
 
-详情返回每服务status、lastSuccessAt、lastFailureAt、failureCount、responseTimeMs、lastError。
+详情不再返回用于展示的冗余综合status。
 
-不返回无必要的综合status供详情重复展示。
+## 10. 建议错误码
+
+- LOCAL_ACCOUNT_DISABLED
+- LOCAL_ACCOUNT_LOCKED
+- INVALID_CREDENTIALS
+- PASSWORD_CHANGE_REQUIRED
+- ADMIN_ROLE_REQUIRED
+- LAST_SUPER_ADMIN_PROTECTED
+- DUPLICATE_APPLICATION_REQUEST
+- APPLICATION_GRANT_REQUIRED
+- DICTIONARY_LOCKED
