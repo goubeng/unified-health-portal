@@ -41,10 +41,24 @@
       />
     </section>
 
-    <t-dialog v-model:visible="detailVisible" placement="center" header="待办详情" width="760px">
-      <section v-if="active" class="todo-detail">
-        <DetailGrid :items="detailItems"/>
-      </section>
+    <t-dialog v-model:visible="detailVisible" placement="center" header="待办详情" width="900px">
+      <article v-if="active" class="todo-detail-article">
+        <header class="todo-detail-header">
+          <h2>{{text(active.title)||'-'}}</h2>
+          <div class="todo-detail-meta-inline">
+            <span><Icon name="app"/><em>来源应用</em><strong>{{text(active.appName)||'-'}}</strong></span>
+            <span><Icon name="task"/><em>业务类型</em><strong>{{text(active.businessType)||'-'}}</strong></span>
+            <span><Icon name="time"/><em>接收时间</em><strong>{{date(active.createdAt)}}</strong></span>
+            <span><Icon name="check-circle"/><em>状态</em><t-tag size="small" variant="light" :theme="statusTheme(active.status)">{{label(active.status)}}</t-tag></span>
+          </div>
+          <div class="todo-detail-divider"></div>
+        </header>
+
+        <section class="todo-detail-body">
+          <h3>待办说明</h3>
+          <p>{{text(active.summary)||'-'}}</p>
+        </section>
+      </article>
       <template #footer>
         <div class="todo-detail-footer">
           <t-button variant="outline" @click="detailVisible=false">关闭</t-button>
@@ -58,8 +72,8 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
+import {Icon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
-import DetailGrid from './DetailGrid.vue';
 import {command} from '../../services/runtime.js';
 import {date,label,text} from './presentation.js';
 
@@ -98,15 +112,7 @@ const columns=[
   {colKey:'operation',title:'操作',width:100,fixed:'right'}
 ];
 
-const detailItems=computed(()=>active.value?[
-  {key:'sourceTodoId',label:'源待办ID',value:text(active.value.sourceTodoId)||'-'},
-  {key:'appName',label:'来源应用',value:text(active.value.appName)||'-'},
-  {key:'title',label:'待办标题',value:text(active.value.title)||'-'},
-  {key:'businessType',label:'业务类型',value:text(active.value.businessType)||'-'},
-  {key:'status',label:'状态',value:label(active.value.status)},
-  {key:'createdAt',label:'接收时间',value:date(active.value.createdAt)},
-  {key:'summary',label:'待办说明',value:text(active.value.summary)||'-',wide:true},
-]:[]);
+
 
 function statusTheme(value){return value==='PENDING'?'warning':value==='COMPLETED'?'success':'default';}
 function reset(){keyword.value='';appName.value='';status.value='';page.value=1;}
