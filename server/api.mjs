@@ -88,7 +88,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const dbRequested=process.argv.includes('--db');
- const env={...process.env,PORTAL_REPOSITORY:dbRequested?'db':process.env.PORTAL_REPOSITORY||'memory'};
+ const env={...process.env,PORTAL_REPOSITORY:dbRequested?'db':'memory'};
  const api=createPortalApi({env});
  createServer(api.handle).listen(3801,'127.0.0.1',()=>console.log(`Portal local API ready: http://127.0.0.1:3801 · repository=${String(env.PORTAL_REPOSITORY).toUpperCase()}`));
  setInterval(()=>api.cleanup().catch(e=>console.error('[retention]',e.message)),60000).unref();
