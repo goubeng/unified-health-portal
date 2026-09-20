@@ -248,3 +248,23 @@ test('角色权限配置只保留Dialog外层滚动条',()=>{
   assert(css.includes('.role-permission-groups{display:flex;flex-direction:column;gap:10px;max-height:none;overflow:visible;padding-right:0}'));
   assert(!css.includes('.role-permission-groups{display:flex;flex-direction:column;gap:10px;max-height:430px;overflow:auto'));
 });
+
+
+test('页面编号唯一且管理端公告详情使用PG-235',()=>{
+  const source=fs.readFileSync('src/config/pages.js','utf8');
+  const ids=[...source.matchAll(/p\('([^']+)'/g)].map(match=>match[1]);
+  assert.equal(new Set(ids).size,ids.length,'页面编号不应重复');
+  assert(source.includes("p('PG-235','/admin/announcements/:id','公告详情'"));
+  assert(source.includes("p('PG-229','/admin/organizations','组织管理'"));
+});
+
+test('最近页面文档与用户公告交互基线一致',()=>{
+  const pageList=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/页面清单.md','utf8');
+  const pageSpec=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/页面规格.md','utf8');
+  const functionList=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/功能清单.md','utf8');
+  assert(pageList.includes('| PG-235 | 管理端 | 公告详情/编辑 | /admin/announcements/:id |'));
+  assert(pageSpec.includes('## PG-220 / PG-235 公告管理'));
+  assert(pageSpec.includes('不提供“所属组织”查询'));
+  assert(functionList.includes('查询不含所属组织，列表不显示所属组织'));
+  assert(functionList.includes('新增/编辑用户采用Checkbox平铺多选'));
+});
