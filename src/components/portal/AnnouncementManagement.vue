@@ -63,11 +63,13 @@
         <div class="form-field"><label>当前状态</label><t-input :value="label(form.status||'DRAFT')" disabled/></div>
       </div>
       <AnnouncementEditor v-model="form.content" v-model:files="uploadFiles"/>
-      <div class="announcement-form-actions">
-        <t-button variant="outline" @click="formVisible=false">取消</t-button>
-        <t-button variant="outline" theme="primary" @click="previewForm">预览</t-button>
-        <t-button theme="primary" :loading="saving" @click="saveAnnouncement">{{form.status==='PUBLISHED'?'保存修改':form.status==='SCHEDULED'?'保存修改':'保存草稿'}}</t-button>
-      </div>
+      <template #footer>
+        <div class="announcement-form-actions">
+          <t-button variant="outline" @click="formVisible=false">取消</t-button>
+          <t-button variant="outline" theme="primary" @click="previewForm">预览</t-button>
+          <t-button theme="primary" :loading="saving" @click="saveAnnouncement">{{form.status==='PUBLISHED'?'保存修改':form.status==='SCHEDULED'?'保存修改':'保存草稿'}}</t-button>
+        </div>
+      </template>
     </t-dialog>
 
     <t-dialog v-model:visible="submitVisible" placement="center" header="提交发布" width="620px" :confirm-btn="{content:'确认提交',loading:saving}" :close-on-overlay-click="false" @confirm="submitAnnouncement">
