@@ -190,15 +190,14 @@ async function normalizeFiles(files,originals){
   return result;
 }
 
-function validate(){
+function validateBase(){
   if(!form.title?.trim()){formError.value='请填写公告标题';return false;}
   if(!String(form.content||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/gi,' ').trim()){formError.value='请填写公告正文';return false;}
-  if((isDraft.value&&form.publishMode==='SCHEDULED'||isScheduled.value)&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return false;}
   return true;
 }
 
 async function saveBase(){
-  if(!validate())return null;
+  if(!validateBase())return null;
   const attachments=await normalizeFiles(uploadFiles.value,form.attachments||[]);
   const payload={
     id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,
@@ -245,6 +244,7 @@ async function publishDraft(){
 
 async function saveCurrent(){
   if(saving.value)return;
+  if(isScheduled.value&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
   saving.value=true;formError.value='';
   try{
     const saved=await saveBase();
