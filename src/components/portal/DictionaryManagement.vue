@@ -82,7 +82,7 @@
       <div class="form-grid">
         <div class="form-field"><label>字典编码 <span class="portal-required">*</span></label><t-input v-model="typeForm.code" :disabled="Boolean(typeForm.systemLocked)||Boolean(typeForm.id)" placeholder="请输入唯一编码"/></div>
         <div class="form-field"><label>字典名称 <span class="portal-required">*</span></label><t-input v-model="typeForm.name"/></div>
-        <div class="form-field"><label>启用状态</label><t-switch :value="typeForm.status==='ENABLED'" :label="['启用','停用']" @change="typeForm.status=$event?'ENABLED':'DISABLED'"/></div>
+        <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="typeForm.status==='ENABLED'" @change="typeForm.status=$event?'ENABLED':'DISABLED'"/><span>{{typeForm.status==='ENABLED'?'启用':'停用'}}</span></div></div>
         <div class="form-field"><label>排序</label><t-input-number v-model="typeForm.sortOrder" :decimal-places="0"/></div>
         <div class="form-field full"><label>说明</label><t-textarea v-model="typeForm.description" :autosize="{minRows:3,maxRows:5}"/></div>
       </div>
@@ -102,7 +102,7 @@
         <div class="form-field"><label>所属字典</label><t-input :value="selectedType?.name||''" disabled/></div>
         <div class="form-field"><label>显示标签 <span class="portal-required">*</span></label><t-input v-model="itemForm.label"/></div>
         <div class="form-field"><label>字典值 <span class="portal-required">*</span></label><t-input v-model="itemForm.value" :disabled="Boolean(selectedType?.systemLocked)||Boolean(itemForm.id)" placeholder="请输入稳定值"/></div>
-        <div class="form-field"><label>启用状态</label><t-switch :value="itemForm.status==='ENABLED'" :label="['启用','停用']" @change="itemForm.status=$event?'ENABLED':'DISABLED'"/></div>
+        <div class="form-field"><label>启用状态</label><div class="form-switch-control"><t-switch :value="itemForm.status==='ENABLED'" @change="itemForm.status=$event?'ENABLED':'DISABLED'"/><span>{{itemForm.status==='ENABLED'?'启用':'停用'}}</span></div></div>
         <div class="form-field"><label>排序</label><t-input-number v-model="itemForm.sortOrder" :decimal-places="0"/></div>
         <div class="form-field full"><label>备注</label><t-textarea v-model="itemForm.remark" :autosize="{minRows:3,maxRows:5}"/></div>
       </div>
