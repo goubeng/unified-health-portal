@@ -57,8 +57,13 @@
        <template v-if="resource==='announcements'&&admin"><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="danger" @click="confirm('removeAnnouncement',row,'确认删除此草稿？删除后退出公告列表，回收档案保留。')">删除</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openForm('saveAnnouncement',row)">编辑</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="confirm('publish',row,'确认发布公告？发布后不可直接编辑。')">发布</t-button><t-button v-if="row.status==='PUBLISHED'" size="small" variant="text" theme="danger" @click="confirm('withdraw',row,'确认撤回公告？撤回后用户将不可见。')">撤回</t-button></template>
        <t-button v-if="resource==='mappings'&&row.status==='BOUND'" size="small" variant="text" theme="danger" @click="confirm('unbind',row,'确认解除此账号关联？不会修改子系统账号或授权。')">解绑</t-button>
        <t-button v-if="resource==='exceptions'&&row.status==='CONFLICT'" size="small" variant="text" theme="primary" @click="openForm('resolveMapping',row)">处理冲突</t-button>
-       <template v-if="resource==='myApplicationRequests'"><t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="danger" @click="confirm('withdrawApplicationRequest',row,'确认撤回此应用访问申请？')">撤回</t-button><t-button v-if="row.status==='REJECTED'" size="small" variant="text" theme="primary" @click="openForm('submitApplicationRequest',{appId:row.appId,appName:row.appName})">重新申请</t-button></template>
+       <template v-if="resource==='myApplicationRequests'">
+        <t-button v-if="row.requestType==='APPLICATION_ACCESS'&&row.status==='PENDING'" size="small" variant="text" theme="danger" @click="confirm('withdrawApplicationRequest',row,'确认撤回此应用访问申请？')">撤回</t-button>
+        <t-button v-if="row.requestType==='APPLICATION_ACCESS'&&row.status==='REJECTED'" size="small" variant="text" theme="primary" @click="openForm('submitApplicationRequest',{appId:row.appId,appName:row.appName})">重新申请</t-button>
+        <t-button v-if="row.requestType==='ACCOUNT_OPENING'&&row.status==='COMPLETED'" size="small" variant="text" theme="primary" @click="bindByRequest(row)">去关联</t-button>
+       </template>
        <template v-if="resource==='applicationRequests'&&row.status==='PENDING'"><t-button size="small" variant="text" theme="primary" @click="confirm('approveApplicationRequest',row,'确认通过此应用访问申请？通过后仅授予门户入口资格。')">通过</t-button><t-button size="small" variant="text" theme="danger" @click="openForm('rejectApplicationRequest',row)">驳回</t-button></template>
+       <template v-if="resource==='accountOpeningRequests'&&['PENDING','PROCESSING'].includes(row.status)"><t-button size="small" variant="text" theme="primary" @click="confirm('completeMockAccountOpeningRequest',row,'演示环境：确认模拟目标子系统已完成账号开通？此操作不会创建真实子系统账号。')">模拟已开通</t-button></template>
       </div></template>
      </t-table>
      <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -211,7 +216,7 @@ const querySpec=computed(()=>{
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
  if(key==='users')return {keywordPlaceholder:'姓名 / 登录账号 / 所属单位',keywordFields:['name','account','orgName'],filters:[filterDef('userType','用户类别','请选择用户类别',fixedOptions(['CITIZEN','GOV']),'userType'),filterDef('status','启用状态','请选择启用状态',fixedOptions(['NORMAL','DISABLED']),'status')]};
  if(key==='roles')return {keywordPlaceholder:'角色名称 / 角色编码 / 描述',keywordFields:['roleName','roleCode','description'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
- if(key==='myApplicationRequests'||key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
+ if(['myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(key))return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='permissions')return {keywordPlaceholder:'权限名称 / 权限编码',keywordFields:['name','code'],filters:[]};
  if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='announcements')return admin.value
@@ -237,10 +242,10 @@ watch([search,()=>JSON.stringify(filterValues),pageSize,appPageSize],()=>{page.v
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 const appGroups=computed(()=>['mine','other'].map(key=>{const entries=filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'));const current=Math.min(appPages[key],Math.max(1,Math.ceil(entries.length/appPageSize.value)));return {key,title:key==='mine'?'我的应用':'其它应用',page:current,total:entries.length,rows:entries.slice((current-1)*appPageSize.value,current*appPageSize.value)};}));
 function setAppPage(key,value){appPages[key]=value;}
-const fieldMap={apps:['name','code','category','userType','runtimeStatus','status'],myApplicationRequests:['requestNo','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','userType','runtimeStatus','status'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
-const hasOperations=computed(()=>['apps','categories','users','roles','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
+const hasOperations=computed(()=>['apps','categories','users','roles','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
 const columnTitle=(key)=>{
  const resourceKey=listResource.value;
  const overrides={
@@ -349,6 +354,11 @@ const viewBinding=app=>openBinding(app);
 const viewConflict=app=>openBinding(app);
 function handleBindingCompleted(){load();}
 function viewBindingRequests(){router.push('/portal/applications');}
+function bindByRequest(row){
+ const app=allApps.value.find(item=>item.id===row.appId);
+ if(!app){MessagePlugin.error('应用信息不存在，请刷新后重试');return;}
+ openBinding(app);
+}
 function confirm(action,row,body){const dialog=DialogPlugin.confirm({placement:'center',header:'操作确认',body,onConfirm:async()=>{if(await run(action,{...row}))dialog.hide();}});}
 async function showDetail(row,kind=listResource.value){
  if(kind==='announcements'){await router.push(`${admin.value?'/admin':'/portal'}/announcements/${encodeURIComponent(row.id)}`);return;}
