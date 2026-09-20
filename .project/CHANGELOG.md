@@ -1,5 +1,18 @@
 # 项目修订履历
 
+## 0.3.0-A - 2026-09-20 · 前端Mock改造启动
+
+- 正式采用分阶段改造：A前端Mock原型 → B数据库Migration/Schema/Seed → C真实Provider与外部联调。
+- A阶段禁止本地PostgreSQL/NocoDB读写；本轮实际数据库请求、Migration执行、NocoDB写入均为0。
+- 发现旧版 `npm run api` 默认通过repository访问本地PostgreSQL，已增加Memory Repository并改为：
+  - `npm run api` → 强制MEMORY_A；
+  - `npm run api:db` → 显式DATABASE，仅B/C阶段使用。
+- A1代码已写入：统一/login三入口、PORTAL_LOCAL Mock管理账号、SUPER_ADMIN/PORTAL_ADMIN两默认角色、LOCAL不参与普通业务数据。
+- A2代码已写入：DIRECT/BIND/REQUEST状态驱动、申请使用、我的申请双Tab、三步账号关联向导、OTP/原账号/上层重认证Mock、未开户申请、高权限REVIEWING、CONFLICT处理、管理端审核联动。
+- 固定10类Mock演示场景已进入Seed/Service；真实短信、人脸、闽政通/闽政务、子系统SSO均未调用。
+- 新增A阶段回归测试与本地运行验收清单；当前状态为CODE_DONE / LOCAL_RUN_PENDING，不宣称测试/构建已通过。
+- A3组织/字典/公告/日志/UI剩余整改未启动；B数据库改造与C真实联调均未启动。
+
 ## 0.3.0-planning - 2026-09-20 · 应用访问与账号关联Mock演示闭环纳入P0
 
 - 明确当前原型阶段不要求真实闽政通/闽政务/短信/人脸/子系统联调，但要求用户可见流程完整可演示。
