@@ -14,8 +14,8 @@ export function richText(value){
            .replace(/(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi,'$1="#"');
   return html;
 }
-export const label=value=>text(labels[value]||value)||'—';
-export const date=value=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('zh-CN',{hour12:false}):'—';
+export const label=value=>text(labels[value]||value)||'-';
+export const date=value=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('zh-CN',{hour12:false}):'-';
 export const source=user=>user?.userType==='CITIZEN'?'闽政通':user?.userType==='LOCAL'?'门户本地':'闽政务';
 export const theme=value=>['ENABLED','NORMAL','BOUND','READ','SUCCESS','PUBLISHED','CONFIGURED','APPROVED','DIRECT'].includes(value)?'success':['DISABLED','FAILED','FAILURE','DENIED','CONFLICT','ABNORMAL','REJECTED'].includes(value)?'danger':['PENDING','UNREAD','VERIFYING','REVIEWING','OPEN','REQUEST_PENDING','SCHEDULED'].includes(value)?'warning':'default';
 export const scopeText=values=>(values||[]).map(value=>scopes[value]||value).join('、')||'本人门户数据';
