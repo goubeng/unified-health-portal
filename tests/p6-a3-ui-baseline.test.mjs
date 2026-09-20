@@ -298,7 +298,8 @@ test('页面数据完成前只显示Loading不渲染Empty业务内容',()=>{
   assert(source.includes("loading=ref(true),pageReady=ref(false)"));
   assert(source.includes('class="portal-loading-placeholder"'));
   assert(source.includes('<template v-else>'));
-  assert(source.includes("loading.value=true;pageReady.value=false;error.value=''"));
+  assert(source.includes("const version=++loadVersion;loading.value=true;error.value=''"));
+  assert(source.includes("watch(()=>route.fullPath,()=>{pageReady.value=false;"));
   assert(source.includes("if(version===loadVersion&&!error.value)pageReady.value=true"));
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(css.includes('.portal-loading-placeholder{min-height:320px'));
