@@ -58,21 +58,30 @@
         <div class="form-field full"><label>公告标题 <span class="portal-required">*</span></label><t-input v-model="form.title" :maxlength="120"/></div>
         <div class="form-field"><label>公告类型</label><t-select v-model="form.type" :options="typeOptions"/></div>
         <div class="form-field"><label>发布范围</label><t-select v-model="form.scope" :options="scopeOptions"/></div>
-        <div class="form-field">
-          <label>发布方式 <span class="portal-required">*</span></label>
-          <t-radio-group v-model="form.publishMode">
-            <t-radio value="IMMEDIATE">立即发布</t-radio>
-            <t-radio value="SCHEDULED">定时发布</t-radio>
-          </t-radio-group>
-        </div>
-        <div v-if="form.publishMode==='SCHEDULED'" class="form-field">
-          <label>定时发布时间 <span class="portal-required">*</span></label>
-          <t-date-picker v-model="form.scheduledPublishAt" enable-time-picker format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择未来发布时间"/>
-        </div>
-        <div class="form-field">
-          <label>失效日期</label>
-          <t-date-picker v-model="form.effectiveEnd" clearable format="YYYY-MM-DD" value-type="YYYY-MM-DD" placeholder="留空表示永久有效"/>
-          <small class="form-helper">选择日期后，于当天 23:59:59 后失效。</small>
+        <div class="announcement-publish-row">
+          <div class="form-field announcement-publish-mode-field">
+            <label>发布方式 <span class="portal-required">*</span></label>
+            <t-radio-group v-model="form.publishMode">
+              <t-radio value="IMMEDIATE">立即发布</t-radio>
+              <t-radio value="SCHEDULED">定时发布</t-radio>
+            </t-radio-group>
+          </div>
+          <div class="form-field announcement-schedule-field">
+            <label>定时发布时间 <span v-if="form.publishMode==='SCHEDULED'" class="portal-required">*</span></label>
+            <t-date-picker
+              v-model="form.scheduledPublishAt"
+              enable-time-picker
+              format="YYYY-MM-DD HH:mm:ss"
+              value-type="YYYY-MM-DD HH:mm:ss"
+              :disabled="form.publishMode!=='SCHEDULED'"
+              :placeholder="form.publishMode==='SCHEDULED'?'请选择未来发布时间':'立即发布无需选择'"
+            />
+          </div>
+          <div class="form-field announcement-expiry-field">
+            <label>失效日期</label>
+            <t-date-picker v-model="form.effectiveEnd" clearable format="YYYY-MM-DD" value-type="YYYY-MM-DD" placeholder="留空表示永久有效"/>
+            <small class="form-helper">当天 23:59:59 后失效。</small>
+          </div>
         </div>
       </div>
       <AnnouncementEditor v-model="form.content" v-model:files="uploadFiles"/>
@@ -247,6 +256,7 @@ async function normalizeFiles(files,originals){
   return result;
 }
 function download(file){if(!file?.data?.startsWith('data:')){MessagePlugin.warning('附件内容不可用');return;}const link=document.createElement('a');link.href=file.data;link.download=file.name;link.click();}
+watch(()=>form.publishMode,value=>{if(value!=='SCHEDULED')form.scheduledPublishAt='';});
 watch([keyword,type,scope,status,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 </script>
