@@ -271,16 +271,36 @@ test('应用访问提示点击知道了直接关闭',()=>{
   assert(block.includes('onConfirm:()=>dialog.hide()'));
 });
 
-test('其他应用关联流程不显示Mock演示提示并区分自动与账号查找',()=>{
+test('其他应用账号处理改为结果导向且不暴露底层验证过程',()=>{
   const source=fs.readFileSync('src/components/portal/AccountBindingWizard.vue','utf8');
-  assert(!source.includes('当前为 Mock 演示流程，不调用真实子系统、短信或身份平台'));
-  assert(source.includes('使用当前身份自动查找'));
-  assert(source.includes('或输入已有子系统账号'));
-  assert(source.includes('placeholder="请输入已有子系统账号"'));
-  assert(!source.includes('已有子系统账号（可选）'));
-  assert(source.includes('@click="autoDiscover"'));
-  assert(source.includes('@click="discoverByAccount"'));
-  assert(source.includes("if(!account){error.value='请输入已有子系统账号，或使用“自动查找”';return;}"));
+  const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  assert(source.includes('需要完成账号确认'));
+  assert(source.includes('需要开通账号'));
+  assert(source.includes('前往子系统确认'));
+  assert(source.includes('前往子系统开通'));
+  assert(source.includes('完成后重新检测'));
+  assert(source.includes('统一门户不采集这些凭据'));
+  assert(!source.includes('查找已有子系统账号'));
+  assert(!source.includes('验证账号归属'));
+  assert(!source.includes('请输入已有子系统账号'));
+  assert(!source.includes('演示环境验证码'));
+  assert(!source.includes('子系统密码'));
+  assert(cards.includes("BIND:'完成账号确认'"));
+  assert(cards.includes("CONTINUE_BIND:'继续处理'"));
+  assert(cards.includes("VIEW_CONFLICT:'查看原因'"));
+});
+
+test('运行监控详情使用单表展示接入配置与运行健康且不显示阶段提示',()=>{
+  const source=fs.readFileSync('src/components/portal/MonitorManagement.vue','utf8');
+  assert(source.includes("title:'接入服务'"));
+  assert(source.includes("title:'配置状态'"));
+  assert(source.includes("title:'运行状态'"));
+  assert(source.includes("title:'最近检测'"));
+  assert(source.includes("title:'响应耗时'"));
+  assert(source.includes("title:'最近错误'"));
+  assert(source.includes('width="min(1180px, calc(100vw - 48px))"'));
+  assert(!source.includes('monitor-service-grid'));
+  assert(!source.includes('当前为A阶段运行场景数据'));
 });
 
 
