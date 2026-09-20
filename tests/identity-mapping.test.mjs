@@ -39,7 +39,7 @@ test('identityOverview按用户聚合所有子系统映射，区分来源/有效
     const row = rows.find(x => x.id === user.id);
     assert(row, `缺少用户 ${user.id}`);
     assert.equal(row.name, user.name);
-    assert.equal(row.source, user.userType === 'GOV' ? '闽政务' : '闽政通');
+    assert.equal(row.source, user.userType === 'GOV' ? '闽政务' : user.userType === 'LOCAL' ? '门户本地' : '闽政通');
     assert(Array.isArray(row.mappings), 'mappings必须为数组');
     const expected = before.mappings.filter(m => m.userId === user.id);
     assert.deepEqual(row.mappings.map(m => m.id).sort(), expected.map(m => m.id).sort());
@@ -55,19 +55,14 @@ test('identityOverview按用户聚合所有子系统映射，区分来源/有效
   assert.deepEqual(h.provider.read(), before, '聚合读取不得修改底层映射');
 });
 
-test('identityOverview供身份管理员读取，普通用户和仅公告管理员不可读取', async () => {
-  const h = setup(d => {
-    const user = d.users.find(x => x.id === actors[3].id);
-    user.scopes = ['identity'];
-    user.roleIds = ['ROLE_ADMIN'];
-  });
+test('identityOverview供门户管理员读取，普通用户不可读取', async () => {
+  const h = setup();
   h.switchActor(3);
   assert.equal((await h.read('identityOverview')).length, h.provider.read().users.length);
   h.switchActor(0);
   assert.equal((await h.service.read('identityOverview')).error?.code, 'FORBIDDEN');
-  const editor = setup();
-  editor.switchActor(3);
-  assert.equal((await editor.service.read('identityOverview')).error?.code, 'FORBIDDEN');
+  h.switchActor(4);
+  assert.equal((await h.read('identityOverview')).length, h.provider.read().users.length);
 });
 
 test('identityOverview解绑后更新聚合计数，保留映射历史且不影响其他用户', async () => {
