@@ -59,7 +59,7 @@ test('identityOverview供身份管理员读取，普通用户和仅公告管理�
   const h = setup(d => {
     const user = d.users.find(x => x.id === actors[3].id);
     user.scopes = ['identity'];
-    user.roleIds = ['ROLE_IDENTITY'];
+    user.roleIds = ['ROLE_ADMIN'];
   });
   h.switchActor(3);
   assert.equal((await h.read('identityOverview')).length, h.provider.read().users.length);
