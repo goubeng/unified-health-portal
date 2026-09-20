@@ -141,7 +141,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const accountOpeningRequests=[];
  const mappingVerificationEvents=[];
  const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.userType==='LOCAL'?false:null}));
- return {schemaVersion:5,users,roles,apps,platforms:structuredClone(platforms),categories,organizations,dictTypes,dictItems,mappings,
+ return {schemaVersion:6,users,roles,apps,platforms:structuredClone(platforms),categories,organizations,dictTypes,dictItems,mappings,
   applicationRequests,applicationGrants,accountOpeningRequests,mappingVerificationEvents,
   todos,messages,announcements,announcementReads:[],settings,integrations,logs,visits,receipts:[]};
 }
