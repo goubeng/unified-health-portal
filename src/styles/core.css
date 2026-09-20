@@ -582,3 +582,6 @@
 
 /* App center: normal usable apps do not repeat status; exceptional/other app state tags are 12px. */
 .portal-app-status-tag,.portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}
+
+/* My Applications: keep TDesign tabs visually separated from the list. */
+.my-applications-table{margin-top:16px}
