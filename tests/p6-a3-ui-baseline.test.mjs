@@ -109,11 +109,12 @@ test('管理表单启用状态使用紧凑TDesign开关，不把label写进开�
 });
 
 
-test('公告编辑主操作固定在Dialog Footer，正文单独滚动',()=>{
+test('新增公告主操作固定在Dialog Footer，正文单独滚动',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   assert(source.includes('<template #footer>'));
   assert(source.includes('class="announcement-form-actions"'));
-  const formDialog=source.split(':header="form.id?\'编辑公告\':\'新增公告\'"')[1]?.split('</t-dialog>')[0]||'';
+  const formDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
+  assert(formDialog.includes('<template #footer>'));
   assert(!formDialog.includes(':footer="false"'));
   const editorIndex=source.indexOf('<AnnouncementEditor');
   const footerIndex=source.indexOf('<template #footer>',editorIndex);
@@ -150,9 +151,9 @@ test('我的申请Tab与列表保持16px间距',()=>{
   assert(css.includes('.my-applications-table{margin-top:16px}'));
 });
 
-test('编辑公告启用Dialog Footer且主操作不会被footer=false关闭',()=>{
+test('新增公告启用Dialog Footer且主操作不会被footer=false关闭',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
-  const formDialog=source.split(':header="form.id?\'编辑公告\':\'新增公告\'"')[1]?.split('</t-dialog>')[0]||'';
+  const formDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
   assert(formDialog.includes('<template #footer>'));
   assert(!formDialog.includes(':footer="false"'));
   assert(formDialog.includes('取消'));
