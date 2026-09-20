@@ -30,11 +30,20 @@ test('登录页不恢复滑块下方冗余提示',()=>{
   assert(!source.includes('按住滑块向右拖动'));
 });
 
-test('业务链接保持普通蓝色，不使用粗体强调',()=>{
+test('系统内容区链接统一13px常规蓝色且首页未读不再加粗',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(!/portal-page \.portal-field-link\{[^}]*font-weight:600/i.test(css));
+  assert(!/portal-page \.portal-field-link(?:\.is-unread|\.is-attention)?\{[^}]*font-weight:600/i.test(css));
   assert(!/portal-home-feeds>\.panel:first-child \.portal-field-link\{[^}]*font-weight:600/i.test(css));
-  assert(css.includes('.portal-page .portal-field-link{color:#0052d9!important;font-weight:400!important}'));
+  assert(css.includes('/* 2026-09-20 global content-link typography normalization. */'));
+  assert(css.includes('.portal-page .portal-field-link.is-unread,'));
+  assert(css.includes('.portal-page .portal-app-name,'));
+  assert(css.includes('.portal-page .section-head a,'));
+  assert(css.includes('font-size:13px!important;'));
+  assert(css.includes('font-weight:400!important;'));
+  assert(css.includes('color:#0052d9!important;'));
+  assert(css.includes('color:#003cab!important;'));
+  assert(css.includes('text-decoration:underline!important;'));
+  assert(css.includes('.portal-app-info .portal-app-name{font-weight:400!important}'));
 });
 
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
