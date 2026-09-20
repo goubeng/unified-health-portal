@@ -26,7 +26,6 @@
         <template #todoStatus="{row}"><StatusTag :value="row.todoStatus"/></template>
         <template #messageStatus="{row}"><StatusTag :value="row.messageStatus"/></template>
         <template #lastCheckedAt="{row}">{{date(row.lastCheckedAt)}}</template>
-        <template #operation="{row}"><t-button size="small" variant="text" theme="primary" @click="openDetail(row)">查看详情</t-button></template>
       </t-table>
       <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
@@ -75,8 +74,7 @@ const columns=[
   {colKey:'ssoStatus',title:'SSO状态',width:120},
   {colKey:'todoStatus',title:'TODO状态',width:120},
   {colKey:'messageStatus',title:'MESSAGE状态',width:135},
-  {colKey:'lastCheckedAt',title:'最近检测时间',width:180},
-  {colKey:'operation',title:'操作',width:110,fixed:'right'}
+  {colKey:'lastCheckedAt',title:'最近检测时间',width:180}
 ];
 
 function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';page.value=1;}
