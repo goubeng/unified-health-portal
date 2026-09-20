@@ -88,7 +88,7 @@ export function createPortalService(provider,getActor){
    const d=provider.read(),allApps=decorate(d,a),userApps=accountApps(d,a);
    if(resource==='apps')return allApps.filter(x=>x.applicable&&x.status==='ENABLED');
    if(resource==='adminApps'){if(a.kind!=='ADMIN')fail('FORBIDDEN','仅门户管理端可读取全量应用目录');return allApps;}
-   if(resource==='mine')return userApps.filter(x=>x.mappingStatus==='BOUND');
+   if(resource==='mine')return userApps.filter(x=>['DIRECT','BOUND'].includes(x.accessState));
    if(resource==='todos'||resource==='messages')return d[resource].filter(x=>own(x,a));
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...x,readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
    if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements;}
