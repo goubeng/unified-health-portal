@@ -17,7 +17,12 @@
         <t-tooltip content="居中对齐"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('justifyCenter')"><Icon name="format-vertical-align-center"/></t-button></t-tooltip>
         <t-tooltip content="右对齐"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('justifyRight')"><Icon name="format-vertical-align-right"/></t-button></t-tooltip>
         <span class="toolbar-divider"></span>
+        <t-tooltip content="插入图片"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="imageInput?.click()"><Icon name="image"/></t-button></t-tooltip>
+        <t-tooltip content="导入Word/文本"><t-button size="small" variant="text" @click.prevent="wordInput?.click()">导入Word</t-button></t-tooltip>
+        <span class="toolbar-divider"></span>
         <t-tooltip content="清除格式"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('removeFormat')"><Icon name="clear"/></t-button></t-tooltip>
+        <input ref="imageInput" class="editor-hidden-input" type="file" accept="image/*" @change="insertImage"/>
+        <input ref="wordInput" class="editor-hidden-input" type="file" accept=".doc,.docx,.html,.htm,.txt" @change="importDocument"/>
       </div>
       <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent"></div>
     </div>
@@ -41,11 +46,12 @@
 
 <script setup>
 import {nextTick,ref,watch} from 'vue';
+import {MessagePlugin} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
 
 const props=defineProps({modelValue:{type:String,default:''},files:{type:Array,default:()=>[]}});
 const emit=defineEmits(['update:modelValue','update:files']);
-const editor=ref(null),localFiles=ref([]);
+const editor=ref(null),localFiles=ref([]),imageInput=ref(null),wordInput=ref(null);
 let syncing=false;
 
 function syncEditor(value){
@@ -65,6 +71,21 @@ function exec(command,value=null){
  syncContent();
 }
 function block(tag){exec('formatBlock',tag);}
+function readFile(file,mode='text'){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('文件读取失败'));mode==='data'?reader.readAsDataURL(file):reader.readAsText(file);});}
+async function insertImage(event){
+ const file=event.target.files?.[0];event.target.value='';if(!file)return;
+ if(file.size>2*1024*1024){MessagePlugin.warning('正文图片单张不能超过2MB');return;}
+ try{const data=await readFile(file,'data');focusEditor();document.execCommand('insertImage',false,data);syncContent();}catch(cause){MessagePlugin.error(cause.message);}
+}
+async function importDocument(event){
+ const file=event.target.files?.[0];event.target.value='';if(!file)return;
+ const ext=file.name.split('.').pop()?.toLowerCase();
+ if(['html','htm','txt'].includes(ext)){
+  try{const raw=String(await readFile(file));const html=ext==='txt'?raw.replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])).replace(/\r?\n/g,'<br>'):raw;editor.value.innerHTML=html;syncContent();MessagePlugin.success('正文已导入');}catch(cause){MessagePlugin.error(cause.message);}
+  return;
+ }
+ MessagePlugin.warning('当前A阶段已保留Word导入交互；.doc/.docx正文解析依赖尚未接入，请暂使用富文本编辑或上传为附件。');
+}
 function emitFiles(){nextTick(()=>emit('update:files',[...localFiles.value]));}
 
 watch(()=>props.modelValue,value=>nextTick(()=>syncEditor(value)),{immediate:true});
