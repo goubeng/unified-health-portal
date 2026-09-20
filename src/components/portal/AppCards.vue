@@ -8,7 +8,7 @@
           <span class="portal-app-category" :title="text(app.category)">{{text(app.category)||'未分类'}}</span>
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
           <template v-else>
-            <t-tag v-if="showState(app)" size="small" variant="light" :theme="stateTheme(app.accessState)">{{stateText(app)}}</t-tag>
+            <t-tag v-if="showState(app)" class="portal-app-status-tag" size="small" variant="light" :theme="stateTheme(app.accessState)">{{stateText(app)}}</t-tag>
             <t-button v-if="buttonText(app)" class="portal-app-enter" variant="text" size="small" :disabled="buttonDisabled(app)" @click="trigger(app)">{{buttonText(app)}}</t-button>
           </template>
         </div>
