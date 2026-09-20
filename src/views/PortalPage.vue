@@ -397,7 +397,20 @@ async function saveForm(){
  }catch(cause){formError.value=cause.message;}finally{saving.value=false;}
 }
 async function run(action,payload,show=false){
- try{const result=await command(action,payload);if(!result.ok){MessagePlugin.error(text(result.error.message));return;}if(show)DialogPlugin.alert({placement:'center',header:'应用访问',body:text(result.data.message),confirmBtn:'知道了'});else MessagePlugin.success('操作成功');return result;}catch(cause){MessagePlugin.error(text(cause.message));}
+ try{
+  const result=await command(action,payload);
+  if(!result.ok){MessagePlugin.error(text(result.error.message));return;}
+  if(show){
+   const dialog=DialogPlugin.alert({
+    placement:'center',
+    header:'应用访问',
+    body:text(result.data.message),
+    confirmBtn:'知道了',
+    onConfirm:()=>dialog.hide()
+   });
+  }else MessagePlugin.success('操作成功');
+  return result;
+ }catch(cause){MessagePlugin.error(text(cause.message));}
 }
 const enterApp=app=>run('enterApp',{id:app.id},true);
 function openBinding(app){bindingApp.value=JSON.parse(JSON.stringify(app));bindingVisible.value=true;}
