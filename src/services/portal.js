@@ -12,14 +12,35 @@ export function createPortalService(provider,getActor){
  const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED')fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:crypto.randomUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:crypto.randomUUID()};}};
  const auth=(a,s)=>{if(!can(a,s))fail('FORBIDDEN','当前身份没有该权限范围');};
  const requireRow=(list,id,version)=>{const row=list.find(x=>x.id===id);if(!row)fail('NOT_FOUND','记录不存在');if(version!==undefined&&row.version!==version)fail('VERSION_CONFLICT','记录已更新，请刷新后重试');return row;};
- const decorate=(d,a)=>d.apps.map(x=>({...x,applicable:a.userType!=='LOCAL'&&(x.userType==='BOTH'||x.userType===a.userType),mappingStatus:d.mappings.find(m=>m.appId===x.id&&own(m,a))?.status||'UNBOUND'}));
+ const requestFor=(d,a,appId)=>[...(d.applicationRequests||[])].filter(x=>x.userId===a.id&&x.appId===appId).sort((x,y)=>(Date.parse(y.submittedAt||y.createdAt)||0)-(Date.parse(x.submittedAt||x.createdAt)||0))[0]||null;
+ const grantFor=(d,a,appId)=>(d.applicationGrants||[]).find(x=>x.userId===a.id&&x.appId===appId&&x.status==='ACTIVE')||null;
+ const decorate=(d,a)=>d.apps.map(app=>{
+  const applicable=a.userType!=='LOCAL'&&(app.userType==='BOTH'||app.userType===a.userType);
+  const mapping=d.mappings.find(m=>m.appId===app.id&&own(m,a)&&m.status!=='UNBOUND')||null;
+  const request=requestFor(d,a,app.id),grant=grantFor(d,a,app.id);
+  const accessMode=app.accessMode||'BIND';
+  const requiresBinding=accessMode==='BIND'||(accessMode==='REQUEST'&&app.postGrantMode==='BIND'&&Boolean(grant));
+  let accessState='UNBOUND';
+  if(!applicable)accessState='NOT_APPLICABLE';
+  else if(app.status!=='ENABLED')accessState='APP_DISABLED';
+  else if(accessMode==='REQUEST'&&!grant){
+   accessState=request?.status==='PENDING'?'REQUEST_PENDING':request?.status==='REJECTED'?'REQUEST_REJECTED':'REQUEST_REQUIRED';
+  }else if(requiresBinding)accessState=mapping?.status||'UNBOUND';
+  else accessState='DIRECT';
+  const primaryAction=({
+   DIRECT:'ENTER',BOUND:'ENTER',UNBOUND:'BIND',VERIFYING:'CONTINUE_BIND',REVIEWING:'VIEW_BINDING',
+   FAILED:'BIND',CONFLICT:'VIEW_CONFLICT',REQUEST_REQUIRED:'REQUEST',REQUEST_REJECTED:'REQUEST',REQUEST_PENDING:'VIEW_REQUEST'
+  })[accessState]||'VIEW';
+  return {...app,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
+   requestStatus:request?.status||null,requestId:request?.id||null,grantStatus:grant?.status||null,accessState,primaryAction};
+ });
  const accountApps=(d,a)=>{
   const ids=new Set();
   d.mappings.filter(x=>own(x,a)&&x.status!=='UNBOUND').forEach(x=>ids.add(x.appId));
   d.todos.filter(x=>own(x,a)).forEach(x=>ids.add(x.appId));
   d.messages.filter(x=>own(x,a)&&x.appId).forEach(x=>ids.add(x.appId));
   d.visits.filter(x=>x.userId===a.id).forEach(x=>ids.add(x.appId));
-  return decorate(d,a).filter(x=>ids.has(x.id)&&x.status==='ENABLED'&&x.applicable);
+  return decorate(d,a).filter(x=>x.status==='ENABLED'&&x.applicable&&(ids.has(x.id)||['DIRECT','BOUND'].includes(x.accessState)));
  };
  const roleNames=(d,user)=>(user.roleIds||[]).map(id=>(d.roles||[]).find(role=>role.id===id)?.roleName).filter(Boolean);
  const scopesFromRoles=(d,ids)=>[...new Set((ids||[]).flatMap(id=>(d.roles||[]).find(role=>role.id===id&&role.status==='ENABLED')?.scopes||[]))];
@@ -72,10 +93,12 @@ export function createPortalService(provider,getActor){
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...x,readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
    if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements;}
    if(resource==='profile')return decorateUser(d,a);
+   if(resource==='myApplicationRequests')return (d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(resource==='home')return {appCount:userApps.length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
-   const permissions={categories:'application',access:'application',identityOverview:'identity',identities:'identity',identityMappings:'identity',mappings:'identity',exceptions:'identity',roles:'super',permissions:'super',sso:'integration',todoIntegration:'integration',messageIntegration:'integration',external:'integration',settings:'super',monitor:'integration',adminHome:'any',users:'super'};
+   const permissions={categories:'application',access:'application',applicationRequests:'application',identityOverview:'identity',identities:'identity',identityMappings:'identity',mappings:'identity',exceptions:'identity',roles:'super',permissions:'super',sso:'integration',todoIntegration:'integration',messageIntegration:'integration',external:'integration',settings:'super',monitor:'integration',adminHome:'any',users:'super'};
    auth(a,resource.startsWith('logs:')?'audit':permissions[resource]||'super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
+   if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(['categories','settings','mappings'].includes(resource))return d[resource];
    if(resource==='users'||resource==='identities')return (d.users||actors).map(user=>decorateUser(d,user));
    if(resource==='identityOverview')return d.users.map(user=>{
@@ -87,7 +110,7 @@ export function createPortalService(provider,getActor){
    if(resource==='roles')return (d.roles||[]).map(role=>({...role,scopeLabels:(role.scopes||[]).map(s=>scopes[s]||s).join('、')||'无门户管理权限'}));
    if(resource==='permissions')return Object.entries(scopes).map(([code,name])=>({id:code,code,name,description:'用于控制卫健统一门户内部页面与操作权限；不授予任何子系统业务权限。',status:'ENABLED'}));
    if(resource==='external')return [];
-   if(resource==='adminHome')return {appCount:d.apps.length,enabledCount:d.apps.filter(x=>x.status==='ENABLED').length,exceptionCount:d.mappings.filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,integrationCount:d.integrations.filter(x=>x.status==='NORMAL').length};
+   if(resource==='adminHome')return {appCount:d.apps.length,enabledCount:d.apps.filter(x=>x.status==='ENABLED').length,exceptionCount:d.mappings.filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,integrationCount:d.integrations.filter(x=>x.status==='NORMAL').length,pendingAccessCount:(d.applicationRequests||[]).filter(x=>x.status==='PENDING').length};
    if(resource==='monitor')return monitorProfiles(d);
    if(resource==='access')return accessProfiles(d);
    const kind={sso:'SSO',todoIntegration:'TODO',messageIntegration:'MESSAGE'}[resource];
@@ -99,7 +122,7 @@ export function createPortalService(provider,getActor){
     const now=new Date().toISOString(),id=()=> 'MOCK_'+crypto.randomUUID();
     const stamp=x=>Object.assign(x,{version:(x.version||0)+1,updatedAt:now});
     let result=null;
-    const scopesByAction={removeAnnouncement:'announcement',saveRules:'super',savePortalUser:'super',saveSystemRole:'super',saveApp:'application',setAppStatus:'application',saveCategory:'application',removeCategory:'application',saveAnnouncement:'announcement',publish:'announcement',withdraw:'announcement',saveConfig:'super',saveIntegration:'application',createAccessProfile:'application',unbind:'identity',resolveMapping:'identity',pushTodo:'integration',pushMessage:'integration'};
+    const scopesByAction={removeAnnouncement:'announcement',saveRules:'super',savePortalUser:'super',saveSystemRole:'super',saveApp:'application',setAppStatus:'application',saveCategory:'application',removeCategory:'application',saveAnnouncement:'announcement',publish:'announcement',withdraw:'announcement',saveConfig:'super',saveIntegration:'application',createAccessProfile:'application',approveApplicationRequest:'application',rejectApplicationRequest:'application',unbind:'identity',resolveMapping:'identity',pushTodo:'integration',pushMessage:'integration'};
     if(scopesByAction[action])auth(a,scopesByAction[action]);
     if(action==='removeAnnouncement'){
      const x=requireRow(d.announcements,p.id,p.version);if(x.status!=='DRAFT')fail('INVALID_TRANSITION','仅草稿公告可以删除');
@@ -123,6 +146,31 @@ export function createPortalService(provider,getActor){
      Object.assign(x,{roleName:p.roleName.trim(),roleCode:p.roleCode.trim(),description:p.description||'',scopes:requested,status:p.status});stamp(x);if(!p.id)d.roles.push(x);
      (d.users||[]).forEach(user=>{if((user.roleIds||[]).includes(x.id)){syncUserRoleScopes(d,user);stamp(user);}});
      const current=(d.users||[]).find(user=>user.id===a.id);if(current&&!current.scopes.includes('super'))fail('INVALID_TRANSITION','本次角色修改会移除当前账号超级管理权限，请先调整用户角色');
+     result=x;
+    }else if(action==='submitApplicationRequest'){
+     const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能申请');
+     if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
+     if(app.accessMode!=='REQUEST')fail('INVALID_TRANSITION','该应用无需提交访问申请');
+     if(grantFor(d,a,app.id))fail('INVALID_TRANSITION','当前用户已拥有应用入口资格');
+     d.applicationRequests??=[];
+     if(d.applicationRequests.some(x=>x.userId===a.id&&x.appId===app.id&&x.status==='PENDING'))fail('DUPLICATE_APPLICATION_REQUEST','已有待审核申请，请勿重复提交');
+     if(!p.reason?.trim())fail('VALIDATION_ERROR','请填写申请原因');
+     const seq=String(d.applicationRequests.length+1).padStart(5,'0'),day=now.slice(0,10).replaceAll('-','');
+     const x={id:id(),version:1,createdAt:now,updatedAt:now,requestNo:'REQ-'+day+'-'+seq,userId:a.id,userName:a.name,appId:app.id,appName:app.name,
+      reason:p.reason.trim(),contact:p.contact?.trim()||'',remark:p.remark?.trim()||'',status:'PENDING',submittedAt:now,reviewedBy:null,reviewedAt:null,reviewNote:null};
+     d.applicationRequests.push(x);result=x;
+    }else if(action==='withdrawApplicationRequest'){
+     const x=requireRow(d.applicationRequests||[],p.id,p.version);if(!own(x,a))fail('NOT_FOUND','申请不存在');if(x.status!=='PENDING')fail('INVALID_TRANSITION','仅待审核申请可以撤回');
+     x.status='WITHDRAWN';x.withdrawnAt=now;result=stamp(x);
+    }else if(action==='approveApplicationRequest'||action==='rejectApplicationRequest'){
+     const x=requireRow(d.applicationRequests||[],p.id,p.version);if(x.status!=='PENDING')fail('INVALID_TRANSITION','仅待审核申请可以处理');
+     if(action==='rejectApplicationRequest'&&!p.reviewNote?.trim())fail('VALIDATION_ERROR','请填写驳回原因');
+     x.status=action==='approveApplicationRequest'?'APPROVED':'REJECTED';x.reviewedBy=a.id;x.reviewedAt=now;x.reviewNote=p.reviewNote?.trim()||'审核通过';stamp(x);
+     if(action==='approveApplicationRequest'){
+      d.applicationGrants??=[];
+      let grant=d.applicationGrants.find(g=>g.userId===x.userId&&g.appId===x.appId&&g.status==='ACTIVE');
+      if(!grant){grant={id:id(),version:1,createdAt:now,updatedAt:now,userId:x.userId,appId:x.appId,status:'ACTIVE',grantedBy:a.id,grantedAt:now,expiresAt:null};d.applicationGrants.push(grant);}
+     }
      result=x;
     }else if(action==='markAnnouncementRead'){
      const x=requireRow(d.announcements,p.id);if(!visible(x,a))fail('NOT_FOUND','公告不存在或不在可见范围');
@@ -148,12 +196,18 @@ export function createPortalService(provider,getActor){
     }else if(action==='deleteMessages'){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
      const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)))fail('NOT_FOUND','消息不存在');const selected=new Set(ids);d.messageTrash??=[];d.messageTrash.push(...targets.map(x=>({...x,deletedAt:now,deletedBy:a.id})));d.messages=d.messages.filter(x=>!selected.has(x.id));result={count:ids.length};
-    }else if(action==='enterApp'||action==='openTodo'){
-     let appId=p.id;if(action==='openTodo'){const todo=requireRow(d.todos,p.id);if(!own(todo,a))fail('NOT_FOUND','待办不存在');if(todo.status!=='PENDING')fail('INVALID_TRANSITION','该待办已终结');appId=todo.appId;}
-     const app=requireRow(d.apps,appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
+    }else if(action==='enterApp'){
+     const app=requireRow(d.apps,p.id);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
-     if(!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('INVALID_TRANSITION','请先关联已有子系统账号');
-     checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'访问请求已受理。子系统服务连接尚未开放，请联系系统对接人。'};
+     if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
+     const requiresBinding=app.accessMode==='BIND'||(app.accessMode==='REQUEST'&&app.postGrantMode==='BIND');
+     if(requiresBinding&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('ACCOUNT_BINDING_REQUIRED','请先完成子系统账号关联');
+     checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock访问校验已通过。当前未连接真实子系统，正式SSO将在联调阶段接入。'};
+    }else if(action==='openTodo'){
+     const todo=requireRow(d.todos,p.id);if(!own(todo,a))fail('NOT_FOUND','待办不存在');if(todo.status!=='PENDING')fail('INVALID_TRANSITION','该待办已终结');
+     const app=requireRow(d.apps,todo.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
+     if(!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
+     checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock待办跳转校验已通过。真实子系统连接尚未开放。'};
     }else if(action==='bind'){
      const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能关联');if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');if(!p.externalAccount?.trim())fail('VALIDATION_ERROR','请输入已有子系统账号');
      let x=d.mappings.find(m=>m.userId===a.id&&m.appId===p.appId);if(x?.status==='BOUND')fail('INVALID_TRANSITION','已有关联，请由具备身份映射权限的管理员处理');
@@ -211,7 +265,7 @@ export function createPortalService(provider,getActor){
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
     }else fail('CAPABILITY_UNAVAILABLE','该动作尚未开放');
-    const actionNames={savePortalUser:'维护系统用户',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
+    const actionNames={savePortalUser:'维护系统用户',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
     d.logs.unshift({id:id(),name:actionNames[action]||action,kind:['enterApp','openTodo'].includes(action)?'access':action.startsWith('push')?'api':'operation',actor:a.name,status:'SUCCESS',createdAt:now,description:p.reason||'操作已记录'});return result;
    });
   })
