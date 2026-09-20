@@ -5,7 +5,7 @@
     </Teleport>
 
     <t-form layout="inline" class="portal-query list-toolbar">
-      <t-form-item class="portal-query-keyword query-width-keyword" label="姓名/账号">
+      <t-form-item class="portal-query-keyword user-query-keyword" label="姓名/账号">
         <t-input v-model="keyword" clearable placeholder="请输入姓名或账号"/>
       </t-form-item>
       <t-form-item class="portal-query-select query-width-user-type" label="用户类别">
@@ -13,9 +13,6 @@
       </t-form-item>
       <t-form-item class="portal-query-select query-width-user-type" label="身份来源">
         <t-select v-model="identitySource" clearable placeholder="全部" :options="sourceOptions"/>
-      </t-form-item>
-      <t-form-item class="portal-query-select query-width-org" label="所属组织">
-        <t-select v-model="orgName" clearable filterable placeholder="全部" :options="orgOptions"/>
       </t-form-item>
       <t-form-item class="portal-query-select query-width-default" label="门户角色">
         <t-select v-model="roleId" clearable placeholder="全部" :options="roleOptions"/>
@@ -85,7 +82,7 @@
           <div class="form-field"><label>手机号</label><t-input v-model="form.mobile" placeholder="可选"/></div>
           <div class="form-field"><label>邮箱</label><t-input v-model="form.email" placeholder="可选"/></div>
           <div class="form-field"><label>启用状态</label><t-switch class="user-status-switch" :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
-          <div class="form-field full"><label>门户角色</label><t-select v-model="form.roleIds" multiple clearable :options="roleOptions"/></div>
+          <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <t-alert theme="info" class="user-source-alert">
           A阶段只模拟本地用户资料与角色关系，不生成或保存真实密码。真实凭证、首次改密、锁定策略在B阶段数据库改造后接入。
@@ -95,7 +92,7 @@
         <DetailGrid :items="externalIdentityItems"/>
         <div class="form-grid user-external-maintenance">
           <div class="form-field"><label>启用状态</label><t-switch class="user-status-switch" :value="form.status!=='DISABLED'" :label="['启用','停用']" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
-          <div class="form-field full"><label>门户角色</label><t-select v-model="form.roleIds" multiple clearable :options="roleOptions"/></div>
+          <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <p class="muted">外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。</p>
       </template>
@@ -119,7 +116,7 @@ const props=defineProps({
 });
 const emit=defineEmits(['saved']);
 
-const keyword=ref(''),userType=ref(''),identitySource=ref(''),orgName=ref(''),roleId=ref(''),status=ref('');
+const keyword=ref(''),userType=ref(''),identitySource=ref(''),roleId=ref(''),status=ref('');
 const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null);
 const formVisible=ref(false),formMode=ref('edit'),form=reactive({}),formError=ref(''),saving=ref(false);
@@ -136,10 +133,9 @@ const filtered=computed(()=>{
     const matchKeyword=!term||[row.name,row.account].some(value=>text(value).toLowerCase().includes(term));
     const matchType=!userType.value||row.userType===userType.value;
     const matchSource=!identitySource.value||(row.identitySource||source(row))===identitySource.value;
-    const matchOrg=!orgName.value||row.orgName===orgName.value;
     const matchRole=!roleId.value||(row.roleIds||[]).includes(roleId.value);
     const matchStatus=!status.value||row.status===status.value;
-    return matchKeyword&&matchType&&matchSource&&matchOrg&&matchRole&&matchStatus;
+    return matchKeyword&&matchType&&matchSource&&matchRole&&matchStatus;
   });
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
@@ -150,8 +146,7 @@ const columns=[
   {colKey:'name',title:'姓名',width:120,ellipsis:true},
   {colKey:'userType',title:'用户类别',width:120},
   {colKey:'identitySource',title:'身份来源',width:110},
-  {colKey:'orgName',title:'所属组织',width:200,ellipsis:true},
-  {colKey:'roleLabels',title:'门户角色',width:190,ellipsis:true},
+  {colKey:'roleLabels',title:'门户角色',width:220,ellipsis:true},
   {colKey:'status',title:'启用状态',width:120},
   {colKey:'lastLoginAt',title:'最近登录',width:180},
   {colKey:'operation',title:'操作',width:210,fixed:'right'}
@@ -173,7 +168,7 @@ const externalIdentityItems=computed(()=>[
   {key:'orgName',label:'所属组织',value:form.orgName||'-'}
 ]);
 
-function reset(){keyword.value='';userType.value='';identitySource.value='';orgName.value='';roleId.value='';status.value='';page.value=1;}
+function reset(){keyword.value='';userType.value='';identitySource.value='';roleId.value='';status.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function assignForm(row){Object.keys(form).forEach(key=>delete form[key]);Object.assign(form,JSON.parse(JSON.stringify(row)));}
 function openCreate(){formMode.value='create';assignForm({account:'',name:'',userType:'LOCAL',identitySource:'门户本地',orgName:'',mobile:'',email:'',status:'NORMAL',roleIds:[]});formError.value='';formVisible.value=true;}
@@ -209,6 +204,6 @@ async function unlock(row){
   if(!result.ok){MessagePlugin.error(result.error.message);return;}
   MessagePlugin.success('账号已解除锁定');emit('saved');
 }
-watch([keyword,userType,identitySource,orgName,roleId,status,pageSize],()=>{page.value=1;});
+watch([keyword,userType,identitySource,roleId,status,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 </script>
