@@ -16,11 +16,15 @@
    </t-table>
    <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
   </section>
-  <t-dialog class="identity-mappings-dialog" :visible="!!selected" placement="center" :header="`${text(selected?.user.name)||'用户'} · 子系统账号映射`" width="min(1180px, calc(100vw - 48px))" :footer="false" @update:visible="closeDialog">
+  <t-dialog class="identity-mappings-dialog" :visible="!!selected" placement="center" :header="`${text(selected?.user.name)||'用户'} · 子系统账号映射`" width="min(1320px, calc(100vw - 48px))" :footer="false" @update:visible="closeDialog">
    <template v-if="selected">
-    <DetailGrid :items="identityDetails"/>
-    <div class="identity-mappings-summary"><span>已关联 {{selected.boundCount??0}} 个</span><span>异常 {{selected.exceptionCount??0}} 个</span></div>
-    <t-table row-key="id" :data="selected.mappings||[]" :columns="mappingColumns" hover table-layout="fixed" size="medium">
+    <section class="identity-mapping-section">
+     <h3 class="identity-mapping-section-title">基本信息</h3>
+     <DetailGrid :items="identityDetails"/>
+    </section>
+    <section class="identity-mapping-section">
+     <div class="identity-mapping-section-head"><h3 class="identity-mapping-section-title">子系统映射</h3><div class="identity-mappings-summary"><span>已关联 {{selected.boundCount??0}} 个</span><span>异常 {{selected.exceptionCount??0}} 个</span></div></div>
+    <t-table row-key="id" :data="mappingPaged" :columns="mappingColumns" hover table-layout="fixed" size="medium">
      <template #empty><EmptyState description="该用户暂无子系统账号映射"/></template>
      <template #operation="{row}"><div class="row-actions">
       <t-button v-if="canManage&&row.status==='BOUND'" size="small" variant="text" theme="primary" @click="$emit('unbind',row)">解绑</t-button>
@@ -30,6 +34,8 @@
       <span v-if="!canManage||!['BOUND','REVIEWING','CONFLICT'].includes(row.status)" class="muted">-</span>
      </div></template>
     </t-table>
+    <t-pagination v-if="selectedMappings.length" v-model="mappingPage" v-model:page-size="mappingPageSize" :total="selectedMappings.length" :page-size-options="[5,10,20]" show-jumper/>
+    </section>
    </template>
   </t-dialog>
  </section>
@@ -44,7 +50,7 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},canManage:Boolean,exceptionsOnly:Boolean});
 defineEmits(['unbind','resolve','approve','reject']);
-const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),selectedId=ref(null);
+const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),selectedId=ref(null),mappingPage=ref(1),mappingPageSize=ref(10);
 const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label:'政务用户'},{value:'LOCAL',label:'门户本地用户'}];
 const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'},{value:'门户本地',label:'门户本地'}];
 const mappingOptions=[{value:'bound',label:'已关联'},{value:'review',label:'待审核'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
@@ -57,6 +63,8 @@ const filtered=computed(()=>props.rows.filter(row=>{
 }));
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const selected=computed(()=>props.rows.find(row=>row.user.id===selectedId.value)||null);
+const selectedMappings=computed(()=>selected.value?.mappings||[]);
+const mappingPaged=computed(()=>selectedMappings.value.slice((mappingPage.value-1)*mappingPageSize.value,mappingPage.value*mappingPageSize.value));
 const identityDetails=computed(()=>{
  const user=selected.value?.user||{};
  return [['id','统一身份标识'],['name','姓名'],['account','帐号'],['orgName','所属单位'],['userType','用户类别'],['status','启用状态']].map(([key,title])=>({key,label:title,value:label(user[key])})).concat({key:'source',label:'身份来源',value:identitySource(user)});
@@ -83,6 +91,9 @@ const mappingColumns=[
 ];
 function resetFilters(){keyword.value='';userTypeFilter.value='';sourceFilter.value='';mappingFilter.value=props.exceptionsOnly?'exception':'';page.value=1;}
 function closeDialog(visible){if(!visible)selectedId.value=null;}
+watch(selectedId,()=>{mappingPage.value=1;});
+watch(mappingPageSize,()=>{mappingPage.value=1;});
+watch(()=>selectedMappings.value.length,()=>{mappingPage.value=Math.min(mappingPage.value,Math.max(1,Math.ceil(selectedMappings.value.length/mappingPageSize.value)));});
 watch([keyword,userTypeFilter,sourceFilter,mappingFilter,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 </script>
