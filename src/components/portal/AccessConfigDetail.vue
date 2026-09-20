@@ -14,7 +14,7 @@
       <div class="access-config-grid">
        <label class="access-field">
         <span>启用状态</span>
-        <div class="access-switch-line"><t-switch :value="forms[kind].enabled==='ENABLED'" @change="forms[kind].enabled=$event?'ENABLED':'DISABLED'"/><span>{{forms[kind].enabled==='ENABLED'?'启用':'停用'}}</span></div>
+        <div class="access-switch-line"><t-switch :value="forms[kind].enabled==='ENABLED'" @change="forms[kind].enabled=$event?'ENABLED':'DISABLED'"/></div>
        </label>
        <template v-if="kind==='SSO'">
         <label class="access-field"><span>协议</span><t-select v-model="forms[kind].protocol" :options="protocolOptions"/></label>
