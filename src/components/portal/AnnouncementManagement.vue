@@ -36,7 +36,7 @@
         <template #effectiveEnd="{row}">{{row.effectiveEnd?dateOnly(row.effectiveEnd):'永久有效'}}</template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
+            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(row.status)" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
             <t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openSubmit(row)">提交</t-button>
             <t-button v-if="['SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="danger" @click="withdraw(row)">撤回</t-button>
             <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(row.status)" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
