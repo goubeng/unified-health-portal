@@ -732,3 +732,43 @@
   font-weight:500!important;
   text-decoration:none!important;
 }
+
+
+/* 2026-09-21 unified compact prompt/alert baseline. */
+.portal-page .t-alert,
+.t-dialog__body .t-alert{
+  box-sizing:border-box!important;
+  min-height:32px!important;
+  padding:6px 10px!important;
+  font-size:13px!important;
+  line-height:20px!important;
+  border-radius:4px!important;
+}
+.portal-page .t-alert :is(.t-alert__message,.t-alert__description,.t-alert__content),
+.t-dialog__body .t-alert :is(.t-alert__message,.t-alert__description,.t-alert__content){
+  font-size:13px!important;
+  line-height:20px!important;
+}
+.portal-page .t-alert .t-alert__icon,
+.t-dialog__body .t-alert .t-alert__icon{
+  width:16px!important;
+  height:16px!important;
+  font-size:16px!important;
+}
+.portal-page .inline-note,
+.t-dialog__body .inline-note{
+  box-sizing:border-box!important;
+  min-height:32px!important;
+  padding:6px 10px!important;
+  font-size:13px!important;
+  line-height:20px!important;
+}
+.user-source-alert,
+.organization-source-alert,
+.role-permission-note,
+.dictionary-lock-alert,
+.binding-demo-alert,
+.portal-bind-feedback{
+  font-size:13px!important;
+  line-height:20px!important;
+}
