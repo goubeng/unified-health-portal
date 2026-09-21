@@ -26,7 +26,7 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的公告"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #title="{row}"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></template>
+        <template #title="{row}"><TableCellTooltip :text="text(row.title)"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></TableCellTooltip></template>
         <template #scope="{row}">{{label(row.scope)}}</template>
         <template #status="{row}"><t-tag :theme="statusTheme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
         <template #publishAt="{row}">
@@ -128,6 +128,7 @@ import {computed,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
 import AnnouncementEditPage from './AnnouncementEditPage.vue';
