@@ -832,3 +832,18 @@ test('其他应用卡片将应用类型与状态操作分行显示且初始账�
   assert(css.includes('.portal-app-result{display:flex;min-width:0;height:24px;align-items:center;gap:8px;margin-top:2px;white-space:nowrap}'));
   assert(css.includes('.portal-app-category{min-width:0;max-width:100%'));
 });
+
+
+test('公共详情网格自动补齐孤立半行且保持字段顺序',()=>{
+  const source=fs.readFileSync('src/components/portal/DetailGrid.vue','utf8');
+  assert(source.includes('v-for="item in normalizedItems"'));
+  assert(source.includes("'is-wide':item.resolvedWide"));
+  assert(source.includes('if(item.wide){'));
+  assert(source.includes('const resolvedWide=!next||Boolean(next.wide);'));
+  assert(source.includes('column=resolvedWide?0:1;'));
+});
+
+test('公共文本清洗不保留演示前缀产生的孤立冒号',()=>{
+  const source=fs.readFileSync('src/components/portal/presentation.js','utf8');
+  assert(source.includes("replace(/(?:模拟|演示|示例)\\s*[：:]\\s*/g,'')"));
+});
