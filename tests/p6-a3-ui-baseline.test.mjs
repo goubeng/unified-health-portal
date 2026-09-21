@@ -599,3 +599,12 @@ test('用户端首页我的应用应用中心链接进入可用应用中心路�
   assert(page.includes('<router-link to="/portal/apps/all">应用中心</router-link>'));
   assert(!page.includes('<router-link to="/portal/apps/mine">应用中心</router-link>'));
 });
+
+
+test('Vue源码不允许重复import声明',()=>{
+  for(const file of walk('src','.vue')){
+    const source=fs.readFileSync(file,'utf8');
+    const imports=source.split('\n').filter(line=>/^import\s+/.test(line.trim()));
+    assert.equal(new Set(imports).size,imports.length,file+' 存在重复import声明');
+  }
+});
