@@ -21,6 +21,7 @@
     <section class="panel portal-table-panel">
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的日志"/></template>
+        <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #resolutionStatus="{row}"><t-tag :theme="row.resolutionStatus==='RESOLVED'?'success':'warning'" variant="light">{{label(row.resolutionStatus||'OPEN')}}</t-tag></template>
         <template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'-'}}</button></template>
@@ -83,34 +84,40 @@ const filtered=computed(()=>{
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 
 const columns=computed(()=>{
+  const serial={colKey:'serial',title:'序号',width:64};
+  const requestId={colKey:'requestId',title:'请求ID',width:190,ellipsis:true};
   const commonStatus={colKey:'status',title:props.kind==='login'?'登录结果':'结果',width:100};
   const operation={colKey:'operation',title:'操作',width:100,fixed:'right'};
   if(props.kind==='login')return [
+    serial,requestId,
     {colKey:'createdAt',title:'登录时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},
     {colKey:'userName',title:'登录用户',width:120,ellipsis:true},{colKey:'account',title:'登录账号',width:150,ellipsis:true},
     {colKey:'userType',title:'用户类别',width:120,cell:(_,ctx)=>label(ctx.row.userType)},{colKey:'identitySource',title:'身份来源',width:120,cell:(_,ctx)=>label(ctx.row.identitySource)},
     {colKey:'loginSource',title:'登录来源',width:110},{colKey:'loginMethod',title:'登录方式',width:110,cell:(_,ctx)=>label(ctx.row.loginMethod)},
-    commonStatus,{colKey:'failureReason',title:'失败原因',minWidth:180,ellipsis:true},{colKey:'ip',title:'IP',width:130},{colKey:'client',title:'客户端',width:160,ellipsis:true},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
+    commonStatus,{colKey:'failureReason',title:'失败原因',minWidth:180,ellipsis:true},{colKey:'ip',title:'IP',width:130},{colKey:'client',title:'客户端',width:160,ellipsis:true}
   ];
   if(props.kind==='access')return [
+    serial,requestId,
     {colKey:'createdAt',title:'访问时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'userName',title:'用户',width:120},{colKey:'account',title:'账号',width:150},
     {colKey:'appName',title:'来源应用',minWidth:230,ellipsis:true},{colKey:'accessMode',title:'访问模式',width:110,cell:(_,ctx)=>label(ctx.row.accessMode)},commonStatus,
-    {colKey:'ip',title:'IP',width:130},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
+    {colKey:'ip',title:'IP',width:130}
   ];
   if(props.kind==='operation')return [
+    serial,requestId,
     {colKey:'createdAt',title:'操作时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'actor',title:'操作人',width:120},{colKey:'moduleName',title:'模块',width:130},
-    {colKey:'pageName',title:'页面',width:140},{colKey:'actionName',title:'操作动作',width:140},{colKey:'objectType',title:'对象类型',width:120},commonStatus,
-    {colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
+    {colKey:'pageName',title:'页面',width:140},{colKey:'actionName',title:'操作动作',width:140},{colKey:'objectType',title:'对象类型',width:120},commonStatus
   ];
   if(props.kind==='api')return [
+    serial,requestId,
     {colKey:'createdAt',title:'调用时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true},
     {colKey:'interfaceName',title:'接口',minWidth:250,ellipsis:true},{colKey:'httpMethod',title:'方法',width:90},{colKey:'statusCode',title:'状态码',width:90},
-    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true},commonStatus,{colKey:'requestId',title:'请求ID',width:190,ellipsis:true}
+    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true},commonStatus
   ];
   return [
+    serial,requestId,
     {colKey:'createdAt',title:'发生时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'severity',title:'级别',width:90,cell:(_,ctx)=>label(ctx.row.severity)},
     {colKey:'moduleName',title:'模块',width:130},{colKey:'errorCode',title:'错误编码',width:190,ellipsis:true},{colKey:'errorMessage',title:'异常信息',minWidth:260,ellipsis:true},
-    {colKey:'resolutionStatus',title:'处理状态',width:110},{colKey:'resolutionNote',title:'处理说明',minWidth:220,ellipsis:true},{colKey:'requestId',title:'请求ID',width:190,ellipsis:true},operation
+    {colKey:'resolutionStatus',title:'处理状态',width:110},{colKey:'resolutionNote',title:'处理说明',minWidth:220,ellipsis:true},operation
   ];
 });
 
