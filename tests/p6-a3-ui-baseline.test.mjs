@@ -457,7 +457,7 @@ test('主需求规格说明书作为唯一权威需求且功能清单保持模�
   assert(srs.includes('# 卫健统一门户系统需求规格说明书'));
   assert(srs.includes('当前唯一权威需求基线'));
   assert(srs.includes('## 30. 通知公告管理'));
-  assert(srs.includes('## 37. 通用交互与原型说明'));
+  assert(srs.includes('## 37. 通用交互要求'));
   assert(functionList.includes('| F-23 | 管理端 | 通知公告管理 |'));
   assert(functionList.includes('页面字段、状态、交互、业务规则等详细要求统一以《卫健统一门户系统需求规格说明书》为准'));
 });
