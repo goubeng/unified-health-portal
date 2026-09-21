@@ -201,11 +201,12 @@ async function saveBase(overrides={}){
 
 async function saveDraft(){
   if(saving.value)return;
+  const wasScheduled=isScheduled.value;
   saving.value=true;formError.value='';
   try{
     const saved=await saveBase({targetStatus:'DRAFT'});
     if(!saved)return;
-    MessagePlugin.success(isScheduled.value?'定时计划已取消，公告已保存为草稿':'公告草稿已保存');
+    MessagePlugin.success(wasScheduled?'定时计划已取消，公告已保存为草稿':'公告草稿已保存');
     emit('saved',saved);
     close();
   }catch(cause){formError.value=cause.message;}
