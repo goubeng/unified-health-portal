@@ -26,7 +26,7 @@
       </div>
 
       <div
-        v-if="isDraft||isScheduled"
+        v-if="isPublishEditable"
         class="announcement-publish-row"
         :class="{'is-scheduled':form.publishMode==='SCHEDULED'}"
       >
@@ -69,7 +69,7 @@
       <div class="announcement-form-actions">
         <t-button variant="outline" @click="close">取消</t-button>
         <t-button variant="outline" theme="primary" @click="openPreview">预览</t-button>
-        <template v-if="isDraft||isScheduled">
+        <template v-if="isPublishEditable">
           <t-button variant="outline" theme="primary" :loading="saving" @click="saveDraft">保存草稿</t-button>
           <t-button theme="primary" :loading="saving" @click="publishDraft">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>
         </template>
@@ -105,6 +105,8 @@ const previewVisible=ref(false),previewRecord=ref(null);
 
 const isDraft=computed(()=>form.status==='DRAFT');
 const isScheduled=computed(()=>form.status==='SCHEDULED');
+const isWithdrawn=computed(()=>form.status==='WITHDRAWN');
+const isPublishEditable=computed(()=>isDraft.value||isScheduled.value||isWithdrawn.value);
 
 const typeOptions=computed(()=>{
   const items=props.typeItems.filter(item=>item.typeCode==='announcement_type'&&item.status==='ENABLED');
@@ -130,7 +132,8 @@ function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T
 function assign(record){
   Object.keys(form).forEach(key=>delete form[key]);
   Object.assign(form,JSON.parse(JSON.stringify(record||{})));
-  if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE';
+  if(form.status==='WITHDRAWN'){form.publishMode='IMMEDIATE';form.scheduledPublishAt='';}
+  else if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE';
   if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
   if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
   uploadFiles.value=(form.attachments||[]).map(file=>({
@@ -141,7 +144,7 @@ function assign(record){
 }
 watch(()=>props.record,record=>{if(record)assign(record);},{immediate:true,deep:true});
 watch(()=>props.visible,value=>{if(value&&props.record)assign(props.record);});
-watch(()=>form.publishMode,value=>{if((isDraft.value||isScheduled.value)&&value!=='SCHEDULED')form.scheduledPublishAt='';});
+watch(()=>form.publishMode,value=>{if(isPublishEditable.value&&value!=='SCHEDULED')form.scheduledPublishAt='';});
 
 function updateVisible(value){emit('update:visible',value);}
 function close(){emit('update:visible',false);}
@@ -201,12 +204,12 @@ async function saveBase(overrides={}){
 
 async function saveDraft(){
   if(saving.value)return;
-  const wasScheduled=isScheduled.value;
+  const wasScheduled=isScheduled.value,wasWithdrawn=isWithdrawn.value;
   saving.value=true;formError.value='';
   try{
     const saved=await saveBase({targetStatus:'DRAFT'});
     if(!saved)return;
-    MessagePlugin.success(wasScheduled?'定时计划已取消，公告已保存为草稿':'公告草稿已保存');
+    MessagePlugin.success(wasScheduled?'定时计划已取消，公告已保存为草稿':wasWithdrawn?'已撤回公告已转为草稿':'公告草稿已保存');
     emit('saved',saved);
     close();
   }catch(cause){formError.value=cause.message;}
