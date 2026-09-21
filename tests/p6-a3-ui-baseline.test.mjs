@@ -866,3 +866,12 @@ test('其他应用状态标签文字统一为12px',()=>{
   assert(source.includes('class="portal-app-status-tag"'));
   assert(css.includes('.portal-page .portal-app-result .portal-app-status-tag,.portal-page .portal-app-result .portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}'));
 });
+
+
+test('应用中心分组统计仅数字增加字重',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span>'));
+  assert(css.includes('.portal-section-count{font-size:13px!important;font-weight:500!important;color:#1d2129!important}'));
+  assert(css.includes('.portal-section-count-number{font-weight:600!important}'));
+});
