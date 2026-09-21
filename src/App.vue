@@ -44,6 +44,7 @@ import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyI
 import {pages,can,scopes,labels} from './config/pages.js';
 import {actor,availableUsers,portal,revision,login,logout} from './services/runtime.js';
 import PortalTooltip from './components/portal/PortalTooltip.vue';
+import PortalTooltip from './components/portal/PortalTooltip.vue';
 const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false),switching=ref(false);
 const admin=computed(()=>route.path.startsWith('/admin'));
 const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim();
