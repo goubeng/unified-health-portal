@@ -326,7 +326,7 @@ const filtered=computed(()=>{
  const term=search.value.trim().toLowerCase();
  const keywordFields=querySpec.value.keywordFields||[];
  return rows.value.filter(row=>{
-  const matchesFilters=queryFilters.value.every(filter=>{const selected=filterValues[filter.key];return !selected||String(row[filter.key]??'')===String(selected);});
+  const matchesFilters=queryFilters.value.every(filter=>{const selected=filterValues[filter.key];if(!selected)return true;const actual=String(row[filter.key]??'');if(filter.key==='userType'&&['apps','mine'].includes(listResource.value)){if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual);if(selected==='GOV')return ['GOV','BOTH'].includes(actual);}return actual===String(selected);});
   const matchesKeyword=!term||keywordFields.some(key=>display(key,row[key]).toLowerCase().includes(term));
   return matchesFilters&&matchesKeyword;
  }).sort((a,b)=>'sortOrder'in a?(a.sortOrder||0)-(b.sortOrder||0):(Date.parse(b.publishedAt||b.createdAt)||0)-(Date.parse(a.publishedAt||a.createdAt)||0));
@@ -343,7 +343,7 @@ const hasOperations=computed(()=>['apps','categories','users','roles','todos','m
 const columnTitle=(key)=>{
  const resourceKey=listResource.value;
  const overrides={
-  apps:{name:'应用名称',code:'应用编码',status:'启用状态'},
+  apps:{name:'应用名称',code:'应用编码',userType:'适用用户',status:'启用状态'},
   categories:{status:'启用状态'},
   users:{name:'姓名',status:'启用状态'},
   identities:{status:'启用状态'},
