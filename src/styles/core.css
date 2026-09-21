@@ -152,7 +152,7 @@
 
 /* 2026-09-18 latest-full-package follow-up */
 /* Login: restore a clean white login area; QR flow has no redundant login button. */
-.login-card{background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:28px 32px!important}
+.login-card{background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:28px 42px!important}
 .qr-frame-button.is-success .qr-frame{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important}.qr-frame-button.is-success .qr-frame .t-icon{width:48px!important;height:48px!important;font-size:48px!important}.qr-frame-button.is-success .qr-frame span{margin-top:0!important;font-size:13px!important}
 
 /* Personal profile: account area is compact and user category is rendered as TDesign tag by component slot. */
@@ -571,7 +571,7 @@
 
 
 /* Local admin demo form: fields are visual only in phase A. */
-.local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
+.local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.login-submit{height:40px!important;min-height:40px!important}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
 
 /* App center: normal usable apps do not repeat status; exceptional/other app state tags are 12px. */
 .portal-page .portal-app-result .portal-app-status-tag,.portal-page .portal-app-result .portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}
