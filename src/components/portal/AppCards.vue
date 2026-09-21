@@ -41,17 +41,20 @@ function stateText(app){
 }
 function stateTheme(state){
  if(['BOUND'].includes(state))return 'success';
- if(['CONFLICT','FAILED','APP_DISABLED'].includes(state))return 'danger';
+ if(['CONFLICT','FAILED','APP_DISABLED','REQUEST_REJECTED'].includes(state))return 'danger';
  if(['VERIFYING','REVIEWING','REQUEST_PENDING'].includes(state))return 'warning';
  return 'default';
 }
 function buttonText(app){
+ if(app.accessState==='REQUEST_REJECTED')return '查看原因';
  return {
   ENTER:'进入应用',
   BIND:'完成账号确认',
   CONTINUE_BIND:'继续处理',
   VIEW_BINDING:'查看进度',
+  VIEW_REASON:'查看原因',
   VIEW_CONFLICT:'查看原因',
+  RETRY_BIND:'重新处理',
   REQUEST:'申请使用',
   VIEW_REQUEST:'查看申请'
  }[app.primaryAction]||'';
@@ -62,7 +65,7 @@ function buttonDisabled(app){
  return false;
 }
 function trigger(app){
- const events={ENTER:'enter',BIND:'bind',CONTINUE_BIND:'bind',VIEW_BINDING:'view-binding',VIEW_CONFLICT:'view-conflict',REQUEST:'request',VIEW_REQUEST:'view-request'};
+ const events={ENTER:'enter',BIND:'bind',CONTINUE_BIND:'bind',RETRY_BIND:'bind',VIEW_BINDING:'view-binding',VIEW_REASON:'view-binding',VIEW_CONFLICT:'view-conflict',REQUEST:'request',VIEW_REQUEST:'view-request'};
  const event=events[app.primaryAction];if(event)emit(event,app);
 }
 </script>
