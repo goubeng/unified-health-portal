@@ -118,7 +118,7 @@
      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
       <template #empty><EmptyState description="暂无符合条件的记录"/></template>
       <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-      <template #primary="{row}"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></template>
+      <template #primary="{row}"><TableCellTooltip :text="text(row[primaryField])||'-'"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></TableCellTooltip></template>
       <template v-if="resource==='apps'" #status="{row}"><t-switch :value="row.status==='ENABLED'" @change="toggleAppStatus(row,$event)"/></template>
       <template #operation="{row}"><div class="row-actions">
        <template v-if="resource==='apps'&&admin&&can(actor,'application')"><t-button size="small" variant="text" theme="primary" @click="openForm('saveApp',row)">编辑</t-button><t-button size="small" variant="text" theme="primary" @click="openConnectionConfig(row)">连接配置</t-button></template>
@@ -164,6 +164,7 @@
 
 <script setup>
 import EmptyState from '../components/portal/EmptyState.vue';
+import TableCellTooltip from '../components/portal/TableCellTooltip.vue';
 import {computed,h,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
@@ -366,7 +367,7 @@ const columnWidth=(key,index)=>{
 };
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
- ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='status'?undefined:(_,context)=>['status','runtimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):display(key,context.row[key])})),
+ ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='status'?undefined:(_,context)=>['status','runtimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
  ...(hasOperations.value?[{colKey:'operation',title:'操作',width:200,fixed:'right'}]:[])
 ]);
 const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement',roles:'saveSystemRole'})[resource.value]);
