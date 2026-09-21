@@ -39,13 +39,15 @@ test('登录页不恢复冗余演示提示且身份页签字重与间距固定',
   assert(css.includes('.identity-pill>span{display:inline-block;position:relative;padding:0 2px 9px;font-size:18px;font-weight:500;line-height:1.35}'));
 });
 
-test('消息中心头部只显示未读总数且数量加粗',()=>{
+test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
   const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes('（共<span>{{ unreadCount }}</span>封未读）'));
-  assert(!source.includes('其中<span>{{ unreadCount }}</span>封未读'));
+  assert(source.includes('class="portal-title-count"'));
+  assert(source.includes('class="portal-title-count-number">{{ unreadCount }}</span>封未读）'));
+  assert(!source.includes('message-header-count'));
   assert(!source.includes('共{{ rows.length }}封'));
-  assert(css.includes('.message-header-count>span{color:#e34d59;font-weight:600}'));
+  assert(css.includes('.portal-title-count{font-size:13px!important;font-weight:400!important;color:#344054!important}'));
+  assert(css.includes('.portal-title-count-number{color:#e34d59!important;font-weight:600!important}'));
 });
 
 test('系统内容区链接统一13px常规蓝色且首页未读不再加粗',()=>{
