@@ -24,7 +24,7 @@
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #resolutionStatus="{row}"><t-tag :theme="row.resolutionStatus==='RESOLVED'?'success':'warning'" variant="light">{{label(row.resolutionStatus||'OPEN')}}</t-tag></template>
-        <template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'-'}}</button></template>
+        <template #requestId="{row}"><TableCellTooltip :text="text(row.requestId)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'-'}}</button></TableCellTooltip></template>
         <template #operation="{row}">
           <div class="row-actions">
             <t-button v-if="kind==='error'&&row.resolutionStatus!=='RESOLVED'" size="small" variant="text" theme="primary" @click="openResolve(row)">处理</t-button>
@@ -55,6 +55,7 @@ import {computed,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
