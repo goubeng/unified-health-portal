@@ -787,3 +787,10 @@ test('申请列表状态筛选按访问申请和账号开通申请分别提供',
   assert(page.includes("fixedOptions(['PENDING','PROCESSING','COMPLETED'])"));
   assert(page.includes("if(key==='myApplicationRequests')"));
 });
+
+
+test('字典管理左右卡片顶部严格对齐',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.panel+.panel{margin-top:16px}'));
+  assert(css.includes('.dictionary-layout>.panel{margin-top:0}'));
+});
