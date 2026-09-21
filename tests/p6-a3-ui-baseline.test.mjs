@@ -858,3 +858,11 @@ test('应用中心我的应用和其他应用固定每页20条',()=>{
   assert(!center.includes(':page-size-options'));
   assert(!center.includes('@page-size-change'));
 });
+
+
+test('其他应用状态标签文字统一为12px',()=>{
+  const source=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="portal-app-status-tag"'));
+  assert(css.includes('.portal-page .portal-app-result .portal-app-status-tag,.portal-page .portal-app-result .portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}'));
+});
