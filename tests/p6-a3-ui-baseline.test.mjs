@@ -338,14 +338,16 @@ test('新增公告仅定时发布时显示定时发布时间且失效日期按�
   assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
 });
 
-test('新增草稿定时发布共用发布布局且草稿和定时编辑共用双操作按钮',()=>{
+test('新增草稿定时发布和已撤回编辑共用发布布局与操作按钮',()=>{
   const create=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes("const isDraft=computed(()=>form.status==='DRAFT')"));
   assert(source.includes("const isScheduled=computed(()=>form.status==='SCHEDULED')"));
-  assert(source.includes('v-if="isDraft||isScheduled"'));
-  assert(source.includes('<template v-if="isDraft||isScheduled">'));
+  assert(source.includes("const isWithdrawn=computed(()=>form.status==='WITHDRAWN')"));
+  assert(source.includes('const isPublishEditable=computed(()=>isDraft.value||isScheduled.value||isWithdrawn.value)'));
+  assert(source.includes('v-if="isPublishEditable"'));
+  assert(source.includes('<template v-if="isPublishEditable">'));
   assert(source.includes('v-model="form.publishMode"'));
   assert(source.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
   assert(source.includes("if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE'"));
@@ -501,13 +503,20 @@ test('运行监控详情使用单表展示接入配置与运行健康且不显�
 });
 
 
-test('折叠菜单使用TDesign Tooltip而非原生title',()=>{
+test('系统提示统一复用PortalTooltip而非原生title',()=>{
   const source=fs.readFileSync('src/App.vue','utf8');
+  const tooltip=fs.readFileSync('src/components/portal/PortalTooltip.vue','utf8');
   const nav=source.split('<nav class="menu-wrap"')[1]?.split('</nav>')[0]||'';
-  assert(nav.includes('<t-tooltip'));
+  assert(tooltip.includes('<t-tooltip'));
+  assert(nav.includes('<PortalTooltip'));
   assert(nav.includes('placement="right"'));
   assert(nav.includes(':disabled="!collapsed"'));
-  assert(!nav.includes(':title="collapsed?'));
+  assert(source.includes('<PortalTooltip content="消息中心" placement="bottom">'));
+  assert(source.includes(":content=\"collapsed?'展开菜单':'收起菜单'\""));
+  for(const file of walk('src','.vue')){
+    const vue=fs.readFileSync(file,'utf8');
+    assert(!/(?:^|[\s<]):?title\s*=\s*(?:\"[^\"]*\"|'[^']*')/m.test(vue),file+' 仍存在原生title提示');
+  }
 });
 
 test('页面数据完成前只显示Loading不渲染Empty业务内容',()=>{
@@ -568,4 +577,25 @@ test('身份与子系统映射详情分区加宽并提供子系统分页',()=>{
   assert(source.includes('v-model="mappingPage"'));
   assert(source.includes('v-model:page-size="mappingPageSize"'));
   assert(source.includes(':total="selectedMappings.length"'));
+});
+
+
+test('所有列表空态统一使用nopic公共组件且通用列表不回退纯文字empty',()=>{
+  const empty=fs.readFileSync('src/components/portal/EmptyState.vue','utf8');
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const message=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const todo=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  assert(empty.includes("import nopic from '../../assets/nopic.svg'"));
+  assert(empty.includes('<img :src="nopic"'));
+  assert(page.includes('<template #empty><EmptyState description="暂无符合条件的记录"/></template>'));
+  assert(page.includes("resource==='accountOpeningRequests'"));
+  assert(!page.includes('empty="暂无符合条件的记录"'));
+  assert(!message.includes('empty="暂无符合条件的消息"'));
+  assert(!todo.includes('empty="暂无符合条件的待办"'));
+});
+
+test('用户端首页我的应用应用中心链接进入可用应用中心路由',()=>{
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(page.includes('<router-link to="/portal/apps/all">应用中心</router-link>'));
+  assert(!page.includes('<router-link to="/portal/apps/mine">应用中心</router-link>'));
 });
