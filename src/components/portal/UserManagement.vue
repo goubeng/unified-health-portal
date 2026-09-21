@@ -53,13 +53,13 @@
     </section>
 
     <t-dialog v-model:visible="detailVisible" placement="center" header="用户详情" width="760px" :footer="false">
-      <DetailGrid v-if="detail" :items="detailItems"/>
       <t-alert v-if="detail?.userType!=='LOCAL'" theme="info" class="user-source-alert">
         姓名、账号、用户类别和身份来源等权威身份字段来自{{detail?.identitySource||source(detail)}}，门户不修改上游身份主数据。
       </t-alert>
       <t-alert v-else theme="info" class="user-source-alert">
         门户本地用户由本系统维护；密码与密码Hash不在页面/API中展示。
       </t-alert>
+      <DetailGrid v-if="detail" :items="detailItems"/>
     </t-dialog>
 
     <t-dialog
