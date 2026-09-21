@@ -621,4 +621,6 @@ test('用户详情来源提示显示在详情网格上方',()=>{
   const dialog=source.split('header="用户详情"')[1]?.split('</t-dialog>')[0]||'';
   assert(dialog.indexOf('class="user-source-alert"')>=0);
   assert(dialog.indexOf('class="user-source-alert"')<dialog.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>'));
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.user-source-alert + .portal-detail-grid{margin-top:14px}'));
 });
