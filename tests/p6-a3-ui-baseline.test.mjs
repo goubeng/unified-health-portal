@@ -653,3 +653,10 @@ test('编辑外部用户边界说明使用统一提示框',()=>{
   assert(!source.includes('<p class="muted">外部身份字段只读'));
   assert(css.includes('.user-external-edit-alert{margin-top:14px!important}'));
 });
+
+
+test('子系统映射标题到表格的视觉间距与基本信息一致',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.identity-mapping-section-title{margin:0 0 10px'));
+  assert(css.includes('.identity-mapping-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:5px}'));
+});
