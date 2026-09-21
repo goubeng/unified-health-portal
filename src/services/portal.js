@@ -401,8 +401,9 @@ export function createPortalService(provider,getActor){
      if(effectiveStatus!=='WITHDRAWN'&&p.effectiveEnd&&Date.parse(p.effectiveEnd)<=Date.parse(now))fail('VALIDATION_ERROR','失效时间必须晚于当前时间');
      Object.assign(x,{title:p.title.trim(),content:p.content.trim(),type:p.type||'通知',scope:p.scope,effectiveEnd:p.effectiveEnd||null,attachments:p.attachments||[]});
      if(p.targetStatus==='DRAFT'){
-      if(!['DRAFT','SCHEDULED'].includes(effectiveStatus))fail('INVALID_TRANSITION','仅草稿或定时发布公告可以保存为草稿');
-      x.status='DRAFT';x.publishMode=null;x.scheduledPublishAt=null;x.publishedAt=null;
+      if(!['DRAFT','SCHEDULED','WITHDRAWN'].includes(effectiveStatus))fail('INVALID_TRANSITION','仅草稿、定时发布或已撤回公告可以保存为草稿');
+      x.status='DRAFT';x.publishMode=null;x.scheduledPublishAt=null;x.publishedAt=null;x.submittedAt=null;x.submittedBy=null;
+      x.withdrawnAt=null;x.withdrawnBy=null;x.withdrawReason='';
      }else if(effectiveStatus==='SCHEDULED'&&p.scheduledPublishAt!==undefined){
       if(!p.scheduledPublishAt||Date.parse(p.scheduledPublishAt)<=Date.parse(now))fail('VALIDATION_ERROR','定时发布时间必须晚于当前时间');
       if(x.effectiveEnd&&Date.parse(p.scheduledPublishAt)>=Date.parse(x.effectiveEnd))fail('VALIDATION_ERROR','定时发布时间必须早于失效日期当天23:59:59');
@@ -414,13 +415,15 @@ export function createPortalService(provider,getActor){
     }else if(action==='submitAnnouncement'||action==='publish'){
      const x=requireRow(d.announcements,p.id,p.version);
      if(action==='publish'&&x.status!=='DRAFT')fail('INVALID_TRANSITION','仅草稿公告可以直接发布');
-     if(action==='submitAnnouncement'&&!['DRAFT','SCHEDULED'].includes(x.status))fail('INVALID_TRANSITION','仅草稿或定时发布公告可以调整发布方式');
+     if(action==='submitAnnouncement'&&!['DRAFT','SCHEDULED','WITHDRAWN'].includes(x.status))fail('INVALID_TRANSITION','仅草稿、定时发布或已撤回公告可以调整发布方式');
      if(x.effectiveEnd&&Date.parse(x.effectiveEnd)<=Date.parse(now))fail('VALIDATION_ERROR','公告失效时间已到');
      const publishMode=action==='publish'?'IMMEDIATE':p.publishMode;
      if(!['IMMEDIATE','SCHEDULED'].includes(publishMode))fail('VALIDATION_ERROR','请选择立即发布或定时发布');
      if(publishMode==='SCHEDULED'&&(!p.scheduledPublishAt||Date.parse(p.scheduledPublishAt)<=Date.parse(now)))fail('VALIDATION_ERROR','定时发布时间必须晚于当前时间');
      if(publishMode==='SCHEDULED'&&x.effectiveEnd&&Date.parse(p.scheduledPublishAt)>=Date.parse(x.effectiveEnd))fail('VALIDATION_ERROR','定时发布时间必须早于失效日期当天23:59:59');
-     x.publishMode=publishMode;x.submittedAt=x.submittedAt||now;x.submittedBy=x.submittedBy||a.id;x.publisherId=a.id;
+     const resubmitting=x.status==='WITHDRAWN';
+     x.publishMode=publishMode;x.submittedAt=resubmitting?now:(x.submittedAt||now);x.submittedBy=resubmitting?a.id:(x.submittedBy||a.id);x.publisherId=a.id;
+     if(resubmitting){x.withdrawnAt=null;x.withdrawnBy=null;x.withdrawReason='';}
      if(publishMode==='IMMEDIATE'){x.status='PUBLISHED';x.publishedAt=now;x.scheduledPublishAt=null;}
      else{x.status='SCHEDULED';x.scheduledPublishAt=p.scheduledPublishAt;x.publishedAt=null;}
      result=stamp(x);
