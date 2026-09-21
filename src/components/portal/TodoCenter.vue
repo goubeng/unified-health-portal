@@ -18,7 +18,7 @@
     </section>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium" empty="暂无符合条件的待办">
+      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的待办"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}">
