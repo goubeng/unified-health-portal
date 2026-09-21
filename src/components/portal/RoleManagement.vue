@@ -20,7 +20,7 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的角色"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #roleCode="{row}"><button class="portal-field-link" @click="openEdit(row)">{{text(row.roleCode)}}</button></template>
+        <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openEdit(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
         <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #builtIn="{row}"><t-tag v-if="row.builtIn" variant="light">内置</t-tag><span v-else>自定义</span></template>
         <template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>
@@ -91,6 +91,7 @@
 import {computed,reactive,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
