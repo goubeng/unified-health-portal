@@ -174,6 +174,21 @@ test('详情入口使用业务字段，不在操作列重复显示详情',()=>{
   assert(!logs.includes('>详情</t-button>'));
 });
 
+test('角色更新时间格式与日志首列详情入口保持规范',()=>{
+  const role=fs.readFileSync('src/components/portal/RoleManagement.vue','utf8');
+  const logs=fs.readFileSync('src/components/portal/LogManagement.vue','utf8');
+  assert(role.includes('<template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>'));
+  assert(role.includes("function roleUpdatedAt(value){"));
+  assert(role.includes("d.getFullYear()"));
+  assert(role.includes("d.getMonth()+1"));
+  assert(role.includes("pad(d.getHours())"));
+  assert(logs.includes('<template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>'));
+  assert(logs.includes("const serial={colKey:'serial',title:'序号',width:64};"));
+  assert(logs.includes("const requestId={colKey:'requestId',title:'请求ID',width:190,ellipsis:true};"));
+  assert.equal((logs.match(/serial,requestId,/g)||[]).length,5);
+  assert(logs.includes('<template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">'));
+});
+
 test('全系统TDesign开关统一使用默认无文字样式',()=>{
   for(const file of walk('src','.vue')){
     const source=fs.readFileSync(file,'utf8');
