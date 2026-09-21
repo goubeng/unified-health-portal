@@ -708,3 +708,18 @@ test('组织详情来源提示显示在详情网格上方并与用户详情同�
   assert(css.includes('.user-detail-source-alert,.organization-detail-source-alert{margin:0 0 14px!important}'));
   assert(css.includes('.user-detail-source-alert + .portal-detail-grid,.organization-detail-source-alert + .portal-detail-grid{margin-top:0}'));
 });
+
+
+test('字典管理左右头部对齐且类型信息单行展示',()=>{
+  const source=fs.readFileSync('src/components/portal/DictionaryManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="dictionary-type-summary"'));
+  assert(source.includes('class="dictionary-type-edit-button"'));
+  assert(source.includes('variant="outline" theme="primary"'));
+  assert(source.includes('{{selectedType?.description||\'请选择左侧字典类型\'}}'));
+  assert(source.includes("selectedType.status==='ENABLED'?'success':'default'"));
+  assert(css.includes('.dictionary-types-panel>.section-head,.dictionary-items-head{min-height:32px;margin-bottom:12px}'));
+  assert(css.includes('.dictionary-type-summary{display:flex;min-width:0;align-items:center;gap:10px;flex-wrap:wrap}'));
+  assert(css.includes('.dictionary-lock-alert{margin:0 0 14px!important}'));
+  assert(css.includes('.dictionary-query{margin-top:0;margin-bottom:16px}'));
+});
