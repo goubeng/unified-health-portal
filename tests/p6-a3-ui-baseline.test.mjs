@@ -882,3 +882,14 @@ test('登录框内容左右增加10px留白且登录按钮加高',()=>{
   assert(css.includes('.login-card{background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:28px 42px!important}'));
   assert(css.includes('.login-submit{height:40px!important;min-height:40px!important}'));
 });
+
+
+test('登录二维码缩小并与直角边框居中对齐',()=>{
+  const source=fs.readFileSync('src/views/Login.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="login-qrcode"'));
+  assert(source.includes(':size="176"'));
+  assert(css.includes('.qr-frame{width:196px;height:196px;border-radius:0}'));
+  assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
+  assert(css.includes('.login-qrcode,.login-qrcode .t-qrcode__image,.login-qrcode svg{display:block!important;margin:auto!important}'));
+});
