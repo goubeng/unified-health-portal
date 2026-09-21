@@ -50,20 +50,18 @@ test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
   assert(css.includes('.portal-title-count-number{color:#e34d59!important;font-weight:600!important}'));
 });
 
-test('首页业务标题与应用系统名称统一为500且应用名称保持黑色',()=>{
+test('首页待办公告消息标题链接使用同一规则且未读状态不改变样式',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(!/portal-page \.portal-field-link(?:\.is-unread|\.is-attention)?\{[^}]*font-weight:600/i.test(css));
-  assert(css.includes('/* 2026-09-20 global content-link typography normalization. */'));
-  assert(css.includes('.portal-page a,'));
-  assert(css.includes('.portal-page .portal-field-link.is-unread,'));
-  assert(!css.includes('.portal-page .portal-app-name,\n.portal-page .message-title-link,'));
-  assert(css.includes('.portal-page .section-head a,'));
+  assert(css.includes('/* 2026-09-21 home feed title links: todo / announcement / message use one rule, including unread states. */'));
+  assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link,'));
+  assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link.is-unread,'));
+  assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link.is-attention{'));
   assert(css.includes('color:#0052d9!important;'));
+  assert(css.includes('font-size:13px!important;'));
+  assert(css.includes('font-weight:500!important;'));
+  assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link.is-unread:hover,'));
   assert(css.includes('color:#003cab!important;'));
   assert(css.includes('text-decoration:underline!important;'));
-  assert(css.includes('/* 2026-09-21 home feed titles and application names share the same medium weight. */'));
-  assert(css.includes('.portal-page .portal-home-feeds .portal-field-link{'));
-  assert(css.includes('font-weight:500!important;'));
   assert(css.includes('.portal-page .portal-app-name,'));
   assert(css.includes('color:#1f2329!important;'));
 });
@@ -363,11 +361,21 @@ test('新增草稿定时发布共用发布布局且草稿和定时编辑共用�
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
 });
 
-test('侧边菜单使用500字重且顶部折叠图标增强粗细',()=>{
+test('侧边菜单与折叠控件对齐office-house当前样式',()=>{
+  const source=fs.readFileSync('src/App.vue','utf8');
   const css=fs.readFileSync('src/styles/layout.css','utf8');
-  assert(css.includes('.menu-item{height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#394150;border-radius:4px;margin:2px 0;white-space:nowrap;font-weight:500}'));
-  assert(css.includes('.collapse-button .t-icon{width:18px!important;height:18px!important;font-size:18px!important;filter:drop-shadow(.35px 0 0 currentColor) drop-shadow(-.35px 0 0 currentColor)}'));
-  assert(css.includes('.topbar-icon-button .t-icon{width:16px!important;height:16px!important;font-size:16px!important}'));
+  assert(source.includes('<t-button class="collapse-button" shape="square" variant="text"'));
+  assert(source.includes('<template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template>'));
+  assert(css.includes('.menu-wrap{height:100%;padding:10px 8px;overflow:auto;overflow-x:hidden;flex:1}'));
+  assert(css.includes('.menu-wrap.collapsed{padding:10px 7px}'));
+  assert(css.includes('.menu-group{box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px'));
+  assert(css.includes('font-size:13px;font-weight:600;letter-spacing:.04em'));
+  assert(css.includes('.menu-item{box-sizing:border-box;width:100%;height:36px;display:flex;align-items:center;gap:10px;padding:0 10px 0 12px'));
+  assert(css.includes('.menu-item.active{background:#e9edff;color:#2454ff;font-weight:500}'));
+  assert(css.includes('.collapsed .aside{width:48px;background:#f8fafc}'));
+  assert(css.includes('.menu-wrap.collapsed .menu-item{width:32px;height:32px;justify-content:center;margin:0 auto 6px;padding:0;overflow:visible}'));
+  assert(!css.includes('drop-shadow(.35px 0 0 currentColor)'));
+  assert(!css.includes('.collapse-button .t-icon{width:18px!important'));
 });
 
 test('折叠菜单为主要页面和五类日志显式分配可区分图标',()=>{
