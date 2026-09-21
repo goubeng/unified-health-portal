@@ -24,10 +24,19 @@ test('所有TDesign业务弹窗显式垂直居中',()=>{
   }
 });
 
-test('登录页不恢复滑块下方冗余提示',()=>{
+test('登录页不恢复冗余演示提示且身份页签字重与间距固定',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(!source.includes('slide-verification-tip'));
   assert(!source.includes('按住滑块向右拖动'));
+  assert(!source.includes('管理账号当前仅用于原型演示'));
+  assert(!source.includes('演示验证码仅用于页面展示'));
+  assert(!source.includes('演示账号默认：admin01'));
+  assert(!source.includes('密码和验证码可任意填写或保持默认值'));
+  assert(!source.includes('当前演示管理账号不可用'));
+  assert(css.includes('.login-identity-switch{justify-content:space-around;align-items:flex-end;gap:32px;padding:0 22px;margin-top:10px!important}'));
+  assert(css.includes('.identity-pill{font-size:18px!important;font-weight:500!important'));
+  assert(css.includes('.identity-pill>span{display:inline-block;position:relative;padding:0 2px 9px;font-size:18px;font-weight:500;line-height:1.35}'));
 });
 
 test('消息中心头部只显示未读总数且数量加粗',()=>{
