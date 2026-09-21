@@ -710,22 +710,25 @@
 }
 
 
-/* 2026-09-21 app names are clickable black text; home feed links share the same weight. */
+/* 2026-09-21 home feed titles and application names share the same medium weight. */
 .portal-page .portal-home-feeds .portal-field-link{
   font-size:13px!important;
-  font-weight:400!important;
+  font-weight:500!important;
+}
+.portal-page .portal-home-feeds .portal-field-link:hover{
+  font-weight:500!important;
 }
 .portal-page .portal-app-name,
 .portal-page .portal-app-info .portal-app-name{
   color:#1f2329!important;
   font-size:13px!important;
-  font-weight:400!important;
+  font-weight:500!important;
   line-height:22px!important;
   text-decoration:none!important;
 }
 .portal-page .portal-app-name:hover,
 .portal-page .portal-app-info .portal-app-name:hover{
   color:#1f2329!important;
-  font-weight:400!important;
+  font-weight:500!important;
   text-decoration:none!important;
 }
