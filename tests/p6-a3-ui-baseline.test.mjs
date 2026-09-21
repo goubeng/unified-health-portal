@@ -503,6 +503,12 @@ test('运行监控详情使用单表展示接入配置与运行健康且不显�
 });
 
 
+
+
+test('鼠标悬浮Tooltip提示文字统一为12px',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.t-tooltip .t-popup__content{font-size:12px!important;}'));
+});
 test('系统提示统一复用PortalTooltip而非原生title',()=>{
   const source=fs.readFileSync('src/App.vue','utf8');
   const tooltip=fs.readFileSync('src/components/portal/PortalTooltip.vue','utf8');
