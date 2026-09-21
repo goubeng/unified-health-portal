@@ -398,14 +398,18 @@ export function createPortalService(provider,getActor){
      if(!p.title?.trim()||!p.content?.trim())fail('VALIDATION_ERROR','标题和正文不能为空');if(!['ALL','CITIZEN','GOV'].includes(p.scope))fail('VALIDATION_ERROR','当前公告发布范围仅支持全部/公众/政务');
      if(p.effectiveEnd&&Date.parse(p.effectiveEnd)<=Date.parse(now))fail('VALIDATION_ERROR','失效时间必须晚于当前时间');
      const x=p.id?requireRow(d.announcements,p.id,p.version):{id:id(),version:0,createdAt:now,status:'DRAFT',publishMode:null,submittedAt:null,submittedBy:null,publishedAt:null,scheduledPublishAt:null};
-     const effectiveStatus=announcementStatus(x,Date.parse(now));if(['WITHDRAWN','EXPIRED'].includes(effectiveStatus))fail('INVALID_TRANSITION','已撤回或已失效公告不可编辑');
+     const effectiveStatus=announcementStatus(x,Date.parse(now));if(effectiveStatus==='EXPIRED')fail('INVALID_TRANSITION','已过期公告不可编辑');
      Object.assign(x,{title:p.title.trim(),content:p.content.trim(),type:p.type||'通知',scope:p.scope,effectiveEnd:p.effectiveEnd||null,attachments:p.attachments||[]});
-     if(effectiveStatus==='SCHEDULED'&&p.scheduledPublishAt!==undefined){
+     if(p.targetStatus==='DRAFT'){
+      if(!['DRAFT','SCHEDULED'].includes(effectiveStatus))fail('INVALID_TRANSITION','仅草稿或定时发布公告可以保存为草稿');
+      x.status='DRAFT';x.publishMode=null;x.scheduledPublishAt=null;x.publishedAt=null;
+     }else if(effectiveStatus==='SCHEDULED'&&p.scheduledPublishAt!==undefined){
       if(!p.scheduledPublishAt||Date.parse(p.scheduledPublishAt)<=Date.parse(now))fail('VALIDATION_ERROR','定时发布时间必须晚于当前时间');
       if(x.effectiveEnd&&Date.parse(p.scheduledPublishAt)>=Date.parse(x.effectiveEnd))fail('VALIDATION_ERROR','定时发布时间必须早于失效日期当天23:59:59');
       x.scheduledPublishAt=p.scheduledPublishAt;
      }
      if(effectiveStatus==='PUBLISHED'){x.status='PUBLISHED';x.lastEditedAt=now;x.lastEditedBy=a.id;}
+     if(effectiveStatus==='WITHDRAWN'){x.status='WITHDRAWN';x.lastEditedAt=now;x.lastEditedBy=a.id;}
      stamp(x);if(!p.id)d.announcements.push(x);result=decorateAnnouncement(x,Date.parse(now));
     }else if(action==='submitAnnouncement'||action==='publish'){
      const x=requireRow(d.announcements,p.id,p.version);
