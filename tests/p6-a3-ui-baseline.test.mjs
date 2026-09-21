@@ -893,3 +893,15 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
   assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
   assert(css.includes('.login-qrcode,.login-qrcode .t-qrcode__image,.login-qrcode svg{display:block!important;margin:auto!important}'));
 });
+
+
+test('登录页使用卫健高清背景并保持登录框右侧布局',()=>{
+  const source=fs.readFileSync('src/views/Login.vue','utf8');
+  const layout=fs.readFileSync('src/styles/layout.css','utf8');
+  assert(fs.existsSync('src/assets/login-health-bg-1920x1200.webp'));
+  assert(!source.includes('class="login-intro"'));
+  assert(layout.includes("background-image:url('../assets/login-health-bg-1920x1200.webp')"));
+  assert(layout.includes('background-size:cover'));
+  assert(layout.includes('background-position:center center'));
+  assert(layout.includes('.login-layout{width:100%;max-width:1180px;margin:auto;display:flex;justify-content:flex-end;align-items:center;padding:50px 0}'));
+});
