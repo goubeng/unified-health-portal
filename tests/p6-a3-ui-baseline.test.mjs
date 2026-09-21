@@ -688,3 +688,23 @@ test('列表文本仅在溢出截断时显示完整内容Tooltip',()=>{
     assert(source.includes('TableCellTooltip'),file+' 未接入列表溢出Tooltip');
   }
 });
+
+
+test('管理端应用列表使用全量目录且适用用户按包含关系筛选',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(source.includes("else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}"));
+  assert(source.includes("if(filter.key==='userType'&&['apps','mine'].includes(listResource.value))"));
+  assert(source.includes("if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual)"));
+  assert(source.includes("if(selected==='GOV')return ['GOV','BOTH'].includes(actual)"));
+  assert(source.includes("apps:{name:'应用名称',code:'应用编码',userType:'适用用户',status:'启用状态'}"));
+});
+
+test('组织详情来源提示显示在详情网格上方并与用户详情同间距',()=>{
+  const source=fs.readFileSync('src/components/portal/OrganizationManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  const dialog=source.split('header="组织详情"')[1]?.split('</t-dialog>')[0]||'';
+  assert(dialog.indexOf('organization-detail-source-alert')>=0);
+  assert(dialog.indexOf('organization-detail-source-alert')<dialog.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>'));
+  assert(css.includes('.user-detail-source-alert,.organization-detail-source-alert{margin:0 0 14px!important}'));
+  assert(css.includes('.user-detail-source-alert + .portal-detail-grid,.organization-detail-source-alert + .portal-detail-grid{margin-top:0}'));
+});
