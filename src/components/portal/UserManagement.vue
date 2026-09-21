@@ -53,10 +53,10 @@
     </section>
 
     <t-dialog v-model:visible="detailVisible" placement="center" header="用户详情" width="760px" :footer="false">
-      <t-alert v-if="detail?.userType!=='LOCAL'" theme="info" class="user-source-alert">
+      <t-alert v-if="detail?.userType!=='LOCAL'" theme="info" class="user-source-alert user-detail-source-alert">
         姓名、账号、用户类别和身份来源等权威身份字段来自{{detail?.identitySource||source(detail)}}，门户不修改上游身份主数据。
       </t-alert>
-      <t-alert v-else theme="info" class="user-source-alert">
+      <t-alert v-else theme="info" class="user-source-alert user-detail-source-alert">
         门户本地用户由本系统维护；密码与密码Hash不在页面/API中展示。
       </t-alert>
       <DetailGrid v-if="detail" :items="detailItems"/>
@@ -92,7 +92,9 @@
           <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
-        <p class="muted">外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。</p>
+        <t-alert theme="info" class="user-external-edit-alert">
+          外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。
+        </t-alert>
       </template>
     </t-dialog>
   </section>
