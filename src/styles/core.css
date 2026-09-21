@@ -209,7 +209,7 @@
 .portal-app-card:hover{border:0!important;box-shadow:none!important}
 
 /* App center: group counts are emphasized, entry/link action is compact. */
-.portal-section-count{font-size:13px!important;font-weight:500!important;color:#1d2129!important}
+.portal-section-count{font-size:13px!important;font-weight:500!important;color:#1d2129!important}.portal-section-count-number{font-weight:600!important}
 .portal-app-enter,.portal-app-enter .t-button__text{font-size:12px!important;line-height:20px!important}
 
 /* Todo page title count: only the numeric value is bold red. */
