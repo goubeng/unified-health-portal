@@ -794,3 +794,11 @@ test('字典管理左右卡片顶部严格对齐',()=>{
   assert(css.includes('.panel+.panel{margin-top:16px}'));
   assert(css.includes('.dictionary-layout>.panel{margin-top:0}'));
 });
+
+
+test('待办任务列表缩小标题列并加宽来源应用列',()=>{
+  const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  assert(source.includes("{colKey:'title',title:'待办标题',width:220,ellipsis:true}"));
+  assert(source.includes("{colKey:'appName',title:'来源应用',width:280,ellipsis:true}"));
+  assert(source.includes('<TableCellTooltip :text="text(row.title)||\'-\'">'));
+});
