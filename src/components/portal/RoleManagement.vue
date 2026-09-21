@@ -23,6 +23,7 @@
         <template #roleCode="{row}"><button class="portal-field-link" @click="openEdit(row)">{{text(row.roleCode)}}</button></template>
         <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #builtIn="{row}"><t-tag v-if="row.builtIn" variant="light">内置</t-tag><span v-else>自定义</span></template>
+        <template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>
         <template #operation="{row}">
           <div class="row-actions">
             <t-button size="small" variant="text" theme="primary" @click="openEdit(row)">权限配置</t-button>
@@ -154,6 +155,11 @@ const columns=[
   {colKey:'operation',title:'操作',width:120,fixed:'right'}
 ];
 
+function roleUpdatedAt(value){
+  if(!value||!Number.isFinite(Date.parse(value)))return '-';
+  const d=new Date(value),pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
 function reset(){keyword.value='';status.value='';page.value=1;}
 function assignForm(row){Object.keys(form).forEach(key=>delete form[key]);Object.assign(form,JSON.parse(JSON.stringify(row)));}
 function openCreate(){assignForm({roleCode:'',roleName:'',description:'',status:'ENABLED',scopes:[],builtIn:false});formError.value='';formVisible.value=true;}
