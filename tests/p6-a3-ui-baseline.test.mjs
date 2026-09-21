@@ -742,3 +742,48 @@ test('管理端指定菜单使用互不重复的业务图标',()=>{
   assert.equal(new Set(Object.values(expected)).size,Object.values(expected).length,'指定菜单图标不应重复');
   for(const icon of Object.values(expected))assert(source.includes(icon),icon+' 未导入');
 });
+
+
+test('应用中心与我的申请覆盖主要结果状态和下一步操作',()=>{
+  const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const mine=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const service=fs.readFileSync('src/services/portal.js','utf8');
+  const detail=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
+  const seed=fs.readFileSync('src/mock/seed.js','utf8');
+
+  assert(cards.includes("if(app.accessState==='REQUEST_REJECTED')return '查看原因'"));
+  assert(cards.includes("RETRY_BIND:'重新处理'"));
+  assert(cards.includes("VIEW_REASON:'查看原因'"));
+  assert(service.includes("FAILED:'RETRY_BIND'"));
+  assert(service.includes("REQUEST_REJECTED:'VIEW_REQUEST'"));
+  assert(service.includes("if(accessState==='FAILED'&&mapping?.externalAccountStatus==='DISABLED')primaryAction='VIEW_REASON'"));
+
+  assert(mine.includes("row.status==='APPROVED'&&row.postGrantMode==='DIRECT'"));
+  assert(mine.includes("@click=\"emit('enter',row)\">进入应用"));
+  assert(mine.includes("@click=\"emit('detail',row)\">查看"));
+  assert(mine.includes("@click=\"emit('reapply',row)\">重新申请"));
+  assert(mine.includes("@click=\"emit('withdraw',row)\">撤回"));
+  assert(mine.includes("@click=\"emit('bind',row)\">完成账号确认"));
+  assert(mine.includes("defineEmits(['withdraw','reapply','bind','enter','detail'])"));
+
+  assert(page.includes('@enter="enterAppByRequest"'));
+  assert(page.includes('@detail="showDetail($event,\'myApplicationRequests\')"'));
+  assert(page.includes('function enterAppByRequest(row){'));
+  assert(detail.includes("props.kind==='myApplicationRequests'?'申请详情'"));
+
+  for(const status of ['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']){
+    assert(seed.includes("status:'"+status+"'"),'Mock申请缺少 '+status);
+  }
+  assert(seed.includes("MOCK_GRANT_CITIZEN_APP13"));
+  assert(seed.includes("MOCK_GRANT_GOV_APP17"));
+});
+
+test('申请列表状态筛选按访问申请和账号开通申请分别提供',()=>{
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(page.includes("if(key==='applicationRequests')"));
+  assert(page.includes("fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED'])"));
+  assert(page.includes("if(key==='accountOpeningRequests')"));
+  assert(page.includes("fixedOptions(['PENDING','PROCESSING','COMPLETED'])"));
+  assert(page.includes("if(key==='myApplicationRequests')"));
+});
