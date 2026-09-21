@@ -895,11 +895,11 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
 });
 
 
-test('登录页使用独立图片层渲染卫健高清背景',()=>{
+test('登录页使用独立矢量图片层渲染卫健背景',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
-  assert(fs.existsSync('src/assets/login-health-bg-1920x1200.webp'));
-  assert(source.includes("import loginBackground from '../assets/login-health-bg-1920x1200.webp';"));
+  assert(fs.existsSync('src/assets/login-health-bg.svg'));
+  assert(source.includes("import loginBackground from '../assets/login-health-bg.svg';"));
   assert(source.includes('class="login-bg-image"'));
   assert(source.includes(':src="loginBackground"'));
   assert(source.includes('class="login-intro"'));
@@ -924,8 +924,10 @@ test('登录页身份切换与内容区间距一致且登录框高度自适应',
 test('登录二维码使用直角并保持四周4px留白',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(css.includes('.qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:4px!important}'));
-  assert(css.includes('.login-qrcode{display:block!important;width:186px!important;height:186px!important;max-width:186px!important;max-height:186px!important'));
-  assert(css.includes('.login-qrcode svg{display:block!important;width:186px!important;height:186px!important;max-width:100%!important;max-height:100%!important'));
+  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:186px!important;height:186px!important'));
+  assert(css.includes('padding:0!important;border:0!important;border-radius:0!important;place-items:center!important'));
+  assert(css.includes('.login-qrcode .t-qrcode__image{box-sizing:border-box!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important'));
+  assert(css.includes('.login-qrcode svg{box-sizing:border-box!important;display:block!important;width:100%!important;height:100%!important'));
   assert(css.includes('.qr-expired-mask{border-radius:0!important}'));
 });
 
@@ -936,4 +938,13 @@ test('登录方式切换与身份Tab和内容区间距加倍为32px',()=>{
   assert(css.includes('.auth-method-pills{width:100%!important;margin:0 auto!important}'));
   assert(css.includes('.qr-auth{padding-top:32px!important}'));
   assert(css.includes('.phone-auth:not(.local-auth){margin-top:32px!important}'));
+});
+
+
+test('登录二维码清除TDesign默认内边距以保证视觉居中',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important'));
+  assert(css.includes('padding:0!important;border:0!important'));
+  assert(css.includes('.login-qrcode .t-qrcode__image'));
+  assert(css.includes('place-items:center!important'));
 });
