@@ -888,24 +888,23 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('class="login-qrcode"'));
-  assert(source.includes(':size="156"'));
+  assert(source.includes(':size="186"'));
   assert(css.includes('.qr-frame{width:196px;height:196px;border-radius:0}'));
   assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
-  assert(css.includes('.login-qrcode{display:block!important;width:156px!important;height:156px!important'));
+  assert(css.includes('.login-qrcode{display:block!important;width:186px!important;height:186px!important'));
 });
 
 
-test('登录页显式绑定卫健高清背景并保持左侧说明右侧登录框布局',()=>{
+test('登录页使用独立图片层渲染卫健高清背景',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
   assert(fs.existsSync('src/assets/login-health-bg-1920x1200.webp'));
   assert(source.includes("import loginBackground from '../assets/login-health-bg-1920x1200.webp';"));
-  assert(source.includes(':style="{backgroundImage:`url(${loginBackground})`}"'));
+  assert(source.includes('class="login-bg-image"'));
+  assert(source.includes(':src="loginBackground"'));
   assert(source.includes('class="login-intro"'));
-  assert(source.includes('一个入口<br>连接协同服务'));
-  assert(layout.includes('background-size:cover'));
-  assert(layout.includes('background-position:left center'));
-  assert(layout.includes('grid-template-columns:minmax(220px,1fr) 460px'));
+  assert(layout.includes('.login-bg-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:left center'));
+  assert(layout.includes('.login-brand,.login-layout,.login-shell>footer{position:relative;z-index:1}'));
 });
 
 
@@ -922,11 +921,11 @@ test('登录页身份切换与内容区间距一致且登录框高度自适应',
   assert(layout.includes('.login-brand{font-size:24px;font-weight:600;color:var(--td-brand-color,#0052d9)}'));
 });
 
-test('登录二维码使用直角并完整收在外框内',()=>{
+test('登录二维码使用直角并保持四周4px留白',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:19px!important}'));
-  assert(css.includes('.login-qrcode{display:block!important;width:156px!important;height:156px!important;max-width:156px!important;max-height:156px!important'));
-  assert(css.includes('.login-qrcode svg{display:block!important;width:156px!important;height:156px!important;max-width:100%!important;max-height:100%!important'));
+  assert(css.includes('.qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:4px!important}'));
+  assert(css.includes('.login-qrcode{display:block!important;width:186px!important;height:186px!important;max-width:186px!important;max-height:186px!important'));
+  assert(css.includes('.login-qrcode svg{display:block!important;width:186px!important;height:186px!important;max-width:100%!important;max-height:100%!important'));
   assert(css.includes('.qr-expired-mask{border-radius:0!important}'));
 });
 
