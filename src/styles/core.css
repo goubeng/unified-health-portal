@@ -794,8 +794,9 @@
 .phone-auth:not(.local-auth){margin-top:32px!important}
 .local-auth{display:block!important;margin-top:32px!important}
 .qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:4px!important}
-.login-qrcode{display:block!important;width:186px!important;height:186px!important;max-width:186px!important;max-height:186px!important;margin:auto!important;border-radius:0!important;overflow:hidden!important;line-height:0!important}
-.login-qrcode svg{display:block!important;width:186px!important;height:186px!important;max-width:100%!important;max-height:100%!important;margin:0!important;border-radius:0!important}
+.login-qrcode{box-sizing:border-box!important;display:grid!important;width:186px!important;height:186px!important;max-width:186px!important;max-height:186px!important;margin:auto!important;padding:0!important;border:0!important;border-radius:0!important;place-items:center!important;overflow:hidden!important;line-height:0!important}
+.login-qrcode .t-qrcode__image{box-sizing:border-box!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important}
+.login-qrcode svg{box-sizing:border-box!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important}
 .login-qrcode .t-icon,.qr-frame-button.is-success .qr-frame .t-icon{border-radius:0!important;overflow:visible!important}
 .qr-expired-mask{border-radius:0!important}
 @media(max-width:760px){.login-card{width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important}.local-auth{margin-top:32px!important}.login-identity-switch{margin-bottom:32px!important}.qr-auth{padding-top:32px!important}}
