@@ -3,9 +3,9 @@
     <article v-for="(app,index) in apps" :key="app.id" class="portal-app-card" :class="[`tone-${index%4+1}`,compact?'is-compact':'']">
       <span class="portal-app-logo"><Icon name="application"/></span>
       <div class="portal-app-info">
-        <button class="portal-app-name" :title="text(app.name)" @click="emit('detail',app)">{{text(app.name)}}</button>
+        <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
         <div class="portal-app-meta">
-          <span class="portal-app-category" :title="text(app.category)">{{text(app.category)||'未分类'}}</span>
+          <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category">{{text(app.category)||'未分类'}}</span></PortalTooltip>
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
           <template v-else>
             <t-tag v-if="showState(app)" class="portal-app-status-tag" size="small" variant="light" :theme="stateTheme(app.accessState)">{{stateText(app)}}</t-tag>
@@ -19,6 +19,7 @@
 </template>
 <script setup>
 import EmptyState from './EmptyState.vue';
+import PortalTooltip from './PortalTooltip.vue';
 import {Icon} from 'tdesign-icons-vue-next';
 import {text,label} from './presentation.js';
 
