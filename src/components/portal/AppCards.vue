@@ -6,6 +6,8 @@
         <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
         <div class="portal-app-meta">
           <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category">{{text(app.category)||'未分类'}}</span></PortalTooltip>
+        </div>
+        <div class="portal-app-result">
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
           <template v-else>
             <t-tag v-if="showState(app)" class="portal-app-status-tag" size="small" variant="light" :theme="stateTheme(app.accessState)">{{stateText(app)}}</t-tag>
@@ -49,7 +51,7 @@ function buttonText(app){
  if(app.accessState==='REQUEST_REJECTED')return '查看原因';
  return {
   ENTER:'进入应用',
-  BIND:'完成账号确认',
+  BIND:'申请使用',
   CONTINUE_BIND:'继续处理',
   VIEW_BINDING:'查看进度',
   VIEW_REASON:'查看原因',
