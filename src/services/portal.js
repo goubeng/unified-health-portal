@@ -35,10 +35,11 @@ export function createPortalService(provider,getActor){
    accessState=request?.status==='PENDING'?'REQUEST_PENDING':request?.status==='REJECTED'?'REQUEST_REJECTED':'REQUEST_REQUIRED';
   }else if(requiresBinding)accessState=mapping?.status||'UNBOUND';
   else accessState='DIRECT';
-  const primaryAction=({
+  let primaryAction=({
    DIRECT:'ENTER',BOUND:'ENTER',UNBOUND:'BIND',VERIFYING:'CONTINUE_BIND',REVIEWING:'VIEW_BINDING',
-   FAILED:'BIND',CONFLICT:'VIEW_CONFLICT',REQUEST_REQUIRED:'REQUEST',REQUEST_REJECTED:'REQUEST',REQUEST_PENDING:'VIEW_REQUEST'
+   FAILED:'RETRY_BIND',CONFLICT:'VIEW_CONFLICT',REQUEST_REQUIRED:'REQUEST',REQUEST_REJECTED:'VIEW_REQUEST',REQUEST_PENDING:'VIEW_REQUEST'
   })[accessState]||'VIEW';
+  if(accessState==='FAILED'&&mapping?.externalAccountStatus==='DISABLED')primaryAction='VIEW_REASON';
   return {...app,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
    requestStatus:request?.status||null,requestId:request?.id||null,grantStatus:grant?.status||null,accessState,primaryAction};
  });
