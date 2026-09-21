@@ -520,6 +520,24 @@ test('用户类别Tag按类别使用不同配色',()=>{
   assert(source.includes("LOCAL:'warning'"));
 });
 
+test('系统提示框统一13px紧凑高度并覆盖用户详情来源提示',()=>{
+  const user=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(user.includes('class="user-source-alert"'));
+  assert(user.includes('姓名、账号、用户类别和身份来源等权威身份字段来自'));
+  assert(css.includes('/* 2026-09-21 unified compact prompt/alert baseline. */'));
+  assert(css.includes('.portal-page .t-alert,'));
+  assert(css.includes('.t-dialog__body .t-alert{'));
+  assert(css.includes('min-height:32px!important;'));
+  assert(css.includes('padding:6px 10px!important;'));
+  assert(css.includes('font-size:13px!important;'));
+  assert(css.includes('line-height:20px!important;'));
+  assert(css.includes('.portal-page .inline-note,'));
+  assert(css.includes('.user-source-alert,'));
+  assert(css.includes('.organization-source-alert,'));
+  assert(css.includes('.dictionary-lock-alert,'));
+});
+
 test('角色超级管理员提示位于表单头部并使用13px紧凑提示',()=>{
   const source=fs.readFileSync('src/components/portal/RoleManagement.vue','utf8');
   const errorIndex=source.indexOf('class="error-note"');
