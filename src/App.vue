@@ -2,12 +2,12 @@
  <router-view v-if="route.meta.group==='登录'" />
  <div v-else class="app-shell" :class="{collapsed}">
   <header class="topbar">
-   <t-button class="collapse-button" shape="square" variant="text" aria-label="展开或收起菜单" title="展开或收起菜单" @click="collapsed=!collapsed"><template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template></t-button>
+   <PortalTooltip :content="collapsed?'展开菜单':'收起菜单'" placement="bottom"><t-button class="collapse-button" shape="square" variant="text" aria-label="展开或收起菜单" @click="collapsed=!collapsed"><template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template></t-button></PortalTooltip>
    <span class="brand">卫健XC统一门户</span><span class="portal-caption" :class="{admin}">{{admin?'平台管理端':'用户端门户'}}</span>
    <div class="topbar-actions">
     <t-select class="user-switch-select" :value="actor?.id" :options="userOptions" :disabled="switching" filterable aria-label="切换用户" placeholder="切换用户" @change="switchUser"/>
-    <t-button v-if="actor?.kind==='ADMIN'" class="portal-switch-button" variant="text" :title="admin?'切换到用户端门户':'切换到平台管理端'" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><component :is="admin?UserIcon:SettingIcon" size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button>
-    <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" title="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></t-badge>
+    <PortalTooltip v-if="actor?.kind==='ADMIN'" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><component :is="admin?UserIcon:SettingIcon" size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
+    <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="消息中心" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
     <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
      <button class="account-entry" :aria-expanded="accountOpen" aria-label="用户菜单"><span class="avatar">{{displayName(actor).slice(0,1)}}</span><span class="user-name">{{displayName(actor)}}</span><ChevronDownIcon/></button>
      <template #content><div class="account-popover">
@@ -28,12 +28,12 @@
    <template v-if="admin">
     <section v-for="group in menu" :key="group.name" class="menu-section">
      <button v-if="!collapsed" type="button" class="menu-group" @click="toggleMenuGroup(group.name)"><span>{{group.name}}</span><ChevronDownIcon size="12px" class="group-chevron" :class="{closed:collapsedGroups.has(group.name)}"/></button>
-     <div v-show="collapsed||!collapsedGroups.has(group.name)" class="menu-group-items"><t-tooltip v-for="p in group.pages" :key="p.id" :content="displayTitle(p.title)" placement="right" :disabled="!collapsed"><router-link :to="p.path" class="menu-item" active-class="active" :class="{active:isMenuActive(p)}"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></t-tooltip></div>
+     <div v-show="collapsed||!collapsedGroups.has(group.name)" class="menu-group-items"><PortalTooltip v-for="p in group.pages" :key="p.id" :content="displayTitle(p.title)" placement="right" :disabled="!collapsed"><router-link :to="p.path" class="menu-item" active-class="active" :class="{active:isMenuActive(p)}"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></PortalTooltip></div>
     </section>
    </template>
-   <div v-else class="menu-group-items user-flat-menu"><t-tooltip v-for="p in userMenu" :key="p.id" :content="displayTitle(p.title)" placement="right" :disabled="!collapsed"><router-link :to="p.path" class="menu-item" active-class="active" :class="{active:isMenuActive(p)}"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></t-tooltip></div>
+   <div v-else class="menu-group-items user-flat-menu"><PortalTooltip v-for="p in userMenu" :key="p.id" :content="displayTitle(p.title)" placement="right" :disabled="!collapsed"><router-link :to="p.path" class="menu-item" active-class="active" :class="{active:isMenuActive(p)}"><component :is="iconFor(p.resource)" class="menu-symbol"/><span v-if="!collapsed" class="menu-item-label">{{displayTitle(p.title)}}</span></router-link></PortalTooltip></div>
   </nav></aside>
-   <main class="content"><div class="content-header"><div class="title-row"><button v-if="showBack" type="button" class="back-button" title="返回" aria-label="返回" @click="backToList"><ArrowLeftIcon/></button><h1>{{currentPageTitle}}</h1><div id="page-header-extra" class="page-header-extra-host"></div><div id="page-header-actions" class="page-header-actions-host"></div></div></div><div class="content-body"><router-view :key="route.fullPath+'|'+actor?.id"/></div></main>
+   <main class="content"><div class="content-header"><div class="title-row"><PortalTooltip v-if="showBack" content="返回" placement="bottom"><button type="button" class="back-button" aria-label="返回" @click="backToList"><ArrowLeftIcon/></button></PortalTooltip><h1>{{currentPageTitle}}</h1><div id="page-header-extra" class="page-header-extra-host"></div><div id="page-header-actions" class="page-header-actions-host"></div></div></div><div class="content-body"><router-view :key="route.fullPath+'|'+actor?.id"/></div></main>
   </div>
  </div>
 </template>
@@ -43,6 +43,7 @@ import {useRoute,useRouter} from 'vue-router';
 import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
 import {pages,can,scopes,labels} from './config/pages.js';
 import {actor,availableUsers,portal,revision,login,logout} from './services/runtime.js';
+import PortalTooltip from './components/portal/PortalTooltip.vue';
 const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false),switching=ref(false);
 const admin=computed(()=>route.path.startsWith('/admin'));
 const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim();
