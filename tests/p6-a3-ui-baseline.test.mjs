@@ -847,3 +847,14 @@ test('公共文本清洗不保留演示前缀产生的孤立冒号',()=>{
   const source=fs.readFileSync('src/components/portal/presentation.js','utf8');
   assert(source.includes("replace(/(?:模拟|演示|示例)\\s*[：:]\\s*/g,'')"));
 });
+
+
+test('应用中心我的应用和其他应用固定每页20条',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(source.includes('const appPageSize=ref(20),appPages=reactive({mine:1,other:1});'));
+  const center=source.split('<template v-if="isAppCenter">')[1]?.split('</template>')[0]||'';
+  assert(center.includes(':page-size="appPageSize"'));
+  assert(center.includes('@current-change="setAppPage(group.key,$event)"'));
+  assert(!center.includes(':page-size-options'));
+  assert(!center.includes('@page-size-change'));
+});
