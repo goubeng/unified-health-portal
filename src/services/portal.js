@@ -410,7 +410,7 @@ export function createPortalService(provider,getActor){
       x.scheduledPublishAt=p.scheduledPublishAt;
      }
      if(effectiveStatus==='PUBLISHED'){x.status='PUBLISHED';x.lastEditedAt=now;x.lastEditedBy=a.id;}
-     if(effectiveStatus==='WITHDRAWN'){x.status='WITHDRAWN';x.lastEditedAt=now;x.lastEditedBy=a.id;}
+     if(effectiveStatus==='WITHDRAWN'&&p.targetStatus!=='DRAFT'){x.status='WITHDRAWN';x.lastEditedAt=now;x.lastEditedBy=a.id;}
      stamp(x);if(!p.id)d.announcements.push(x);result=decorateAnnouncement(x,Date.parse(now));
     }else if(action==='submitAnnouncement'||action==='publish'){
      const x=requireRow(d.announcements,p.id,p.version);
