@@ -35,7 +35,7 @@ test('PG-104待办任务使用独立TodoCenter',()=>{
   assert(source.includes('label="状态"'));
 });
 
-test('PG-104与首页待办详情复用同一详情组件且元信息单行显示',()=>{
+test('PG-104与首页待办详情复用同一组件且元信息按两行两列显示',()=>{
   const center=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   const detail=fs.readFileSync('src/components/portal/TodoDetailContent.vue','utf8');
   const recordDetail=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
@@ -61,6 +61,7 @@ test('PG-104与首页待办详情复用同一详情组件且元信息单行显�
   assert(detail.includes('class="todo-detail-divider"'));
   assert(!detail.includes('待办说明'));
   assert(!detail.includes('源待办ID'));
+  assert(css.includes('.todo-detail-meta-inline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px;align-items:center}'));
   assert(css.includes('.todo-detail-meta-inline>span{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}'));
   assert(css.includes('.todo-detail-meta-inline em{flex:none'));
 });
