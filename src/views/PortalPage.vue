@@ -112,7 +112,7 @@
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
     </t-form>
     <template v-if="isAppCenter">
-     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（{{group.total}}）</span></h2></div><AppCards :apps="group.rows" :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="appPageSize" :total="group.total" show-jumper @current-change="setAppPage(group.key,$event)"/></section>
+     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="appPageSize" :total="group.total" show-jumper @current-change="setAppPage(group.key,$event)"/></section>
     </template>
     <section v-else class="panel portal-table-panel">
      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
