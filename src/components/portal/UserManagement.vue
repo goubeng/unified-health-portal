@@ -29,10 +29,10 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的用户"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #account="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.account)||'-'}}</button></template>
+        <template #account="{row}"><TableCellTooltip :text="text(row.account)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.account)||'-'}}</button></TableCellTooltip></template>
         <template #userType="{row}"><t-tag :theme="userTypeTheme(row.userType)" variant="light">{{label(row.userType)}}</t-tag></template>
-        <template #identitySource="{row}">{{text(row.identitySource)||source(row)}}</template>
-        <template #roleLabels="{row}">{{text(row.roleLabels)||'无管理角色'}}</template>
+        <template #identitySource="{row}"><TableCellTooltip :text="text(row.identitySource)||source(row)">{{text(row.identitySource)||source(row)}}</TableCellTooltip></template>
+        <template #roleLabels="{row}"><TableCellTooltip :text="text(row.roleLabels)||'无管理角色'">{{text(row.roleLabels)||'无管理角色'}}</TableCellTooltip></template>
         <template #status="{row}">
           <t-switch
             :value="row.status!=='DISABLED'"
@@ -105,6 +105,7 @@ import {computed,reactive,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,source,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
