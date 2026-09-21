@@ -574,6 +574,7 @@
 .local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
 
 /* App center: normal usable apps do not repeat status; exceptional/other app state tags are 12px. */
+.portal-page .portal-app-result .portal-app-status-tag,.portal-page .portal-app-result .portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}
 .portal-app-status-tag,.portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}
 
 /* My Applications: keep TDesign tabs visually separated from the list. */
