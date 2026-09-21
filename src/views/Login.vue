@@ -43,9 +43,9 @@
     <label for="local-captcha" class="field-label">验证码</label>
     <div class="local-captcha-row">
      <t-input id="local-captcha" v-model="localCaptchaInput" autocomplete="off" :maxlength="4" placeholder="请输入验证码"/>
-     <button type="button" class="local-captcha-code" title="点击刷新验证码" aria-label="刷新验证码" @click="refreshLocalCaptcha">
+     <PortalTooltip content="点击刷新验证码" placement="top"><button type="button" class="local-captcha-code" aria-label="刷新验证码" @click="refreshLocalCaptcha">
       <span>{{localCaptchaCode}}</span>
-     </button>
+     </button></PortalTooltip>
     </div>
     <t-button block type="submit" theme="primary" class="login-submit" :loading="localLoggingIn">登录</t-button>
    </form>
@@ -64,10 +64,11 @@ import {computed,onBeforeUnmount,ref,watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {CheckCircleIcon,RefreshIcon} from 'tdesign-icons-vue-next';
 import {actor,login} from '../services/runtime.js';
+import PortalTooltip from '../components/portal/PortalTooltip.vue';
 
 const router=useRouter();
 const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
-const localLoggingIn=ref(false),localAccount=ref('admin01'),localPassword=ref('123456'),localCaptchaInput=ref('A7K9'),localCaptchaCode=ref('A7K9');
+const localLoggingIn=ref(false),localAccount=ref('admin01'),localPassword=ref(''),localCaptchaInput=ref(''),localCaptchaCode=ref('A7K9');
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
 const platformLink=computed(()=>identityType.value==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn');
 const qrPrompt=computed(()=>`请使用${platform.value}扫一扫登录`);
