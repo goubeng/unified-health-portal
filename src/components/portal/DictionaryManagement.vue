@@ -32,14 +32,12 @@
 
       <section class="panel dictionary-items-panel">
         <div class="dictionary-items-head">
-          <div>
+          <div class="dictionary-type-summary">
             <h2>{{selectedType?.name||'字典项'}}</h2>
             <p>{{selectedType?.description||'请选择左侧字典类型'}}</p>
+            <t-tag v-if="selectedType" :theme="selectedType.status==='ENABLED'?'success':'default'" variant="light">{{label(selectedType.status)}}</t-tag>
           </div>
-          <div v-if="selectedType" class="dictionary-type-actions">
-            <t-tag :theme="selectedType.status==='ENABLED'?'success':'default'" variant="light">{{label(selectedType.status)}}</t-tag>
-            <t-button size="small" variant="text" theme="primary" @click="openTypeEdit(selectedType)">编辑类型</t-button>
-          </div>
+          <t-button v-if="selectedType" class="dictionary-type-edit-button" size="small" variant="outline" theme="primary" @click="openTypeEdit(selectedType)">编辑类型</t-button>
         </div>
 
         <t-alert v-if="selectedType?.systemLocked" theme="info" class="dictionary-lock-alert">
