@@ -1,3 +1,13 @@
+## 0.3.0-design.2 - 2026-09-21 · Schema / 后端任务 / 前端差异核对
+
+- 复核 Git 主干现有设计文档，确认页面/API、权限模型、API规范、子系统接入及 SSO/TODO/MESSAGE 设计已进入 V20260921-01 开发设计基线，不重复创建第二套文档。
+- 修正主SRS与辅助需求中遗留的“CITIZEN/GOV/LOCAL 三类统一用户”旧口径：管理端用户管理仅管理 portal_admin_user；LOCAL 仅作为门户本地管理认证方式。
+- 公告数据层收敛为 DRAFT/PUBLISHED/WITHDRAWN 主状态，SCHEDULED/EXPIRED 保留页面派生展示状态。
+- 新增《数据库Schema设计》，冻结 0.3.0-B 目标表、遗留表收敛与 Migration 顺序；本轮不执行 DDL。
+- 新增《后端开发任务拆分》，明确从当前本地 MEMORY/快照型 API 迁移到正式数据库和外部接入的实施顺序。
+- 新增《现有前端差异核对》，逐项标记用户域、权限、TODO、消息、公告、集成状态等前端/Service差异。
+- 更新文档中心与工程基线索引。
+
 ## 0.3.0-design - 2026-09-21 · 后端建设详细设计基线 V20260921-01
 
 - 确认“门户访问主体”和“门户管理用户”分离：unified_user 只承载 CITIZEN/GOV 用户端索引，portal_admin_user 独立承载管理端授权。
