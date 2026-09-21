@@ -41,6 +41,26 @@ test('已发布公告可编辑且保持PUBLISHED，已发布不可直接删除',
   assert.equal(denied.error?.code,'INVALID_TRANSITION');
 });
 
+test('已撤回公告可转草稿并重新立即或定时发布',async()=>{
+  const h=setup();
+  const draft=await h.run('saveAnnouncement',{title:'撤回重发测试',content:'正文',scope:'ALL'});
+  const published=await h.run('submitAnnouncement',{id:draft.id,version:draft.version,publishMode:'IMMEDIATE'});
+  const withdrawn=await h.run('withdraw',{id:published.id,version:published.version,reason:'调整内容'});
+
+  const savedDraft=await h.run('saveAnnouncement',{...withdrawn,title:'撤回后转草稿',content:'调整后的正文',targetStatus:'DRAFT'});
+  assert.equal(savedDraft.status,'DRAFT');
+  const republished=await h.run('submitAnnouncement',{id:savedDraft.id,version:savedDraft.version,publishMode:'IMMEDIATE'});
+  assert.equal(republished.status,'PUBLISHED');
+
+  const withdrawnAgain=await h.run('withdraw',{id:republished.id,version:republished.version,reason:'改为定时'});
+  const edited=await h.run('saveAnnouncement',{...withdrawnAgain,title:'撤回后定时重发',content:'定时正文'});
+  assert.equal(edited.status,'WITHDRAWN');
+  const future=new Date(Date.now()+24*3600*1000).toISOString();
+  const scheduled=await h.run('submitAnnouncement',{id:edited.id,version:edited.version,publishMode:'SCHEDULED',scheduledPublishAt:future});
+  assert.equal(scheduled.status,'SCHEDULED');
+  assert.equal(scheduled.scheduledPublishAt,future);
+});
+
 test('撤回和失效公告可删除并进入Mock回收档案',async()=>{
   const h=setup();
   const draft=await h.run('saveAnnouncement',{title:'撤回删除测试',content:'正文',scope:'ALL'});
