@@ -50,21 +50,25 @@ test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
   assert(css.includes('.portal-title-count-number{color:#e34d59!important;font-weight:600!important}'));
 });
 
-test('系统内容区链接统一13px常规蓝色且首页未读不再加粗',()=>{
+test('首页业务标题与应用系统名称字重一致且应用名称保持黑色',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(!/portal-page \.portal-field-link(?:\.is-unread|\.is-attention)?\{[^}]*font-weight:600/i.test(css));
   assert(!/portal-home-feeds>\.panel:first-child \.portal-field-link\{[^}]*font-weight:600/i.test(css));
   assert(css.includes('/* 2026-09-20 global content-link typography normalization. */'));
   assert(css.includes('.portal-page a,'));
   assert(css.includes('.portal-page .portal-field-link.is-unread,'));
-  assert(css.includes('.portal-page .portal-app-name,'));
+  assert(!css.includes('.portal-page .portal-app-name,\n.portal-page .message-title-link,'));
   assert(css.includes('.portal-page .section-head a,'));
   assert(css.includes('font-size:13px!important;'));
   assert(css.includes('font-weight:400!important;'));
   assert(css.includes('color:#0052d9!important;'));
   assert(css.includes('color:#003cab!important;'));
   assert(css.includes('text-decoration:underline!important;'));
-  assert(css.includes('.portal-app-info .portal-app-name{font-weight:400!important}'));
+  assert(css.includes('/* 2026-09-21 app names are clickable black text; home feed links share the same weight. */'));
+  assert(css.includes('.portal-page .portal-home-feeds .portal-field-link{'));
+  assert(css.includes('.portal-page .portal-app-name,'));
+  assert(css.includes('color:#1f2329!important;'));
+  assert(css.includes('font-weight:400!important;'));
 });
 
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
