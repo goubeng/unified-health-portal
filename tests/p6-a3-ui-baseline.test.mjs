@@ -50,25 +50,22 @@ test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
   assert(css.includes('.portal-title-count-number{color:#e34d59!important;font-weight:600!important}'));
 });
 
-test('首页业务标题与应用系统名称字重一致且应用名称保持黑色',()=>{
+test('首页业务标题与应用系统名称统一为500且应用名称保持黑色',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(!/portal-page \.portal-field-link(?:\.is-unread|\.is-attention)?\{[^}]*font-weight:600/i.test(css));
-  assert(!/portal-home-feeds>\.panel:first-child \.portal-field-link\{[^}]*font-weight:600/i.test(css));
   assert(css.includes('/* 2026-09-20 global content-link typography normalization. */'));
   assert(css.includes('.portal-page a,'));
   assert(css.includes('.portal-page .portal-field-link.is-unread,'));
   assert(!css.includes('.portal-page .portal-app-name,\n.portal-page .message-title-link,'));
   assert(css.includes('.portal-page .section-head a,'));
-  assert(css.includes('font-size:13px!important;'));
-  assert(css.includes('font-weight:400!important;'));
   assert(css.includes('color:#0052d9!important;'));
   assert(css.includes('color:#003cab!important;'));
   assert(css.includes('text-decoration:underline!important;'));
-  assert(css.includes('/* 2026-09-21 app names are clickable black text; home feed links share the same weight. */'));
+  assert(css.includes('/* 2026-09-21 home feed titles and application names share the same medium weight. */'));
   assert(css.includes('.portal-page .portal-home-feeds .portal-field-link{'));
+  assert(css.includes('font-weight:500!important;'));
   assert(css.includes('.portal-page .portal-app-name,'));
   assert(css.includes('color:#1f2329!important;'));
-  assert(css.includes('font-weight:400!important;'));
 });
 
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
@@ -341,6 +338,13 @@ test('草稿和定时公告编辑均显示发布方式且定时公告可切立�
   assert(source.includes('<label>失效日期</label>'));
   assert(source.includes('format="YYYY-MM-DD"'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
+});
+
+test('侧边菜单使用500字重且顶部折叠图标增强粗细',()=>{
+  const css=fs.readFileSync('src/styles/layout.css','utf8');
+  assert(css.includes('.menu-item{height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#394150;border-radius:4px;margin:2px 0;white-space:nowrap;font-weight:500}'));
+  assert(css.includes('.collapse-button .t-icon{width:18px!important;height:18px!important;font-size:18px!important;filter:drop-shadow(.35px 0 0 currentColor) drop-shadow(-.35px 0 0 currentColor)}'));
+  assert(css.includes('.topbar-icon-button .t-icon{width:16px!important;height:16px!important;font-size:16px!important}'));
 });
 
 test('折叠菜单为主要页面和五类日志显式分配可区分图标',()=>{
