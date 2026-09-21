@@ -133,10 +133,20 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
    errorMessage:i%2?'上游服务响应超时':'子系统账号关联冲突',resolutionStatus:errorOpen?'OPEN':'RESOLVED',resolutionNote:errorOpen?'':'已完成Mock核查',resolvedAt:errorOpen?null:at(-1),resolvedBy:errorOpen?null:actors[2].id,description:i%2?'上游服务响应超时':'子系统账号关联冲突'});
  }));
  const visits=businessActors.flatMap(actor=>available(actor).slice(0,4).map((app,i)=>({userId:actor.id,appId:app.id,at:at(-i-1)})));
+ const requestApp13=apps.find(x=>x.id==='MOCK_APP_13'),requestApp17=apps.find(x=>x.id==='MOCK_APP_17');
  const applicationRequests=[
-  row('MOCK_REQ_GOV_REJECTED',{requestNo:'REQ-20260918-00001',userId:'MOCK_USER_2',userName:'陈宁',appId:'MOCK_APP_13',appName:apps.find(x=>x.id==='MOCK_APP_13')?.name||'应用',reason:'申请业务使用权限',status:'REJECTED',submittedAt:at(-20),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-18),reviewNote:'演示：资料不完整，可重新申请'})
+  row('MOCK_REQ_CITIZEN_EXPIRED',{createdAt:at(-50),updatedAt:at(-44),requestNo:'REQ-20260915-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp13.id,appName:requestApp13.name,reason:'历史申请：未在有效期内完成后续处理',status:'EXPIRED',submittedAt:at(-50),expiredAt:at(-44),reviewedBy:null,reviewedAt:null,reviewNote:'申请已失效，可重新发起申请'}),
+  row('MOCK_REQ_CITIZEN_WITHDRAWN',{createdAt:at(-38),updatedAt:at(-35),requestNo:'REQ-20260916-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp13.id,appName:requestApp13.name,reason:'历史申请：业务使用需要',status:'WITHDRAWN',submittedAt:at(-38),withdrawnAt:at(-35),reviewedBy:null,reviewedAt:null,reviewNote:'用户主动撤回'}),
+  row('MOCK_REQ_CITIZEN_REJECTED',{createdAt:at(-30),updatedAt:at(-27),requestNo:'REQ-20260916-00002',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp13.id,appName:requestApp13.name,reason:'历史申请：业务使用需要',status:'REJECTED',submittedAt:at(-30),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-27),reviewNote:'资料不完整，请补充后重新申请'}),
+  row('MOCK_REQ_CITIZEN_APPROVED',{createdAt:at(-18),updatedAt:at(-16),requestNo:'REQ-20260917-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp13.id,appName:requestApp13.name,reason:'申请访问公众业务应用',status:'APPROVED',submittedAt:at(-18),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-16),reviewNote:'审核通过，可直接进入应用'}),
+  row('MOCK_REQ_CITIZEN_PENDING',{createdAt:at(-8),updatedAt:at(-8),requestNo:'REQ-20260918-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp17.id,appName:requestApp17.name,reason:'申请访问需要账号确认的业务应用',status:'PENDING',submittedAt:at(-8),reviewedBy:null,reviewedAt:null,reviewNote:null}),
+  row('MOCK_REQ_GOV_REJECTED',{createdAt:at(-7),updatedAt:at(-6),requestNo:'REQ-20260918-00002',userId:'MOCK_USER_2',userName:'陈宁',appId:requestApp13.id,appName:requestApp13.name,reason:'申请业务使用权限',status:'REJECTED',submittedAt:at(-7),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-6),reviewNote:'资料不完整，可查看原因后重新申请'}),
+  row('MOCK_REQ_GOV_APPROVED_BIND',{createdAt:at(-14),updatedAt:at(-12),requestNo:'REQ-20260917-00002',userId:'MOCK_USER_2',userName:'陈宁',appId:requestApp17.id,appName:requestApp17.name,reason:'申请业务使用权限并确认历史账号',status:'APPROVED',submittedAt:at(-14),reviewedBy:'MOCK_ADMIN',reviewedAt:at(-12),reviewNote:'审核通过，请继续完成账号确认'})
  ];
- const applicationGrants=[];
+ const applicationGrants=[
+  row('MOCK_GRANT_CITIZEN_APP13',{userId:'MOCK_USER_1',appId:requestApp13.id,status:'ACTIVE',grantedBy:'MOCK_ADMIN',grantedAt:at(-16),expiresAt:null}),
+  row('MOCK_GRANT_GOV_APP17',{userId:'MOCK_USER_2',appId:requestApp17.id,status:'ACTIVE',grantedBy:'MOCK_ADMIN',grantedAt:at(-12),expiresAt:null})
+ ];
  const accountOpeningRequests=[];
  const mappingVerificationEvents=[];
  const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.userType==='LOCAL'?false:null}));
