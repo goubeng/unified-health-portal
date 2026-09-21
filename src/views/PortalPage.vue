@@ -92,7 +92,7 @@
    <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load" @detail="openAdminAnnouncementDetail"/>
    <MonitorManagement v-else-if="resource==='monitor'" :rows="rows"/>
    <LogManagement v-else-if="resource.startsWith('logs:')" :rows="rows" :kind="resource.split(':')[1]" @saved="load"/>
-   <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest"/>
+   <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest" @enter="enterAppByRequest" @detail="showDetail($event,'myApplicationRequests')"/>
    <template v-else-if="resource==='announcementDetail'">
     <AnnouncementDetail v-if="detail" :record="detail" @download="download"/>
     <section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section>
@@ -311,7 +311,9 @@ const querySpec=computed(()=>{
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
  if(key==='users')return {keywordPlaceholder:'姓名 / 登录账号 / 所属单位',keywordFields:['name','account','orgName'],filters:[filterDef('userType','用户类别','请选择用户类别',fixedOptions(['CITIZEN','GOV']),'userType'),filterDef('status','启用状态','请选择启用状态',fixedOptions(['NORMAL','DISABLED']),'status')]};
  if(key==='roles')return {keywordPlaceholder:'角色名称 / 角色编码 / 描述',keywordFields:['roleName','roleCode','description'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
- if(['myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(key))return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
+ if(key==='myApplicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED','PROCESSING','COMPLETED']),'status')]};
+ if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
+ if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED']),'status')]};
  if(key==='permissions')return {keywordPlaceholder:'权限名称 / 权限编码',keywordFields:['name','code'],filters:[]};
  if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='announcements')return admin.value
@@ -468,10 +470,18 @@ const viewBinding=app=>openBinding(app);
 const viewConflict=app=>openBinding(app);
 function handleBindingCompleted(){load();}
 function viewBindingRequests(){router.push('/portal/applications');}
-function bindByRequest(row){
+function requestAppRecord(row){
  const app=allApps.value.find(item=>item.id===row.appId);
- if(!app){MessagePlugin.error('应用信息不存在，请刷新后重试');return;}
+ if(!app)MessagePlugin.error('应用信息不存在，请刷新后重试');
+ return app||null;
+}
+function bindByRequest(row){
+ const app=requestAppRecord(row);if(!app)return;
  openBinding(app);
+}
+function enterAppByRequest(row){
+ const app=requestAppRecord(row);if(!app)return;
+ enterApp(app);
 }
 function confirm(action,row,body){const dialog=DialogPlugin.confirm({placement:'center',header:'操作确认',body,onConfirm:async()=>{if(await run(action,{...row}))dialog.hide();}});}
 async function showDetail(row,kind=listResource.value){
