@@ -112,7 +112,7 @@
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
     </t-form>
     <template v-if="isAppCenter">
-     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（{{group.total}}）</span></h2></div><AppCards :apps="group.rows" :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="appPageSize" :total="group.total" :page-size-options="[12,24,48]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="appPageSize=$event"/></section>
+     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（{{group.total}}）</span></h2></div><AppCards :apps="group.rows" :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="appPageSize" :total="group.total" show-jumper @current-change="setAppPage(group.key,$event)"/></section>
     </template>
     <section v-else class="panel portal-table-panel">
      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
@@ -202,7 +202,7 @@ const listResource=computed(()=>resource.value==='announcementDetail'?'announcem
 const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
 const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
 const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10);
-const appPageSize=ref(24),appPages=reactive({mine:1,other:1});
+const appPageSize=ref(20),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
 const announcementEditVisible=ref(false);
