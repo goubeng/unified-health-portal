@@ -122,14 +122,14 @@
 
 
 /* V8.2 compact login box and five-second QR expiry */
-.login-card{max-width:460px;padding:28px 32px}.login-identity-switch{margin-bottom:14px;gap:8px}.identity-pill{font-size:18px!important;font-weight:600!important;padding:0 0 9px!important;border-bottom-width:2px!important}.auth-method-pills{max-width:290px;margin:0 auto 14px;padding:4px;gap:6px}.method-pill{min-height:34px!important;font-size:13px!important}.qr-auth{padding-top:6px;gap:7px}.qr-frame{width:206px;height:206px;border-radius:8px}.qr-tip-title{margin-top:4px;font-size:13px!important;font-weight:500!important}.qr-expire-text{font-size:12px;color:#86909c}.login-assist-row{justify-content:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed #e5e8ef}.assist-link{font-size:12px}.assist-divider{color:#c9d1dc;font-size:12px}.login-helper-row{display:none!important}.qr-frame-button.is-expired{cursor:pointer}.qr-frame-button.is-expired .qr-frame:hover{border-color:#9eb8eb;background:#fbfdff}.qr-expired-mask{font-size:13px}.qr-expired-mask small{font-size:11px}.phone-auth{margin-top:16px}.login-submit{margin:16px 0 6px}
+.login-card{max-width:460px;padding:28px 32px}.login-identity-switch{margin-bottom:14px;gap:8px}.identity-pill{font-size:18px!important;font-weight:500!important;padding:0 0 9px!important;border-bottom-width:2px!important}.auth-method-pills{max-width:290px;margin:0 auto 14px;padding:4px;gap:6px}.method-pill{min-height:34px!important;font-size:13px!important}.qr-auth{padding-top:6px;gap:7px}.qr-frame{width:206px;height:206px;border-radius:8px}.qr-tip-title{margin-top:4px;font-size:13px!important;font-weight:500!important}.qr-expire-text{font-size:12px;color:#86909c}.login-assist-row{justify-content:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed #e5e8ef}.assist-link{font-size:12px}.assist-divider{color:#c9d1dc;font-size:12px}.login-helper-row{display:none!important}.qr-frame-button.is-expired{cursor:pointer}.qr-frame-button.is-expired .qr-frame:hover{border-color:#9eb8eb;background:#fbfdff}.qr-expired-mask{font-size:13px}.qr-expired-mask small{font-size:11px}.phone-auth{margin-top:16px}.login-submit{margin:16px 0 6px}
 @media(max-width:760px){.login-card{padding:22px 18px}.identity-pill{font-size:17px!important}.auth-method-pills{max-width:270px}.qr-frame{width:196px;height:196px}}
 
 
 /* V8.3 login tab underline and prompt simplification */
-.login-identity-switch{justify-content:space-around;align-items:flex-end;gap:32px;padding:0 22px}
+.login-identity-switch{justify-content:space-around;align-items:flex-end;gap:32px;padding:0 22px;margin-top:10px!important}
 .identity-pill{flex:0 0 auto!important;width:auto!important;padding:0!important;border-bottom:0!important;background:transparent!important;color:#1f2329!important;text-align:center!important}
-.identity-pill>span{display:inline-block;position:relative;padding:0 2px 9px;font-size:18px;font-weight:600;line-height:1.35}
+.identity-pill>span{display:inline-block;position:relative;padding:0 2px 9px;font-size:18px;font-weight:500;line-height:1.35}
 .identity-pill>span::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:2px;background:transparent}
 .identity-pill.active>span{color:#2454ff}
 .identity-pill.active>span::after{background:#2454ff}
@@ -574,7 +574,7 @@
 
 
 /* Local admin demo form: fields are visual only in phase A. */
-.local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.local-captcha-tip{margin:6px 0 0;color:#86909c;font-size:12px;text-align:right}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
+.local-captcha-row{display:flex;align-items:center;gap:10px}.local-captcha-row>.t-input{flex:1;min-width:0}.local-captcha-code{display:flex;width:112px;height:32px;flex:none;align-items:center;justify-content:center;border:1px solid #dcdfe6;border-radius:3px;background:#f7f9fc;color:#2454ff;cursor:pointer;user-select:none}.local-captcha-code:hover{border-color:#0052d9;background:#f2f7ff}.local-captcha-code>span{font-size:17px;font-weight:600;letter-spacing:4px;font-family:Consolas,"Courier New",monospace}.local-auth .login-submit{margin-top:16px}@media(max-width:760px){.local-captcha-code{width:104px}}
 
 /* App center: normal usable apps do not repeat status; exceptional/other app state tags are 12px. */
 .portal-app-status-tag,.portal-app-status-tag .t-tag__text{font-size:12px!important;line-height:20px!important}
