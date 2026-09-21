@@ -660,3 +660,31 @@ test('子系统映射标题到表格的视觉间距与基本信息一致',()=>{
   assert(css.includes('.identity-mapping-section-title{margin:0 0 10px'));
   assert(css.includes('.identity-mapping-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:5px}'));
 });
+
+
+test('列表文本仅在溢出截断时显示完整内容Tooltip',()=>{
+  const component=fs.readFileSync('src/components/portal/TableCellTooltip.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(component.includes(':disabled="!overflow||!content"'));
+  assert(component.includes('target.scrollWidth>target.clientWidth+1'));
+  assert(component.includes('ResizeObserver'));
+  assert(component.includes("import PortalTooltip from './PortalTooltip.vue'"));
+  assert(css.includes('.table-cell-tooltip-content{display:block;width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'));
+  for(const file of [
+    'src/views/PortalPage.vue',
+    'src/components/portal/UserManagement.vue',
+    'src/components/portal/RoleManagement.vue',
+    'src/components/portal/OrganizationManagement.vue',
+    'src/components/portal/DictionaryManagement.vue',
+    'src/components/portal/IdentityMappings.vue',
+    'src/components/portal/LogManagement.vue',
+    'src/components/portal/MonitorManagement.vue',
+    'src/components/portal/TodoCenter.vue',
+    'src/components/portal/AnnouncementManagement.vue',
+    'src/components/portal/MessageCenter.vue',
+    'src/components/portal/MyApplications.vue'
+  ]){
+    const source=fs.readFileSync(file,'utf8');
+    assert(source.includes('TableCellTooltip'),file+' 未接入列表溢出Tooltip');
+  }
+});
