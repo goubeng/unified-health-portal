@@ -104,7 +104,6 @@ const saving=ref(false),formError=ref('');
 const previewVisible=ref(false),previewRecord=ref(null);
 
 const isDraft=computed(()=>form.status==='DRAFT');
-const isPublished=computed(()=>form.status==='PUBLISHED');
 const isScheduled=computed(()=>form.status==='SCHEDULED');
 
 const typeOptions=computed(()=>{
@@ -234,22 +233,10 @@ async function publishDraft(){
 
 async function saveCurrent(){
   if(saving.value)return;
-  if(isScheduled.value&&form.publishMode==='SCHEDULED'&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
   saving.value=true;formError.value='';
   try{
     const saved=await saveBase();
     if(!saved)return;
-    if(isScheduled.value){
-      const result=await command('submitAnnouncement',{
-        id:saved.id,version:saved.version,publishMode:form.publishMode,
-        scheduledPublishAt:form.publishMode==='SCHEDULED'?toIso(form.scheduledPublishAt):null
-      });
-      if(!result.ok){formError.value=result.error.message;return;}
-      MessagePlugin.success(form.publishMode==='IMMEDIATE'?'公告已立即发布':'定时公告修改已保存');
-      emit('saved',result.data);
-      close();
-      return;
-    }
     MessagePlugin.success('公告修改已生效');
     emit('saved',saved);
     close();
