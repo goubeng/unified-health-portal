@@ -888,10 +888,10 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('class="login-qrcode"'));
-  assert(source.includes(':size="186"'));
+  assert(source.includes(':size="176"'));
   assert(css.includes('.qr-frame{width:196px;height:196px;border-radius:0}'));
   assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
-  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:186px!important;height:186px!important'));
+  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:176px!important;height:176px!important'));
 });
 
 
@@ -903,7 +903,7 @@ test('登录页使用独立图片层渲染卫健高清背景',()=>{
   assert(source.includes('class="login-bg-image"'));
   assert(source.includes(':src="loginBackground"'));
   assert(source.includes('class="login-intro"'));
-  assert(layout.includes('.login-bg-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:left center'));
+  assert(layout.includes('.login-bg-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:contain;object-position:left center'));
   assert(layout.includes('.login-brand,.login-layout,.login-shell>footer{position:relative;z-index:1}'));
 });
 
@@ -921,10 +921,10 @@ test('登录页身份切换与内容区间距一致且登录框高度自适应',
   assert(layout.includes('.login-brand{font-size:24px;font-weight:600;color:var(--td-brand-color,#0052d9)}'));
 });
 
-test('登录二维码使用直角并保持四周4px留白',()=>{
+test('登录二维码使用直角并保持均衡居中留白',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:4px!important}'));
-  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:186px!important;height:186px!important'));
+  assert(css.includes('.qr-frame{box-sizing:border-box!important;width:196px!important;height:196px!important;display:grid!important;place-items:center!important;border-radius:0!important;overflow:hidden!important;padding:0!important}'));
+  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:176px!important;height:176px!important'));
   assert(css.includes('padding:0!important;border:0!important;border-radius:0!important;place-items:center!important'));
   assert(css.includes('.login-qrcode .t-qrcode__image{box-sizing:border-box!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important'));
   assert(css.includes('.login-qrcode svg{box-sizing:border-box!important;display:block!important;width:100%!important;height:100%!important'));
@@ -947,4 +947,13 @@ test('登录二维码清除TDesign默认内边距以保证视觉居中',()=>{
   assert(css.includes('padding:0!important;border:0!important'));
   assert(css.includes('.login-qrcode .t-qrcode__image'));
   assert(css.includes('place-items:center!important'));
+});
+
+
+test('登录背景完整显示并提升左侧说明文字对比度',()=>{
+  const layout=fs.readFileSync('src/styles/layout.css','utf8');
+  assert(layout.includes('object-fit:contain'));
+  assert(layout.includes('.login-intro{max-width:430px;color:#344054;text-shadow:0 1px 2px rgba(255,255,255,.92)}'));
+  assert(layout.includes('.login-intro p{color:#52657f'));
+  assert(layout.includes('.login-features{display:flex;gap:24px;margin-top:30px;color:#3f638f}'));
 });
