@@ -888,43 +888,45 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('class="login-qrcode"'));
-  assert(source.includes(':size="160"'));
+  assert(source.includes(':size="156"'));
   assert(css.includes('.qr-frame{width:196px;height:196px;border-radius:0}'));
   assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
-  assert(css.includes('.login-qrcode,.login-qrcode .t-qrcode__image,.login-qrcode svg{display:block!important;margin:auto!important}'));
+  assert(css.includes('.login-qrcode{display:block!important;width:156px!important;height:156px!important'));
 });
 
 
-test('登录页使用卫健高清背景并保持左侧说明右侧登录框布局',()=>{
+test('登录页显式绑定卫健高清背景并保持左侧说明右侧登录框布局',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
   assert(fs.existsSync('src/assets/login-health-bg-1920x1200.webp'));
+  assert(source.includes("import loginBackground from '../assets/login-health-bg-1920x1200.webp';"));
+  assert(source.includes(':style="{backgroundImage:`url(${loginBackground})`}"'));
   assert(source.includes('class="login-intro"'));
   assert(source.includes('一个入口<br>连接协同服务'));
-  assert(layout.includes("background-image:url('../assets/login-health-bg-1920x1200.webp')"));
   assert(layout.includes('background-size:cover'));
   assert(layout.includes('background-position:left center'));
   assert(layout.includes('grid-template-columns:minmax(220px,1fr) 460px'));
 });
 
 
-test('登录页身份切换与扫码区域间距一致且管理账号保持固定高度',()=>{
+test('登录页身份切换与内容区间距一致且登录框高度自适应',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
   assert(source.includes('class="local-auth phone-auth"'));
-  assert(css.includes('.login-card{width:460px!important;max-width:460px!important;height:520px!important;min-height:520px!important;display:flex!important;flex-direction:column!important}'));
+  assert(css.includes('.login-card{width:460px!important;max-width:460px!important;height:auto!important;min-height:0!important;display:block!important}'));
   assert(css.includes('.login-identity-switch{margin-bottom:32px!important}'));
   assert(css.includes('.qr-auth{padding-top:32px!important}'));
   assert(css.includes('.phone-auth:not(.local-auth){margin-top:32px!important}'));
-  assert(css.includes('.local-auth{flex:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;margin-top:0!important}'));
+  assert(css.includes('.local-auth{display:block!important;margin-top:32px!important}'));
   assert(layout.includes('.login-brand{font-size:24px;font-weight:600;color:var(--td-brand-color,#0052d9)}'));
 });
 
 test('登录二维码使用直角并完整收在外框内',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:17px!important}'));
-  assert(css.includes('width:160px!important;height:160px!important;max-width:160px!important;max-height:160px!important'));
+  assert(css.includes('.qr-frame{box-sizing:border-box!important;border-radius:0!important;overflow:hidden!important;padding:19px!important}'));
+  assert(css.includes('.login-qrcode{display:block!important;width:156px!important;height:156px!important;max-width:156px!important;max-height:156px!important'));
+  assert(css.includes('.login-qrcode svg{display:block!important;width:156px!important;height:156px!important;max-width:100%!important;max-height:100%!important'));
   assert(css.includes('.qr-expired-mask{border-radius:0!important}'));
 });
 
