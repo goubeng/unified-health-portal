@@ -107,6 +107,12 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(!css.includes('.admin-reminder-card.tone-blue{'));
   assert(css.includes('.admin-health-workbench-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)'));
   assert(css.includes('.admin-service-health-grid{display:grid!important;grid-template-columns:1fr!important'));
+  assert(source.includes('class="admin-health-stat is-normal"><Icon name="check-circle"/><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b>'));
+  assert(source.includes('class="admin-health-stat is-abnormal"><Icon name="error-circle"/><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b>'));
+  assert(source.includes('class="admin-health-stat is-muted"><Icon name="minus-circle"/><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b>'));
+  assert(css.includes('.admin-health-stat.is-normal,.admin-health-stat.is-normal b,.admin-health-stat.is-normal>.t-icon{color:#2ba471!important}'));
+  assert(css.includes('.admin-health-stat.is-abnormal,.admin-health-stat.is-abnormal b,.admin-health-stat.is-abnormal>.t-icon{color:#d54941!important}'));
+  assert(css.includes('.admin-health-stat.is-muted,.admin-health-stat.is-muted b,.admin-health-stat.is-muted>.t-icon{color:#86909c!important}'));
 });
 
 test('管理首页新增公告快捷入口进入公告管理并自动打开新增弹窗',()=>{
