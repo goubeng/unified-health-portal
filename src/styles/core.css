@@ -784,3 +784,17 @@
 
 /* Unified hover tooltip typography for the current prototype. */
 .t-tooltip .t-popup__content{font-size:12px!important;}
+
+
+/* 2026-09-21 login layout normalization: equal vertical rhythm, stable card height and square QR. */
+.login-card{width:460px!important;max-width:460px!important;height:520px!important;min-height:520px!important;display:flex!important;flex-direction:column!important}
+.login-identity-switch{margin-bottom:16px!important}
+.auth-method-pills{width:100%!important;margin:0 auto!important}
+.qr-auth{padding-top:16px!important}
+.phone-auth:not(.local-auth){margin-top:16px!important}
+.local-auth{flex:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;margin-top:0!important}
+.qr-frame{border-radius:0!important;overflow:visible!important}
+.login-qrcode,.login-qrcode .t-qrcode,.login-qrcode .t-qrcode__image,.login-qrcode svg,.login-qrcode .t-icon,.qr-frame-button.is-success .qr-frame .t-icon{border-radius:0!important;overflow:visible!important}
+.login-qrcode{line-height:0!important}
+.qr-expired-mask{border-radius:0!important}
+@media(max-width:760px){.login-card{width:100%!important;height:auto!important;min-height:0!important}.local-auth{display:block!important}.login-identity-switch{margin-bottom:16px!important}.qr-auth{padding-top:16px!important}}
