@@ -875,3 +875,10 @@ test('应用中心分组统计仅数字增加字重',()=>{
   assert(css.includes('.portal-section-count{font-size:13px!important;font-weight:500!important;color:#1d2129!important}'));
   assert(css.includes('.portal-section-count-number{font-weight:600!important}'));
 });
+
+
+test('登录框内容左右增加10px留白且登录按钮加高',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.login-card{background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:28px 42px!important}'));
+  assert(css.includes('.login-submit{height:40px!important;min-height:40px!important}'));
+});
