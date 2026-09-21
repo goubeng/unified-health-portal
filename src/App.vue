@@ -2,7 +2,7 @@
  <router-view v-if="route.meta.group==='登录'" />
  <div v-else class="app-shell" :class="{collapsed}">
   <header class="topbar">
-   <button class="collapse-button" aria-label="展开或收起菜单" title="展开或收起菜单" @click="collapsed=!collapsed"><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon" size="16px"/></button>
+   <t-button class="collapse-button" shape="square" variant="text" aria-label="展开或收起菜单" title="展开或收起菜单" @click="collapsed=!collapsed"><template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template></t-button>
    <span class="brand">卫健XC统一门户</span><span class="portal-caption" :class="{admin}">{{admin?'平台管理端':'用户端门户'}}</span>
    <div class="topbar-actions">
     <t-select class="user-switch-select" :value="actor?.id" :options="userOptions" :disabled="switching" filterable aria-label="切换用户" placeholder="切换用户" @change="switchUser"/>
