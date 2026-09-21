@@ -89,8 +89,8 @@ watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,M
 
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'title',title:'待办标题',width:220,ellipsis:true},
-  {colKey:'appName',title:'来源应用',width:280,ellipsis:true},
+  {colKey:'title',title:'待办标题',width:200,ellipsis:true},
+  {colKey:'appName',title:'来源应用',width:320,ellipsis:true},
   {colKey:'businessType',title:'业务类型',width:120},
   {colKey:'status',title:'状态',width:120},
   {colKey:'createdAt',title:'接收时间',width:170,cell:(_,context)=>date(context.row.createdAt)},
