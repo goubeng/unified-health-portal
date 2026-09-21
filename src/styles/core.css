@@ -798,4 +798,4 @@
 .login-qrcode .t-icon,.qr-frame-button.is-success .qr-frame .t-icon{border-radius:0!important;overflow:visible!important}
 .login-qrcode{line-height:0!important}
 .qr-expired-mask{border-radius:0!important}
-@media(max-width:760px){.login-card{width:100%!important;height:auto!important;min-height:0!important}.local-auth{display:block!important}.login-identity-switch{margin-bottom:16px!important}.qr-auth{padding-top:16px!important}}
+@media(max-width:760px){.login-card{width:100%!important;height:auto!important;min-height:0!important}.local-auth{display:block!important}.login-identity-switch{margin-bottom:32px!important}.qr-auth{padding-top:32px!important}}
