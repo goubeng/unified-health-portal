@@ -622,7 +622,8 @@ test('用户详情来源提示显示在详情网格上方',()=>{
   assert(dialog.indexOf('class="user-source-alert"')>=0);
   assert(dialog.indexOf('class="user-source-alert"')<dialog.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>'));
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.user-source-alert + .portal-detail-grid{margin-top:14px}'));
+  assert(css.includes('.user-detail-source-alert{margin:0 0 14px!important}'));
+  assert(css.includes('.user-detail-source-alert + .portal-detail-grid{margin-top:0}'));
 });
 
 
@@ -641,4 +642,14 @@ test('子系统映射详情提供序号搜索统计图标与独立分页',()=>{
   assert(source.includes(':total="selectedMappings.length"'));
   assert(css.includes('.identity-mapping-search{width:280px;flex:none}'));
   assert(css.includes('.identity-mapping-summary-item strong{font-weight:600'));
+});
+
+
+test('编辑外部用户边界说明使用统一提示框',()=>{
+  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('<t-alert theme="info" class="user-external-edit-alert">'));
+  assert(source.includes('外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。'));
+  assert(!source.includes('<p class="muted">外部身份字段只读'));
+  assert(css.includes('.user-external-edit-alert{margin-top:14px!important}'));
 });
