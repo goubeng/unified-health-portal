@@ -891,7 +891,7 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
   assert(source.includes(':size="186"'));
   assert(css.includes('.qr-frame{width:196px;height:196px;border-radius:0}'));
   assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
-  assert(css.includes('.login-qrcode{display:block!important;width:186px!important;height:186px!important'));
+  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:186px!important;height:186px!important'));
 });
 
 
