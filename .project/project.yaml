@@ -4,7 +4,7 @@ project:
   type: "new"
   stage: "P4"
   version: "0.2.0"
-  baseline: "V20260920-03"
+  baseline: "V20260921-01"
 
 base_project:
   enabled: true
@@ -46,7 +46,7 @@ prototype:
     message: "push"
 
 common_modules:
-  user: true # CITIZEN/GOV authority remains external; LOCAL identity/credential is portal-owned
+  user: true # CITIZEN/GOV are access subjects; portal_admin_user is a separate management authorization domain
   organization: true # portal organization index + LOCAL organization maintenance; GOV authority remains external
   role: true
   dictionary: true
