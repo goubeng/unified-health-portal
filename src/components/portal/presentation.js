@@ -1,6 +1,6 @@
 import {labels,scopes} from '../../config/pages.js';
 
-export const text=value=>String(value??'').replace(/上层身份平台|政务身份平台/g,'闽政务').replace(/公众侧身份平台|公众身份平台/g,'闽政通').replace(/上层公共服务/g,'公共服务').replace(/上层身份/g,'统一身份').replace(/\s*·\s*[^·]*演示/g,'').replace(/模拟|演示|示例/g,'').trim();
+export const text=value=>String(value??'').replace(/上层身份平台|政务身份平台/g,'闽政务').replace(/公众侧身份平台|公众身份平台/g,'闽政通').replace(/上层公共服务/g,'公共服务').replace(/上层身份/g,'统一身份').replace(/\s*·\s*[^·]*演示/g,'').replace(/(?:模拟|演示|示例)\s*[：:]\s*/g,'').replace(/模拟|演示|示例/g,'').trim();
 
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function richText(value){
