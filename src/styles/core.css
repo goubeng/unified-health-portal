@@ -778,3 +778,6 @@
   font-size:13px!important;
   line-height:20px!important;
 }
+
+/* Unified hover tooltip typography for the current prototype. */
+.t-tooltip .t-popup__content{font-size:12px!important;}
