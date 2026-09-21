@@ -317,24 +317,26 @@ test('新增公告仅定时发布时显示定时发布时间且失效日期按�
   assert(source.includes("form.publishMode==='SCHEDULED'?'定时发布':'立即发布'"));
 });
 
-test('草稿和定时公告编辑均显示发布方式且定时公告可切立即发布',()=>{
+test('新增草稿定时发布共用发布布局且草稿和定时编辑共用双操作按钮',()=>{
+  const create=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes("const isDraft=computed(()=>form.status==='DRAFT')"));
   assert(source.includes("const isScheduled=computed(()=>form.status==='SCHEDULED')"));
-  assert(source.includes("const isPublished=computed(()=>form.status==='PUBLISHED')"));
   assert(source.includes('v-if="isDraft||isScheduled"'));
+  assert(source.includes('<template v-if="isDraft||isScheduled">'));
   assert(source.includes('v-model="form.publishMode"'));
   assert(source.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
   assert(source.includes("if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE'"));
-  assert(source.includes("{{isScheduled&&form.publishMode==='IMMEDIATE'?'立即发布':'保存修改'}}"));
-  assert(source.includes("form.publishMode==='IMMEDIATE'?'公告已立即发布':'定时公告修改已保存'"));
+  assert(source.includes('@click="saveDraft">保存草稿</t-button>'));
+  assert(source.includes("@click=\"publishDraft\">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>"));
+  assert(source.includes("saveBase({targetStatus:'DRAFT'})"));
   assert(source.includes("command('submitAnnouncement'"));
   assert(source.includes("class=\"announcement-publish-row\""));
+  assert(create.includes('@click="saveAnnouncement">保存草稿</t-button>'));
+  assert(create.includes("@click=\"saveAndPublish\">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>"));
   assert(css.includes('.announcement-publish-row .announcement-publish-mode-field{grid-column:span 6}'));
   assert(css.includes('.announcement-publish-row.is-scheduled .announcement-expiry-field{grid-column:span 6}'));
-  assert(source.includes('@click="saveDraft"'));
-  assert(source.includes('@click="publishDraft"'));
   assert(source.includes('<label>失效日期</label>'));
   assert(source.includes('format="YYYY-MM-DD"'));
   assert(source.includes("function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T23:59:59').toISOString():null;}"));
@@ -354,6 +356,20 @@ test('折叠菜单为主要页面和五类日志显式分配可区分图标',()=
     'users:UserIcon','roles:UserSafetyIcon','organizations:FolderIcon','dictionaries:FileIcon','identityOverview:LinkIcon','settings:SettingIcon','monitor:ChartBarIcon',
     "'logs:login':UserSafetyIcon","'logs:access':LinkIcon","'logs:operation':TaskIcon","'logs:api':AppIcon","'logs:error':NotificationIcon"
   ])assert(source.includes(mapping),mapping+' 未配置');
+});
+
+test('公告操作权限为撤回可编辑删除且过期仅删除',()=>{
+  const list=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const service=fs.readFileSync('src/services/portal.js','utf8');
+  assert(list.includes("['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(row.status)"));
+  assert(list.includes("['DRAFT','WITHDRAWN','EXPIRED'].includes(row.status)"));
+  assert(page.includes("['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(detail.status)"));
+  assert(page.includes("['DRAFT','WITHDRAWN','EXPIRED'].includes(detail.status)"));
+  assert(page.includes('function removeAdminAnnouncementDetail(row){'));
+  assert(service.includes("if(effectiveStatus==='EXPIRED')fail('INVALID_TRANSITION','已过期公告不可编辑')"));
+  assert(service.includes("if(effectiveStatus==='WITHDRAWN'){x.status='WITHDRAWN'"));
+  assert(service.includes("if(p.targetStatus==='DRAFT')"));
 });
 
 test('公告撤回删除确认分别使用warning和danger提示主题',()=>{
