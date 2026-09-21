@@ -56,9 +56,9 @@
        <div class="admin-service-health-grid">
         <button v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" type="button" class="admin-service-health-card" @click="can(actor,'integration')&&router.push('/admin/monitor')">
          <strong>{{kind}}</strong>
-         <span><b>{{overview.serviceHealth[kind]?.normal??0}}</b> 正常</span>
-         <span><b class="is-danger">{{overview.serviceHealth[kind]?.abnormal??0}}</b> 异常</span>
-         <span><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b> 未配置/停用</span>
+         <span class="admin-health-stat is-normal"><Icon name="check-circle"/><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
+         <span class="admin-health-stat is-abnormal"><Icon name="error-circle"/><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
+         <span class="admin-health-stat is-muted"><Icon name="minus-circle"/><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
         </button>
        </div>
       </section>
