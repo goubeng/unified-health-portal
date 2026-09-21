@@ -710,13 +710,22 @@
 }
 
 
-/* 2026-09-21 home feed titles and application names share the same medium weight. */
-.portal-page .portal-home-feeds .portal-field-link{
+/* 2026-09-21 home feed title links: todo / announcement / message use one rule, including unread states. */
+.portal-page .portal-home-feeds .list-row .portal-field-link,
+.portal-page .portal-home-feeds .list-row .portal-field-link.is-unread,
+.portal-page .portal-home-feeds .list-row .portal-field-link.is-attention{
+  color:#0052d9!important;
   font-size:13px!important;
   font-weight:500!important;
+  line-height:1.6!important;
+  text-decoration:none!important;
 }
-.portal-page .portal-home-feeds .portal-field-link:hover{
+.portal-page .portal-home-feeds .list-row .portal-field-link:hover,
+.portal-page .portal-home-feeds .list-row .portal-field-link.is-unread:hover,
+.portal-page .portal-home-feeds .list-row .portal-field-link.is-attention:hover{
+  color:#003cab!important;
   font-weight:500!important;
+  text-decoration:underline!important;
 }
 .portal-page .portal-app-name,
 .portal-page .portal-app-info .portal-app-name{
