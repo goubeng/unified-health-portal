@@ -1,230 +1,152 @@
-# Service契约（V1.0目标）
+# Service 契约（V1.0 目标）
 
-> 基线：V20260920-03。
+> 目标设计：V20260921-01。当前前端 Mock 与历史 P3 数据库不代表本契约已实现。
 
-## 1. 身份与登录
+## 1. 身份与会话
 
-外部：
-
-- consumeMinZhengTongAuth → CITIZEN
-- consumeMinZhengWuAuth → GOV
-
-本地：
-
-- authenticateLocalUser
-- changeLocalPassword
-- resetLocalPassword
-- unlockLocalCredential
-
-登录成功统一进入：
-- upsertUnifiedIdentity
+外部认证：
+- consumeMinZhengTongAuth
+- consumeMinZhengWuAuth
+- upsertAccessSubject
 - createPortalSession
-- recordAuditEvent
 
-authenticateLocalUser必须校验：
-- identitySource=PORTAL_LOCAL
-- userType=LOCAL
-- 用户启用
-- 未锁定
-- 密码Hash
-- 有效管理角色
+管理授权：
+- resolvePortalAdminUser
+- loadAdminRoles
+- loadAdminPermissions
 
-## 2. 用户管理
+本地管理账号：
+- authenticateLocalAdmin
+- changeLocalAdminPassword
+- resetLocalAdminPassword
+- unlockLocalAdminCredential
 
-- readUsers
-- readUserDetail
-- updatePortalUser
-- createLocalUser
-- updateLocalUser
-- setUserStatus
-- resetLocalUserPassword
-- assignUserRoles
+外部身份认证成功不自动获得管理权，必须存在有效 portal_admin_user。
 
-updatePortalUser不得修改外部权威身份属性。
+## 2. 门户管理用户
+
+- readAdminUsers
+- readAdminUserDetail
+- createAdminUser
+- updateAdminUser
+- setAdminUserEnabled
+- bindAdminExternalIdentity
+- unbindAdminExternalIdentity
+- assignAdminRoles
+- deleteAdminUser
+
+外部身份绑定只保存门户授权关系，不修改闽政通/闽政务权威资料。
 
 ## 3. 角色与权限
 
 - readRoles
 - saveRole
-- setRoleStatus
+- setRoleEnabled
 - saveRolePermissions
 - readRoleUsers
 
-默认角色：
+默认 Seed：
 - SUPER_ADMIN
 - PORTAL_ADMIN
 
-首期主要权限类型：
-- MENU
-- PAGE
-- ACTION
+所有高风险写操作必须服务端鉴权。最后一个有效超级管理员由服务端事务保护。
 
-## 4. 组织
+## 4. 应用与接入
 
-- readOrganizationTree
-- saveOrganization
-- setOrganizationStatus
-- syncOrganizationIndex
+- readApplications
+- saveApplication
+- setApplicationEnabled
+- readApplicationIntegrations
+- saveApplicationIntegration
+- setIntegrationEnabled
+- testIntegration
+- readIntegrationMonitor
 
-## 5. 应用访问
+SSO/TODO/MESSAGE 必须分别建模。配置状态、启用状态、运行状态分离。
 
-- submitApplicationRequest
-- withdrawApplicationRequest
-- readMyApplicationRequests
-- readApplicationRequests
-- approveApplicationRequest
-- rejectApplicationRequest
-- readApplicationGrant
-- enterApp
-
-LOCAL首期默认不进入普通应用访问流程，但服务端不应通过硬编码角色实现此规则，应依据产品入口/适用用户配置。
-
-### 5.1 子系统账号映射
-
-建议Service：
+## 5. 子系统账号映射
 
 - discoverApplicationAccountCandidates
 - startApplicationAccountBinding
-- verifyBindingBySubsystemRedirect
-- sendSubsystemBindingOtp
-- verifyBindingOtp
-- verifyBindingByUpstreamReauth
-- verifyBindingBySubsystemCredential
+- verifyApplicationAccountBinding
 - submitBindingReview
 - approveBindingReview
 - rejectBindingReview
-- bindApplicationAccountByAdmin
 - unbindApplicationAccount
 - resolveMappingConflict
 - readApplicationMappings
-- readMappingVerificationHistory
 
-强制规则：
+映射主体是访问用户，不是 portal_admin_user。姓名+手机号只能发现候选，不能直接 BOUND。
 
-1. 候选匹配与正式绑定分离；
-2. NAME_PHONE只返回候选，不直接写BOUND；
-3. SUBSYSTEM_OTP只能向子系统原账号登记手机号发送；
-4. 子系统密码/OTP/Token只用于当前验证，不得持久化或进入审计details；
-5. 高权限账号可在验证成功后返回REVIEW_REQUIRED并进入REVIEWING；
-6. application_id + external_user_id已存在其它有效BOUND时返回冲突，禁止覆盖；
-7. 解绑/重绑必须审计；
-8. 子系统账号DISABLED时拒绝进入应用，但不删除已有映射历史。
+## 6. SSO
 
-enterApp顺序：
+- createSsoTicket
+- verifySsoTicket
+- enterApplication
+- openTodo
 
-```text
-适用用户
-→ 应用启用
-→ access_mode
-→ REQUEST入口资格
-→ BIND映射状态（如需要）
-→ 子系统账号状态
-→ SSO
-```
+Ticket 短时、一次性、服务端验证。门户只衔接身份，子系统继续做业务权限判断。
 
-### 5.2 外部身份候选关联
+## 7. TODO
 
-如未来实现CITIZEN/GOV跨身份源自然人关联：
+接入：
+- ingestTodo
+- updateTodoStatus
 
-- discoverIdentityLinkCandidates
-- verifyIdentityLinkByUpstreamReauth
-- confirmIdentityLink
-- rejectIdentityLink
+查询：
+- readMyTodos
+- readTodoDetail
 
-禁止仅凭姓名+手机号直接合并统一用户。
+状态：PENDING / COMPLETED / WITHDRAWN。
 
-## 6. 公告
+规则：
+1. application + eventId 幂等；
+2. application + sourceTodoId 识别同一待办；
+3. 门户“去处理”不修改业务状态；
+4. 来源系统是权威状态源；
+5. 不接收 priority/dueAt/逾期字段。
+
+## 8. MESSAGE
+
+- ingestMessage
+- readMyMessages
+- markMessageRead
+- markMessagesRead
+- deleteMessageForRecipient
+
+消息本体与收件人已读/删除状态分离。
+
+## 9. 公告
 
 - saveAnnouncementDraft
-- submitAnnouncement
-- cancelScheduledAnnouncement
-- editPublishedAnnouncement
+- publishAnnouncement
+- scheduleAnnouncement
 - withdrawAnnouncement
 - deleteAnnouncement
 - previewAnnouncement
 - publishScheduledAnnouncements
-- expireAnnouncements
 
-## 7. 字典
+## 10. 审计与监控
 
-- readDictionaryTypes
-- readDictionaryItems
-- saveDictionaryType
-- saveDictionaryItem
-- setDictionaryStatus
+- recordAuditEvent
+- readAuditEvents
+- recordIntegrationEvent
+- recomputeIntegrationRuntimeStatus
 
-## 8. 审计
-
-recordAuditEvent。
-
-本地登录必须写：
-- userType=LOCAL
-- identitySource=PORTAL_LOCAL
-- loginMethod=PASSWORD
-
-不得写密码、验证码、Token、password_hash。
-
-## 9. 运行监控
-
-readMonitorProfiles只返回真实服务状态：
-- SSO
-- TODO
-- MESSAGE
-
-详情不再返回用于展示的冗余综合status。
-
-## 10. TODO / MESSAGE 接入
-
-TODO PUSH最小标准字段：
-
-- eventId；
-- sourceTodoId；
-- userId；
-- status；
-- title。
-
-TODO不再要求：
-
-- priority；
-- dueAt；
-- sourceRevision；
-- terminalAt。
-
-TODO标准状态首期只支持：
-
-- PENDING；
-- COMPLETED；
-- WITHDRAWN。
-
-处理规则：
-
-1. application + eventId 负责幂等；
-2. application + sourceTodoId 识别同一来源待办；
-3. 首次推送必须为PENDING；
-4. PENDING可更新为COMPLETED或WITHDRAWN；
-5. 终态不得回退；
-6. 门户“去处理”不修改来源状态；
-7. 门户不计算逾期，不接收截止时间；
-8. 来源系统仍是业务状态权威方。
-
-MESSAGE契约维持现有 eventId / sourceMessageId / userId / title / content。
+运行状态不得由管理员直接 setNormal。
 
 ## 11. 建议错误码
 
-- LOCAL_ACCOUNT_DISABLED
-- LOCAL_ACCOUNT_LOCKED
-- INVALID_CREDENTIALS
-- PASSWORD_CHANGE_REQUIRED
-- ADMIN_ROLE_REQUIRED
+- AUTH_REQUIRED
+- AUTH_PERMISSION_DENIED
+- ADMIN_USER_DISABLED
 - LAST_SUPER_ADMIN_PROTECTED
-- DUPLICATE_APPLICATION_REQUEST
-- APPLICATION_GRANT_REQUIRED
-- ACCOUNT_BINDING_REQUIRED
-- ACCOUNT_BINDING_VERIFICATION_FAILED
-- ACCOUNT_BINDING_REVIEW_REQUIRED
-- ACCOUNT_ALREADY_BOUND
-- ACCOUNT_MAPPING_CONFLICT
-- SUBSYSTEM_ACCOUNT_DISABLED
-- IDENTITY_LINK_VERIFICATION_REQUIRED
-- IDENTITY_LINK_CONFLICT
-- DICTIONARY_LOCKED
+- APPLICATION_DISABLED
+- INTEGRATION_NOT_CONFIGURED
+- INTEGRATION_DISABLED
+- SSO_TICKET_EXPIRED
+- SSO_MAPPING_REQUIRED
+- TODO_RECEIVER_NOT_FOUND
+- MAPPING_ALREADY_EXISTS
+- MAPPING_CONFLICT
+- ANNOUNCEMENT_STATUS_CONFLICT
