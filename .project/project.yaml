@@ -4,7 +4,7 @@ project:
   type: "new"
   stage: "P4"
   version: "0.2.0"
-  baseline: "V20260917-01"
+  baseline: "V20260920-03"
 
 base_project:
   enabled: true
@@ -36,7 +36,7 @@ stage_review:
   p3_seed_rows: 12
   p3_constraints: "199_CONSTRAINTS_VERIFIED_PG14_20"
   baseline_status: "Draft"
-  report: "docs/review/P0-P2阶段审查.md"
+  report: "docs/02-开发/02-评审/P0-P2阶段审查.md"
 
 prototype:
   mode: "demo_first"
@@ -46,8 +46,8 @@ prototype:
     message: "push"
 
 common_modules:
-  user: true # portal access/scopes only; identity credentials remain external
-  organization: false
+  user: true # CITIZEN/GOV authority remains external; LOCAL identity/credential is portal-owned
+  organization: true # portal organization index + LOCAL organization maintenance; GOV authority remains external
   role: true
   dictionary: true
   message: true
