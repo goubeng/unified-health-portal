@@ -10,10 +10,10 @@
               <div><Icon name="mail"/><span>消息类型</span><strong>{{label(record.messageType||'BUSINESS')}}</strong></div>
               <div><Icon name="tag"/><span>消息来源</span><strong>{{text(record.appName||'统一门户')}}</strong></div>
               <div><Icon name="user-talk"/><span>发送方</span><strong>{{text(record.appName||'统一门户')}}</strong></div>
+              <div><Icon name="check-circle"/><span>读取状态</span><strong><t-tag :theme="record.status==='UNREAD'?'warning':'success'" variant="light">{{record.status==='UNREAD'?'未读':'已读'}}</t-tag></strong></div>
             </div>
             <p>您好！</p>
             <p class="portal-message-body">{{text(record.content)||'暂无正文'}}</p>
-            <section class="portal-message-business"><h3>关联信息</h3><div class="portal-message-grid"><div><span>来源应用</span><strong>{{text(record.appName)||'统一门户'}}</strong></div><div><span>读取状态</span><strong><t-tag :theme="record.status==='UNREAD'?'warning':'success'" variant="light">{{record.status==='UNREAD'?'未读':'已读'}}</t-tag></strong></div></div></section>
       </article>
       <article v-else-if="kind==='announcements'" class="portal-letter">
         <h2>{{text(record.title)}}</h2>
