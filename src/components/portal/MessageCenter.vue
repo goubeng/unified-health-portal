@@ -59,6 +59,7 @@ import {useRoute,useRouter} from 'vue-router';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {command} from '../../services/runtime.js';
 import {text,label,date,theme} from './presentation.js';
 
@@ -86,8 +87,8 @@ const nextMessage=computed(()=>activeIndex.value>=0&&activeIndex.value<props.row
 const columns=computed(()=>[
  {colKey:'selector',title:()=>h(TCheckbox,{checked:allFilteredSelected.value,indeterminate:partialFilteredSelected.value,onChange:toggleAllFiltered}),width:48,cell:(_,context)=>h(TCheckbox,{checked:selectedIds.value.includes(context.row.id),onChange:checked=>toggleRow(context.row.id,checked)})},
  {colKey:'serial',title:'序号',width:64,cell:(_,context)=>(page.value-1)*pageSize.value+context.rowIndex+1},
- {colKey:'title',title:'标题',minWidth:280,cell:(_,context)=>h('button',{class:'portal-field-link message-title-link',onClick:()=>open(context.row)},text(context.row.title)||'-')},
- {colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true,cell:(_,context)=>text(context.row.appName)||'统一门户'},
+ {colKey:'title',title:'标题',minWidth:280,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.title)||'-'},()=>h('button',{class:'portal-field-link message-title-link',onClick:()=>open(context.row)},text(context.row.title)||'-'))},
+ {colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.appName)||'统一门户'},()=>text(context.row.appName)||'统一门户')},
  {colKey:'messageType',title:'消息类型',width:130,cell:(_,context)=>label(context.row.messageType||'BUSINESS')},
  {colKey:'status',title:'状态',width:90,cell:(_,context)=>h(resolveComponent('t-tag'),{theme:theme(context.row.status),variant:'light'},()=>label(context.row.status))},
  {colKey:'createdAt',title:'接收时间',width:180,cell:(_,context)=>date(context.row.createdAt)}
