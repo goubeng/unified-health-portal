@@ -484,7 +484,7 @@ test('其他应用账号处理改为结果导向且不暴露底层验证过程',
   assert(!source.includes('请输入已有子系统账号'));
   assert(!source.includes('演示环境验证码'));
   assert(!source.includes('子系统密码'));
-  assert(cards.includes("BIND:'完成账号确认'"));
+  assert(cards.includes("BIND:'申请使用'"));
   assert(cards.includes("CONTINUE_BIND:'继续处理'"));
   assert(cards.includes("VIEW_CONFLICT:'查看原因'"));
 });
@@ -814,4 +814,21 @@ test('消息详情去掉关联信息并把读取状态放到发送方同一元�
   assert(!block.includes('关联信息'));
   assert(!block.includes('portal-message-business'));
   assert(!block.includes('portal-message-grid'));
+});
+
+
+test('其他应用卡片将应用类型与状态操作分行显示且初始账号处理入口为申请使用',()=>{
+  const source=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  const metaIndex=source.indexOf('class="portal-app-meta"');
+  const resultIndex=source.indexOf('class="portal-app-result"');
+  assert(metaIndex>=0&&resultIndex>metaIndex);
+  const metaBlock=source.slice(metaIndex,resultIndex);
+  assert(metaBlock.includes('portal-app-category'));
+  assert(!metaBlock.includes('portal-app-status-tag'));
+  assert(source.includes("BIND:'申请使用'"));
+  assert(source.includes("VIEW_CONFLICT:'查看原因'"));
+  assert(source.includes("RETRY_BIND:'重新处理'"));
+  assert(css.includes('.portal-app-result{display:flex;min-width:0;height:24px;align-items:center;gap:8px;margin-top:2px;white-space:nowrap}'));
+  assert(css.includes('.portal-app-category{min-width:0;max-width:100%'));
 });
