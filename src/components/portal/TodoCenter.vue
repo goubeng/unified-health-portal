@@ -22,7 +22,7 @@
         <template #empty><EmptyState description="暂无符合条件的待办"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}">
-          <button class="portal-field-link" @click="openDetail(row)">{{text(row.title)||'-'}}</button>
+          <TableCellTooltip :text="text(row.title)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.title)||'-'}}</button></TableCellTooltip>
         </template>
         <template #status="{row}">
           <t-tag size="small" variant="light" :theme="statusTheme(row.status)">{{label(row.status)}}</t-tag>
@@ -58,6 +58,7 @@ import {computed,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import TodoDetailContent from './TodoDetailContent.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {command} from '../../services/runtime.js';
 import {date,label,text} from './presentation.js';
 
