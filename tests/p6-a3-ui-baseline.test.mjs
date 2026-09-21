@@ -56,6 +56,8 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
   assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link,'));
   assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link.is-unread,'));
   assert(css.includes('.portal-page .portal-home-feeds .list-row .portal-field-link.is-attention{'));
+  assert(!css.includes('.portal-home-feeds>.panel:first-child .portal-field-link'));
+  assert(!css.includes('.portal-page .portal-home-feeds .portal-field-link,\n.portal-page .portal-table-panel .portal-field-link,'));
   assert(css.includes('color:#0052d9!important;'));
   assert(css.includes('font-size:13px!important;'));
   assert(css.includes('font-weight:500!important;'));
