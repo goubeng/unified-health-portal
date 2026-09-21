@@ -905,3 +905,24 @@ test('登录页使用卫健高清背景并保持登录框右侧布局',()=>{
   assert(layout.includes('background-position:center center'));
   assert(layout.includes('.login-layout{width:100%;max-width:1180px;margin:auto;display:flex;justify-content:flex-end;align-items:center;padding:50px 0}'));
 });
+
+
+test('登录页身份切换与扫码区域间距一致且管理账号保持固定高度',()=>{
+  const source=fs.readFileSync('src/views/Login.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  const layout=fs.readFileSync('src/styles/layout.css','utf8');
+  assert(source.includes('class="local-auth phone-auth"'));
+  assert(css.includes('.login-card{width:460px!important;max-width:460px!important;height:520px!important;min-height:520px!important;display:flex!important;flex-direction:column!important}'));
+  assert(css.includes('.login-identity-switch{margin-bottom:16px!important}'));
+  assert(css.includes('.qr-auth{padding-top:16px!important}'));
+  assert(css.includes('.phone-auth:not(.local-auth){margin-top:16px!important}'));
+  assert(css.includes('.local-auth{flex:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;margin-top:0!important}'));
+  assert(layout.includes('.login-brand{font-size:24px;font-weight:600;color:var(--td-brand-color,#0052d9)}'));
+});
+
+test('登录二维码使用直角且取消内部图形裁切',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.qr-frame{border-radius:0!important;overflow:visible!important}'));
+  assert(css.includes('.login-qrcode,.login-qrcode .t-qrcode,.login-qrcode .t-qrcode__image,.login-qrcode svg,.login-qrcode .t-icon,.qr-frame-button.is-success .qr-frame .t-icon{border-radius:0!important;overflow:visible!important}'));
+  assert(css.includes('.qr-expired-mask{border-radius:0!important}'));
+});
