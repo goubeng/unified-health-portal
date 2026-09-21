@@ -67,10 +67,11 @@ const auditEventLabels={
 };
 const isAuditLog=computed(()=>String(props.kind||'').startsWith('logs:'));
 const showBasicSectionTitle=computed(()=>props.kind==='apps'&&props.showConnection);
-const dialogTitle=computed(()=>props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':auditTitles[props.kind]||'详情');
+const dialogTitle=computed(()=>props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
 const detailTitle=(key)=>{
  const overrides={
   apps:{name:'应用名称',code:'应用编码',status:'启用状态'},
+  myApplicationRequests:{requestNo:'申请编号',requestType:'申请类型',appName:'应用名称',status:'申请状态'},
   categories:{status:'启用状态'},
   users:{name:'姓名',status:'启用状态'},
   identities:{status:'启用状态'},
@@ -82,7 +83,7 @@ const detailTitle=(key)=>{
  if(key==='createdAt'&&['todos','messages'].includes(props.kind))return '接收时间';
  return titles[key]||key;
 };
-const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>key!=='priority'&&titles[key]&&(key==='scopes'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value),wide:['content','description','summary','remark','scopes','roleIds'].includes(key)})));
+const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>key!=='priority'&&titles[key]&&(key==='scopes'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value),wide:['content','description','summary','remark','reason','reviewNote','handleNote','scopes','roleIds'].includes(key)})));
 const appDetails=computed(()=>{
   const row=props.record||{};
   const item=(key,labelText,wide=false)=>({key,label:labelText,value:display(key,row[key]),wide});
