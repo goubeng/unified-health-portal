@@ -6,12 +6,12 @@
         <span class="todo-detail-meta-item">
           <Icon name="app"/>
           <em>来源应用：</em>
-          <strong :title="text(record.appName)||'-'">{{text(record.appName)||'-'}}</strong>
+          <PortalTooltip :content="text(record.appName)||'-'" placement="top"><strong>{{text(record.appName)||'-'}}</strong></PortalTooltip>
         </span>
         <span class="todo-detail-meta-item">
           <Icon name="task"/>
           <em>业务类型：</em>
-          <strong :title="text(record.businessType)||'-'">{{text(record.businessType)||'-'}}</strong>
+          <PortalTooltip :content="text(record.businessType)||'-'" placement="top"><strong>{{text(record.businessType)||'-'}}</strong></PortalTooltip>
         </span>
         <span class="todo-detail-meta-item">
           <Icon name="time"/>
@@ -36,6 +36,7 @@
 <script setup>
 import {Icon} from 'tdesign-icons-vue-next';
 import {date,label,text} from './presentation.js';
+import PortalTooltip from './PortalTooltip.vue';
 
 defineProps({record:{type:Object,default:null}});
 
