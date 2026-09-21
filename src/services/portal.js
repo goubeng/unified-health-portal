@@ -396,9 +396,9 @@ export function createPortalService(provider,getActor){
     }else if(action==='resolveMapping'){const x=requireRow(d.mappings,p.id,p.version);if(x.status!=='CONFLICT')fail('INVALID_TRANSITION','仅冲突记录可确认');if(!p.reason?.trim())fail('VALIDATION_ERROR','请输入核验证据说明');if(d.mappings.some(m=>m.id!==x.id&&m.appId===x.appId&&m.externalAccount===x.externalAccount&&m.status==='BOUND'))fail('INVALID_TRANSITION','外部账号仍被其他身份占用');x.status='BOUND';result=stamp(x);
     }else if(action==='saveAnnouncement'){
      if(!p.title?.trim()||!p.content?.trim())fail('VALIDATION_ERROR','标题和正文不能为空');if(!['ALL','CITIZEN','GOV'].includes(p.scope))fail('VALIDATION_ERROR','当前公告发布范围仅支持全部/公众/政务');
-     if(p.effectiveEnd&&Date.parse(p.effectiveEnd)<=Date.parse(now))fail('VALIDATION_ERROR','失效时间必须晚于当前时间');
      const x=p.id?requireRow(d.announcements,p.id,p.version):{id:id(),version:0,createdAt:now,status:'DRAFT',publishMode:null,submittedAt:null,submittedBy:null,publishedAt:null,scheduledPublishAt:null};
      const effectiveStatus=announcementStatus(x,Date.parse(now));if(effectiveStatus==='EXPIRED')fail('INVALID_TRANSITION','已过期公告不可编辑');
+     if(effectiveStatus!=='WITHDRAWN'&&p.effectiveEnd&&Date.parse(p.effectiveEnd)<=Date.parse(now))fail('VALIDATION_ERROR','失效时间必须晚于当前时间');
      Object.assign(x,{title:p.title.trim(),content:p.content.trim(),type:p.type||'通知',scope:p.scope,effectiveEnd:p.effectiveEnd||null,attachments:p.attachments||[]});
      if(p.targetStatus==='DRAFT'){
       if(!['DRAFT','SCHEDULED'].includes(effectiveStatus))fail('INVALID_TRANSITION','仅草稿或定时发布公告可以保存为草稿');
