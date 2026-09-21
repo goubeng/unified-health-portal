@@ -119,8 +119,8 @@
 
 
 /* V8.2 compact login box and five-second QR expiry */
-.login-card{max-width:460px;padding:28px 32px}.login-identity-switch{margin-bottom:14px;gap:8px}.identity-pill{font-size:18px!important;font-weight:500!important;padding:0 0 9px!important;border-bottom-width:2px!important}.auth-method-pills{max-width:290px;margin:0 auto 14px;padding:4px;gap:6px}.method-pill{min-height:34px!important;font-size:13px!important}.qr-auth{padding-top:6px;gap:7px}.qr-frame{width:206px;height:206px;border-radius:8px}.qr-tip-title{margin-top:4px;font-size:13px!important;font-weight:500!important}.qr-expire-text{font-size:12px;color:#86909c}.login-assist-row{justify-content:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed #e5e8ef}.assist-link{font-size:12px}.assist-divider{color:#c9d1dc;font-size:12px}.login-helper-row{display:none!important}.qr-frame-button.is-expired{cursor:pointer}.qr-frame-button.is-expired .qr-frame:hover{border-color:#9eb8eb;background:#fbfdff}.qr-expired-mask{font-size:13px}.qr-expired-mask small{font-size:11px}.phone-auth{margin-top:16px}.login-submit{margin:16px 0 6px}
-@media(max-width:760px){.login-card{padding:22px 18px}.identity-pill{font-size:17px!important}.auth-method-pills{max-width:270px}.qr-frame{width:196px;height:196px}}
+.login-card{max-width:460px;padding:28px 32px}.login-identity-switch{margin-bottom:14px;gap:8px}.identity-pill{font-size:18px!important;font-weight:500!important;padding:0 0 9px!important;border-bottom-width:2px!important}.auth-method-pills{max-width:290px;margin:0 auto 14px;padding:4px;gap:6px}.method-pill{min-height:34px!important;font-size:13px!important}.qr-auth{padding-top:6px;gap:7px}.qr-frame{width:196px;height:196px;border-radius:0}.qr-tip-title{margin-top:4px;font-size:13px!important;font-weight:500!important}.qr-expire-text{font-size:12px;color:#86909c}.login-assist-row{justify-content:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed #e5e8ef}.assist-link{font-size:12px}.assist-divider{color:#c9d1dc;font-size:12px}.login-helper-row{display:none!important}.qr-frame-button.is-expired{cursor:pointer}.qr-frame-button.is-expired .qr-frame:hover{border-color:#9eb8eb;background:#fbfdff}.qr-expired-mask{font-size:13px}.qr-expired-mask small{font-size:11px}.phone-auth{margin-top:16px}.login-submit{margin:16px 0 6px}
+@media(max-width:760px){.login-card{padding:22px 18px}.identity-pill{font-size:17px!important}.auth-method-pills{max-width:270px}.qr-frame{width:186px;height:186px}}
 
 
 /* V8.3 login tab underline and prompt simplification */
@@ -145,6 +145,7 @@
 .qr-frame-button.is-expired .qr-frame:hover{border-color:#9eb8eb!important;background:#fff!important}
 .qr-expired-mask{z-index:2;pointer-events:none;background:rgba(255,255,255,.72)!important;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);color:#344054!important}
 .qr-expired-mask strong{font-size:13px;font-weight:500;color:#344054}
+.login-qrcode,.login-qrcode .t-qrcode__image,.login-qrcode svg{display:block!important;margin:auto!important}.qr-frame>.login-qrcode{place-self:center!important}
 .qr-frame-button.is-expired .qr-frame svg{opacity:.72}
 .qr-frame-button.is-expired:hover .qr-expired-mask{background:rgba(248,251,255,.78)!important}
 .qr-frame-button.is-expired:hover .qr-expired-mask strong{color:#2454ff}
