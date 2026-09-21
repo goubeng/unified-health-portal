@@ -898,12 +898,12 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
 test('登录页使用独立图片层渲染卫健高清背景',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
-  assert(fs.existsSync('src/assets/login-health-bg-1920x1200.webp'));
-  assert(source.includes("import loginBackground from '../assets/login-health-bg-1920x1200.webp';"));
+  assert(fs.existsSync('src/assets/login-health-bg-3840x2160.png'));
+  assert(source.includes("import loginBackground from '../assets/login-health-bg-3840x2160.png';"));
   assert(source.includes('class="login-bg-image"'));
   assert(source.includes(':src="loginBackground"'));
   assert(source.includes('class="login-intro"'));
-  assert(layout.includes('.login-bg-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:contain;object-position:left center'));
+  assert(layout.includes('.login-bg-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:center center'));
   assert(layout.includes('.login-brand,.login-layout,.login-shell>footer{position:relative;z-index:1}'));
 });
 
@@ -950,9 +950,9 @@ test('登录二维码清除TDesign默认内边距以保证视觉居中',()=>{
 });
 
 
-test('登录背景完整显示并提升左侧说明文字对比度',()=>{
+test('登录背景按短边铺满并居中裁切',()=>{
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
-  assert(layout.includes('object-fit:contain'));
+  assert(layout.includes('object-fit:cover'));
   assert(layout.includes('.login-intro{max-width:430px;color:#344054;text-shadow:0 1px 2px rgba(255,255,255,.92)}'));
   assert(layout.includes('.login-intro p{color:#52657f'));
   assert(layout.includes('.login-features{display:flex;gap:24px;margin-top:30px;color:#3f638f}'));
