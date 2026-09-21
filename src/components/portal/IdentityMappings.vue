@@ -23,9 +23,21 @@
      <DetailGrid :items="identityDetails"/>
     </section>
     <section class="identity-mapping-section">
-     <div class="identity-mapping-section-head"><h3 class="identity-mapping-section-title">子系统映射</h3><div class="identity-mappings-summary"><span>已关联 {{selected.boundCount??0}} 个</span><span>异常 {{selected.exceptionCount??0}} 个</span></div></div>
+     <div class="identity-mapping-section-head">
+      <div class="identity-mapping-title-line">
+       <h3 class="identity-mapping-section-title">子系统映射</h3>
+       <div class="identity-mappings-summary">
+        <span class="identity-mapping-summary-item is-bound"><CheckCircleIcon/><span>已关联 <strong>{{selected.boundCount??0}}</strong> 个</span></span>
+        <span class="identity-mapping-summary-item is-exception"><ErrorCircleIcon/><span>异常 <strong>{{selected.exceptionCount??0}}</strong> 个</span></span>
+       </div>
+      </div>
+      <t-input v-model="mappingKeyword" class="identity-mapping-search" placeholder="搜索系统名称 / 子系统账号" clearable>
+       <template #prefix-icon><SearchIcon/></template>
+      </t-input>
+     </div>
     <t-table row-key="id" :data="mappingPaged" :columns="mappingColumns" hover table-layout="fixed" size="medium">
-     <template #empty><EmptyState description="该用户暂无子系统账号映射"/></template>
+     <template #empty><EmptyState description="暂无符合条件的子系统映射"/></template>
+     <template #mappingSerial="{rowIndex}">{{(mappingPage-1)*mappingPageSize+rowIndex+1}}</template>
      <template #operation="{row}"><div class="row-actions">
       <t-button v-if="canManage&&row.status==='BOUND'" size="small" variant="text" theme="primary" @click="$emit('unbind',row)">解绑</t-button>
       <t-button v-if="canManage&&row.status==='REVIEWING'" size="small" variant="text" theme="primary" @click="$emit('approve',row)">通过</t-button>
@@ -44,13 +56,14 @@
 <script setup>
 import {computed,h,ref,watch} from 'vue';
 import {Tag} from 'tdesign-vue-next';
+import {CheckCircleIcon,ErrorCircleIcon,SearchIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
 import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},canManage:Boolean,exceptionsOnly:Boolean});
 defineEmits(['unbind','resolve','approve','reject']);
-const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),selectedId=ref(null),mappingPage=ref(1),mappingPageSize=ref(10);
+const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),selectedId=ref(null),mappingKeyword=ref(''),mappingPage=ref(1),mappingPageSize=ref(10);
 const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label:'政务用户'},{value:'LOCAL',label:'门户本地用户'}];
 const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'},{value:'门户本地',label:'门户本地'}];
 const mappingOptions=[{value:'bound',label:'已关联'},{value:'review',label:'待审核'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
@@ -63,7 +76,12 @@ const filtered=computed(()=>props.rows.filter(row=>{
 }));
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const selected=computed(()=>props.rows.find(row=>row.user.id===selectedId.value)||null);
-const selectedMappings=computed(()=>selected.value?.mappings||[]);
+const selectedMappings=computed(()=>{
+ const term=mappingKeyword.value.trim().toLowerCase();
+ const mappings=selected.value?.mappings||[];
+ if(!term)return mappings;
+ return mappings.filter(mapping=>[mapping.appName,mapping.externalAccount].some(value=>text(value).toLowerCase().includes(term)));
+});
 const mappingPaged=computed(()=>selectedMappings.value.slice((mappingPage.value-1)*mappingPageSize.value,mappingPage.value*mappingPageSize.value));
 const identityDetails=computed(()=>{
  const user=selected.value?.user||{};
@@ -80,7 +98,8 @@ const columns=[
  {colKey:'operation',title:'操作',width:110,fixed:'right'}
 ];
 const mappingColumns=[
- {colKey:'appName',title:'系统名称',width:240,ellipsis:true},
+ {colKey:'mappingSerial',title:'序号',width:64},
+ {colKey:'appName',title:'系统名称',width:220,ellipsis:true},
  {colKey:'externalAccount',title:'子系统账号',width:180,ellipsis:true},
  {colKey:'bindingMethod',title:'关联方式',width:100,cell:(_,context)=>label(context.row.bindingMethod)},
  {colKey:'verificationMethod',title:'验证方式',width:150,cell:(_,context)=>label(context.row.verificationMethod)},
@@ -91,7 +110,8 @@ const mappingColumns=[
 ];
 function resetFilters(){keyword.value='';userTypeFilter.value='';sourceFilter.value='';mappingFilter.value=props.exceptionsOnly?'exception':'';page.value=1;}
 function closeDialog(visible){if(!visible)selectedId.value=null;}
-watch(selectedId,()=>{mappingPage.value=1;});
+watch(selectedId,()=>{mappingKeyword.value='';mappingPage.value=1;});
+watch(mappingKeyword,()=>{mappingPage.value=1;});
 watch(mappingPageSize,()=>{mappingPage.value=1;});
 watch(()=>selectedMappings.value.length,()=>{mappingPage.value=Math.min(mappingPage.value,Math.max(1,Math.ceil(selectedMappings.value.length/mappingPageSize.value)));});
 watch([keyword,userTypeFilter,sourceFilter,mappingFilter,pageSize],()=>{page.value=1;});
