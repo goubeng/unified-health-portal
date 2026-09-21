@@ -21,7 +21,7 @@
     <section class="panel portal-table-panel">
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的运行监控记录"/></template>
-        <template #appName="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.appName)}}</button></template>
+        <template #appName="{row}"><TableCellTooltip :text="text(row.appName)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.appName)}}</button></TableCellTooltip></template>
         <template #ssoStatus="{row}"><StatusTag :value="row.ssoStatus"/></template>
         <template #todoStatus="{row}"><StatusTag :value="row.todoStatus"/></template>
         <template #messageStatus="{row}"><StatusTag :value="row.messageStatus"/></template>
@@ -64,6 +64,7 @@
 import {computed,defineComponent,h,ref,watch} from 'vue';
 import {Tag} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
