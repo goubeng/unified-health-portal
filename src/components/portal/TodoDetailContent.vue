@@ -37,6 +37,7 @@
 import {Icon} from 'tdesign-icons-vue-next';
 import {date,label,text} from './presentation.js';
 import PortalTooltip from './PortalTooltip.vue';
+import PortalTooltip from './PortalTooltip.vue';
 
 defineProps({record:{type:Object,default:null}});
 
