@@ -20,6 +20,7 @@
 <script setup>
 import EmptyState from './EmptyState.vue';
 import PortalTooltip from './PortalTooltip.vue';
+import PortalTooltip from './PortalTooltip.vue';
 import {Icon} from 'tdesign-icons-vue-next';
 import {text,label} from './presentation.js';
 
