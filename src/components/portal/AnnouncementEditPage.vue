@@ -69,11 +69,11 @@
       <div class="announcement-form-actions">
         <t-button variant="outline" @click="close">取消</t-button>
         <t-button variant="outline" theme="primary" @click="openPreview">预览</t-button>
-        <template v-if="isDraft">
+        <template v-if="isDraft||isScheduled">
           <t-button variant="outline" theme="primary" :loading="saving" @click="saveDraft">保存草稿</t-button>
           <t-button theme="primary" :loading="saving" @click="publishDraft">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>
         </template>
-        <t-button v-else theme="primary" :loading="saving" @click="saveCurrent">{{isScheduled&&form.publishMode==='IMMEDIATE'?'立即发布':'保存修改'}}</t-button>
+        <t-button v-else theme="primary" :loading="saving" @click="saveCurrent">保存修改</t-button>
       </div>
     </template>
   </t-dialog>
@@ -142,7 +142,7 @@ function assign(record){
 }
 watch(()=>props.record,record=>{if(record)assign(record);},{immediate:true,deep:true});
 watch(()=>props.visible,value=>{if(value&&props.record)assign(props.record);});
-watch(()=>form.publishMode,value=>{if(isDraft.value&&value!=='SCHEDULED')form.scheduledPublishAt='';});
+watch(()=>form.publishMode,value=>{if((isDraft.value||isScheduled.value)&&value!=='SCHEDULED')form.scheduledPublishAt='';});
 
 function updateVisible(value){emit('update:visible',value);}
 function close(){emit('update:visible',false);}
@@ -186,12 +186,12 @@ function validateBase(){
   return true;
 }
 
-async function saveBase(){
+async function saveBase(overrides={}){
   if(!validateBase())return null;
   const attachments=await normalizeFiles(uploadFiles.value,form.attachments||[]);
   const payload={
     id:form.id,version:form.version,title:form.title.trim(),type:form.type,scope:form.scope,
-    effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments
+    effectiveEnd:toEndOfDayIso(form.effectiveEnd),content:form.content,attachments,...overrides
   };
   if(isScheduled.value&&form.publishMode==='SCHEDULED')payload.scheduledPublishAt=toIso(form.scheduledPublishAt);
   const result=await command('saveAnnouncement',payload);
@@ -204,9 +204,9 @@ async function saveDraft(){
   if(saving.value)return;
   saving.value=true;formError.value='';
   try{
-    const saved=await saveBase();
+    const saved=await saveBase({targetStatus:'DRAFT'});
     if(!saved)return;
-    MessagePlugin.success('公告草稿已保存');
+    MessagePlugin.success(isScheduled.value?'定时计划已取消，公告已保存为草稿':'公告草稿已保存');
     emit('saved',saved);
     close();
   }catch(cause){formError.value=cause.message;}
