@@ -798,7 +798,20 @@ test('字典管理左右卡片顶部严格对齐',()=>{
 
 test('待办任务列表缩小标题列并加宽来源应用列',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
-  assert(source.includes("{colKey:'title',title:'待办标题',width:220,ellipsis:true}"));
-  assert(source.includes("{colKey:'appName',title:'来源应用',width:280,ellipsis:true}"));
+  assert(source.includes("{colKey:'title',title:'待办标题',width:200,ellipsis:true}"));
+  assert(source.includes("{colKey:'appName',title:'来源应用',width:320,ellipsis:true}"));
   assert(source.includes('<TableCellTooltip :text="text(row.title)||\'-\'">'));
+});
+
+
+test('消息详情去掉关联信息并把读取状态放到发送方同一元信息区域',()=>{
+  const source=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
+  const block=source.split('v-else-if="kind===\'messages\'"')[1]?.split('</article>')[0]||'';
+  assert(block.includes('<span>发送方</span>'));
+  assert(block.includes('<span>读取状态</span>'));
+  assert(block.indexOf('<span>发送方</span>')<block.indexOf('<span>读取状态</span>'));
+  assert(block.includes("record.status==='UNREAD'?'未读':'已读'"));
+  assert(!block.includes('关联信息'));
+  assert(!block.includes('portal-message-business'));
+  assert(!block.includes('portal-message-grid'));
 });
