@@ -614,3 +614,11 @@ test('Vue源码不允许重复import声明',()=>{
     assert.equal(new Set(imports).size,imports.length,file+' 存在重复import声明');
   }
 });
+
+
+test('用户详情来源提示显示在详情网格上方',()=>{
+  const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
+  const dialog=source.split('header="用户详情"')[1]?.split('</t-dialog>')[0]||'';
+  assert(dialog.indexOf('class="user-source-alert"')>=0);
+  assert(dialog.indexOf('class="user-source-alert"')<dialog.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>'));
+});
