@@ -61,7 +61,7 @@
         <t-table v-if="selectedType" row-key="id" :data="pagedItems" :columns="columns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="当前字典类型暂无字典项"/></template>
           <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-          <template #label="{row}"><button class="portal-field-link" @click="openItemEdit(row)">{{text(row.label)}}</button></template>
+          <template #label="{row}"><TableCellTooltip :text="text(row.label)"><button class="portal-field-link" @click="openItemEdit(row)">{{text(row.label)}}</button></TableCellTooltip></template>
           <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
           <template #operation="{row}"><t-button size="small" variant="text" theme="primary" @click="openItemEdit(row)">编辑</t-button></template>
         </t-table>
@@ -114,6 +114,7 @@
 import {computed,reactive,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
