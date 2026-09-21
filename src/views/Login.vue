@@ -16,7 +16,7 @@
     <div v-if="method==='qr'" class="qr-auth">
      <button type="button" class="qr-frame-button" :class="{'is-expired':qrStage==='expired','is-success':qrStage==='success'}" :disabled="qrStage==='success'" @click="handleQrClick">
       <div class="qr-frame">
-       <t-qrcode v-if="qrStage!=='success'" :value="qrPayload" type="svg" :size="188" borderless/>
+       <t-qrcode v-if="qrStage!=='success'" class="login-qrcode" :value="qrPayload" type="svg" :size="176" borderless/>
        <template v-else><CheckCircleIcon size="48px"/><span>扫码成功</span></template>
        <div v-if="qrStage==='expired'" class="qr-expired-mask"><RefreshIcon size="34px"/><strong>点击重新刷新</strong></div>
       </div>
