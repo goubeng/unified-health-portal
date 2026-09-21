@@ -895,11 +895,11 @@ test('登录二维码缩小并与直角边框居中对齐',()=>{
 });
 
 
-test('登录页使用独立矢量图片层渲染卫健背景',()=>{
+test('登录页使用独立图片层渲染卫健高清背景',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
-  assert(fs.existsSync('src/assets/login-health-bg.svg'));
-  assert(source.includes("import loginBackground from '../assets/login-health-bg.svg';"));
+  assert(fs.existsSync('src/assets/login-health-bg-1920x1200.webp'));
+  assert(source.includes("import loginBackground from '../assets/login-health-bg-1920x1200.webp';"));
   assert(source.includes('class="login-bg-image"'));
   assert(source.includes(':src="loginBackground"'));
   assert(source.includes('class="login-intro"'));
