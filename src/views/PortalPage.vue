@@ -240,6 +240,7 @@ async function load(){
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'integration'))tasks.monitor=read('monitor');
   }else if(center)tasks.mine=read('mine');
+  else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}
   else if(key==='users'){tasks.rows=read('users');tasks.systemRoles=read('roles');tasks.organizations=read('organizations');}
   else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
   else if(key==='dictionaries'){tasks.dictionaryData=read('dictionaries');}
