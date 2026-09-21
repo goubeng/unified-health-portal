@@ -11,7 +11,7 @@
    <t-table row-key="user.id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
     <template #empty><EmptyState description="暂无符合条件的用户"/></template>
     <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-    <template #name="{row}"><button class="portal-field-link" @click="selectedId=row.user.id">{{text(row.user.name)||'-'}}</button></template>
+    <template #name="{row}"><TableCellTooltip :text="text(row.user.name)||'-'"><button class="portal-field-link" @click="selectedId=row.user.id">{{text(row.user.name)||'-'}}</button></TableCellTooltip></template>
     <template #operation="{row}"><t-button size="small" variant="text" theme="primary" @click="selectedId=row.user.id">查看映射</t-button></template>
    </t-table>
    <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -59,6 +59,7 @@ import {Tag} from 'tdesign-vue-next';
 import {CheckCircleIcon,ErrorCircleIcon,SearchIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},canManage:Boolean,exceptionsOnly:Boolean});
@@ -87,7 +88,7 @@ const identityDetails=computed(()=>{
  const user=selected.value?.user||{};
  return [['id','统一身份标识'],['name','姓名'],['account','帐号'],['orgName','所属单位'],['userType','用户类别'],['status','启用状态']].map(([key,title])=>({key,label:title,value:label(user[key])})).concat({key:'source',label:'身份来源',value:identitySource(user)});
 });
-const userColumn=(key,title,width)=>({colKey:key,title,width,ellipsis:true,cell:(_,context)=>label(context.row.user[key])});
+const userColumn=(key,title,width)=>({colKey:key,title,width,ellipsis:true,cell:(_,context)=>h(TableCellTooltip,{text:label(context.row.user[key])},()=>label(context.row.user[key]))});
 const statusCell=value=>h(Tag,{theme:theme(value),variant:'light'},()=>label(value));
 const columns=[
  {colKey:'serial',title:'序号',width:64},{colKey:'name',title:'姓名',width:130},
