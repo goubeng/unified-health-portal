@@ -40,7 +40,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
 import {pages,can,scopes,labels} from './config/pages.js';
 import {actor,availableUsers,portal,revision,login,logout} from './services/runtime.js';
 import PortalTooltip from './components/portal/PortalTooltip.vue';
@@ -82,21 +82,21 @@ const icons={
  apps:AppIcon,
  adminHome:HomeIcon,
  applicationRequests:TaskIcon,
- accountOpeningRequests:LinkIcon,
+ accountOpeningRequests:UserAddIcon,
  users:UserIcon,
  roles:UserSafetyIcon,
  organizations:FolderIcon,
- dictionaries:FileIcon,
+ dictionaries:BookIcon,
  identityOverview:LinkIcon,
  categories:AppIcon,
  permissions:UserSafetyIcon,
  settings:SettingIcon,
  monitor:ChartBarIcon,
- 'logs:login':UserSafetyIcon,
- 'logs:access':LinkIcon,
+ 'logs:login':UserPasswordIcon,
+ 'logs:access':ActivityIcon,
  'logs:operation':TaskIcon,
- 'logs:api':AppIcon,
- 'logs:error':NotificationIcon,
+ 'logs:api':CodeIcon,
+ 'logs:error':BugReportIcon,
  access:LinkIcon,
  identities:UserIcon,
  identityMappings:LinkIcon,
