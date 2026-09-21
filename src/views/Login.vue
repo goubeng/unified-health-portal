@@ -65,7 +65,7 @@ import {useRouter} from 'vue-router';
 import {CheckCircleIcon,RefreshIcon} from 'tdesign-icons-vue-next';
 import {actor,login} from '../services/runtime.js';
 import PortalTooltip from '../components/portal/PortalTooltip.vue';
-import loginBackground from '../assets/login-health-bg.svg';
+import loginBackground from '../assets/login-health-bg-1920x1200.webp';
 
 const router=useRouter();
 const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
