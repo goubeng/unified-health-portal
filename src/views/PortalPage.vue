@@ -3,8 +3,9 @@
   <Teleport v-if="admin&&resource==='apps'&&canCreate" to="#page-header-actions"><t-button variant="outline" theme="primary" @click="downloadAccessSpec"><template #icon><Icon name="download"/></template>下载接口文件</t-button><t-button theme="primary" @click="openForm('saveApp')"><template #icon><Icon name="add"/></template>新增应用</t-button></Teleport>
   <Teleport v-if="admin&&resource==='categories'&&canCreate" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveCategory')"><template #icon><Icon name="add"/></template>新增分类</t-button></Teleport>
   <Teleport v-if="resource==='todos'" to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
-  <Teleport v-if="admin&&resource==='announcementDetail'&&detail&&['DRAFT','SCHEDULED','PUBLISHED'].includes(detail.status)" to="#page-header-actions">
-   <t-button theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
+  <Teleport v-if="admin&&resource==='announcementDetail'&&detail" to="#page-header-actions">
+   <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(detail.status)" theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
+   <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(detail.status)" variant="outline" theme="danger" @click="removeAdminAnnouncementDetail(detail)">删除</t-button>
   </Teleport>
   <div v-if="error" role="alert" class="error-note">{{text(error)}} <t-button variant="text" theme="primary" @click="load">重试</t-button></div>
   <t-loading :loading="loading" :show-overlay="false" size="small">
@@ -482,6 +483,13 @@ function closeDetail(visible){detailVisible.value=visible;if(!visible)detailAcce
 function backToAnnouncements(){router.push(admin.value?'/admin/announcements':'/portal/announcements');}
 function openAdminAnnouncementDetail(row){router.push('/admin/announcements/'+encodeURIComponent(row.id));}
 function openAdminAnnouncementEdit(row){detail.value=JSON.parse(JSON.stringify(row));announcementEditVisible.value=true;}
+function removeAdminAnnouncementDetail(row){
+ const dialog=DialogPlugin.confirm({placement:'center',theme:'danger',header:'删除公告',body:'确认删除该公告？删除后将退出公告详情，且不可从当前列表恢复。',confirmBtn:{content:'确认删除',theme:'danger'},onConfirm:async()=>{
+  const result=await command('removeAnnouncement',{id:row.id,version:row.version});
+  if(!result.ok){MessagePlugin.error(result.error.message);return;}
+  dialog.hide();MessagePlugin.success('公告已删除');router.replace('/admin/announcements');
+ }});
+}
 function handleAdminAnnouncementSaved(saved){
  detail.value=JSON.parse(JSON.stringify(saved));
  announcementEditVisible.value=false;
