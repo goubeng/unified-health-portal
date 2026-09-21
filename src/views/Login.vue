@@ -1,5 +1,6 @@
 <template>
  <div class="login-shell"><div class="login-brand">卫健XC统一门户系统</div><div class="login-layout">
+  <section class="login-intro"><span class="eyebrow">HEALTH · CONNECTION · SERVICE</span><h1>一个入口<br>连接协同服务</h1><p>应用统一导航、待办集中展示、消息及时触达。<br>面向公众、政务用户与门户维护人员的统一入口。</p><div class="login-features"><span>统一身份</span><span>应用集成</span><span>安全协同</span></div></section>
   <section class="login-card">
    <div class="login-identity-switch" role="tablist" aria-label="身份切换">
     <button type="button" class="identity-pill" :class="{active:identityType==='CITIZEN'}" @click="identityType='CITIZEN'"><span>公众用户</span></button>
@@ -15,7 +16,7 @@
     <div v-if="method==='qr'" class="qr-auth">
      <button type="button" class="qr-frame-button" :class="{'is-expired':qrStage==='expired','is-success':qrStage==='success'}" :disabled="qrStage==='success'" @click="handleQrClick">
       <div class="qr-frame">
-       <t-qrcode v-if="qrStage!=='success'" class="login-qrcode" :value="qrPayload" type="svg" :size="176" borderless/>
+       <t-qrcode v-if="qrStage!=='success'" class="login-qrcode" :value="qrPayload" type="svg" :size="160" borderless/>
        <template v-else><CheckCircleIcon size="48px"/><span>扫码成功</span></template>
        <div v-if="qrStage==='expired'" class="qr-expired-mask"><RefreshIcon size="34px"/><strong>点击重新刷新</strong></div>
       </div>
