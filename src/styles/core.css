@@ -688,7 +688,6 @@
 .portal-page .portal-field-link,
 .portal-page .portal-field-link.is-unread,
 .portal-page .portal-field-link.is-attention,
-.portal-page .portal-app-name,
 .portal-page .message-title-link,
 .portal-page .section-head a,
 .portal-page .empty-conditional a{
@@ -702,11 +701,31 @@
 .portal-page .portal-field-link:hover,
 .portal-page .portal-field-link.is-unread:hover,
 .portal-page .portal-field-link.is-attention:hover,
-.portal-page .portal-app-name:hover,
 .portal-page .message-title-link:hover,
 .portal-page .section-head a:hover,
 .portal-page .empty-conditional a:hover{
   color:#003cab!important;
   font-weight:400!important;
   text-decoration:underline!important;
+}
+
+
+/* 2026-09-21 app names are clickable black text; home feed links share the same weight. */
+.portal-page .portal-home-feeds .portal-field-link{
+  font-size:13px!important;
+  font-weight:400!important;
+}
+.portal-page .portal-app-name,
+.portal-page .portal-app-info .portal-app-name{
+  color:#1f2329!important;
+  font-size:13px!important;
+  font-weight:400!important;
+  line-height:22px!important;
+  text-decoration:none!important;
+}
+.portal-page .portal-app-name:hover,
+.portal-page .portal-app-info .portal-app-name:hover{
+  color:#1f2329!important;
+  font-weight:400!important;
+  text-decoration:none!important;
 }
