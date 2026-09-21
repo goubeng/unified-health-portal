@@ -41,10 +41,10 @@
     </section>
 
     <t-dialog v-model:visible="detailVisible" placement="center" header="组织详情" width="760px" :footer="false">
-      <DetailGrid v-if="detail" :items="detailItems"/>
-      <t-alert v-if="detail?.source==='MINZHENGWU'" theme="info" class="organization-source-alert">
+      <t-alert v-if="detail?.source==='MINZHENGWU'" theme="info" class="organization-source-alert organization-detail-source-alert">
         该组织来自闽政务组织索引，门户仅展示引用，不维护上游权威组织主数据。
       </t-alert>
+      <DetailGrid v-if="detail" :items="detailItems"/>
     </t-dialog>
 
     <t-dialog
