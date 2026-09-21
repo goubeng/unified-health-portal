@@ -26,7 +26,7 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的组织"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #code="{row}"><button class="portal-field-link" @click="openDetail(row)">{{text(row.code)}}</button></template>
+        <template #code="{row}"><TableCellTooltip :text="text(row.code)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.code)}}</button></TableCellTooltip></template>
         <template #type="{row}">{{typeLabel(row.type)}}</template>
         <template #source="{row}"><t-tag variant="light">{{sourceLabel(row.source)}}</t-tag></template>
         <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
@@ -75,6 +75,7 @@ import {computed,reactive,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
+import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
