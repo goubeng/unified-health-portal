@@ -36,7 +36,6 @@
    </template>
 
    <form v-else class="local-auth phone-auth" @submit.prevent="enterLocalAdmin">
-    <p class="inline-note">管理账号当前仅用于原型演示。以下账号、密码、验证码组件仅展示正式登录形态，点击“登录”后直接进入平台管理端，不做真实校验，也不访问本地数据库。</p>
     <label for="local-account" class="field-label">用户账号</label>
     <t-input id="local-account" v-model="localAccount" autocomplete="username" placeholder="请输入用户账号"/>
     <label for="local-password" class="field-label">登录密码</label>
@@ -48,9 +47,7 @@
       <span>{{localCaptchaCode}}</span>
      </button>
     </div>
-    <p class="local-captcha-tip">演示验证码仅用于页面展示，不参与登录校验</p>
     <t-button block type="submit" theme="primary" class="login-submit" :loading="localLoggingIn">登录</t-button>
-    <p class="local-auth-tip">演示账号默认：admin01；密码和验证码可任意填写或保持默认值，登录时统一进入门户超级管理员演示账号。</p>
    </form>
 
    <p v-if="notice" class="inline-note" role="status">{{notice}}</p>
@@ -111,7 +108,7 @@ async function enterLocalAdmin(){
  localLoggingIn.value=true;notice.value='';
  try{await login('MOCK_LOCAL_ADMIN');}
  catch(error){notice.value=error.message;localLoggingIn.value=false;return;}
- if(!actor.value){notice.value='当前演示管理账号不可用。';localLoggingIn.value=false;return;}
+ if(!actor.value){notice.value='当前管理账号不可用。';localLoggingIn.value=false;return;}
  router.replace('/admin/home');
 }
 async function enter(){
