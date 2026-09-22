@@ -814,3 +814,8 @@
 .demo-login-account>b{font-size:13px;font-weight:600;color:#1f2329}
 .demo-login-panel .login-submit{margin:0!important;height:40px!important;min-height:40px!important}
 @media(max-width:760px){.demo-login-panel{margin-top:24px}}
+
+
+/* Application list: keep Edit / Connection config / Delete on one line. */
+.portal-table-panel .app-list-row-actions{flex-wrap:nowrap!important;white-space:nowrap!important;gap:8px!important}
+.portal-table-panel .app-list-row-actions .t-button{flex:none!important;white-space:nowrap!important}
