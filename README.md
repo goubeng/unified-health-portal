@@ -16,7 +16,7 @@
 
 Node.js 20.19+或22 LTS，首次执行 `npm ci`。保持两个终端运行：
 
-1. `npm run api`：本地服务3801，**默认使用0.3.0-A纯内存Repository，不访问PostgreSQL/NocoDB**；
+1. `npm run api`：本地服务4011，**默认使用0.3.0-A纯内存Repository，不访问PostgreSQL/NocoDB**；
 2. `npm run dev`：浏览器入口 http://127.0.0.1:3800。
 
 仅在明确进入0.3.0-B/C数据库阶段后，才允许执行：
