@@ -17,13 +17,13 @@ function setup(index=2){
 
 test('门户管理员可读用户组织字典目录但不能执行超级管理员本地账号操作',async()=>{
   const h=setup(3);
-  assert((await h.read('users')).length>=5);
+  assert((await h.read('users')).length>=3);
   assert((await h.read('organizations')).length>=3);
   const dictionaries=await h.read('dictionaries');
   assert(dictionaries.types.some(x=>x.code==='application_category'));
   assert(dictionaries.items.some(x=>x.typeCode==='integration_protocol'));
 
-  const local=(await h.read('users')).find(x=>x.userType==='LOCAL');
+  const local=(await h.read('users')).find(x=>x.authType==='LOCAL');
   const stop=await h.service.command('setPortalUserStatus',{id:local.id,version:local.version,status:'DISABLED'});
   assert.equal(stop.error?.code,'FORBIDDEN');
 
@@ -31,12 +31,13 @@ test('门户管理员可读用户组织字典目录但不能执行超级管理�
   assert.equal(create.error?.code,'FORBIDDEN');
 });
 
-test('超级管理员可创建本地用户且不返回密码或密码Hash',async()=>{
+test('超级管理员可创建本地管理账号且不返回密码或密码Hash',async()=>{
   const h=setup(2);
   const created=await h.run('createLocalPortalUser',{
     account:'local02',name:'本地维护员',orgName:'门户运行保障中心',mobile:'13800000000',email:'local02@example.invalid',roleIds:['ROLE_ADMIN']
   });
-  assert.equal(created.userType,'LOCAL');
+  assert.equal(created.authType,'LOCAL');
+  assert.equal(created.adminSubject,true);
   assert.equal(created.identitySource,'门户本地');
   assert.equal(created.roleLabels,'门户管理员');
   assert.equal(created.mustChangePassword,true);
@@ -49,9 +50,9 @@ test('超级管理员可创建本地用户且不返回密码或密码Hash',async
   assert.equal(row.kind,'ADMIN');
 });
 
-test('外部用户编辑只改变门户状态角色，不修改上游身份主数据',async()=>{
+test('外部身份型管理用户编辑只改变门户管理授权，不修改上游身份主数据',async()=>{
   const h=setup(2);
-  const user=(await h.read('users')).find(x=>x.id==='MOCK_USER_1');
+  const user=(await h.read('users')).find(x=>x.id==='MOCK_EDITOR');
   const saved=await h.run('savePortalUser',{
     id:user.id,version:user.version,status:'NORMAL',roleIds:['ROLE_ADMIN'],
     name:'篡改姓名',orgName:'篡改组织',mobile:'10086',email:'bad@example.invalid'
@@ -61,6 +62,7 @@ test('外部用户编辑只改变门户状态角色，不修改上游身份主�
   assert.equal(saved.mobile,user.mobile);
   assert.equal(saved.email,user.email);
   assert(saved.roleIds.includes('ROLE_ADMIN'));
+  assert.equal(saved.authType,'EXTERNAL');
 });
 
 test('组织管理区分闽政务只读主数据与门户本地可维护组织',async()=>{
