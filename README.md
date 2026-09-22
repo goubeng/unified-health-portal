@@ -17,7 +17,7 @@
 Node.js 20.19+或22 LTS，首次执行 `npm ci`。保持两个终端运行：
 
 1. `npm run api`：本地服务4011，**默认使用0.3.0-A纯内存Repository，不访问PostgreSQL/NocoDB**；
-2. `npm run dev`：浏览器入口 http://127.0.0.1:3800。
+2. `npm run dev`：前端监听 `0.0.0.0:4010`；本机可访问 `http://127.0.0.1:4010`，同一局域网用户可访问 `http://<本机局域网IPv4>:4010`。
 
 仅在明确进入0.3.0-B/C数据库阶段后，才允许执行：
 
@@ -28,6 +28,23 @@ npm run api:db
 `api:db` 会连接当前项目既有本地PostgreSQL/NocoDB数据源，A阶段禁止使用。
 
 健康检查 `/api/portal/health` 会返回 `repository=MEMORY_A` 或 `DATABASE`，用于确认当前运行模式。
+
+## 局域网访问
+
+当前本地开发网络策略：
+
+- 前端：`0.0.0.0:4010`，允许同一局域网访问；
+- API：`127.0.0.1:4011`，只允许本机直接访问；
+- 浏览器所有 `/api/portal` 请求由 Vite 代理转发到本机 4011；
+- API 仅接受来自 `4010` 的 localhost 或 RFC1918 私有 IPv4（`10.x`、`172.16-31.x`、`192.168.x`）页面 Origin。
+
+在 Windows 上执行 `ipconfig` 获取本机 IPv4，例如 `192.168.1.100`，局域网其他设备访问：
+
+```text
+http://192.168.1.100:4010
+```
+
+如果无法访问，请确认 Windows 防火墙允许 TCP 4010 入站。无需对局域网开放 4011。
 
 构建：`npm run build`；测试：`npm test`；P3静态校验：`npm run check:p3`。
 
