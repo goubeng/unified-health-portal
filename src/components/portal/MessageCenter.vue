@@ -36,7 +36,7 @@
         <h2>{{ text(activeMessage.title) }}</h2>
         <div class="message-letter-meta">
           <div><Icon name="user"/><span>接收对象</span><strong>{{ text(receiver)||'当前登录用户' }}</strong></div>
-          <div><Icon name="time"/><span>接收时间</span><strong>{{ date(activeMessage.receivedAt||activeMessage.createdAt) }}</strong></div>
+          <div><Icon name="time"/><span>接收时间</span><strong>{{ date(activeMessage.receivedAt) }}</strong></div>
           <div><Icon name="mail"/><span>消息类型</span><strong>{{ label(activeMessage.messageType||'BUSINESS') }}</strong></div>
           <div><Icon name="tag"/><span>消息来源</span><strong>{{ text(activeMessage.appName||'统一门户') }}</strong></div>
           <div><Icon name="user-talk"/><span>发送方</span><strong>{{ text(activeMessage.appName||'统一门户') }}</strong></div>
@@ -74,7 +74,7 @@ const unreadCount=computed(()=>props.rows.filter(item=>item.status==='UNREAD').l
 const filteredMessages=computed(()=>props.rows.filter(item=>{
  const term=keyword.value.trim().toLowerCase();
  return (!statusFilter.value||item.status===statusFilter.value)&&(!sourceFilter.value||item.appName===sourceFilter.value)&&(!typeFilter.value||item.messageType===typeFilter.value)&&(!term||text(item.title).toLowerCase().includes(term));
-}).sort((a,b)=>(Date.parse(b.receivedAt||b.createdAt)||0)-(Date.parse(a.receivedAt||a.createdAt)||0)));
+}).sort((a,b)=>(Date.parse(b.receivedAt)||0)-(Date.parse(a.receivedAt)||0)));
 const filteredIds=computed(()=>filteredMessages.value.map(item=>item.id));
 const selectedUnreadIds=computed(()=>selectedIds.value.filter(id=>props.rows.find(item=>item.id===id)?.status==='UNREAD'));
 const allFilteredSelected=computed(()=>filteredIds.value.length>0&&filteredIds.value.every(id=>selectedIds.value.includes(id)));
@@ -91,7 +91,7 @@ const columns=computed(()=>[
  {colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.appName)||'统一门户'},()=>text(context.row.appName)||'统一门户')},
  {colKey:'messageType',title:'消息类型',width:130,cell:(_,context)=>label(context.row.messageType||'BUSINESS')},
  {colKey:'status',title:'阅读状态',width:100,cell:(_,context)=>h(resolveComponent('t-tag'),{theme:theme(context.row.status),variant:'light'},()=>label(context.row.status))},
- {colKey:'receivedAt',title:'接收时间',width:180,cell:(_,context)=>date(context.row.receivedAt||context.row.createdAt)}
+ {colKey:'receivedAt',title:'接收时间',width:180,cell:(_,context)=>date(context.row.receivedAt)}
 ]);
 
 function toggleRow(id,checked){selectedIds.value=checked?[...new Set([...selectedIds.value,id])]:selectedIds.value.filter(item=>item!==id);}
