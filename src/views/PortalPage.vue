@@ -72,12 +72,52 @@
 
     </template>
     <template v-else>
-     <div class="portal-home-feeds">
-      <section class="panel"><div class="section-head"><h2>我的待办 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.todoCount??0}}</t-tag></h2><router-link to="/portal/todos">全部待办</router-link></div><div v-for="item in homeTodos" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'todos')">{{text(item.title)}}</button><p>{{text(item.appName)}}</p></div><t-button size="small" variant="text" theme="primary" @click="run('openTodo',{id:item.id},true)">去处理</t-button></div><EmptyState v-if="!homeTodos.length" description="暂无待办"/></section>
-      <section class="panel"><div class="section-head"><h2>通知公告 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadAnnouncementCount??0}}</t-tag></h2><router-link to="/portal/announcements">全部公告</router-link></div><div v-for="item in homeAnnouncements" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.readStatus==='UNREAD'}" @click="showDetail(item,'announcements')">{{text(item.title)}}</button><p>{{date(item.publishedAt)}}</p></div></div><EmptyState v-if="!homeAnnouncements.length" description="暂无公告"/></section>
-      <section class="panel"><div class="section-head"><h2>消息 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadCount??0}}</t-tag></h2><router-link to="/portal/messages">全部消息</router-link></div><div v-for="item in homeMessages" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.status==='UNREAD'}" @click="showDetail(item,'messages')">{{text(item.title)}}</button><p>{{text(item.appName)}} · {{date(item.createdAt)}}</p></div></div><EmptyState v-if="!homeMessages.length" description="暂无消息"/></section>
+     <div class="portal-user-home">
+      <section class="portal-home-hero" aria-label="门户欢迎区">
+       <img :src="portalHomeBanner" alt="" aria-hidden="true"/>
+       <div class="portal-home-hero-copy">
+        <h2>数字赋能卫生健康&nbsp;&nbsp;服务全民健康福祉</h2>
+        <p>统一入口 · 业务协同 · 高效便民 · 智慧卫生健康</p>
+       </div>
+      </section>
+
+      <div class="portal-home-primary-grid">
+       <section class="panel portal-home-feed-card">
+        <div class="section-head"><h2>我的待办 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.todoCount??0}}</t-tag></h2><router-link to="/portal/todos">全部待办</router-link></div>
+        <div v-for="item in userHomeTodos" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'todos')">{{text(item.title)}}</button><p>{{text(item.appName)}}</p></div><t-button size="small" variant="text" theme="primary" @click="run('openTodo',{id:item.id},true)">去处理</t-button></div>
+        <EmptyState v-if="!userHomeTodos.length" description="暂无待办"/>
+       </section>
+       <section class="panel portal-home-feed-card">
+        <div class="section-head"><h2>通知公告 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadAnnouncementCount??0}}</t-tag></h2><router-link to="/portal/announcements">全部公告</router-link></div>
+        <div v-for="item in userHomeAnnouncements" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.readStatus==='UNREAD'}" @click="showDetail(item,'announcements')">{{text(item.title)}}</button><p>{{date(item.publishedAt)}}</p></div></div>
+        <EmptyState v-if="!userHomeAnnouncements.length" description="暂无公告"/>
+       </section>
+       <section class="panel portal-home-feed-card">
+        <div class="section-head"><h2>消息 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadCount??0}}</t-tag></h2><router-link to="/portal/messages">全部消息</router-link></div>
+        <div v-for="item in userHomeMessages" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.status==='UNREAD'}" @click="showDetail(item,'messages')">{{text(item.title)}}</button><p>{{text(item.appName)}} · {{date(item.createdAt)}}</p></div></div>
+        <EmptyState v-if="!userHomeMessages.length" description="暂无消息"/>
+       </section>
+      </div>
+
+      <div class="portal-home-secondary-grid">
+       <section class="panel portal-home-recent">
+        <div class="section-head"><h2>最近访问</h2><router-link to="/portal/apps/all">更多</router-link></div>
+        <div class="portal-recent-list">
+         <button v-for="item in userHomeRecentVisits" :key="item.id" type="button" class="portal-recent-app" @click="item.primaryAction==='ENTER'?enterApp(item):showDetail(item,'apps')">
+          <span class="portal-recent-icon"><Icon name="application"/></span>
+          <span class="portal-recent-info"><strong>{{text(item.name)}}</strong><small>{{text(item.category)||'未分类'}}</small></span>
+          <span class="portal-recent-time">{{date(item.lastVisitedAt)}}</span>
+         </button>
+        </div>
+        <EmptyState v-if="!userHomeRecentVisits.length" description="暂无最近访问"/>
+       </section>
+
+       <section class="panel portal-home-apps portal-user-home-apps">
+        <div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/all">应用中心</router-link></div>
+        <AppCards :apps="userHomeApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/>
+       </section>
+      </div>
      </div>
-     <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/all">应用中心</router-link></div><AppCards :apps="homeApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
    </template>
    <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
@@ -164,6 +204,7 @@
 
 <script setup>
 import {createUUID} from '../utils/uuid.js';
+import portalHomeBanner from '../assets/portal-home-banner.png';
 import EmptyState from '../components/portal/EmptyState.vue';
 import TableCellTooltip from '../components/portal/TableCellTooltip.vue';
 import {computed,h,reactive,ref,watch} from 'vue';
@@ -201,7 +242,12 @@ const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
 const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
-const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
+const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeRecentVisits=ref([]),homeExceptions=ref([]);
+const userHomeTodos=computed(()=>homeTodos.value.slice(0,4));
+const userHomeAnnouncements=computed(()=>homeAnnouncements.value.slice(0,3));
+const userHomeMessages=computed(()=>homeMessages.value.slice(0,4));
+const userHomeRecentVisits=computed(()=>homeRecentVisits.value.slice(0,4));
+const userHomeApps=computed(()=>homeApps.value.slice(0,4));
 const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10);
 const appPageSize=ref(20),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
@@ -239,7 +285,7 @@ async function load(){
   if(can(actor.value,'application')){tasks.categories=read('categories');if(isAdmin&&key==='apps')tasks.accessProfiles=read('access');}
   if(home){
    tasks.overview=read(key);
-   if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
+   if(!isAdmin){for(const name of ['mine','todos','messages','announcements','recentVisits'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'integration'))tasks.monitor=read('monitor');
   }else if(center)tasks.mine=read('mine');
   else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}
@@ -259,7 +305,7 @@ async function load(){
    overview.value=data.overview;
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
-   homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
+   homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');homeRecentVisits.value=data.recentVisits||[];
    const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>(item.services?.[kind]?.runtimeStatus||item.services?.[kind]?.status)==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
