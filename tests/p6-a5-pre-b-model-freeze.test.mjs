@@ -81,14 +81,15 @@ test('session DTO is split before B stage',()=>{
   assert(!api.includes('   actor,\n   accessSubject:'));
 });
 
-test('pre-B documents use V20260921-01 and do not claim database completion',()=>{
+test('demo closeout documents use V20260921-01 and do not claim production integration completion',()=>{
   const plan=read('docs/02-开发/03-计划/0.3.0分阶段改造执行计划.md');
   const baseline=read('.project/BASELINE.md');
   assert(plan.includes('V20260921-01'));
-  assert(plan.includes('PRE_B_MODEL_FROZEN / LOCAL_RUN_PENDING'));
-  assert(plan.includes('005_admin_domain.sql'));
-  assert(plan.includes('010_legacy_retirement.sql'));
-  assert(plan.includes('unified_user：仅 CITIZEN/GOV 门户访问主体'));
-  assert(baseline.includes('PRE_B_MODEL_FROZEN / LOCAL_RUN_PENDING'));
-  assert(baseline.includes('0.3.0-B 数据库改造，NOT_STARTED'));
+  assert(plan.includes('FRONTEND_CODE_COMPLETE / MANUAL_ACCEPTANCE_PENDING'));
+  assert(plan.includes('DEMO_FRONTEND_FROZEN'));
+  assert(plan.includes('OUT_OF_CURRENT_DEMO_SCOPE'));
+  assert(baseline.includes('DEMO_ACCEPTANCE_PENDING'));
+  assert(baseline.includes('MEMORY_A'));
+  assert(baseline.includes('生产级数据库改造和真实联调不属于当前原型验收范围'));
+  assert(!baseline.includes('生产级数据库改造和真实联调已完成'));
 });
