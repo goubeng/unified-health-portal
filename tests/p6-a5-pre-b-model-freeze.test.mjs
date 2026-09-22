@@ -60,9 +60,11 @@ test('todo and message received time is frozen as receivedAt',()=>{
 
   assert(todo.includes("colKey:'createdAt'")===false);
   assert(todo.includes("colKey:'receivedAt'"));
+  assert(!todo.includes('receivedAt||'));
   assert(todoDetail.includes('date(record.receivedAt)'));
   assert(!todoDetail.includes('date(record.createdAt)'));
   assert(message.includes("colKey:'receivedAt'"));
+  assert(!message.includes('receivedAt||'));
   assert(record.includes('{{date(record.receivedAt)}}'));
   assert(seed.includes('receivedAt:at(-i-2)'));
   assert(seed.includes('receivedAt:at(-i-1)'));
@@ -75,6 +77,8 @@ test('session DTO is split before B stage',()=>{
     assert(runtime.includes(field),'runtime session缺少 '+field);
     assert(api.includes(field),'api session缺少 '+field);
   }
+  assert(runtime.includes('actorFromSession'));
+  assert(!api.includes('   actor,\n   accessSubject:'));
 });
 
 test('pre-B documents use V20260921-01 and do not claim database completion',()=>{
