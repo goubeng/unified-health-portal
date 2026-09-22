@@ -6,7 +6,7 @@
           <t-input v-model="keyword" clearable placeholder="请输入待办标题"/>
         </t-form-item>
         <t-form-item class="portal-query-select query-width-source" label="来源应用">
-          <t-select v-model="appName" clearable placeholder="全部" :options="appOptions"/>
+          <t-select v-model="appName" clearable filterable placeholder="全部" :options="appOptions"/>
         </t-form-item>
         <t-form-item class="portal-query-select query-width-status" label="状态">
           <t-select v-model="status" clearable placeholder="全部" :options="statusOptions"/>
