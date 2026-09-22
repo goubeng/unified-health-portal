@@ -158,9 +158,9 @@ export function createPortalService(provider,getActor){
       unconfigured:monitor.filter(row=>['UNCONFIGURED','DISABLED'].includes(row.services[kind].status)).length
     };
     const accessUsers=(d.users||[]).filter(x=>['CITIZEN','GOV'].includes(x.userType));
-    const adminUsers=(d.users||[]).filter(x=>x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length);
-    return {appCount:d.apps.length,enabledCount:d.apps.filter(x=>x.status==='ENABLED').length,
-     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:accessUsers.length,enabledUserCount:accessUsers.filter(x=>x.status!=='DISABLED').length,adminUserCount:adminUsers.length,
+    const adminUsers=(d.users||[]).filter(x=>adminSubject(x));
+    return {appCount:d.apps.length,enabledCount:d.apps.filter(app=>appEnabled(app)).length,
+     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:accessUsers.length,enabledUserCount:accessUsers.filter(user=>entityEnabled(user)).length,adminUserCount:adminUsers.length,
      pendingAccessCount:(d.applicationRequests||[]).filter(x=>x.status==='PENDING').length,pendingAccountOpeningCount:(d.accountOpeningRequests||[]).filter(x=>['PENDING','PROCESSING'].includes(x.status)).length,
      pendingBindingReviewCount:(d.mappings||[]).filter(x=>x.status==='REVIEWING').length,mappingExceptionCount:(d.mappings||[]).filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,
      openErrorCount:(d.logs||[]).filter(x=>x.kind==='error'&&x.resolutionStatus==='OPEN').length,scheduledAnnouncementCount:(d.announcements||[]).filter(x=>announcementDisplayStatus(x)==='SCHEDULED').length,
@@ -398,11 +398,11 @@ export function createPortalService(provider,getActor){
      if(p.accessMode==='REQUEST'&&!['DIRECT','BIND'].includes(p.postGrantMode))fail('VALIDATION_ERROR','请选择申请通过后的访问方式');
      if(p.accessMode==='REQUEST'&&p.postGrantMode==='BIND'&&!['AUTO','SELF','REVIEW','ADMIN'].includes(p.accountBindingMode))fail('VALIDATION_ERROR','请选择有效账号关联方式');
      if(d.apps.some(x=>x.code===p.code.trim()&&x.id!==p.id))fail('VALIDATION_ERROR','应用编码已存在');
-     const x=p.id?requireRow(d.apps,p.id,p.version):{id:id(),version:0,createdAt:now,status:'DISABLED',runtimeStatus:'UNCONFIGURED'};
+     const x=p.id?requireRow(d.apps,p.id,p.version):{id:id(),version:0,createdAt:now,enabled:false,status:'DISABLED'};
      Object.assign(x,{name:p.name.trim(),code:p.code.trim(),category:p.category||'未分类',description:p.description||'',url:p.url,userType:p.userType,
       accessMode:p.accessMode,postGrantMode:p.accessMode==='REQUEST'?p.postGrantMode:'DIRECT',accountBindingMode:p.accessMode==='DIRECT'?'NONE':p.accountBindingMode,
       accountOpeningMode:p.accountOpeningMode||'NONE',sortOrder:Number(p.sortOrder)||0});stamp(x);if(!p.id)d.apps.push(x);result=x;
-    }else if(action==='setAppStatus'){const x=requireRow(d.apps,p.id,p.version);if(!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');x.status=p.status;result=stamp(x);
+    }else if(action==='setAppStatus'){const x=requireRow(d.apps,p.id,p.version);if(typeof p.enabled!=='boolean')fail('VALIDATION_ERROR','启用状态无效');x.enabled=p.enabled;x.status=p.enabled?'ENABLED':'DISABLED';result=stamp(x);
     }else if(action==='saveCategory'){
      if(!p.name?.trim()||!p.code?.trim())fail('VALIDATION_ERROR','名称与编码为必填');if(d.categories.some(x=>(x.code===p.code||x.name===p.name)&&x.id!==p.id))fail('VALIDATION_ERROR','分类名称或编码重复');
      const x=p.id?requireRow(d.categories,p.id,p.version):{id:id(),version:0,createdAt:now};const oldName=x.name;Object.assign(x,{name:p.name.trim(),code:p.code.trim(),status:'ENABLED',sortOrder:Number(p.sortOrder)||0});stamp(x);if(!p.id)d.categories.push(x);if(oldName&&oldName!==x.name)d.apps.filter(app=>app.category===oldName).forEach(app=>{app.category=x.name;stamp(app);});result=x;
@@ -417,7 +417,7 @@ export function createPortalService(provider,getActor){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
      const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)||x.deleted))fail('NOT_FOUND','消息不存在');for(const x of targets){x.deleted=true;x.deletedAt=now;stamp(x);}result={count:ids.length};
     }else if(action==='enterApp'){
-     const app=requireRow(d.apps,p.id);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
+     const app=requireRow(d.apps,p.id);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||'UNCONFIGURED';if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
      const requiresBinding=appRequiresBinding(app);
@@ -477,7 +477,7 @@ export function createPortalService(provider,getActor){
     }else if(action==='createAccessProfile'){
      const app=requireRow(d.apps,p.appId);
      d.integrations??=[];
-     for(const kind of ['SSO','TODO','MESSAGE'].filter(kind=>!d.integrations.some(x=>x.appId===app.id&&x.kind===kind)))d.integrations.push({id:id(),version:1,createdAt:now,updatedAt:now,appId:app.id,appName:app.name,name:app.name+' · '+kind,kind,mode:kind==='SSO'?'SSO':'PUSH',enabled:'DISABLED',configStatus:'UNCONFIGURED',runtimeStatus:'UNCONFIGURED',status:'UNCONFIGURED',connectionStatus:'UNCONFIGURED',remark:'尚未配置'});
+     for(const kind of ['SSO','TODO','MESSAGE'].filter(kind=>!d.integrations.some(x=>x.appId===app.id&&x.kind===kind)))d.integrations.push({id:id(),version:1,createdAt:now,updatedAt:now,appId:app.id,appName:app.name,name:app.name+' · '+kind,kind,mode:kind==='SSO'?'SSO':'PUSH',enabled:'DISABLED',configStatus:'UNCONFIGURED',runtimeStatus:'UNCONFIGURED',remark:'尚未配置'});
      result=accessProfiles(d).find(item=>item.appId===app.id);
     }else if(action==='saveIntegration'){
      const x=requireRow(d.integrations,p.id,p.version);
@@ -499,12 +499,12 @@ export function createPortalService(provider,getActor){
      if(x.kind==='SSO'&&p.enabled==='ENABLED'&&p.protocol==='OIDC'&&!p.tokenUrl)fail('VALIDATION_ERROR','OIDC启用时需填写令牌地址');
      const selected={valueMapping,targetKeyKind:'UNIFIED_USER_ID',enabled:p.enabled,protocol:p.protocol||'PUSH',mode:x.kind==='SSO'?'SSO':'PUSH',credentialRef:p.credentialRef||'',clientId:p.clientId||'',authorizeUrl:p.authorizeUrl||'',tokenUrl:p.tokenUrl||'',callbackUrl:p.callbackUrl||'',fieldMapping:mapping,remark:p.remark||''};
      const runtimeStatus=p.enabled==='DISABLED'?'DISABLED':'UNCONFIGURED';
-     Object.assign(x,selected,{status:runtimeStatus,runtimeStatus,configStatus:'CONFIGURED',configurationStatus:'CONFIGURED',connectionStatus:'UNCONFIGURED'});result=stamp(x);
+     Object.assign(x,selected,{runtimeStatus,configStatus:'CONFIGURED'});result=stamp(x);
     }else if(action==='pushTodo'){
      const targetApp=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');if(!p.sourceTodoId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!terminalStatuses.includes(p.status))fail('VALIDATION_ERROR','事件ID、源事项ID、标题及有效状态必填');
      const payload=canonical(Object.fromEntries(['appId',...integrationFields.TODO].map(key=>[key,p[key]]))),receipt=d.receipts.find(x=>x.appId===p.appId&&x.eventId===p.eventId&&(x.kind||'TODO')==='TODO');if(receipt){if(canonical(JSON.parse(receipt.payload))!==canonical(JSON.parse(payload)))fail('IDEMPOTENCY_CONFLICT','相同事件ID载荷不同');return receipt.result;}
      if(appRequiresBinding(targetApp)&&!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
-     let x=d.todos.find(x=>x.appId===p.appId&&x.sourceTodoId===p.sourceTodoId);if(x){if(x.userId!==p.userId)fail('INVALID_TRANSITION','不能变更接收人');if(x.status!=='PENDING')fail('INVALID_TRANSITION','已终结待办不允许回退或重复变更');Object.assign(x,{status:p.status,title:p.title});stamp(x);}else{if(p.status!=='PENDING')fail('INVALID_TRANSITION','首次推送须为待处理');const app=requireRow(d.apps,p.appId);x={id:id(),version:1,createdAt:now,updatedAt:now,...p,appName:app.name,summary:'来源系统推送',businessType:'服务事项',url:app.url};d.todos.push(x);}result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({kind:'TODO',appId:p.appId,eventId:p.eventId,payload,result});
+     let x=d.todos.find(x=>x.appId===p.appId&&x.sourceTodoId===p.sourceTodoId);if(x){if(x.userId!==p.userId)fail('INVALID_TRANSITION','不能变更接收人');if(x.status!=='PENDING')fail('INVALID_TRANSITION','已终结待办不允许回退或重复变更');Object.assign(x,{status:p.status,title:p.title});stamp(x);}else{if(p.status!=='PENDING')fail('INVALID_TRANSITION','首次推送须为待处理');const app=requireRow(d.apps,p.appId);x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,sourceCreatedAt:now,sourceUpdatedAt:now,...p,appName:app.name,summary:'来源系统推送',businessType:'服务事项',url:app.url};d.todos.push(x);}result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({kind:'TODO',appId:p.appId,eventId:p.eventId,payload,result});
     }else if(action==='pushMessage'){
      const app=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');
      if(!p.sourceMessageId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!p.content?.trim())fail('VALIDATION_ERROR','源消息ID、事件ID、消息标题及内容必填');
@@ -514,7 +514,7 @@ export function createPortalService(provider,getActor){
      if(appRequiresBinding(app)&&!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      const existing=d.messages.find(x=>x.appId===p.appId&&x.sourceMessageId===p.sourceMessageId&&x.userId===p.userId);
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
-     const x={id:id(),version:1,createdAt:now,updatedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
+     const x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null,deleted:false,deletedAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
     }else fail('CAPABILITY_UNAVAILABLE','该动作尚未开放');
     const actionNames={createExternalPortalAdmin:'授权外部用户管理资格',createLocalPortalUser:'新建本地管理账号',setPortalUserStatus:'变更管理用户启用状态',resetLocalPassword:'重置本地管理账号密码',unlockLocalUser:'解除本地管理账号锁定',savePortalUser:'维护门户管理用户',saveOrganization:'维护组织',removeOrganization:'删除组织',saveDictionaryType:'维护字典类型',saveDictionaryItem:'维护字典项',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',discoverApplicationAccountCandidates:'查找子系统候选账号',startApplicationAccountBinding:'自动关联子系统账号',sendSubsystemBindingOtp:'发送账号关联验证码',verifyBindingOtp:'验证账号关联验证码',verifyBindingBySubsystemCredential:'验证原系统账号',verifyBindingByUpstreamReauth:'重新认证身份',submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
     const todoForLog=action==='openTodo'?(d.todos||[]).find(item=>item.id===p.id):null;
@@ -522,7 +522,7 @@ export function createPortalService(provider,getActor){
     const logAppId=p.appId||todoForLog?.appId||relatedForLog?.appId||(action==='enterApp'?p.id:null);
     const logApp=(d.apps||[]).find(item=>item.id===logAppId);
     const logKind=['enterApp','openTodo'].includes(action)?'access':action.startsWith('push')?'api':'operation';
-    const log={id:id(),version:1,name:actionNames[action]||action,kind:logKind,actor:a.name,userId:a.id,userName:a.name,account:a.account,userType:a.userType,actorType:a.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:a.authType||(a.userType==='LOCAL'?'LOCAL':'EXTERNAL'),identitySource:identitySourceName(a),
+    const log={id:id(),version:1,name:actionNames[action]||action,kind:logKind,actor:a.name,userId:a.id,userName:a.name,account:a.account,userType:a.userType,actorType:a.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:a.authType||'EXTERNAL',identitySource:identitySourceName(a),
      appId:logAppId||null,appName:logApp?.name||null,status:'SUCCESS',createdAt:now,requestId:'MOCK_RUNTIME_'+createUUID(),ip:'127.0.0.1',client:'Chrome / Windows',description:p.reason||actionNames[action]||'操作已记录'};
     if(logKind==='access')Object.assign(log,{accessMethod:'门户入口',accessMode:logApp?.accessMode||null});
     if(logKind==='api')Object.assign(log,{interfaceName:action==='pushTodo'?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:200,durationMs:80,errorMessage:null});
