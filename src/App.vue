@@ -6,7 +6,7 @@
    <span class="brand">卫健XC统一门户</span><span class="portal-caption" :class="{admin}">{{admin?'平台管理端':'用户端门户'}}</span>
    <div class="topbar-actions">
     <t-select class="user-switch-select" :value="actor?.id" :options="userOptions" :disabled="switching" filterable aria-label="切换用户" placeholder="切换用户" @change="switchUser"/>
-    <PortalTooltip v-if="actor?.kind==='ADMIN'" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><component :is="admin?UserIcon:SettingIcon" size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
+    <PortalTooltip v-if="can(actor,'any')" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><component :is="admin?UserIcon:SettingIcon" size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
     <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="消息中心" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
     <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
      <button class="account-entry" :aria-expanded="accountOpen" aria-label="用户菜单"><span class="avatar">{{displayName(actor).slice(0,1)}}</span><span class="user-name">{{displayName(actor)}}</span><ChevronDownIcon/></button>
@@ -17,7 +17,7 @@
         <div class="account-info-item"><span class="account-id-label">账号 ID</span><b>{{actor?.account||'未提供'}}</b></div>
         <div class="account-info-item"><span class="account-id-label">所属单位</span><b>{{actor?.orgName||'未提供'}}</b></div>
        </div>
-       <span class="account-role-line"><t-tag size="small" variant="light">{{typeLabel(actor)}}</t-tag><t-tag size="small" theme="primary" variant="light">{{actor?.roleName|| (actor?.kind==='ADMIN'?'门户管理员':'普通用户')}}</t-tag></span>
+       <span class="account-role-line"><t-tag size="small" variant="light">{{typeLabel(actor)}}</t-tag><t-tag size="small" theme="primary" variant="light">{{can(actor,'any')?(actor?.roleName||'门户管理员'):'普通用户'}}</t-tag></span>
       </div>
       <div class="account-links"><button @click="openProfile">个人信息</button><button @click="changePassword">修改密码</button></div><button class="logout-button" @click="exitSystem">退出系统</button>
      </div></template>
@@ -61,7 +61,7 @@ function backToList(){
   router.push(admin.value?'/admin/announcements':'/portal/announcements');return;
  }
 }
-const userOptions=computed(()=>availableUsers.value.map(user=>({value:user.id,label:displayName(user)+'（'+typeLabel(user)+(user.kind==='ADMIN'?' / 管理员':'')+'）'})));
+const userOptions=computed(()=>availableUsers.value.map(user=>({value:user.id,label:displayName(user)+'（'+typeLabel(user)+(can(user,'any')?' / 管理员':'')+'）'})));
 const menu=computed(()=>{
  const list=pages.filter(p=>!p.hidden&&p.path.startsWith('/admin')&&!p.path.includes(':')&&can(actor.value,p.scope));
  return [...new Set(list.map(x=>x.group))].map(name=>({name,pages:list.filter(x=>x.group===name)}));
