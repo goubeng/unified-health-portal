@@ -1,3 +1,4 @@
+import {createUUID} from '../utils/uuid.js';
 import {can,scopes} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
 import {rules} from '../config/rules.js';
@@ -21,7 +22,7 @@ const decorateAnnouncement=(x,now=Date.now())=>({...x,status:canonicalAnnounceme
 const visible=(x,a)=>announcementDisplayStatus(x)==='PUBLISHED'&&(!x.effectiveStart||Date.parse(x.effectiveStart)<=Date.now())&&(!x.effectiveEnd||Date.parse(x.effectiveEnd)>Date.now())&&(x.scope==='ALL'||x.scope===a.userType);
 const checkUrl=url=>{try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();return u;}catch{fail('VALIDATION_ERROR','请输入有效的 HTTP/HTTPS 地址');}};
 export function createPortalService(provider,getActor){
- const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED'||(actor.userType==='LOCAL'&&actor.adminStatus==='DISABLED'))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:crypto.randomUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:crypto.randomUUID()};}};
+ const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED'||(actor.userType==='LOCAL'&&actor.adminStatus==='DISABLED'))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:createUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:createUUID()};}};
  const auth=(a,s)=>{if(!can(a,s))fail('FORBIDDEN','当前身份没有该权限范围');};
  const requireRow=(list,id,version)=>{const row=list.find(x=>x.id===id);if(!row)fail('NOT_FOUND','记录不存在');if(version!==undefined&&row.version!==version)fail('VERSION_CONFLICT','记录已更新，请刷新后重试');return row;};
  const requestFor=(d,a,appId)=>[...(d.applicationRequests||[])].filter(x=>x.userId===a.id&&x.appId===appId).sort((x,y)=>(Date.parse(y.submittedAt||y.createdAt)||0)-(Date.parse(x.submittedAt||x.createdAt)||0))[0]||null;
@@ -171,7 +172,7 @@ export function createPortalService(provider,getActor){
   command:wrap((a,action,p={})=>{
    if(provider.kind!=='mock')fail('CAPABILITY_UNAVAILABLE','真实服务尚未配置');
    return provider.transact(d=>{
-    const now=new Date().toISOString(),id=()=> 'MOCK_'+crypto.randomUUID();
+    const now=new Date().toISOString(),id=()=> 'MOCK_'+createUUID();
     const stamp=x=>Object.assign(x,{version:(x.version||0)+1,updatedAt:now});
     const ensureMapping=(app,externalAccount,values={})=>{
      let mapping=d.mappings.find(m=>m.userId===a.id&&m.appId===app.id);
@@ -272,7 +273,7 @@ export function createPortalService(provider,getActor){
      stamp(x);if(!current)d.dictItems.push(x);
      if(p.typeCode==='application_category'){
       let category=(d.categories||[]).find(item=>item.code===x.value);
-      if(!category){category={id:'MOCK_CAT_'+crypto.randomUUID(),version:1,createdAt:now};d.categories.push(category);}
+      if(!category){category={id:'MOCK_CAT_'+createUUID(),version:1,createdAt:now};d.categories.push(category);}
       Object.assign(category,{name:x.label,code:x.value,status:x.status,sortOrder:x.sortOrder,updatedAt:now});
       d.apps.filter(app=>app.categoryId===category.id||app.category===current?.label).forEach(app=>{app.category=x.label;app.categoryId=category.id;stamp(app);});
      }
@@ -510,7 +511,7 @@ export function createPortalService(provider,getActor){
     const logApp=(d.apps||[]).find(item=>item.id===logAppId);
     const logKind=['enterApp','openTodo'].includes(action)?'access':action.startsWith('push')?'api':'operation';
     const log={id:id(),version:1,name:actionNames[action]||action,kind:logKind,actor:a.name,userId:a.id,userName:a.name,account:a.account,userType:a.userType,actorType:a.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:a.authType||(a.userType==='LOCAL'?'LOCAL':'EXTERNAL'),identitySource:identitySourceName(a),
-     appId:logAppId||null,appName:logApp?.name||null,status:'SUCCESS',createdAt:now,requestId:'MOCK_RUNTIME_'+crypto.randomUUID(),ip:'127.0.0.1',client:'Chrome / Windows',description:p.reason||actionNames[action]||'操作已记录'};
+     appId:logAppId||null,appName:logApp?.name||null,status:'SUCCESS',createdAt:now,requestId:'MOCK_RUNTIME_'+createUUID(),ip:'127.0.0.1',client:'Chrome / Windows',description:p.reason||actionNames[action]||'操作已记录'};
     if(logKind==='access')Object.assign(log,{accessMethod:'门户入口',accessMode:logApp?.accessMode||null});
     if(logKind==='api')Object.assign(log,{interfaceName:action==='pushTodo'?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:200,durationMs:80,errorMessage:null});
     if(logKind==='operation'){
