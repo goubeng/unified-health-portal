@@ -21,3 +21,10 @@ test('统一登录保留模拟认证元素但不校验即可进入',()=>{
   const adminFn=source.split('async function enterLocalAdmin(){')[1].split('\n}')[0];
   assert(!/localAccount|localPassword|localCaptchaInput|localCaptchaCode/.test(adminFn));
 });
+
+
+test('登录响应直接建立当前Session',()=>{
+  const runtime=fs.readFileSync('src/services/runtime.js','utf8');
+  assert(runtime.includes('function applySession(data={})'));
+  assert(runtime.includes('applySession(result.data||{})'));
+});
