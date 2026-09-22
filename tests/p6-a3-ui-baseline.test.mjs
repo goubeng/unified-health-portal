@@ -621,7 +621,7 @@ test('Vue源码不允许重复import声明',()=>{
 
 test('用户详情来源提示显示在详情网格上方',()=>{
   const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
-  const dialog=source.split('header="用户详情"')[1]?.split('</t-dialog>')[0]||'';
+  const dialog=source.split('header="管理用户详情"')[1]?.split('</t-dialog>')[0]||'';
   assert(dialog.indexOf('class="user-source-alert"')>=0);
   assert(dialog.indexOf('class="user-source-alert"')<dialog.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>'));
   const css=fs.readFileSync('src/styles/core.css','utf8');
@@ -652,7 +652,7 @@ test('编辑外部用户边界说明使用统一提示框',()=>{
   const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('<t-alert theme="info" class="user-external-edit-alert">'));
-  assert(source.includes('外部身份字段只读；此处仅维护门户启停与门户角色，不授予任何子系统业务权限。'));
+  assert(source.includes('外部身份字段只读；此处仅维护管理端启停和门户角色，不影响该人员的用户端访问，也不授予任何子系统业务权限。'));
   assert(!source.includes('<p class="muted">外部身份字段只读'));
   assert(css.includes('.user-external-edit-alert{margin-top:14px!important}'));
 });
@@ -699,7 +699,7 @@ test('管理端应用列表使用全量目录且适用用户按包含关系筛�
   assert(source.includes("if(filter.key==='userType'&&['apps','mine'].includes(listResource.value))"));
   assert(source.includes("if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual)"));
   assert(source.includes("if(selected==='GOV')return ['GOV','BOTH'].includes(actual)"));
-  assert(source.includes("apps:{name:'应用名称',code:'应用编码',userType:'适用用户',status:'启用状态'}"));
+  assert(source.includes("apps:{name:'应用名称',code:'应用编码',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',enabled:'启用状态'}"));
 });
 
 test('组织详情来源提示显示在详情网格上方并与用户详情同间距',()=>{
