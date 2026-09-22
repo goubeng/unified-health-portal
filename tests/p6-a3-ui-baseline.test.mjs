@@ -952,8 +952,9 @@ test('过期二维码点击后仍可直接完成模拟登录',()=>{
 });
 
 
-test('应用列表仅对新增应用显示删除操作',()=>{
+test('应用列表所有应用均显示删除操作',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
-  assert(source.includes("v-if="!row.sourceNo""));
   assert(source.includes("confirm('removeApp',row"));
+  assert(!source.includes('v-if="!row.sourceNo"'));
+  assert(source.includes('确认删除该应用？'));
 });
