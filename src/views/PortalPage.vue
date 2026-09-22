@@ -85,7 +85,7 @@
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
    <PersonalProfile v-else-if="resource==='profile'" :user="actor"/>
-   <UserManagement v-else-if="resource==='users'" :rows="rows" :roles="systemRoles" :organizations="organizations" :can-super="can(actor,'super')" @saved="load"/>
+   <UserManagement v-else-if="resource==='users'" :rows="rows" :roles="systemRoles" :organizations="organizations" :access-users="availableUsers" :can-super="can(actor,'super')" @saved="load"/>
    <RoleManagement v-else-if="resource==='roles'" :rows="rows" @saved="load"/>
    <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
@@ -281,7 +281,6 @@ watch(revision,load);
 const queryWidthClass=key=>({
  category:'query-width-category',
  userType:'query-width-user-type',
- priority:'query-width-priority',
  messageType:'query-width-message-type',
  scope:'query-width-scope',
  appName:'query-width-source',
