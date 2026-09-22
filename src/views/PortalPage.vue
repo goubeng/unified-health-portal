@@ -4,8 +4,8 @@
   <Teleport v-if="admin&&resource==='categories'&&canCreate" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveCategory')"><template #icon><Icon name="add"/></template>新增分类</t-button></Teleport>
   <Teleport v-if="resource==='todos'" to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
   <Teleport v-if="admin&&resource==='announcementDetail'&&detail" to="#page-header-actions">
-   <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(detail.status)" theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
-   <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(detail.status)" variant="outline" theme="danger" @click="removeAdminAnnouncementDetail(detail)">删除</t-button>
+   <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(announcementViewStatus(detail))" theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
+   <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(announcementViewStatus(detail))" variant="outline" theme="danger" @click="removeAdminAnnouncementDetail(detail)">删除</t-button>
   </Teleport>
   <div v-if="error" role="alert" class="error-note">{{text(error)}} <t-button variant="text" theme="primary" @click="load">重试</t-button></div>
   <t-loading :loading="loading" :show-overlay="false" size="small">
@@ -209,14 +209,15 @@ const announcementEditVisible=ref(false);
 const accessDialogVisible=ref(false),accessProfile=ref(null),accessSaving=ref(false);
 const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
+const announcementViewStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const adminShortcuts=computed(()=>pages.filter(item=>['PG-202','PG-228','PG-205'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
  {label:'纳管应用',value:overview.value.appCount??0,icon:'app',tone:'blue',path:can(actor.value,'application')?'/admin/apps':''},
  {label:'启用应用',value:overview.value.enabledCount??0,icon:'check-circle',tone:'green',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'门户用户',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'system')?'/admin/users':''},
+ {label:'门户访问用户',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'identity')?'/admin/identities':''},
  {label:'接入异常',value:overview.value.abnormalServiceCount??0,icon:'error-circle',tone:'red',path:can(actor.value,'integration')?'/admin/monitor':''}
 ]);
-const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户用户维护',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
+const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户管理用户授权',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
 const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
 const adminPendingItems=computed(()=>[
@@ -258,7 +259,7 @@ async function load(){
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
    homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
-   const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.status==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
+   const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>(item.services?.[kind]?.runtimeStatus||item.services?.[kind]?.status)==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
@@ -291,6 +292,7 @@ const queryWidthClass=key=>({
  mode:'query-width-mode',
  status:'query-width-status',
  runtimeStatus:'query-width-runtime-status',
+ aggregateRuntimeStatus:'query-width-runtime-status',
  readStatus:'query-width-status',
  ssoStatus:'query-width-sso-status',
  todoStatus:'query-width-todo-status',
@@ -304,7 +306,7 @@ const querySpec=computed(()=>{
  const logKind=resource.value.startsWith('logs:')?resource.value.split(':')[1]:'';
  if(key==='apps'||key==='mine')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['name','code'],filters:[
   filterDef('category','系统分类','请选择系统分类',rowOptions('category'),'category'),
-  filterDef('runtimeStatus','运行状态','请选择运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']),'runtimeStatus'),
+  filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']),'aggregateRuntimeStatus'),
   ...(admin.value?[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]:[]),
   filterDef('userType','适用用户','请选择适用用户',fixedOptions(['BOTH','CITIZEN','GOV']),'userType')
  ]};
@@ -315,7 +317,7 @@ const querySpec=computed(()=>{
  if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED']),'status')]};
  if(key==='permissions')return {keywordPlaceholder:'权限名称 / 权限编码',keywordFields:['name','code'],filters:[]};
- if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN','EXPIRED']),'status')]};
+ if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN']),'status')]};
  if(key==='announcements')return admin.value
   ?{keywordPlaceholder:'公告标题',keywordFields:['title'],filters:[filterDef('type','公告类型','请选择公告类型',rowOptions('type'),'type'),filterDef('scope','发布范围','请选择发布范围',fixedOptions(['ALL','CITIZEN','GOV','ORG']),'scope'),filterDef('status','状态','请选择公告状态',fixedOptions(['DRAFT','PUBLISHED','WITHDRAWN']),'status')]}
   :{keywordPlaceholder:'公告标题',keywordFields:['title'],filters:[filterDef('type','公告类型','请选择公告类型',rowOptions('type'),'type'),filterDef('scope','发布范围','请选择发布范围',fixedOptions(['ALL','CITIZEN','GOV']),'scope'),filterDef('readStatus','阅读状态','请选择阅读状态',fixedOptions(['UNREAD','READ']),'status')]};
@@ -339,14 +341,14 @@ watch([search,()=>JSON.stringify(filterValues),pageSize,appPageSize],()=>{page.v
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 const appGroups=computed(()=>['mine','other'].map(key=>{const entries=filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'));const current=Math.min(appPages[key],Math.max(1,Math.ceil(entries.length/appPageSize.value)));return {key,title:key==='mine'?'我的应用':'其它应用',page:current,total:entries.length,rows:entries.slice((current-1)*appPageSize.value,current*appPageSize.value)};}));
 function setAppPage(key,value){appPages[key]=value;}
-const fieldMap={apps:['name','code','category','userType','accessMode','runtimeStatus','status'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','status'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
 const hasOperations=computed(()=>['apps','categories','users','roles','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
 const columnTitle=(key)=>{
  const resourceKey=listResource.value;
  const overrides={
-  apps:{name:'应用名称',code:'应用编码',userType:'适用用户',status:'启用状态'},
+  apps:{name:'应用名称',code:'应用编码',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',status:'启用状态'},
   categories:{status:'启用状态'},
   users:{name:'姓名',status:'启用状态'},
   identities:{status:'启用状态'},
@@ -370,14 +372,14 @@ const columnWidth=(key,index)=>{
 };
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
- ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='status'?undefined:(_,context)=>['status','runtimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
+ ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='status'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
  ...(hasOperations.value?[{colKey:'operation',title:'操作',width:200,fixed:'right'}]:[])
 ]);
 const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement',roles:'saveSystemRole'})[resource.value]);
 const createScope={apps:'application',categories:'application',announcements:'announcement',roles:'super'};
 const canCreate=computed(()=>admin.value&&!!createAction.value&&can(actor.value,createScope[resource.value]));
 const createLabel=computed(()=>({apps:'新增应用',categories:'新增分类',announcements:'新增公告',roles:'新增角色'})[resource.value]);
-const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑系统用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',rejectBindingReview:'驳回账号关联审核',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
+const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑门户管理用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',rejectBindingReview:'驳回账号关联审核',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
 const opt=values=>values.map(value=>({value,label:label(value)}));
 const formFields=computed(()=>{
  const f=(key,labelText,type='text',required=false,options=null,full=false)=>({key,label:labelText,type,required,options,full});
@@ -399,16 +401,21 @@ const formFields=computed(()=>{
   savePortalUser:[f('status','启用状态'),f('roleIds','系统角色','text',false,roleOpts,true)],
   saveSystemRole:[f('roleCode','角色编码','text',true),f('roleName','角色名称','text',true),f('status','启用状态'),f('scopes','门户权限范围','text',true,Object.entries(scopes).map(([value,labelText])=>({value,label:labelText})),true),f('description','角色描述','textarea',false,null,true)],
   saveConfig:[f('value','配置值（使用当前参数标注单位）','number',true,null,true)],
-  saveIntegration:[f('enabled','启用接入','text',true,opt(['ENABLED','DISABLED'])),...(form.kind==='SSO'?[f('protocol','协议','text',true,opt(['OIDC','SAML2','CUSTOM'])),f('clientId','Client ID'),f('authorizeUrl','授权地址'),f('tokenUrl','令牌地址'),f('callbackUrl','回调地址')]:[f('mode','接入方式','text',true,opt(['PUSH'])),f('fieldMapping','字段映射（JSON：标准字段→来源字段）','textarea',false,null,true)]),f('credentialRef','凭据环境变量名'),f('remark','接入说明','textarea',false,null,true)],resolveMapping:[f('reason','核验证据说明','textarea',true,null,true)],
-  pushTodo:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceTodoId','源事项ID','text',true),f('eventId','事件ID','text',true),f('sourceRevision','来源版本','number',true),f('status','源状态','text',true,opt(['PENDING','COMPLETED','WITHDRAWN','EXPIRED'])),f('title','待办标题','text',true,null,true)],
+  saveIntegration:[f('enabled','启用接入','text',true,opt(['ENABLED','DISABLED'])),...(form.kind==='SSO'?[f('protocol','协议','text',true,opt(['OIDC','SAML2','CUSTOM'])),f('clientId','Client ID'),f('authorizeUrl','授权地址'),f('tokenUrl','令牌地址'),f('callbackUrl','回调地址')]:[f('mode','接入方式','text',true,opt(['PUSH'])),f('fieldMapping','字段映射（JSON：标准字段→来源字段）','textarea',false,null,true)]),f('credentialRef','服务端凭据引用'),f('remark','接入说明','textarea',false,null,true)],resolveMapping:[f('reason','核验证据说明','textarea',true,null,true)],
+  pushTodo:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceTodoId','源事项ID','text',true),f('eventId','事件ID','text',true),f('status','源状态','text',true,opt(['PENDING','COMPLETED','WITHDRAWN'])),f('title','待办标题','text',true,null,true)],
   pushMessage:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceMessageId','源消息ID','text',true),f('eventId','事件ID','text',true),f('title','消息标题','text',true,null,true),f('content','消息内容','textarea',true,null,true)]
  })[formAction.value]||[];
 });
-const userFormIdentity=computed(()=>['name','account','orgName','userType'].map(key=>({key,label:titles[key],value:display(key,form[key])})).concat({key:'source',label:'身份来源',value:source(form)}));
+const userFormIdentity=computed(()=>[
+ {key:'account',label:'管理账号',value:display('account',form.account)},
+ {key:'name',label:'姓名',value:display('name',form.name)},
+ {key:'authType',label:'认证类型',value:form.authType==='LOCAL'||form.userType==='LOCAL'?'本地账号':'外部身份'},
+ {key:'source',label:'身份来源',value:source(form)}
+]);
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function openForm(action,row={}){
  Object.keys(form).forEach(key=>delete form[key]);
- const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,sourceRevision:1,status:'PENDING',eventId:crypto.randomUUID(),sourceTodoId:'',sourceMessageId:''};
+ const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',eventId:crypto.randomUUID(),sourceTodoId:'',sourceMessageId:''};
  if(action==='savePortalUser')defaults.status='NORMAL';
  if(action==='saveSystemRole')defaults.status='ENABLED';
  Object.assign(form,defaults,JSON.parse(JSON.stringify(row)));
