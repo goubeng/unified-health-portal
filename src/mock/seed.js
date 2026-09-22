@@ -92,7 +92,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   return row('MOCK_MSG_'+ai+'_'+i,{userId:actor.id,appId:portal?null:app.id,appName:portal?'统一门户':app.name,
    sourceMessageId:'P4_MSG_'+ai+'_'+i,title,content:title+'。请查看相关事项详情并按办理要求完成后续操作。',
    sourceKind:portal?'PORTAL':'APPLICATION',messageType:portal?'SYSTEM':i===2?'TODO_REMINDER':'BUSINESS',
-   status:i<8?'UNREAD':'READ',readAt:i<8?null:at(-1),createdAt:at(-i-1),url:portal?null:app.url});
+   status:i<8?'UNREAD':'READ',readAt:i<8?null:at(-1),deleted:false,deletedAt:null,createdAt:at(-i-1),url:portal?null:app.url});
  }));
  const announcementRows=[
   ['关于门户服务使用安排的通知','请通过应用中心查看服务入口，业务办理要求以来源系统说明为准。','ALL','PUBLISHED','IMMEDIATE',null,null],
