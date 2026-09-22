@@ -24,19 +24,16 @@ test('所有TDesign业务弹窗显式垂直居中',()=>{
   }
 });
 
-test('登录页不恢复冗余演示提示且身份页签字重与间距固定',()=>{
+test('登录页为三身份一键进入且身份页签字重与间距固定',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(!source.includes('slide-verification-tip'));
-  assert(!source.includes('按住滑块向右拖动'));
-  assert(!source.includes('管理账号当前仅用于原型演示'));
-  assert(!source.includes('演示验证码仅用于页面展示'));
-  assert(!source.includes('演示账号默认：admin01'));
-  assert(!source.includes('密码和验证码可任意填写或保持默认值'));
-  assert(!source.includes('当前演示管理账号不可用'));
+  assert(source.includes("const adminAccount='admin'"));
+  assert(source.includes('@click="enterSelected"'));
+  assert(source.includes("identityType==='LOCAL'?'进入管理端':'进入系统'"));
+  for(const removed of ['<t-qrcode','login-phone','login-code','login-slider','local-password','local-captcha','获取验证码','扫码登录','手机号登录'])assert(!source.includes(removed));
   assert(css.includes('.login-identity-switch{justify-content:space-around;align-items:flex-end;gap:32px;padding:0 22px;margin-top:10px!important}'));
   assert(css.includes('.identity-pill{font-size:18px!important;font-weight:500!important'));
-  assert(css.includes('.identity-pill>span{display:inline-block;position:relative;padding:0 2px 9px;font-size:18px;font-weight:500;line-height:1.35}'));
+  assert(css.includes('.demo-login-panel{display:flex;flex-direction:column;gap:20px;margin-top:32px}'));
 });
 
 test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
@@ -887,14 +884,9 @@ test('登录框内容左右增加10px留白且登录按钮加高',()=>{
 });
 
 
-test('登录二维码缩小并与直角边框居中对齐',()=>{
+test('登录页不再渲染二维码与手机号录入控件',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
-  const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes('class="login-qrcode"'));
-  assert(source.includes(':size="176"'));
-  assert(css.includes('.qr-frame{width:196px;height:196px;border-radius:0}'));
-  assert(css.includes('.qr-frame>.login-qrcode{place-self:center!important}'));
-  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:176px!important;height:176px!important'));
+  for(const removed of ['<t-qrcode','qr-auth','phone-auth','手机号','验证码'])assert(!source.includes(removed));
 });
 
 
@@ -905,58 +897,47 @@ test('登录页使用独立图片层渲染卫健高清背景',()=>{
   assert(source.includes("import loginBackground from '../assets/login-health-bg-3840x2160.png';"));
   assert(source.includes('class="login-bg-image"'));
   assert(source.includes(':src="loginBackground"'));
-  assert(source.includes('class="login-intro"'));
   assert(layout.includes('.login-bg-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:center center'));
-  assert(layout.includes('.login-brand,.login-layout,.login-shell>footer{position:relative;z-index:1}'));
 });
 
 
-test('登录页身份切换与内容区间距一致且登录框高度自适应',()=>{
+test('登录页身份切换与一键进入内容区间距一致且登录框高度自适应',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  const layout=fs.readFileSync('src/styles/layout.css','utf8');
-  assert(source.includes('class="local-auth phone-auth"'));
+  assert(source.includes('class="demo-login-panel"'));
+  assert(source.includes('class="demo-login-summary"'));
   assert(css.includes('.login-card{width:460px!important;max-width:460px!important;height:auto!important;min-height:0!important;display:block!important}'));
   assert(css.includes('.login-identity-switch{margin-bottom:32px!important}'));
-  assert(css.includes('.qr-auth{padding-top:32px!important}'));
-  assert(css.includes('.phone-auth:not(.local-auth){margin-top:32px!important}'));
-  assert(css.includes('.local-auth{display:block!important;margin-top:32px!important}'));
-  assert(layout.includes('.login-brand{font-size:24px;font-weight:600;color:var(--td-brand-color,#0052d9)}'));
+  assert(css.includes('.demo-login-panel{display:flex;flex-direction:column;gap:20px;margin-top:32px}'));
 });
 
-test('登录二维码使用直角并保持均衡居中留白',()=>{
-  const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.qr-frame{box-sizing:border-box!important;width:196px!important;height:196px!important;display:grid!important;place-items:center!important;border-radius:0!important;overflow:hidden!important;padding:0!important}'));
-  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important;width:176px!important;height:176px!important'));
-  assert(css.includes('padding:0!important;border:0!important;border-radius:0!important;place-items:center!important'));
-  assert(css.includes('.login-qrcode .t-qrcode__image{box-sizing:border-box!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important'));
-  assert(css.includes('.login-qrcode svg{box-sizing:border-box!important;display:block!important;width:100%!important;height:100%!important'));
-  assert(css.includes('.qr-expired-mask{border-radius:0!important}'));
+test('管理端演示账号固定为admin且无需录入凭据',()=>{
+  const source=fs.readFileSync('src/views/Login.vue','utf8');
+  const seed=fs.readFileSync('src/mock/seed.js','utf8');
+  assert(source.includes("const adminAccount='admin'"));
+  assert(source.includes('用户账号：<b>{{ adminAccount }}</b>'));
+  assert(seed.includes("account:'admin'"));
+  for(const field of ['local-password','local-captcha','localAccount','localPassword','localCaptchaInput'])assert(!source.includes(field));
 });
 
 
-test('登录方式切换与身份Tab和内容区间距加倍为32px',()=>{
-  const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.login-identity-switch{margin-bottom:32px!important}'));
-  assert(css.includes('.auth-method-pills{width:100%!important;margin:0 auto!important}'));
-  assert(css.includes('.qr-auth{padding-top:32px!important}'));
-  assert(css.includes('.phone-auth:not(.local-auth){margin-top:32px!important}'));
+test('登录页只保留身份Tab与一键进入操作',()=>{
+  const source=fs.readFileSync('src/views/Login.vue','utf8');
+  assert(source.includes('class="login-identity-switch"'));
+  assert(source.includes('class="demo-login-panel"'));
+  assert(!source.includes('auth-method-pills'));
+  assert(!source.includes('method-pill'));
 });
 
 
-test('登录二维码清除TDesign默认内边距以保证视觉居中',()=>{
+test('登录页一键进入按钮使用统一高度',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.login-qrcode{box-sizing:border-box!important;display:grid!important'));
-  assert(css.includes('padding:0!important;border:0!important'));
-  assert(css.includes('.login-qrcode .t-qrcode__image'));
-  assert(css.includes('place-items:center!important'));
+  assert(css.includes('.demo-login-panel .login-submit{margin:0!important;height:40px!important;min-height:40px!important}'));
 });
 
 
 test('登录背景按短边铺满并居中裁切',()=>{
   const layout=fs.readFileSync('src/styles/layout.css','utf8');
   assert(layout.includes('object-fit:cover'));
-  assert(layout.includes('.login-intro{max-width:430px;color:#344054;text-shadow:0 1px 2px rgba(255,255,255,.92)}'));
-  assert(layout.includes('.login-intro p{color:#52657f'));
-  assert(layout.includes('.login-features{display:flex;gap:24px;margin-top:30px;color:#3f638f}'));
+  assert(layout.includes('object-position:center center'));
 });
