@@ -26,22 +26,24 @@ export function createPortalApi({repository=null,env=process.env}={}){
  const sessions=new Map();let queue=Promise.resolve();
  const serial=fn=>{const next=queue.then(fn,fn);queue=next.catch(()=>{});return next;};
  const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({...data,requestId:data.requestId||randomUUID()}));};
- const actorEnabled=x=>x&&x.enabled!==false&&x.status!=='DISABLED'&&(x.adminStatus||'NORMAL')!=='DISABLED';
- const resolveActor=(req,state)=>{const sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('wj_portal='))?.slice(10),session=sessions.get(sid);if(!session||session.expires<Date.now()){if(sid)sessions.delete(sid);return null;}return state.users.find(x=>x.id===session.userId&&actorEnabled(x))||null;};
+ const accessUserEnabled=x=>x&&['CITIZEN','GOV'].includes(x.userType)&&x.enabled!==false&&x.status!=='DISABLED';
+ const adminUserEnabled=x=>Boolean(x&&(x.adminAccess||x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)&&x.adminEnabled!==false&&(x.adminStatus||'NORMAL')!=='DISABLED'&&(x.authType!=='LOCAL'||(x.enabled!==false&&x.status!=='DISABLED')));
+ const sessionActorEnabled=x=>x?.authType==='LOCAL'?adminUserEnabled(x):accessUserEnabled(x);
+ const resolveActor=(req,state)=>{const sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('wj_portal='))?.slice(10),session=sessions.get(sid);if(!session||session.expires<Date.now()){if(sid)sessions.delete(sid);return null;}return state.users.find(x=>x.id===session.userId&&sessionActorEnabled(x))||null;};
  const sessionView=(state,actor)=>{
   const access=actor&&['CITIZEN','GOV'].includes(actor.userType)?actor:null;
   const admin=actor&&(actor.adminAccess||actor.adminSubject||actor.kind==='ADMIN')?actor:null;
   const roles=admin?(admin.roleIds||[]).map(id=>(state.roles||[]).find(role=>role.id===id)).filter(Boolean).map(role=>({id:role.id,code:role.roleCode,name:role.roleName})):[];
   return {
    actor,
-   accessSubject:access?{id:access.id,account:access.account,name:access.name,userType:access.userType,identitySource:access.identitySource,orgName:access.orgName,enabled:access.enabled!==false}:null,
-   adminUser:admin?{id:admin.id,account:admin.account,name:admin.name,authType:admin.authType||'EXTERNAL',accessUserId:admin.authType==='EXTERNAL'&&access?access.id:null,enabled:actorEnabled(admin),lastLoginAt:admin.lastLoginAt||null}:null,
-   adminAccess:Boolean(admin&&actorEnabled(admin)),
+   accessSubject:access?{id:access.id,account:access.account,name:access.name,userType:access.userType,identitySource:access.identitySource,orgName:access.orgName,enabled:accessUserEnabled(access)}:null,
+   adminUser:admin?{id:admin.id,account:admin.account,name:admin.name,authType:admin.authType||'EXTERNAL',accessUserId:admin.authType==='EXTERNAL'&&access?access.id:null,enabled:adminUserEnabled(admin),lastLoginAt:admin.lastLoginAt||null}:null,
+   adminAccess:Boolean(admin&&adminUserEnabled(admin)),
    roles,
    permissions:admin?.permissions||[],
    authType:admin?.authType||'EXTERNAL',
    identitySource:admin?.identitySource||access?.identitySource||null,
-   users:(state.users||[]).filter(x=>actorEnabled(x)&&['CITIZEN','GOV'].includes(x.userType))
+   users:(state.users||[]).filter(x=>accessUserEnabled(x))
   };
  };
  const handle=async(req,res)=>{
@@ -56,7 +58,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
     if(path==='/api/portal/health')return send(res,200,{ok:true,data:{repository:repository.mode||'UNKNOWN',database:repository.database||null,schema:repository.schema||null,phase:repository.mode==='DATABASE'?'0.3.0-B/C':'0.3.0-A',version}});
     if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:sessionView(state,actor)});
     if(path==='/api/portal/session'&&req.method==='POST'){
-     const next=state.users.find(x=>x.id===payload.userId&&actorEnabled(x));if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
+     const next=state.users.find(x=>x.id===payload.userId&&sessionActorEnabled(x));if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
      const event=makeEvent({actor:next,action:actor?'SWITCH_USER':'LOGIN',payload:{previousActor:actor?.id},state,result:{ok:true},kind:'LOGIN'});
      await repository.commit(state,state,version,event);
      const sid=randomBytes(32).toString('hex'),ttl=Number(state.settings.find(x=>x.code==='auth.session_ttl_seconds')?.value)||7200;
@@ -79,7 +81,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
      const input=Object.fromEntries(fields.map(k=>[k,payload[config.fieldMapping?.[k]||k]]));input.appId=appId;
      if(kind==='TODO')input.status=config.valueMapping?.status?.[input.status]||input.status;
      if(fields.some(key=>typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');await repository.commit(state,state,version,makeEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'}));return send(res,400,result);}
-     const principal=state.users.find(x=>actorEnabled(x)&&can(x,'system:super'));const machineService=createPortalService(provider,()=>principal);
+     const principal=state.users.find(x=>adminUserEnabled(x)&&can(x,'system:super'));const machineService=createPortalService(provider,()=>principal);
      const action=kind==='TODO'?'pushTodo':'pushMessage',result=await machineService.command(action,input);
      const event=makeEvent({action,payload:input,state,result,kind:'API'});event.actorKind='APPLICATION';event.details.source='BEARER_PUSH';
      await repository.commit(state,provider.read(),version,event);return send(res,statusFor(result),result);
