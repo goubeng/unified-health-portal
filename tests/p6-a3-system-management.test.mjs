@@ -24,7 +24,7 @@ test('门户管理员可读用户组织字典目录但不能执行超级管理�
   assert(dictionaries.items.some(x=>x.typeCode==='integration_protocol'));
 
   const local=(await h.read('users')).find(x=>x.authType==='LOCAL');
-  const stop=await h.service.command('setPortalUserStatus',{id:local.id,version:local.version,status:'DISABLED'});
+  const stop=await h.service.command('setPortalUserStatus',{id:local.id,version:local.version,enabled:false});
   assert.equal(stop.error?.code,'FORBIDDEN');
 
   const create=await h.service.command('createLocalPortalUser',{account:'local02',name:'本地维护员'});
