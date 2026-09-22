@@ -35,7 +35,6 @@ export function createPortalApi({repository=null,env=process.env}={}){
   const admin=actor&&(actor.adminAccess||actor.adminSubject||actor.kind==='ADMIN')?actor:null;
   const roles=admin?(admin.roleIds||[]).map(id=>(state.roles||[]).find(role=>role.id===id)).filter(Boolean).map(role=>({id:role.id,code:role.roleCode,name:role.roleName})):[];
   return {
-   actor,
    accessSubject:access?{id:access.id,account:access.account,name:access.name,userType:access.userType,identitySource:access.identitySource,orgName:access.orgName,enabled:accessUserEnabled(access)}:null,
    adminUser:admin?{id:admin.id,account:admin.account,name:admin.name,authType:admin.authType||'EXTERNAL',accessUserId:admin.authType==='EXTERNAL'&&access?access.id:null,enabled:adminUserEnabled(admin),lastLoginAt:admin.lastLoginAt||null}:null,
    adminAccess:Boolean(admin&&adminUserEnabled(admin)),
