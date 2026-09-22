@@ -69,7 +69,7 @@ const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label
 const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'}];
 const mappingOptions=[{value:'bound',label:'已关联'},{value:'review',label:'待审核'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
 const identitySource=user=>text(user.source)||({CITIZEN:'闽政通',GOV:'闽政务'}[user.userType]||'-');
-const accessRows=computed(()=>props.rows.filter(row=>row.user?.userType!=='LOCAL'));
+const accessRows=computed(()=>props.rows.filter(row=>['CITIZEN','GOV'].includes(row.user?.userType)));
 const filtered=computed(()=>accessRows.value.filter(row=>{
  const term=keyword.value.trim().toLowerCase(),user=row.user||{};
  const matchesMapping=!mappingFilter.value||({bound:row.boundCount>0,review:(row.reviewCount||0)>0,exception:row.exceptionCount>0,none:row.boundCount===0&&(row.reviewCount||0)===0}[mappingFilter.value]);
