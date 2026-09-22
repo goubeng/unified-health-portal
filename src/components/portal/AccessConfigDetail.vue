@@ -51,8 +51,8 @@ const protocolOptions=['OIDC','SAML2','CUSTOM'].map(value=>({value,label:value})
 const modeOptions=[{value:'PUSH',label:'PUSH（推送）'}];
 const forms=reactive({SSO:{},TODO:{},MESSAGE:{}});
 const source=kind=>props.profile?.integrations?.[kind]||null;
-const configStatus=item=>item?.configStatus||item?.configurationStatus||(item?.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
-const runtimeStatus=item=>item?.runtimeStatus||item?.status||'UNCONFIGURED';
+const configStatus=item=>item?.configStatus||'UNCONFIGURED';
+const runtimeStatus=item=>item?.runtimeStatus||'UNCONFIGURED';
 const loadedSources={};let loadedApp=null;
 function init(){if(loadedApp!==props.profile?.appId){for(const kind of kinds)delete loadedSources[kind];loadedApp=props.profile?.appId;activeKind.value='SSO';}for(const kind of kinds){const item=source(kind)||{},signature=JSON.stringify(item);if(loadedSources[kind]===signature)continue;loadedSources[kind]=signature;forms[kind]={enabled:item.enabled||'DISABLED',protocol:['OIDC','SAML2','CUSTOM'].includes(item.protocol)?item.protocol:'OIDC',mode:kind==='SSO'?'SSO':(item.mode||'PUSH'),clientId:item.clientId||'',authorizeUrl:item.authorizeUrl||'',tokenUrl:item.tokenUrl||'',callbackUrl:item.callbackUrl||'',credentialRef:item.credentialRef||'',fieldMapping:JSON.stringify(item.fieldMapping||{},null,2),valueMapping:JSON.stringify(item.valueMapping||{},null,2),remark:item.remark||''};}}
 watch(()=>props.profile,init,{immediate:true,deep:true});
