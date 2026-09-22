@@ -4,7 +4,7 @@
 - 当前代码版本：0.2.0（0.3.0-A 前端改造持续提交中）
 - 下一阶段目标：0.3.0
 - 日期：2026-09-22
-- 状态：DEMO_ACCEPTANCE_PENDING
+- 状态：MANUAL_ACCEPTANCE_PASS / TEST_RERUN_PENDING
 - Release Candidate：尚未生成
 
 ## 当前身份与管理授权基线
@@ -28,7 +28,7 @@
 - 登录Session已改为直接应用POST响应，避免二次读取造成管理员身份短暂为空和误报“当前管理账号不可用”；
 
 - P3 数据库历史验收事实保持不变；
-- 0.3.0-A 前端页面字段与 DTO 已按 V20260921-01 冻结；仍需本地测试、构建和逐页浏览器验收后才能标记 PASS_FRONTEND；
+- 0.3.0-A 前端页面字段与 DTO 已按 V20260921-01 冻结；浏览器人工页面与业务链路验收已完成且未发现明显阻塞问题，当前需复跑自动测试并完成构建后才能进入原型冻结；
 - 演示业务契约已冻结：accessSubject/adminUser 拆分、resource:action permissions、应用 enabled、接入 configStatus/enabled/runtimeStatus、TODO/MESSAGE receivedAt、公告 status+displayStatus 均已在前端/Mock Service 对齐；历史 scopes 仅保留只读兼容适配，不再由新 Seed/新写入产生；这些目标模型继续作为Mock、接口文档和可选演示持久化的统一依据，详见 `docs/02-开发/02-评审/现有前端差异核对.md`；
 - 原0.3.0-B生产级数据库目标结构与Migration设计继续保留为参考，但不再作为当前演示原型的强制交付门槛；如演示需要数据持久化，只做当前业务模型所需的最小结构对齐；
 - 真实闽政通/闽政务、SSO/TODO/MESSAGE及约43个子系统逐一联调退出当前原型交付范围；相关设计文档继续作为接口真实性和后续实施参考；
@@ -57,7 +57,7 @@
 ## 当前原型收口阶段
 
 - A1 前端实现与Mock闭环：已完成，代码进入收口状态。
-- A2 页面与业务链路人工验收：**当前阶段**；按 `docs/02-开发/02-评审/前端页面与业务链路验收清单.md` 执行。
-- A3 原型冻结：修复A2问题，完成 `npm test`、`npm run build`、接口文件可用性检查并形成冻结版本。
+- A2 页面与业务链路人工验收：**MANUAL_PASS**；用户已完成浏览器人工操作验收，表面运行状态正常。
+- A3 原型冻结：**TECH_VALIDATION_PENDING**；当前正在同步测试基线，待重新执行 `npm test`、`npm run build` 后确认冻结。
 - B 演示数据与接口模拟完善：仅在A3后处理演示所需的数据持久化、OpenAPI/Mock接口真实性、演示数据补充；不要求生产级数据库切换。
 - C 真实外部联调：**OUT_OF_CURRENT_DEMO_SCOPE**；保留设计，不作为本轮原型验收或演示交付条件。
