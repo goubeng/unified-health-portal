@@ -4,7 +4,7 @@
 - 当前代码版本：0.2.0（0.3.0-A 前端改造持续提交中）
 - 下一阶段目标：0.3.0
 - 日期：2026-09-21
-- 状态：Draft / 0.3.0-A Frontend Mock 收口
+- 状态：PRE_B_MODEL_FROZEN / LOCAL_RUN_PENDING
 - Release Candidate：尚未生成
 
 ## 当前身份与管理授权基线
@@ -22,8 +22,8 @@
 ## 当前阶段事实
 
 - P3 数据库历史验收事实保持不变；
-- 0.3.0-A 前端 Mock 主体代码已基本完成，仍需本地测试、构建和逐页浏览器验收；
-- 0.3.0-A2 前端业务模型已完成收口：用户域拆分、身份映射LOCAL清理、集成三层状态、TODO旧字段、消息逻辑删除兼容、公告派生状态及日志主体字段均已在前端/Mock层对齐；正式数据库与REST API仍留0.3.0-B/C，详见 `docs/02-开发/02-评审/现有前端差异核对.md`；
+- 0.3.0-A 前端页面字段与 DTO 已按 V20260921-01 冻结；仍需本地测试、构建和逐页浏览器验收后才能标记 PASS_FRONTEND；
+- B阶段输入契约已冻结：accessSubject/adminUser 拆分、resource:action permissions、应用 enabled、接入 configStatus/enabled/runtimeStatus、TODO/MESSAGE receivedAt、公告 status+displayStatus 均已在前端/Mock Service 对齐；历史 scopes 仅保留只读兼容适配，不再由新 Seed/新写入产生；正式数据库与 REST API 仍留 0.3.0-B/C，详见 `docs/02-开发/02-评审/现有前端差异核对.md`；
 - 0.3.0-B 数据库目标结构改造尚未启动；目标 Schema 与 Migration 顺序已形成设计，详见 `docs/02-开发/01-设计/数据库Schema设计.md`；
 - 0.3.0-C 真实身份、SSO、TODO、MESSAGE 和子系统联调尚未启动；后端任务已按依赖拆分，详见 `docs/02-开发/03-计划/后端开发任务拆分.md`；
 - 当前标准 `npm run api` 继续使用 MEMORY_A，不访问本地数据库；
@@ -50,7 +50,7 @@
 
 ## 0.3.0 分阶段执行
 
-- 0.3.0-A：前端 Mock 原型改造与验收，当前收口中；**禁止数据库写入/迁移**。
+- 0.3.0-A：前端 Mock / DTO 已冻结，当前等待本地 test/build/浏览器验收；**禁止数据库写入/迁移**。
 - 0.3.0-B：数据库改造，NOT_STARTED；统一处理门户管理用户/本地凭证、角色/权限、访问主体、应用接入、账号映射、待办字段收敛、公告、审计及历史短信预留等数据库差异。
 - 0.3.0-C：真实 Provider 与外部系统联调，NOT_STARTED。
 - 执行依据：`docs/02-开发/03-计划/0.3.0分阶段改造执行计划.md`。
