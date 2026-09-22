@@ -22,7 +22,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
  const handle=async(req,res)=>{
   try{
    if(!/^((127\.0\.0\.1|localhost)(:380[01])?)$/.test(req.headers.host||''))return send(res,403,resultError('FORBIDDEN','仅允许本机入口'));
-   const url=new URL(req.url,'http://127.0.0.1:3801'),path=url.pathname;
+   const url=new URL(req.url,'http://127.0.0.1:4011'),path=url.pathname;
    const external=path.startsWith('/api/portal/ingest/');
    if(req.method!=='GET'&&!external&&!/^http:\/\/(127\.0\.0\.1|localhost):380[01]$/.test(req.headers.origin||''))return send(res,403,resultError('FORBIDDEN','请求来源不允许'));
    const payload=req.method==='POST'?await body(req):{};
@@ -90,6 +90,6 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const dbRequested=process.argv.includes('--db');
  const env={...process.env,PORTAL_REPOSITORY:dbRequested?'db':'memory'};
  const api=createPortalApi({env});
- createServer(api.handle).listen(3801,'127.0.0.1',()=>console.log(`Portal local API ready: http://127.0.0.1:3801 · repository=${String(env.PORTAL_REPOSITORY).toUpperCase()}`));
+ createServer(api.handle).listen(4011,'127.0.0.1',()=>console.log(`Portal local API ready: http://127.0.0.1:4011 · repository=${String(env.PORTAL_REPOSITORY).toUpperCase()}`));
  setInterval(()=>api.cleanup().catch(e=>console.error('[retention]',e.message)),60000).unref();
 }
