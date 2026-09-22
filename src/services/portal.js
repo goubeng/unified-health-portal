@@ -204,50 +204,51 @@ export function createPortalService(provider,getActor){
      for(const item of p.items){const rule=rules.find(x=>x.code===item.code);if(!rule||!Number.isSafeInteger(item.value)||item.value<rule.min||item.value>rule.max)fail('VALIDATION_ERROR',`${rule?.name||item.code}超出允许范围`);const x=requireRow(d.settings,item.id,item.version);if(x.code!==item.code)fail('VALIDATION_ERROR','规则标识不匹配');x.value=item.value;x.status='CONFIGURED';stamp(x);}result=d.settings;
     }else if(action==='createExternalPortalAdmin'){
      const x=requireRow(d.users,p.accessUserId);
-     if(x.userType==='LOCAL')fail('VALIDATION_ERROR','本地管理账号请使用新增本地管理账号');
+     if(x.authType==='LOCAL')fail('VALIDATION_ERROR','本地管理账号请使用新增本地管理账号');
      if(x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)fail('INVALID_TRANSITION','该用户已具备门户管理资格');
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
-     if(!['NORMAL','DISABLED'].includes(p.status||'NORMAL'))fail('VALIDATION_ERROR','启用状态无效');
-     Object.assign(x,{adminSubject:true,authType:'EXTERNAL',kind:'ADMIN',roleIds,adminStatus:p.status||'NORMAL'});
-     syncUserRoleScopes(d,x);result=decorateAdminUser(d,stamp(x));
+     const enabled=p.enabled!==false;
+     Object.assign(x,{adminSubject:true,adminAccess:enabled,authType:'EXTERNAL',kind:'ADMIN',roleIds,enabled,adminStatus:enabled?'NORMAL':'DISABLED'});
+     syncUserRolePermissions(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='createLocalPortalUser'){
      if(!p.account?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','管理账号与姓名为必填');
      if((d.users||[]).some(user=>String(user.account).toLowerCase()===p.account.trim().toLowerCase()))fail('VALIDATION_ERROR','登录账号已存在');
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
-     const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,authType:'LOCAL',userType:'LOCAL',identitySource:'门户本地',
+     const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,adminAccess:true,authType:'LOCAL',identitySource:'门户本地',
       orgName:'',orgKey:'',mobile:'未提供',email:'未提供',department:'',jobTitle:'',
-      scopes:[],roleIds,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
-     syncUserRoleScopes(d,x);d.users.push(x);result=decorateAdminUser(d,x);
+      permissions:[],scopes:[],roleIds,enabled:true,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
+     syncUserRolePermissions(d,x);d.users.push(x);result=decorateAdminUser(d,x);
     }else if(action==='setPortalUserStatus'){
-     const x=requireRow(d.users,p.id,p.version);if(!(x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端启用状态');if(!['NORMAL','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');
-     if((x.authType||x.userType)==='LOCAL'&&!can(a,'super'))fail('FORBIDDEN','门户本地管理账号启停仅允许门户超级管理员操作');
-     if(x.id===a.id&&p.status==='DISABLED')fail('INVALID_TRANSITION','不能停用当前登录账号');
+     const x=requireRow(d.users,p.id,p.version);if(!adminSubject(x))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端启用状态');
+     if(typeof p.enabled!=='boolean')fail('VALIDATION_ERROR','启用状态无效');
+     if(x.authType==='LOCAL'&&!can(a,'system:super'))fail('FORBIDDEN','门户本地管理账号启停仅允许门户超级管理员操作');
+     if(x.id===a.id&&!p.enabled)fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
-     if(isSuper&&p.status==='DISABLED'){
-      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&(user.adminStatus||user.status)!=='DISABLED'&&(user.roleIds||[]).includes('ROLE_SUPER'));
+     if(isSuper&&!p.enabled){
+      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&entityEnabled(user)&&(user.roleIds||[]).includes('ROLE_SUPER'));
       if(!activeSupers.length)fail('INVALID_TRANSITION','不能停用最后一个有效门户超级管理员');
      }
-     x.adminStatus=p.status;if((x.authType||x.userType)==='LOCAL')x.status=p.status;result=stamp(x);
+     x.enabled=p.enabled;x.adminAccess=p.enabled;x.adminStatus=p.enabled?'NORMAL':'DISABLED';if(x.authType==='LOCAL')x.status=x.adminStatus;result=stamp(x);
     }else if(action==='resetLocalPassword'){
-     const x=requireRow(d.users,p.id,p.version);if(x.userType!=='LOCAL')fail('INVALID_TRANSITION','外部身份用户密码由闽政通/闽政务管理');
+     const x=requireRow(d.users,p.id,p.version);if(x.authType!=='LOCAL')fail('INVALID_TRANSITION','外部身份用户密码由闽政通/闽政务管理');
      x.mustChangePassword=true;x.passwordResetAt=now;x.credentialStatus='MOCK_RESET';result=stamp(x);
     }else if(action==='unlockLocalUser'){
-     const x=requireRow(d.users,p.id,p.version);if(x.userType!=='LOCAL')fail('INVALID_TRANSITION','仅门户本地账号支持门户解锁');
+     const x=requireRow(d.users,p.id,p.version);if(x.authType!=='LOCAL')fail('INVALID_TRANSITION','仅门户本地账号支持门户解锁');
      x.lockedUntil=null;x.failedLoginCount=0;result=stamp(x);
     }else if(action==='savePortalUser'){
-     const x=requireRow(d.users,p.id,p.version);if(!(x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端授权');const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:x.roleIds||[];
-     if(!['NORMAL','DISABLED'].includes(p.status)||roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效的启用状态与门户角色');
-     const requested=scopesFromRoles(d,roleIds),removesSuper=(x.roleIds||[]).includes('ROLE_SUPER')&&!roleIds.includes('ROLE_SUPER');
-     if(x.id===a.id&&(p.status==='DISABLED'||!requested.includes('super')))fail('INVALID_TRANSITION','不能停用当前账号或移除自身超级管理权限');
-     if(removesSuper||p.status==='DISABLED'){
-      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&(user.adminStatus||user.status)!=='DISABLED'&&(user.roleIds||[]).includes('ROLE_SUPER'));
+     const x=requireRow(d.users,p.id,p.version);if(!adminSubject(x))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端授权');const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:x.roleIds||[];
+     if(typeof p.enabled!=='boolean'||roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效的启用状态与门户角色');
+     const requested=permissionsFromRoles(d,roleIds),removesSuper=(x.roleIds||[]).includes('ROLE_SUPER')&&!roleIds.includes('ROLE_SUPER');
+     if(x.id===a.id&&(!p.enabled||!requested.includes('system:super')))fail('INVALID_TRANSITION','不能停用当前账号或移除自身超级管理权限');
+     if(removesSuper||!p.enabled){
+      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&entityEnabled(user)&&(user.roleIds||[]).includes('ROLE_SUPER'));
       if((x.roleIds||[]).includes('ROLE_SUPER')&&!activeSupers.length)fail('INVALID_TRANSITION','不能移除或停用最后一个有效门户超级管理员');
      }
-     const editable={adminStatus:p.status,roleIds};
-     if((x.authType||x.userType)==='LOCAL')Object.assign(editable,{status:p.status,name:p.name?.trim()||x.name,adminSubject:true,authType:'LOCAL'});
-     Object.assign(x,editable);syncUserRoleScopes(d,x);result=decorateAdminUser(d,stamp(x));
+     const editable={enabled:p.enabled,adminAccess:p.enabled,adminStatus:p.enabled?'NORMAL':'DISABLED',roleIds};
+     if(x.authType==='LOCAL')Object.assign(editable,{status:p.enabled?'NORMAL':'DISABLED',name:p.name?.trim()||x.name,adminSubject:true,authType:'LOCAL'});
+     Object.assign(x,editable);syncUserRolePermissions(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='saveOrganization'){
      if(!p.code?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','组织编码与组织名称为必填');
      if((d.organizations||[]).some(org=>org.code===p.code.trim()&&org.id!==p.id))fail('VALIDATION_ERROR','组织编码已存在');
@@ -291,19 +292,19 @@ export function createPortalService(provider,getActor){
      result=x;
     }else if(action==='saveSystemRole'){
      if(!p.roleName?.trim()||!p.roleCode?.trim())fail('VALIDATION_ERROR','角色名称与角色编码为必填');
-     const requested=Array.isArray(p.scopes)?[...new Set(p.scopes)]:[];
-     if(requested.some(s=>!Object.hasOwn(scopes,s))||!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','请选择有效的门户权限范围与启用状态');
-     if(p.id!=='ROLE_SUPER'&&requested.includes('super'))fail('INVALID_TRANSITION','超级管理权限仅保留给内置门户超级管理员角色');
+     const requested=Array.isArray(p.permissions)?[...new Set(p.permissions)]:[];
+     if(requested.some(code=>!Object.hasOwn(permissions,code))||!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','请选择有效的门户操作权限与启用状态');
+     if(p.id!=='ROLE_SUPER'&&requested.includes('system:super'))fail('INVALID_TRANSITION','超级管理权限仅保留给内置门户超级管理员角色');
      if((d.roles||[]).some(role=>role.roleCode===p.roleCode.trim()&&role.id!==p.id))fail('VALIDATION_ERROR','角色编码已存在');
-     if(p.id==='ROLE_SUPER'&&(!requested.includes('super')||p.status==='DISABLED'))fail('INVALID_TRANSITION','门户超级管理员角色必须保持启用并保留超级管理权限');
+     if(p.id==='ROLE_SUPER'&&(!requested.includes('system:super')||p.status==='DISABLED'))fail('INVALID_TRANSITION','门户超级管理员角色必须保持启用并保留超级管理权限');
      const x=p.id?requireRow(d.roles,p.id,p.version):{id:id(),version:0,createdAt:now,builtIn:false};
      if(x.builtIn&&(p.roleCode.trim()!==x.roleCode||p.roleName.trim()!==x.roleName))fail('INVALID_TRANSITION','内置角色名称与编码不可修改');
-     Object.assign(x,{roleName:p.roleName.trim(),roleCode:p.roleCode.trim(),description:p.description||'',scopes:requested,status:p.status});stamp(x);if(!p.id)d.roles.push(x);
-     (d.users||[]).forEach(user=>{if((user.roleIds||[]).includes(x.id)){syncUserRoleScopes(d,user);stamp(user);}});
-     const current=(d.users||[]).find(user=>user.id===a.id);if(current&&!current.scopes.includes('super'))fail('INVALID_TRANSITION','本次角色修改会移除当前账号超级管理权限，请先调整用户角色');
+     Object.assign(x,{roleName:p.roleName.trim(),roleCode:p.roleCode.trim(),description:p.description||'',permissions:requested,scopes:scopesFromPermissions(requested),status:p.status});stamp(x);if(!p.id)d.roles.push(x);
+     (d.users||[]).forEach(user=>{if((user.roleIds||[]).includes(x.id)){syncUserRolePermissions(d,user);stamp(user);}});
+     const current=(d.users||[]).find(user=>user.id===a.id);if(current&&!can(current,'system:super'))fail('INVALID_TRANSITION','本次角色修改会移除当前账号超级管理权限，请先调整用户角色');
      result=x;
     }else if(action==='discoverApplicationAccountCandidates'){
-     const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能关联');
+     const app=requireRow(d.apps,p.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用，暂不能关联');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先完成应用访问申请');
      const requiresBinding=appRequiresBinding(app);if(!requiresBinding)fail('INVALID_TRANSITION','该应用无需账号关联');
@@ -357,7 +358,7 @@ export function createPortalService(provider,getActor){
      x.status=action==='approveBindingReview'?'BOUND':'FAILED';x.reviewedBy=a.id;x.reviewedAt=now;x.reviewNote=p.reviewNote?.trim()||'审核通过';
      if(x.status==='BOUND'){x.boundAt=now;x.conflictReason=null;}else x.conflictReason=x.reviewNote;result=stamp(x);
     }else if(action==='submitApplicationRequest'){
-     const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能申请');
+     const app=requireRow(d.apps,p.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用，暂不能申请');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode!=='REQUEST')fail('INVALID_TRANSITION','该应用无需提交访问申请');
      if(grantFor(d,a,app.id))fail('INVALID_TRANSITION','当前用户已拥有应用入口资格');
@@ -416,7 +417,7 @@ export function createPortalService(provider,getActor){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
      const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)||x.deleted))fail('NOT_FOUND','消息不存在');for(const x of targets){x.deleted=true;x.deletedAt=now;stamp(x);}result={count:ids.length};
     }else if(action==='enterApp'){
-     const app=requireRow(d.apps,p.id);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
+     const app=requireRow(d.apps,p.id);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
      const requiresBinding=appRequiresBinding(app);
@@ -424,12 +425,12 @@ export function createPortalService(provider,getActor){
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock访问校验已通过。当前未连接真实子系统，正式SSO将在联调阶段接入。'};
     }else if(action==='openTodo'){
      const todo=requireRow(d.todos,p.id);if(!own(todo,a))fail('NOT_FOUND','待办不存在');if(todo.status!=='PENDING')fail('INVALID_TRANSITION','该待办已终结');
-     const app=requireRow(d.apps,todo.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
+     const app=requireRow(d.apps,todo.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','当前用户尚未获得该应用入口资格');
      if(appRequiresBinding(app)&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock待办跳转校验已通过。真实子系统连接尚未开放。'};
     }else if(action==='bind'){
-     const app=requireRow(d.apps,p.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用，暂不能关联');if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');if(!p.externalAccount?.trim())fail('VALIDATION_ERROR','请输入已有子系统账号');
+     const app=requireRow(d.apps,p.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用，暂不能关联');if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');if(!p.externalAccount?.trim())fail('VALIDATION_ERROR','请输入已有子系统账号');
      let x=d.mappings.find(m=>m.userId===a.id&&m.appId===p.appId);if(x?.status==='BOUND')fail('INVALID_TRANSITION','已有关联，请由具备身份映射权限的管理员处理');
      const collision=d.mappings.some(m=>m.appId===p.appId&&m.externalAccount===p.externalAccount.trim()&&m.userId!==a.id&&m.status==='BOUND');
      if(!x){x={id:id(),version:0,createdAt:now,userId:a.id,appId:p.appId,appName:app.name};d.mappings.push(x);}x.externalAccount=p.externalAccount.trim();x.status=collision?'CONFLICT':(p.outcome||'BOUND');if(!['BOUND','FAILED','CONFLICT'].includes(x.status))fail('VALIDATION_ERROR','账号核验结果无效');result=stamp(x);
