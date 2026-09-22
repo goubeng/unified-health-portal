@@ -12,18 +12,19 @@ async function request(path,body){
  try{const response=await fetch('/api/portal/'+path,{credentials:'same-origin',...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})});const result=await response.json();if(!result||typeof result.ok!=='boolean')throw Error();return result;}
  catch{return {ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'门户服务暂不可用，请确认本地接口服务已启动'}};}
 }
+function applySession(data={}){
+ session.value={accessSubject:data.accessSubject||null,adminUser:data.adminUser||null,adminAccess:Boolean(data.adminAccess),roles:data.roles||[],permissions:data.permissions||[],authType:data.authType||null,identitySource:data.identitySource||null};
+ actor.value=actorFromSession(data);
+ if(Array.isArray(data.users))users.value=data.users.filter(user=>['CITIZEN','GOV'].includes(user.userType));
+ startupError.value='';
+}
 export async function initializeRuntime(){
  const result=await request('session');
- if(result.ok){
-  const data=result.data||{};
-  session.value={accessSubject:data.accessSubject||null,adminUser:data.adminUser||null,adminAccess:Boolean(data.adminAccess),roles:data.roles||[],permissions:data.permissions||[],authType:data.authType||null,identitySource:data.identitySource||null};
-  actor.value=actorFromSession(data);
-  users.value=(data.users||[]).filter(user=>['CITIZEN','GOV'].includes(user.userType));
-  startupError.value='';
- }else startupError.value=result.error.message;
+ if(result.ok)applySession(result.data||{});
+ else startupError.value=result.error.message;
 }
 export const portal={read:resource=>request('read?resource='+encodeURIComponent(resource))};
-export async function login(id){const result=await request('session',{userId:id});if(!result.ok)throw new Error(result.error.message);await initializeRuntime();revision.value++;}
+export async function login(id){const result=await request('session',{userId:id});if(!result.ok)throw new Error(result.error.message);applySession(result.data||{});revision.value++;}
 export async function logout(){const result=await request('logout',{});if(!result.ok)throw new Error(result.error.message);actor.value=null;session.value={accessSubject:null,adminUser:null,adminAccess:false,roles:[],permissions:[],authType:null,identitySource:null};revision.value++;}
 export async function command(action,payload={}){const result=await request('command',{action,payload});if(result.ok){await initializeRuntime();revision.value++;}return result;}
 export async function downloadContract(kind,appId){const result=await request(`contracts/${kind}/${encodeURIComponent(appId)}`);if(!result.ok)throw Error(result.error.message);const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`${kind.toLowerCase()}-${appId}-openapi.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
