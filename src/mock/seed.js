@@ -155,7 +155,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
    errorMessage:i%2?'上游服务响应超时':'子系统账号关联冲突',resolutionStatus:errorOpen?'OPEN':'RESOLVED',resolutionNote:errorOpen?'':'已完成Mock核查',resolvedAt:errorOpen?null:at(-1),resolvedBy:errorOpen?null:actors[2].id,description:i%2?'上游服务响应超时':'子系统账号关联冲突'});
  }));
  const visits=businessActors.flatMap(actor=>available(actor).slice(0,4).map((app,i)=>({userId:actor.id,appId:app.id,at:at(-i-1)})));
- const requestApp13=apps.find(x=>x.id==='MOCK_APP_13'),requestApp17=apps.find(x=>x.id==='MOCK_APP_17');
+ const requestApp6=apps.find(x=>x.id==='MOCK_APP_6'),requestApp13=apps.find(x=>x.id==='MOCK_APP_13'),requestApp17=apps.find(x=>x.id==='MOCK_APP_17');
  const applicationRequests=[
   row('MOCK_REQ_CITIZEN_EXPIRED',{createdAt:at(-50),updatedAt:at(-44),requestNo:'REQ-20260915-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp13.id,appName:requestApp13.name,reason:'历史申请：未在有效期内完成后续处理',status:'EXPIRED',submittedAt:at(-50),expiredAt:at(-44),reviewedBy:null,reviewedAt:null,reviewNote:'申请已失效，可重新发起申请'}),
   row('MOCK_REQ_CITIZEN_WITHDRAWN',{createdAt:at(-38),updatedAt:at(-35),requestNo:'REQ-20260916-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp13.id,appName:requestApp13.name,reason:'历史申请：业务使用需要',status:'WITHDRAWN',submittedAt:at(-38),withdrawnAt:at(-35),reviewedBy:null,reviewedAt:null,reviewNote:'用户主动撤回'}),
@@ -169,7 +169,11 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   row('MOCK_GRANT_CITIZEN_APP13',{userId:'MOCK_USER_1',appId:requestApp13.id,status:'ACTIVE',grantedBy:'MOCK_ADMIN',grantedAt:at(-16),expiresAt:null}),
   row('MOCK_GRANT_GOV_APP17',{userId:'MOCK_USER_2',appId:requestApp17.id,status:'ACTIVE',grantedBy:'MOCK_ADMIN',grantedAt:at(-12),expiresAt:null})
  ];
- const accountOpeningRequests=[];
+ const accountOpeningRequests=[
+  row('MOCK_OPEN_PENDING',{createdAt:at(-12),updatedAt:at(-12),requestNo:'OPEN-20260917-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp6.id,appName:requestApp6.name,reason:'首次使用该业务系统，申请开通子系统账号',contact:'门户内联系',remark:'请按统一身份信息创建账号',status:'PENDING',submittedAt:at(-12),handledBy:null,handledAt:null,handleNote:null}),
+  row('MOCK_OPEN_PROCESSING',{createdAt:at(-22),updatedAt:at(-8),requestNo:'OPEN-20260917-00002',userId:'MOCK_USER_2',userName:'陈宁',appId:requestApp6.id,appName:requestApp6.name,reason:'业务经办需要使用该系统，申请开通账号',contact:'卫生健康业务处',remark:'已有政务身份，请核对后开通',status:'PROCESSING',submittedAt:at(-22),handledBy:'MOCK_ADMIN',handledAt:null,handleNote:'已转目标子系统管理员处理'}),
+  row('MOCK_OPEN_COMPLETED',{createdAt:at(-38),updatedAt:at(-4),requestNo:'OPEN-20260916-00001',userId:'MOCK_EDITOR',userName:'郑颖',appId:requestApp6.id,appName:requestApp6.name,reason:'信息发布工作需要使用目标系统',contact:'门户运行保障中心',remark:'',status:'COMPLETED',submittedAt:at(-38),handledBy:'MOCK_ADMIN',handledAt:at(-4),handleNote:'子系统账号已开通，可返回应用中心完成账号关联'})
+ ];
  const mappingVerificationEvents=[];
  const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.authType==='LOCAL'?false:null}));
  return {schemaVersion:6,users,roles,apps,platforms:structuredClone(platforms),categories,organizations,dictTypes,dictItems,mappings,
