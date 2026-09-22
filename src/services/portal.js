@@ -21,7 +21,7 @@ const decorateAnnouncement=(x,now=Date.now())=>({...x,status:canonicalAnnounceme
 const visible=(x,a)=>announcementDisplayStatus(x)==='PUBLISHED'&&(!x.effectiveStart||Date.parse(x.effectiveStart)<=Date.now())&&(!x.effectiveEnd||Date.parse(x.effectiveEnd)>Date.now())&&(x.scope==='ALL'||x.scope===a.userType);
 const checkUrl=url=>{try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();return u;}catch{fail('VALIDATION_ERROR','请输入有效的 HTTP/HTTPS 地址');}};
 export function createPortalService(provider,getActor){
- const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED')fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:crypto.randomUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:crypto.randomUUID()};}};
+ const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED'||(actor.userType==='LOCAL'&&actor.adminStatus==='DISABLED'))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:crypto.randomUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:crypto.randomUUID()};}};
  const auth=(a,s)=>{if(!can(a,s))fail('FORBIDDEN','当前身份没有该权限范围');};
  const requireRow=(list,id,version)=>{const row=list.find(x=>x.id===id);if(!row)fail('NOT_FOUND','记录不存在');if(version!==undefined&&row.version!==version)fail('VERSION_CONFLICT','记录已更新，请刷新后重试');return row;};
  const requestFor=(d,a,appId)=>[...(d.applicationRequests||[])].filter(x=>x.userId===a.id&&x.appId===appId).sort((x,y)=>(Date.parse(y.submittedAt||y.createdAt)||0)-(Date.parse(x.submittedAt||x.createdAt)||0))[0]||null;
@@ -59,7 +59,9 @@ export function createPortalService(provider,getActor){
  };
  const roleNames=(d,user)=>(user.roleIds||[]).map(id=>(d.roles||[]).find(role=>role.id===id)?.roleName).filter(Boolean);
  const scopesFromRoles=(d,ids)=>[...new Set((ids||[]).flatMap(id=>(d.roles||[]).find(role=>role.id===id&&role.status==='ENABLED')?.scopes||[]))];
- const decorateUser=(d,user)=>({...user,authType:user.authType||(user.userType==='LOCAL'?'LOCAL':'EXTERNAL'),adminSubject:Boolean(user.adminSubject||user.kind==='ADMIN'||user.userType==='LOCAL'||(user.roleIds||[]).length),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色'});
+ const adminSubject=user=>Boolean(user.adminSubject||user.kind==='ADMIN'||user.userType==='LOCAL'||(user.roleIds||[]).length);
+ const decorateUser=(d,user)=>({...user,accessStatus:user.status,authType:user.authType||(user.userType==='LOCAL'?'LOCAL':'EXTERNAL'),adminSubject:adminSubject(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色'});
+ const decorateAdminUser=(d,user)=>({...decorateUser(d,user),status:user.adminStatus||user.status,adminStatus:user.adminStatus||user.status});
  const syncUserRoleScopes=(d,user)=>{const requested=scopesFromRoles(d,user.roleIds||[]);user.scopes=requested;user.adminSubject=Boolean(user.adminSubject||user.userType==='LOCAL'||requested.length);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
  const monitorStatus=(app,item)=>{
   if(app.status==='DISABLED')return 'DISABLED';
@@ -111,7 +113,7 @@ export function createPortalService(provider,getActor){
    if(provider.kind!=='mock')fail('CAPABILITY_UNAVAILABLE','真实服务尚未配置');
    const d=provider.read(),allApps=decorate(d,a),userApps=accountApps(d,a);
    if(resource==='apps')return allApps.filter(x=>x.applicable&&x.status==='ENABLED');
-   if(resource==='adminApps'){if(a.kind!=='ADMIN')fail('FORBIDDEN','仅门户管理端可读取全量应用目录');return allApps;}
+   if(resource==='adminApps'){auth(a,'application');return allApps;}
    if(resource==='mine')return userApps.filter(x=>['DIRECT','BOUND'].includes(x.accessState));
    if(resource==='todos'||resource==='messages')return d[resource].filter(x=>own(x,a));
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...decorateAnnouncement(x),readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
@@ -130,7 +132,7 @@ export function createPortalService(provider,getActor){
    if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(['categories','settings','mappings','organizations'].includes(resource))return d[resource];
    if(resource==='dictionaries')return {types:d.dictTypes||[],items:d.dictItems||[]};
-   if(resource==='users')return (d.users||actors).map(user=>decorateUser(d,user)).filter(user=>user.adminSubject);
+   if(resource==='users')return (d.users||actors).filter(user=>adminSubject(user)).map(user=>decorateAdminUser(d,user));
    if(resource==='identities')return (d.users||actors).filter(user=>user.userType!=='LOCAL').map(user=>decorateUser(d,user));
    if(resource==='identityOverview')return d.users.filter(user=>user.userType!=='LOCAL').map(user=>{
     const mappings=d.mappings.filter(m=>m.userId===user.id).map(m=>({...m,appName:d.apps.find(app=>app.id===m.appId)?.name||m.appName,todoCount:d.todos.filter(t=>t.userId===user.id&&t.appId===m.appId).length,messageCount:d.messages.filter(t=>t.userId===user.id&&t.appId===m.appId).length}));
@@ -191,8 +193,8 @@ export function createPortalService(provider,getActor){
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
      if(!['NORMAL','DISABLED'].includes(p.status||'NORMAL'))fail('VALIDATION_ERROR','启用状态无效');
-     Object.assign(x,{adminSubject:true,authType:'EXTERNAL',kind:'ADMIN',roleIds,status:p.status||'NORMAL'});
-     syncUserRoleScopes(d,x);result=decorateUser(d,stamp(x));
+     Object.assign(x,{adminSubject:true,authType:'EXTERNAL',kind:'ADMIN',roleIds,adminStatus:p.status||'NORMAL'});
+     syncUserRoleScopes(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='createLocalPortalUser'){
      if(!p.account?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','管理账号与姓名为必填');
      if((d.users||[]).some(user=>String(user.account).toLowerCase()===p.account.trim().toLowerCase()))fail('VALIDATION_ERROR','登录账号已存在');
@@ -200,18 +202,18 @@ export function createPortalService(provider,getActor){
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,authType:'LOCAL',userType:'LOCAL',identitySource:'门户本地',
       orgName:'',orgKey:'',mobile:'未提供',email:'未提供',department:'',jobTitle:'',
-      scopes:[],roleIds,status:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
-     syncUserRoleScopes(d,x);d.users.push(x);result=decorateUser(d,x);
+      scopes:[],roleIds,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
+     syncUserRoleScopes(d,x);d.users.push(x);result=decorateAdminUser(d,x);
     }else if(action==='setPortalUserStatus'){
      const x=requireRow(d.users,p.id,p.version);if(!(x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端启用状态');if(!['NORMAL','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');
      if((x.authType||x.userType)==='LOCAL'&&!can(a,'super'))fail('FORBIDDEN','门户本地管理账号启停仅允许门户超级管理员操作');
      if(x.id===a.id&&p.status==='DISABLED')fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
      if(isSuper&&p.status==='DISABLED'){
-      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&user.status!=='DISABLED'&&(user.roleIds||[]).includes('ROLE_SUPER'));
+      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&(user.adminStatus||user.status)!=='DISABLED'&&(user.roleIds||[]).includes('ROLE_SUPER'));
       if(!activeSupers.length)fail('INVALID_TRANSITION','不能停用最后一个有效门户超级管理员');
      }
-     x.status=p.status;result=stamp(x);
+     x.adminStatus=p.status;if((x.authType||x.userType)==='LOCAL')x.status=p.status;result=stamp(x);
     }else if(action==='resetLocalPassword'){
      const x=requireRow(d.users,p.id,p.version);if(x.userType!=='LOCAL')fail('INVALID_TRANSITION','外部身份用户密码由闽政通/闽政务管理');
      x.mustChangePassword=true;x.passwordResetAt=now;x.credentialStatus='MOCK_RESET';result=stamp(x);
@@ -224,12 +226,12 @@ export function createPortalService(provider,getActor){
      const requested=scopesFromRoles(d,roleIds),removesSuper=(x.roleIds||[]).includes('ROLE_SUPER')&&!roleIds.includes('ROLE_SUPER');
      if(x.id===a.id&&(p.status==='DISABLED'||!requested.includes('super')))fail('INVALID_TRANSITION','不能停用当前账号或移除自身超级管理权限');
      if(removesSuper||p.status==='DISABLED'){
-      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&user.status!=='DISABLED'&&(user.roleIds||[]).includes('ROLE_SUPER'));
+      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&(user.adminStatus||user.status)!=='DISABLED'&&(user.roleIds||[]).includes('ROLE_SUPER'));
       if((x.roleIds||[]).includes('ROLE_SUPER')&&!activeSupers.length)fail('INVALID_TRANSITION','不能移除或停用最后一个有效门户超级管理员');
      }
-     const editable={status:p.status,roleIds};
-     if((x.authType||x.userType)==='LOCAL')Object.assign(editable,{name:p.name?.trim()||x.name,adminSubject:true,authType:'LOCAL'});
-     Object.assign(x,editable);syncUserRoleScopes(d,x);result=stamp(x);
+     const editable={adminStatus:p.status,roleIds};
+     if((x.authType||x.userType)==='LOCAL')Object.assign(editable,{status:p.status,name:p.name?.trim()||x.name,adminSubject:true,authType:'LOCAL'});
+     Object.assign(x,editable);syncUserRoleScopes(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='saveOrganization'){
      if(!p.code?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','组织编码与组织名称为必填');
      if((d.organizations||[]).some(org=>org.code===p.code.trim()&&org.id!==p.id))fail('VALIDATION_ERROR','组织编码已存在');
