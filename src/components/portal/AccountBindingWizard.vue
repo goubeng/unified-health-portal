@@ -59,6 +59,7 @@
 </template>
 
 <script setup>
+import {createUUID} from '../../utils/uuid.js';
 import {computed,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {command} from '../../services/runtime.js';
@@ -174,7 +175,7 @@ async function recheck(){
     setResult({},'FAILED');return;
   }
   if(resultStatus.value==='OPENING_REQUIRED'){
-    const data=await call('bind',{appId:props.app.id,externalAccount:'opened_'+crypto.randomUUID(),outcome:'BOUND'});
+    const data=await call('bind',{appId:props.app.id,externalAccount:'opened_'+createUUID(),outcome:'BOUND'});
     if(data){externalHandoff.value=false;setResult(data,data.status,true);return;}
     setResult({},'FAILED');return;
   }
