@@ -1,5 +1,5 @@
 import {createUUID} from '../utils/uuid.js';
-import {can,scopes} from '../config/pages.js';
+import {can,permissions,permissionsFromScopes,scopesFromPermissions} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
 import {rules} from '../config/rules.js';
 import {integrationFields,terminalStatuses} from '../config/integration-contract.js';
@@ -7,7 +7,9 @@ const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).s
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
 const appRequiresBinding=app=>app?.accessMode==='BIND'||(app?.accessMode==='REQUEST'&&app?.postGrantMode==='BIND');
-const identitySourceName=user=>user?.userType==='GOV'?'闽政务':user?.userType==='LOCAL'?'门户本地':'闽政通';
+const identitySourceName=user=>user?.authType==='LOCAL'?'门户本地':user?.userType==='GOV'?'闽政务':'闽政通';
+const entityEnabled=x=>x?.enabled!==false&&x?.enabled!=='DISABLED'&&x?.status!=='DISABLED'&&(x?.adminStatus||'NORMAL')!=='DISABLED';
+const appEnabled=app=>app?.enabled!==false&&app?.status!=='DISABLED';
 const announcementDisplayStatus=(x,now=Date.now())=>{
  if(x.status==='WITHDRAWN')return 'WITHDRAWN';
  if(x.status==='EXPIRED')return 'EXPIRED';
@@ -22,25 +24,25 @@ const decorateAnnouncement=(x,now=Date.now())=>({...x,status:canonicalAnnounceme
 const visible=(x,a)=>announcementDisplayStatus(x)==='PUBLISHED'&&(!x.effectiveStart||Date.parse(x.effectiveStart)<=Date.now())&&(!x.effectiveEnd||Date.parse(x.effectiveEnd)>Date.now())&&(x.scope==='ALL'||x.scope===a.userType);
 const checkUrl=url=>{try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();return u;}catch{fail('VALIDATION_ERROR','请输入有效的 HTTP/HTTPS 地址');}};
 export function createPortalService(provider,getActor){
- const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||actor.status==='DISABLED'||(actor.userType==='LOCAL'&&actor.adminStatus==='DISABLED'))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:createUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:createUUID()};}};
+ const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||!entityEnabled(actor))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:createUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:createUUID()};}};
  const auth=(a,s)=>{if(!can(a,s))fail('FORBIDDEN','当前身份没有该权限范围');};
  const requireRow=(list,id,version)=>{const row=list.find(x=>x.id===id);if(!row)fail('NOT_FOUND','记录不存在');if(version!==undefined&&row.version!==version)fail('VERSION_CONFLICT','记录已更新，请刷新后重试');return row;};
  const requestFor=(d,a,appId)=>[...(d.applicationRequests||[])].filter(x=>x.userId===a.id&&x.appId===appId).sort((x,y)=>(Date.parse(y.submittedAt||y.createdAt)||0)-(Date.parse(x.submittedAt||x.createdAt)||0))[0]||null;
  const grantFor=(d,a,appId)=>(d.applicationGrants||[]).find(x=>x.userId===a.id&&x.appId===appId&&x.status==='ACTIVE')||null;
  const decorate=(d,a)=>d.apps.map(app=>{
-  const applicable=a.userType!=='LOCAL'&&(app.userType==='BOTH'||app.userType===a.userType);
+  const applicable=['CITIZEN','GOV'].includes(a.userType)&&(app.userType==='BOTH'||app.userType===a.userType);
   const appIntegrations=(d.integrations||[]).filter(item=>item.appId===app.id);
-  const integrationStates=appIntegrations.map(item=>item.runtimeStatus||item.status||'UNCONFIGURED');
+  const integrationStates=appIntegrations.map(item=>item.runtimeStatus||'UNCONFIGURED');
   const ssoIntegration=appIntegrations.find(item=>item.kind==='SSO');
-  const ssoRuntimeStatus=app.status!=='ENABLED'?'DISABLED':ssoIntegration?.runtimeStatus||ssoIntegration?.status||app.runtimeStatus||'UNCONFIGURED';
-  const aggregateRuntimeStatus=app.status!=='ENABLED'?'DISABLED':integrationStates.includes('ABNORMAL')?'ABNORMAL':integrationStates.includes('NORMAL')?'NORMAL':integrationStates.length&&integrationStates.every(value=>value==='DISABLED')?'DISABLED':'UNCONFIGURED';
+  const ssoRuntimeStatus=!appEnabled(app)?'DISABLED':ssoIntegration?.runtimeStatus||'UNCONFIGURED';
+  const aggregateRuntimeStatus=!appEnabled(app)?'DISABLED':integrationStates.includes('ABNORMAL')?'ABNORMAL':integrationStates.includes('NORMAL')?'NORMAL':integrationStates.length&&integrationStates.every(value=>value==='DISABLED')?'DISABLED':'UNCONFIGURED';
   const mapping=d.mappings.find(m=>m.appId===app.id&&own(m,a)&&m.status!=='UNBOUND')||null;
   const request=requestFor(d,a,app.id),grant=grantFor(d,a,app.id);
   const accessMode=app.accessMode||'BIND';
   const requiresBinding=appRequiresBinding(app)&&Boolean(accessMode!=='REQUEST'||grant);
   let accessState='UNBOUND';
   if(!applicable)accessState='NOT_APPLICABLE';
-  else if(app.status!=='ENABLED')accessState='APP_DISABLED';
+  else if(!appEnabled(app))accessState='APP_DISABLED';
   else if(accessMode==='REQUEST'&&!grant){
    accessState=request?.status==='PENDING'?'REQUEST_PENDING':request?.status==='REJECTED'?'REQUEST_REJECTED':'REQUEST_REQUIRED';
   }else if(requiresBinding)accessState=mapping?.status||'UNBOUND';
@@ -50,7 +52,7 @@ export function createPortalService(provider,getActor){
    FAILED:'RETRY_BIND',CONFLICT:'VIEW_CONFLICT',REQUEST_REQUIRED:'REQUEST',REQUEST_REJECTED:'VIEW_REQUEST',REQUEST_PENDING:'VIEW_REQUEST'
   })[accessState]||'VIEW';
   if(accessState==='FAILED'&&mapping?.externalAccountStatus==='DISABLED')primaryAction='VIEW_REASON';
-  return {...app,aggregateRuntimeStatus,ssoRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
+  return {...app,enabled:appEnabled(app),aggregateRuntimeStatus,ssoRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
    requestStatus:request?.status||null,requestId:request?.id||null,grantStatus:grant?.status||null,accessState,primaryAction};
  });
  const accountApps=(d,a)=>{
@@ -59,18 +61,18 @@ export function createPortalService(provider,getActor){
   d.todos.filter(x=>own(x,a)).forEach(x=>ids.add(x.appId));
   d.messages.filter(x=>own(x,a)&&x.appId).forEach(x=>ids.add(x.appId));
   d.visits.filter(x=>x.userId===a.id).forEach(x=>ids.add(x.appId));
-  return decorate(d,a).filter(x=>x.status==='ENABLED'&&x.applicable&&(ids.has(x.id)||['DIRECT','BOUND'].includes(x.accessState)));
+  return decorate(d,a).filter(x=>x.enabled&&x.applicable&&(ids.has(x.id)||['DIRECT','BOUND'].includes(x.accessState)));
  };
  const roleNames=(d,user)=>(user.roleIds||[]).map(id=>(d.roles||[]).find(role=>role.id===id)?.roleName).filter(Boolean);
- const scopesFromRoles=(d,ids)=>[...new Set((ids||[]).flatMap(id=>(d.roles||[]).find(role=>role.id===id&&role.status==='ENABLED')?.scopes||[]))];
- const adminSubject=user=>Boolean(user.adminSubject||user.kind==='ADMIN'||user.userType==='LOCAL'||(user.roleIds||[]).length);
- const decorateUser=(d,user)=>({...user,accessStatus:user.status,authType:user.authType||(user.userType==='LOCAL'?'LOCAL':'EXTERNAL'),adminSubject:adminSubject(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色'});
- const decorateAdminUser=(d,user)=>({...decorateUser(d,user),status:user.adminStatus||user.status,adminStatus:user.adminStatus||user.status});
- const syncUserRoleScopes=(d,user)=>{const requested=scopesFromRoles(d,user.roleIds||[]);user.scopes=requested;user.adminSubject=Boolean(user.adminSubject||user.userType==='LOCAL'||requested.length);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
+ const permissionsFromRoles=(d,ids)=>[...new Set((ids||[]).flatMap(id=>{const role=(d.roles||[]).find(item=>item.id===id&&item.status==='ENABLED');return role?.permissions||permissionsFromScopes(role?.scopes||[]);} ))];
+ const adminSubject=user=>Boolean(user.adminAccess||user.adminSubject||user.kind==='ADMIN'||(user.roleIds||[]).length);
+ const decorateUser=(d,user)=>({...user,enabled:entityEnabled(user),accessStatus:user.status,authType:user.authType||'EXTERNAL',adminSubject:adminSubject(user),adminAccess:adminSubject(user)&&entityEnabled(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色',permissions:user.permissions||permissionsFromRoles(d,user.roleIds||[])});
+ const decorateAdminUser=(d,user)=>({...decorateUser(d,user),enabled:entityEnabled(user),status:user.adminStatus||user.status,adminStatus:user.adminStatus||user.status});
+ const syncUserRolePermissions=(d,user)=>{const requested=permissionsFromRoles(d,user.roleIds||[]);user.permissions=requested;user.scopes=scopesFromPermissions(requested);user.adminSubject=Boolean(user.adminSubject||user.authType==='LOCAL'||requested.length);user.adminAccess=user.adminSubject&&entityEnabled(user);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
  const monitorStatus=(app,item)=>{
-  if(app.status==='DISABLED')return 'DISABLED';
+  if(!appEnabled(app))return 'DISABLED';
   if(!item)return 'UNCONFIGURED';
-  if(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL'].includes(item.status))return item.status;
+  if(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL'].includes(item.runtimeStatus))return item.runtimeStatus;
   return 'UNCONFIGURED';
  };
  const monitorProfiles=d=>{
@@ -84,8 +86,8 @@ export function createPortalService(provider,getActor){
    const measured=kind=>(d.monitorSamples||[]).find(x=>x.appId===app.id&&x.kind===kind)||kinds[kind]||null;
    const detail=(kind,item)=>{
     const status=monitorStatus(app,item),checked=item?.lastCheckedAt||item?.updatedAt||item?.createdAt||null;
-    const configStatus=item?.configStatus||item?.configurationStatus||(status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
-    const enabled=item?.enabled||(status==='DISABLED'||status==='UNCONFIGURED'?'DISABLED':'ENABLED');
+    const configStatus=item?.configStatus||'UNCONFIGURED';
+    const enabled=item?.enabled||'DISABLED';
     return {kind,status,runtimeStatus:status,configStatus,enabled,lastCheckedAt:checked,lastSuccessAt:status==='NORMAL'?checked:item?.lastSuccessAt||null,lastFailureAt:status==='ABNORMAL'?checked:item?.lastFailureAt||null,
      failureCount:status==='ABNORMAL'?Number(item?.failureCount||1):Number(item?.failureCount||0),responseTimeMs:item?.responseTimeMs??(status==='NORMAL'?80:null),
      lastError:status==='ABNORMAL'?(item?.lastError||'Mock：上游服务响应异常'):null,remark:item?.remark||'尚未配置'};
@@ -105,7 +107,7 @@ export function createPortalService(provider,getActor){
   return d.apps.filter(app=>groups.has(app.id)).map(app=>{
    const kinds=groups.get(app.id),sso=kinds.SSO||null,todo=kinds.TODO||null,message=kinds.MESSAGE||null;
    const times=[sso?.updatedAt,todo?.updatedAt,message?.updatedAt,sso?.createdAt,todo?.createdAt,message?.createdAt].filter(Boolean).sort();
-   const normalized=item=>item?{...item,configStatus:item.configStatus||item.configurationStatus||(item.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED'),runtimeStatus:item.runtimeStatus||item.status||'UNCONFIGURED',enabled:item.enabled||(item.status==='DISABLED'||item.status==='UNCONFIGURED'?'DISABLED':'ENABLED')}:null;
+   const normalized=item=>item?{...item,configStatus:item.configStatus||'UNCONFIGURED',runtimeStatus:item.runtimeStatus||'UNCONFIGURED',enabled:item.enabled||'DISABLED'}:null;
    const SSO=normalized(sso),TODO=normalized(todo),MESSAGE=normalized(message);
    return {id:app.id,appId:app.id,appName:app.name,appCode:app.code,updatedAt:times.at(-1)||app.updatedAt||app.createdAt,
     ssoStatus:SSO?.runtimeStatus||'UNCONFIGURED',ssoRemark:SSO?.remark||'未配置',todoStatus:TODO?.runtimeStatus||'UNCONFIGURED',todoRemark:TODO?.remark||'未配置',messageStatus:MESSAGE?.runtimeStatus||'UNCONFIGURED',messageRemark:MESSAGE?.remark||'未配置',
