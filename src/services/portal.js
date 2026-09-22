@@ -115,7 +115,8 @@ export function createPortalService(provider,getActor){
    if(resource==='apps')return allApps.filter(x=>x.applicable&&x.status==='ENABLED');
    if(resource==='adminApps'){auth(a,'application');return allApps;}
    if(resource==='mine')return userApps.filter(x=>['DIRECT','BOUND'].includes(x.accessState));
-   if(resource==='todos'||resource==='messages')return d[resource].filter(x=>own(x,a));
+   if(resource==='todos')return d.todos.filter(x=>own(x,a));
+   if(resource==='messages')return d.messages.filter(x=>own(x,a)&&!x.deleted);
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...decorateAnnouncement(x),readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
    if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements.map(x=>decorateAnnouncement(x));}
    if(resource==='profile')return decorateUser(d,a);
@@ -390,15 +391,15 @@ export function createPortalService(provider,getActor){
      if(!p.name?.trim()||!p.code?.trim())fail('VALIDATION_ERROR','名称与编码为必填');if(d.categories.some(x=>(x.code===p.code||x.name===p.name)&&x.id!==p.id))fail('VALIDATION_ERROR','分类名称或编码重复');
      const x=p.id?requireRow(d.categories,p.id,p.version):{id:id(),version:0,createdAt:now};const oldName=x.name;Object.assign(x,{name:p.name.trim(),code:p.code.trim(),status:'ENABLED',sortOrder:Number(p.sortOrder)||0});stamp(x);if(!p.id)d.categories.push(x);if(oldName&&oldName!==x.name)d.apps.filter(app=>app.category===oldName).forEach(app=>{app.category=x.name;stamp(app);});result=x;
     }else if(action==='removeCategory'){const x=requireRow(d.categories,p.id,p.version);if(d.apps.some(app=>app.category===x.name))fail('INVALID_TRANSITION','分类仍被应用使用，不能删除');d.categories=d.categories.filter(x=>x.id!==p.id);result={id:p.id};
-    }else if(action==='markRead'){const x=requireRow(d.messages,p.id);if(!own(x,a))fail('NOT_FOUND','消息不存在');if(x.status==='UNREAD'){x.status='READ';x.readAt=now;stamp(x);}result=x;
+    }else if(action==='markRead'){const x=requireRow(d.messages,p.id);if(!own(x,a)||x.deleted)fail('NOT_FOUND','消息不存在');if(x.status==='UNREAD'){x.status='READ';x.readAt=now;stamp(x);}result=x;
     }else if(action==='markMessagesRead'){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要标记的消息');
-     const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)))fail('NOT_FOUND','消息不存在');let count=0;for(const x of targets)if(x.status==='UNREAD'){x.status='READ';x.readAt=now;stamp(x);count++;}result={count};
+     const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)||x.deleted))fail('NOT_FOUND','消息不存在');let count=0;for(const x of targets)if(x.status==='UNREAD'){x.status='READ';x.readAt=now;stamp(x);count++;}result={count};
     }else if(action==='markAllMessagesRead'){
-     let count=0;for(const x of d.messages.filter(x=>own(x,a)&&x.status==='UNREAD')){x.status='READ';x.readAt=now;stamp(x);count++;}result={count};
+     let count=0;for(const x of d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD')){x.status='READ';x.readAt=now;stamp(x);count++;}result={count};
     }else if(action==='deleteMessages'){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
-     const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)))fail('NOT_FOUND','消息不存在');const selected=new Set(ids);d.messageTrash??=[];d.messageTrash.push(...targets.map(x=>({...x,deletedAt:now,deletedBy:a.id})));d.messages=d.messages.filter(x=>!selected.has(x.id));result={count:ids.length};
+     const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)||x.deleted))fail('NOT_FOUND','消息不存在');for(const x of targets){x.deleted=true;x.deletedAt=now;stamp(x);}result={count:ids.length};
     }else if(action==='enterApp'){
      const app=requireRow(d.apps,p.id);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
