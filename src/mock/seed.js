@@ -3,13 +3,33 @@ import { applicationCatalog, platforms } from './catalog.js';
 // P4 fixtures only: NORMAL/BOUND and audit outcomes exercise local UI states.
 // These are not evidence of live verification, service access or delivery.
 // All names are fictional; no credentials or personal contact information.
+const SUPER_PERMISSIONS=[
+ 'application:view','application:edit','application:enable','application:review',
+ 'integration:view','integration:edit','integration:test',
+ 'identity:view','identity:review','identity:unbind',
+ 'announcement:view','announcement:edit','announcement:publish',
+ 'admin-user:view','admin-user:enable','admin-user:create','admin-user:assign-role','admin-user:reset-password',
+ 'organization:view','organization:edit','dictionary:view','dictionary:edit',
+ 'monitor:view','monitor:check','audit:view','audit:resolve',
+ 'role:view','role:edit','settings:view','settings:edit','system:super'
+];
+const PORTAL_ADMIN_PERMISSIONS=[
+ 'application:view','application:edit','application:enable','application:review',
+ 'integration:view','integration:edit','integration:test',
+ 'identity:view','identity:review','identity:unbind',
+ 'announcement:view','announcement:edit','announcement:publish',
+ 'admin-user:view','admin-user:enable',
+ 'organization:view','organization:edit','dictionary:view','dictionary:edit',
+ 'monitor:view','monitor:check','audit:view','audit:resolve'
+];
+
 export const actors = [
- {id:'MOCK_USER_1',name:'林晓',account:'linxiao',kind:'USER',userType:'CITIZEN',orgName:'',orgKey:'',scopes:[],roleIds:[],roleName:'普通用户',department:'',jobTitle:'',identitySource:'闽政通'},
- {id:'MOCK_USER_2',name:'陈宁',account:'chenning',kind:'USER',userType:'GOV',orgName:'卫生健康业务处',orgKey:'HEALTH',scopes:[],roleIds:[],roleName:'普通用户',department:'业务协同科',jobTitle:'业务经办',identitySource:'闽政务'},
- {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',adminSubject:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
- {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',adminSubject:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['system','application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',scopeDescription:'日常门户维护',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
- {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',adminSubject:true,authType:'LOCAL',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
-].map(actor => ({...actor,status:'NORMAL',adminStatus:actor.kind==='ADMIN'?'NORMAL':null,mobile:'未提供',email:'未提供'}));
+ {id:'MOCK_USER_1',name:'林晓',account:'linxiao',kind:'USER',userType:'CITIZEN',orgName:'',orgKey:'',permissions:[],scopes:[],roleIds:[],roleName:'普通用户',department:'',jobTitle:'',identitySource:'闽政通'},
+ {id:'MOCK_USER_2',name:'陈宁',account:'chenning',kind:'USER',userType:'GOV',orgName:'卫生健康业务处',orgKey:'HEALTH',permissions:[],scopes:[],roleIds:[],roleName:'普通用户',department:'业务协同科',jobTitle:'业务经办',identitySource:'闽政务'},
+ {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',adminSubject:true,adminAccess:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...SUPER_PERMISSIONS],scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
+ {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',adminSubject:true,adminAccess:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...PORTAL_ADMIN_PERMISSIONS],scopes:['system','application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
+ {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',adminSubject:true,adminAccess:true,authType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...SUPER_PERMISSIONS],scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
+].map(actor => ({...actor,enabled:true,status:'NORMAL',adminStatus:actor.kind==='ADMIN'?'NORMAL':null,mobile:'未提供',email:'未提供'}));
 
 export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const epoch = new Date(now).getTime();
@@ -39,8 +59,8 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   ...[['OIDC','OIDC'],['SAML2','SAML2'],['CUSTOM','CUSTOM'],['PUSH','PUSH']].map(([value,label],index)=>row('MOCK_DICT_PROTOCOL_'+index,{typeCode:'integration_protocol',label,value,sortOrder:index+1,status:'ENABLED',remark:'仅展示代码已支持协议',systemLocked:true}))
  ];
  const roles = [
-  row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',scopes:['super','system','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
-  row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',scopes:['system','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
+  row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',permissions:[...SUPER_PERMISSIONS],scopes:['super','system','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true}),
+  row('ROLE_ADMIN',{roleCode:'PORTAL_ADMIN',roleName:'门户管理员',description:'负责应用、公告、映射、监控、日志等日常门户维护，不授予子系统业务权限。',permissions:[...PORTAL_ADMIN_PERMISSIONS],scopes:['system','application','integration','announcement','audit','identity'],status:'ENABLED',builtIn:true})
  ];
  const apps = applicationCatalog.map(entry => {
   const n=entry.sourceNo;
@@ -51,11 +71,11 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   return row('MOCK_APP_'+n,{...entry,code:'WJ_APP_'+String(n).padStart(2,'0'),category:categories[ci].name,categoryId:categories[ci].id,
    userType:n<=6||[11,12,13,17,24,25,26,28,33].includes(n)?'BOTH':'GOV',
    accessMode,accountBindingMode,postGrantMode:n===17?'BIND':'DIRECT',accountOpeningMode:n===6?'REQUEST':'NONE',mockScenario,
-   status:n===43?'DISABLED':'ENABLED',runtimeStatus:n===43?'DISABLED':n===38?'ABNORMAL':n===40?'UNCONFIGURED':'NORMAL',
-   url:'https://p4.invalid/app/'+n,sortOrder:n,connectionStatus:'UNCONFIGURED',integrationNote:'服务地址与接入参数待配置'});
+   enabled:n!==43,status:n===43?'DISABLED':'ENABLED',
+   url:'https://p4.invalid/app/'+n,sortOrder:n,integrationNote:'服务地址与接入参数待配置'});
  });
- const businessActors=actors.filter(actor=>actor.userType!=='LOCAL');
- const available = actor => apps.filter(app => app.status==='ENABLED' && app.runtimeStatus==='NORMAL' && (app.userType==='BOTH'||app.userType===actor.userType));
+ const businessActors=actors.filter(actor=>['CITIZEN','GOV'].includes(actor.userType));
+ const available = actor => apps.filter(app => app.enabled!==false && (app.userType==='BOTH'||app.userType===actor.userType));
  const mappings = businessActors.flatMap(actor => {
   if(actor.id==='MOCK_USER_1'){
    const bound=available(actor).filter(app=>app.sourceNo>=14&&!['REQUEST'].includes(app.accessMode)).slice(0,8).map(app=>row('MOCK_MAP_'+actor.id+'_'+app.sourceNo,{
@@ -84,7 +104,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const todos=businessActors.flatMap((actor,ai)=>actions.map((title,i)=>{
   const pool=accessibleBusinessApps(actor),app=pool[i%pool.length],status=i<8?'PENDING':i===8?'COMPLETED':'WITHDRAWN';
   return row('MOCK_TODO_'+ai+'_'+i,{userId:actor.id,appId:app.id,appName:app.name,sourceTodoId:'P4_TODO_'+ai+'_'+i,title,
-   summary:app.name+'：'+title+'。请在来源系统查看业务详情。',businessType:'服务事项',status,createdAt:at(-i-2),url:app.url});
+   summary:app.name+'：'+title+'。请在来源系统查看业务详情。',businessType:'服务事项',status,receivedAt:at(-i-2),sourceCreatedAt:at(-i-3),sourceUpdatedAt:at(-i-2),url:app.url});
  }));
  const messageTitles=['服务申请已受理','资料核验进度通知','办理期限提醒','服务安排更新','账号关联结果通知','业务信息变更提醒','材料补正通知','办理意见已反馈','门户维护安排','信息安全提醒'];
  const messages=businessActors.flatMap((actor,ai)=>messageTitles.map((title,i)=>{
@@ -92,7 +112,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   return row('MOCK_MSG_'+ai+'_'+i,{userId:actor.id,appId:portal?null:app.id,appName:portal?'统一门户':app.name,
    sourceMessageId:'P4_MSG_'+ai+'_'+i,title,content:title+'。请查看相关事项详情并按办理要求完成后续操作。',
    sourceKind:portal?'PORTAL':'APPLICATION',messageType:portal?'SYSTEM':i===2?'TODO_REMINDER':'BUSINESS',
-   status:i<8?'UNREAD':'READ',readAt:i<8?null:at(-1),deleted:false,deletedAt:null,createdAt:at(-i-1),url:portal?null:app.url});
+   status:i<8?'UNREAD':'READ',readAt:i<8?null:at(-1),deleted:false,deletedAt:null,receivedAt:at(-i-1),url:portal?null:app.url});
  }));
  const announcementRows=[
   ['关于门户服务使用安排的通知','请通过应用中心查看服务入口，业务办理要求以来源系统说明为准。','ALL','PUBLISHED','IMMEDIATE',null,null],
@@ -117,18 +137,17 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const settings=settingRows.map(([code,name,value,unit],i)=>row('MOCK_CONFIG_'+i,{code,name,value,unit,status:value===null?'UNCONFIGURED':'CONFIGURED'}));
  const integrations=apps.flatMap((app,i)=>['SSO','TODO','MESSAGE'].map((kind,k)=>row('MOCK_INT_'+app.id+kind,{
   appId:app.id,appName:app.name,name:app.name+' · '+kind,kind,mode:kind==='SSO'?'SSO':'PUSH',
-  status:app.status==='DISABLED'?'DISABLED':['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'][(i+k)%4],
-  runtimeStatus:app.status==='DISABLED'?'DISABLED':['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'][(i+k)%4],
+  runtimeStatus:app.enabled===false?'DISABLED':['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'][(i+k)%4],
   configStatus:(i+k)%4===0?'UNCONFIGURED':'CONFIGURED',
-  enabled:app.status==='DISABLED'||(i+k)%4===3?'DISABLED':'ENABLED',
-  connectionStatus:'UNCONFIGURED',remark:'接入参数待业务系统确认',lastCheckedAt:at(-k-1)
+  enabled:app.enabled===false||(i+k)%4===3?'DISABLED':'ENABLED',
+  remark:'接入参数待业务系统确认',lastCheckedAt:at(-k-1)
  })));
- const identityCode=actor=>actor.userType==='LOCAL'?'PORTAL_LOCAL':actor.userType==='GOV'?'MINZHENGWU':'MINZHENGTONG';
+ const identityCode=actor=>actor.authType==='LOCAL'?'PORTAL_LOCAL':actor.userType==='GOV'?'MINZHENGWU':'MINZHENGTONG';
  const logs=['login','access','operation','api','error'].flatMap((kind,k)=>actors.map((actor,i)=>{
   const app=apps[i],failed=kind==='login'&&i===3,errorOpen=kind==='error'&&i%2===0;
-  const common={kind,actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,actorType:actor.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:actor.authType||(actor.userType==='LOCAL'?'LOCAL':'EXTERNAL'),identitySource:identityCode(actor),
+  const common={kind,actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,actorType:actor.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:actor.authType||'EXTERNAL',identitySource:identityCode(actor),
    appId:app.id,appName:app.name,status:kind==='error'?'FAILURE':failed?'FAILURE':'SUCCESS',createdAt:at(-k*4-i),requestId:'P4_REQUEST_'+k+'_'+i,ip:'127.0.0.1',client:'Chrome / Windows'};
-  if(kind==='login')return row('MOCK_LOG_login_'+i,{...common,name:'身份登录',loginSource:'统一登录',loginMethod:actor.userType==='LOCAL'?'PASSWORD':'QR',failureReason:failed?'上层认证超时':null,description:failed?'登录认证失败':'登录成功'});
+  if(kind==='login')return row('MOCK_LOG_login_'+i,{...common,name:'身份登录',loginSource:'统一登录',loginMethod:actor.authType==='LOCAL'?'PASSWORD':'QR',failureReason:failed?'上层认证超时':null,description:failed?'登录认证失败':'登录成功'});
   if(kind==='access')return row('MOCK_LOG_access_'+i,{...common,name:'应用访问',accessMethod:'门户入口',accessMode:app.accessMode,description:'访问应用 '+app.name});
   if(kind==='operation')return row('MOCK_LOG_operation_'+i,{...common,name:'门户操作',moduleName:i%2?'系统管理':'应用管理',pageName:i%2?'用户管理':'应用列表',actionName:i%2?'维护用户':'维护应用',objectType:i%2?'USER':'APPLICATION',objectId:i%2?actor.id:app.id,description:'门户管理操作记录'});
   if(kind==='api')return row('MOCK_LOG_api_'+i,{...common,name:'接口调用',interfaceName:i%2?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:i===4?500:200,durationMs:80+i*35,errorMessage:i===4?'模拟接口响应异常':null,description:'接口调用记录'});
@@ -152,7 +171,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  ];
  const accountOpeningRequests=[];
  const mappingVerificationEvents=[];
- const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.userType==='LOCAL'?false:null}));
+ const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.authType==='LOCAL'?false:null}));
  return {schemaVersion:6,users,roles,apps,platforms:structuredClone(platforms),categories,organizations,dictTypes,dictItems,mappings,
   applicationRequests,applicationGrants,accountOpeningRequests,mappingVerificationEvents,
   todos,messages,announcements,announcementReads:[],settings,integrations,logs,visits,receipts:[]};
