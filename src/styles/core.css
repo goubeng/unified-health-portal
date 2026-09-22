@@ -804,3 +804,13 @@
 /* 2026-09-22 A-stage detail fixes: align app icon with application name top. */
 .portal-app-card{align-items:flex-start!important}
 .portal-app-logo{margin-top:0!important}
+
+
+/* 2026-09-22 demo one-click login */
+.demo-login-panel{display:flex;flex-direction:column;gap:20px;margin-top:32px}
+.demo-login-summary{display:flex;min-height:54px;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#1f2329;text-align:center}
+.demo-login-summary>strong{font-size:16px;font-weight:500}
+.demo-login-account{font-size:13px;color:#667085}
+.demo-login-account>b{font-size:13px;font-weight:600;color:#1f2329}
+.demo-login-panel .login-submit{margin:0!important;height:40px!important;min-height:40px!important}
+@media(max-width:760px){.demo-login-panel{margin-top:24px}}
