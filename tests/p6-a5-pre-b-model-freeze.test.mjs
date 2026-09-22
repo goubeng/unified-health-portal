@@ -85,10 +85,10 @@ test('demo closeout documents use V20260921-01 and do not claim production integ
   const plan=read('docs/02-开发/03-计划/0.3.0分阶段改造执行计划.md');
   const baseline=read('.project/BASELINE.md');
   assert(plan.includes('V20260921-01'));
-  assert(plan.includes('FRONTEND_CODE_COMPLETE / MANUAL_ACCEPTANCE_PENDING'));
+  assert(plan.includes('MANUAL_ACCEPTANCE_PASS / TEST_RERUN_PENDING'));
   assert(plan.includes('DEMO_FRONTEND_FROZEN'));
   assert(plan.includes('OUT_OF_CURRENT_DEMO_SCOPE'));
-  assert(baseline.includes('DEMO_ACCEPTANCE_PENDING'));
+  assert(baseline.includes('MANUAL_ACCEPTANCE_PASS / TEST_RERUN_PENDING'));
   assert(baseline.includes('MEMORY_A'));
   assert(baseline.includes('生产级数据库改造和真实联调不属于当前原型验收范围'));
   assert(!baseline.includes('生产级数据库改造和真实联调已完成'));
