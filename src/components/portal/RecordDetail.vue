@@ -94,7 +94,7 @@ const appDetails=computed(()=>{
     item('status','启用状态'),
     item('userType','用户类别'),
     item('createdAt','创建时间'),
-    item('runtimeStatus','运行状态',true),
+    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus||row.runtimeStatus),wide:true},
     item('url','入口地址',true),
     item('description','说明',true)
   ];
@@ -117,10 +117,10 @@ const metadata=computed(()=>details.value.filter(item=>['appName','status','scop
 const connectionRows=computed(()=>['SSO','TODO','MESSAGE'].map(kind=>{
   const item=props.accessProfile?.integrations?.[kind]||null;
   if(!item)return {kind,status:'UNCONFIGURED',enabled:'未配置',mode:'未配置'};
-  const status=item.status||'UNCONFIGURED';
+  const configStatus=item.configStatus||item.configurationStatus||(item.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
   return {
     kind,
-    status,
+    status:configStatus,
     enabled:item.enabled==='ENABLED'?'启用':item.enabled==='DISABLED'?'停用':'未配置',
     mode:kind==='SSO'?(item.protocol||item.mode||'未配置'):(item.mode||'未配置')
   };
