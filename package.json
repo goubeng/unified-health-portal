@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 3800 --strictPort",
+    "dev": "vite --host 127.0.0.1 --port 4010 --strictPort",
     "api": "node server/api.mjs",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 3800 --strictPort",
+    "preview": "vite preview --host 127.0.0.1 --port 4010 --strictPort",
     "test": "node --test tests/*.test.mjs",
     "check:p3": "node database/validation/verify-design.mjs",
     "api:db": "node server/api.mjs --db"
