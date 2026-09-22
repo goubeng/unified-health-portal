@@ -112,8 +112,8 @@ const columns=computed(()=>{
   if(props.kind==='api')return [
     serial,requestId,
     {colKey:'createdAt',title:'调用时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true},
-    {colKey:'interfaceName',title:'接口',minWidth:250,ellipsis:true},{colKey:'httpMethod',title:'方法',width:90},{colKey:'statusCode',title:'状态码',width:90},
-    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true},commonStatus
+    {colKey:'interfaceName',title:'接口',minWidth:250,ellipsis:true},commonStatus,{colKey:'httpMethod',title:'方法',width:90},{colKey:'statusCode',title:'状态码',width:90},
+    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true}
   ];
   return [
     serial,requestId,
@@ -128,7 +128,7 @@ const detailKeys=computed(()=>({
   login:[['createdAt','登录时间'],['userName','登录用户'],['account','登录账号'],['actorType','主体类型'],['authType','认证类型'],['identitySource','身份来源'],['loginSource','登录来源'],['loginMethod','登录方式'],['status','登录结果'],['failureReason','失败原因'],['ip','IP'],['client','客户端'],['requestId','请求ID']],
   access:[['createdAt','访问时间'],['userName','用户'],['account','账号'],['appName','应用'],['accessMode','访问模式'],['status','结果'],['ip','IP'],['requestId','请求ID']],
   operation:[['createdAt','操作时间'],['actor','操作人'],['moduleName','模块'],['pageName','页面'],['actionName','动作'],['objectType','对象类型'],['objectId','对象ID'],['status','结果'],['requestId','请求ID']],
-  api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['status','结果'],['requestId','请求ID']],
+  api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['status','结果'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['requestId','请求ID']],
   error:[['createdAt','发生时间'],['severity','级别'],['moduleName','模块'],['errorCode','错误编码'],['errorMessage','异常信息'],['resolutionStatus','处理状态'],['resolutionNote','处理说明'],['resolvedAt','处理时间'],['requestId','请求ID']]
 }[props.kind]||[]));
 const actorTypeLabel=row=>row?.actorType==='PORTAL_ADMIN_USER'?'门户管理用户':row?.actorType==='APPLICATION'?'应用':'门户访问用户';
