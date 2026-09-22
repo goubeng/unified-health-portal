@@ -958,3 +958,14 @@ test('应用列表所有应用均显示删除操作',()=>{
   assert(!source.includes('v-if="!row.sourceNo"'));
   assert(source.includes('确认删除该应用？'));
 });
+
+
+test('子系统映射统计项使用统一背景框',()=>{
+  const source=fs.readFileSync('src/components/portal/IdentityMappings.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="identity-mappings-summary"'));
+  assert(source.includes('已关联 <strong>{{selected.boundCount??0}}</strong> 个'));
+  assert(source.includes('异常 <strong>{{selected.exceptionCount??0}}</strong> 个'));
+  assert(css.includes('.identity-mappings-summary{box-sizing:border-box;display:inline-flex;min-height:28px;align-items:center;gap:0;padding:3px 10px;border:1px solid #e5e8ef;border-radius:3px;background:#f6f8fb'));
+  assert(css.includes('.identity-mapping-summary-item+.identity-mapping-summary-item{margin-left:12px;padding-left:12px;border-left:1px solid #dfe3e8}'));
+});
