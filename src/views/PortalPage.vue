@@ -80,7 +80,7 @@
      <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/all">应用中心</router-link></div><AppCards :apps="homeApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
    </template>
-   <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity:review')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
+   <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.fullPath" :rows="rows" :can-manage="can(actor,'identity:review')" :exceptions-only="route.query.mapping==='exception'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
    <TodoCenter v-else-if="resource==='todos'" :rows="rows"/>
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
@@ -108,7 +108,7 @@
    <section v-else class="portal-list">
     <t-form layout="inline" class="portal-query list-toolbar">
      <t-form-item class="portal-query-keyword query-width-keyword" :label="querySpec.keywordLabel||'关键词'"><t-input v-model="search" :placeholder="querySpec.keywordPlaceholder" clearable/></t-form-item>
-     <t-form-item v-for="filter in queryFilters" :key="filter.key" class="portal-query-select" :class="queryWidthClass(filter.widthKey||filter.key)" :label="filter.label"><t-select v-model="filterValues[filter.key]" clearable :placeholder="filter.placeholder" :options="filter.options"/></t-form-item>
+     <t-form-item v-for="filter in queryFilters" :key="filter.key" class="portal-query-select" :class="queryWidthClass(filter.widthKey||filter.key)" :label="filter.label"><t-select v-model="filterValues[filter.key]" clearable :filterable="filter.searchable===true" :placeholder="filter.placeholder" :options="filter.options"/></t-form-item>
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
     </t-form>
     <template v-if="isAppCenter">
@@ -150,8 +150,9 @@
    <div class="form-grid"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><t-select v-if="field.options" v-model="form[field.key]" :options="field.options"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :autosize="{minRows:4,maxRows:8}"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
    <AnnouncementEditor v-if="formAction==='saveAnnouncement'" v-model="form.content" v-model:files="announcementUploadFiles"/>
   </t-dialog>
-  <t-dialog v-model:visible="accessDialogVisible" placement="center" :header="accessDialogTitle" width="1180px" :footer="false" :close-on-overlay-click="false">
-   <AccessConfigDetail :profile="accessProfile" :saving="accessSaving" @save="saveAccessIntegration"/>
+  <t-dialog v-model:visible="accessDialogVisible" placement="center" :header="accessDialogTitle" width="1180px" :close-on-overlay-click="false">
+   <AccessConfigDetail ref="accessConfigRef" :profile="accessProfile" @save="saveAccessIntegration"/>
+   <template #footer><t-button theme="primary" :loading="accessSaving" :disabled="accessSaving" @click="accessConfigRef?.saveActive()">保存配置</t-button></template>
   </t-dialog>
   <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp" @completed="handleBindingCompleted" @view-request="viewBindingRequests"/>
   <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download"/>
@@ -203,7 +204,7 @@ const appPageSize=ref(20),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
 const announcementEditVisible=ref(false);
-const accessDialogVisible=ref(false),accessProfile=ref(null),accessSaving=ref(false);
+const accessDialogVisible=ref(false),accessProfile=ref(null),accessSaving=ref(false),accessConfigRef=ref(null);
 const bindingVisible=ref(false),bindingApp=ref(null);
 const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.value.appName)}-连接配置`:'连接配置');
 const announcementViewStatus=row=>row?.displayStatus||row?.status||'DRAFT';
@@ -221,7 +222,7 @@ const adminPendingItems=computed(()=>[
  {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application:view')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
  {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application:view')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
  {label:'账号确认审核',value:overview.value.pendingBindingReviewCount??0,hint:'高风险账号待审核',path:can(actor.value,'identity:view')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
- {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity:view')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
+ {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity:view')?'/admin/identities?mapping=exception':'',danger:(overview.value.mappingExceptionCount??0)>0},
  {label:'异常日志',value:overview.value.openErrorCount??0,hint:'待处理异常日志',path:can(actor.value,'audit:view')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
  {label:'待发布公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement:view')?'/admin/announcements':'',danger:false}
  ]);
@@ -296,7 +297,7 @@ const queryWidthClass=key=>({
 }[key]||'query-width-default');
 const fixedOptions=values=>values.map(value=>({value,label:label(value)}));
 const rowOptions=(field,useLabel=false)=>[...new Set(rows.value.map(row=>row[field]).filter(value=>value!==null&&value!==undefined&&String(value)!==''))].map(value=>({value,label:useLabel?label(value):text(value)}));
-const filterDef=(key,labelText,placeholder,options,widthKey=key)=>({key,label:labelText,placeholder:'全部',options,widthKey});
+const filterDef=(key,labelText,placeholder,options,widthKey=key)=>({key,label:labelText,placeholder:'全部',options,widthKey,searchable:key==='appName'});
 const querySpec=computed(()=>{
  const key=listResource.value;
  const logKind=resource.value.startsWith('logs:')?resource.value.split(':')[1]:'';
@@ -308,8 +309,8 @@ const querySpec=computed(()=>{
  ]};
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
  if(key==='myApplicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED','PROCESSING','COMPLETED']),'status')]};
- if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
- if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED']),'status')]};
+ if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 来源应用 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
+ if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 来源应用 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED']),'status')]};
  if(key==='permissions')return {keywordPlaceholder:'权限名称 / 权限编码',keywordFields:['name','code'],filters:[]};
  if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN']),'status')]};
  if(key==='announcements')return admin.value
@@ -348,13 +349,21 @@ const columnTitle=(key)=>{
   identities:{status:'启用状态'},
   roles:{description:'描述',status:'启用状态'},
   permissions:{code:'权限编码',name:'权限名称'},
-  monitor:{appName:'应用名称'}
+  monitor:{appName:'应用名称'},
+  applicationRequests:{appName:'来源应用'},
+  accountOpeningRequests:{appName:'来源应用'}
  };
  if(overrides[resourceKey]?.[key])return overrides[resourceKey][key];
  if(key==='receivedAt'&&['todos','messages'].includes(resourceKey))return '接收时间';
  return titles[key]||key;
 };
 const columnWidth=(key,index)=>{
+ if(resource.value==='applicationRequests'){
+  if(key==='userName')return 110;
+  if(key==='status')return 100;
+  if(key==='appName')return 320;
+  if(key==='reason')return 320;
+ }
  if(resource.value.startsWith('logs:')){
   if(key==='appName')return 260;
   if(key==='status')return 110;
@@ -495,7 +504,7 @@ function handleAdminAnnouncementSaved(saved){
  detail.value=JSON.parse(JSON.stringify(saved));
  announcementEditVisible.value=false;
 }
-async function downloadAccessSpec(){try{await downloadAccessContract();MessagePlugin.success('接口文件已下载');}catch(cause){MessagePlugin.error(cause.message);}}
+async function downloadAccessSpec(){try{await downloadAccessContract();MessagePlugin.success('A阶段本地联调 OpenAPI 文件已下载');}catch(cause){MessagePlugin.error(cause.message);}}
 async function toggleAppStatus(row,enabled){const result=await command('setAppStatus',{id:row.id,version:row.version,enabled});if(!result.ok){MessagePlugin.error(text(result.error.message));await load();return;}MessagePlugin.success(enabled?'应用已启用':'应用已停用');await load();}
 async function openConnectionConfig(app){
  let profile=accessProfiles.value.find(item=>item.appId===app.id);
