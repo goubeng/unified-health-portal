@@ -800,3 +800,7 @@
 .login-qrcode .t-icon,.qr-frame-button.is-success .qr-frame .t-icon{border-radius:0!important;overflow:visible!important}
 .qr-expired-mask{border-radius:0!important}
 @media(max-width:760px){.login-card{width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important}.local-auth{margin-top:32px!important}.login-identity-switch{margin-bottom:32px!important}.qr-auth{padding-top:32px!important}.qr-frame{width:186px!important;height:186px!important}.login-qrcode{width:166px!important;height:166px!important;max-width:166px!important;max-height:166px!important}}
+
+/* 2026-09-22 A-stage detail fixes: align app icon with application name top. */
+.portal-app-card{align-items:flex-start!important}
+.portal-app-logo{margin-top:0!important}
