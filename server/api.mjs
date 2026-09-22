@@ -10,6 +10,14 @@ const resultError=(code,message)=>({ok:false,error:{code,message,retryable:false
 export {appContract as contract} from '../src/config/integration-contract.js';
 import {appContract as contract,publicContract,integrationFields} from '../src/config/integration-contract.js';
 const statusFor=r=>r.ok?200:({UNAUTHENTICATED:401,FORBIDDEN:403,NOT_FOUND:404,IDEMPOTENCY_CONFLICT:409,STALE_EVENT:409,INVALID_TRANSITION:409,VERSION_CONFLICT:409})[r.error?.code]||400;
+const isAllowedFrontendOrigin=origin=>{
+ try{
+  const u=new URL(origin);
+  if(u.protocol!=='http:'||u.port!=='4010')return false;
+  const host=u.hostname;
+  return host==='127.0.0.1'||host==='localhost'||/^10\./.test(host)||/^192\.168\./.test(host)||/^172\.(1[6-9]|2\d|3[01])\./.test(host);
+ }catch{return false;}
+};
 const hash=v=>createHash('sha256').update(v).digest();
 function stateProvider(state){let current=structuredClone(state);return {kind:'mock',read:()=>structuredClone(current),transact(fn){const next=structuredClone(current),out=fn(next);current=next;return structuredClone(out);}};}
 async function body(req){let data='';for await(const chunk of req){data+=chunk;if(data.length>12*1024*1024)throw Error('请求内容过大');}return data?JSON.parse(data):{};}
@@ -21,10 +29,10 @@ export function createPortalApi({repository=null,env=process.env}={}){
  const resolveActor=(req,state)=>{const sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('wj_portal='))?.slice(10),session=sessions.get(sid);if(!session||session.expires<Date.now()){if(sid)sessions.delete(sid);return null;}return state.users.find(x=>x.id===session.userId&&x.status!=='DISABLED')||null;};
  const handle=async(req,res)=>{
   try{
-   if(!/^((127\.0\.0\.1|localhost)(:380[01])?)$/.test(req.headers.host||''))return send(res,403,resultError('FORBIDDEN','仅允许本机入口'));
+   if(!/^((127\.0\.0\.1|localhost)(:4011)?)$/.test(req.headers.host||''))return send(res,403,resultError('FORBIDDEN','仅允许本机API入口'));
    const url=new URL(req.url,'http://127.0.0.1:4011'),path=url.pathname;
    const external=path.startsWith('/api/portal/ingest/');
-   if(req.method!=='GET'&&!external&&!/^http:\/\/(127\.0\.0\.1|localhost):380[01]$/.test(req.headers.origin||''))return send(res,403,resultError('FORBIDDEN','请求来源不允许'));
+   if(req.method!=='GET'&&!external&&!isAllowedFrontendOrigin(req.headers.origin||''))return send(res,403,resultError('FORBIDDEN','请求来源不允许'));
    const payload=req.method==='POST'?await body(req):{};
    await serial(async()=>{
     const {state,version}=await repository.load();const actor=resolveActor(req,state);
