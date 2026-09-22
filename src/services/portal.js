@@ -121,6 +121,16 @@ export function createPortalService(provider,getActor){
    if(resource==='mine')return userApps.filter(x=>['DIRECT','BOUND'].includes(x.accessState));
    if(resource==='todos')return d.todos.filter(x=>own(x,a));
    if(resource==='messages')return d.messages.filter(x=>own(x,a)&&!x.deleted);
+   if(resource==='recentVisits'){
+    const seen=new Set();
+    return [...(d.visits||[])].filter(x=>x.userId===a.id).sort((x,y)=>(Date.parse(y.at)||0)-(Date.parse(x.at)||0)).flatMap(visit=>{
+     if(seen.has(visit.appId))return [];
+     const app=allApps.find(item=>item.id===visit.appId&&item.applicable&&item.status==='ENABLED');
+     if(!app)return [];
+     seen.add(visit.appId);
+     return [{...app,lastVisitedAt:visit.at}];
+    });
+   }
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...decorateAnnouncement(x),readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
    if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements.map(x=>decorateAnnouncement(x));}
    if(resource==='profile')return decorateUser(d,a);
