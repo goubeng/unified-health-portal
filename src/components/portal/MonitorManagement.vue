@@ -107,8 +107,8 @@ const detailColumns=[
 
 const detailRows=computed(()=>kinds.map(kind=>{
   const item=detail.value?.services?.[kind]||{};
-  const configStatus=item.configStatus||item.configurationStatus||(item.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
-  const runtimeStatus=item.runtimeStatus||item.status||'UNCONFIGURED';
+  const configStatus=item.configStatus||'UNCONFIGURED';
+  const runtimeStatus=item.runtimeStatus||'UNCONFIGURED';
   return {
     kind,
     configStatus,
