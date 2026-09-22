@@ -25,7 +25,7 @@ test('公告草稿支持立即提交与定时发布',async()=>{
   const scheduledDraft=await h.run('saveAnnouncement',{title:'定时发布测试',content:'正文',scope:'GOV'});
   const future=new Date(Date.now()+24*3600*1000).toISOString();
   const scheduled=await h.run('submitAnnouncement',{id:scheduledDraft.id,version:scheduledDraft.version,publishMode:'SCHEDULED',scheduledPublishAt:future});
-  assert.equal(scheduled.status,'SCHEDULED');
+  assert.equal(scheduled.status,'DRAFT');assert.equal(scheduled.displayStatus,'SCHEDULED');
   assert.equal(scheduled.scheduledPublishAt,future);
 });
 
@@ -57,7 +57,7 @@ test('已撤回公告可转草稿并重新立即或定时发布',async()=>{
   assert.equal(edited.status,'WITHDRAWN');
   const future=new Date(Date.now()+24*3600*1000).toISOString();
   const scheduled=await h.run('submitAnnouncement',{id:edited.id,version:edited.version,publishMode:'SCHEDULED',scheduledPublishAt:future});
-  assert.equal(scheduled.status,'SCHEDULED');
+  assert.equal(scheduled.status,'DRAFT');assert.equal(scheduled.displayStatus,'SCHEDULED');
   assert.equal(scheduled.scheduledPublishAt,future);
 });
 
