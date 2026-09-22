@@ -28,6 +28,8 @@ export function createPortalService(provider,getActor){
  const grantFor=(d,a,appId)=>(d.applicationGrants||[]).find(x=>x.userId===a.id&&x.appId===appId&&x.status==='ACTIVE')||null;
  const decorate=(d,a)=>d.apps.map(app=>{
   const applicable=a.userType!=='LOCAL'&&(app.userType==='BOTH'||app.userType===a.userType);
+  const integrationStates=(d.integrations||[]).filter(item=>item.appId===app.id).map(item=>item.runtimeStatus||item.status||'UNCONFIGURED');
+  const aggregateRuntimeStatus=app.status!=='ENABLED'?'DISABLED':integrationStates.includes('ABNORMAL')?'ABNORMAL':integrationStates.includes('NORMAL')?'NORMAL':integrationStates.length&&integrationStates.every(value=>value==='DISABLED')?'DISABLED':'UNCONFIGURED';
   const mapping=d.mappings.find(m=>m.appId===app.id&&own(m,a)&&m.status!=='UNBOUND')||null;
   const request=requestFor(d,a,app.id),grant=grantFor(d,a,app.id);
   const accessMode=app.accessMode||'BIND';
@@ -44,7 +46,7 @@ export function createPortalService(provider,getActor){
    FAILED:'RETRY_BIND',CONFLICT:'VIEW_CONFLICT',REQUEST_REQUIRED:'REQUEST',REQUEST_REJECTED:'VIEW_REQUEST',REQUEST_PENDING:'VIEW_REQUEST'
   })[accessState]||'VIEW';
   if(accessState==='FAILED'&&mapping?.externalAccountStatus==='DISABLED')primaryAction='VIEW_REASON';
-  return {...app,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
+  return {...app,aggregateRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
    requestStatus:request?.status||null,requestId:request?.id||null,grantStatus:grant?.status||null,accessState,primaryAction};
  });
  const accountApps=(d,a)=>{
