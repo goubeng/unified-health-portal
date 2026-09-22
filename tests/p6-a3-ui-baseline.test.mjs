@@ -944,3 +944,9 @@ test('登录背景按短边铺满并居中裁切',()=>{
   assert(layout.includes('object-fit:cover'));
   assert(layout.includes('object-position:center center'));
 });
+
+test('过期二维码点击后仍可直接完成模拟登录',()=>{
+  const source=fs.readFileSync('src/views/Login.vue','utf8');
+  assert(source.includes("if(qrStage.value==='expired')refreshQr();qrStage.value='success'"));
+  assert(source.includes('qrSuccessTimer=setTimeout(()=>enter(),420)'));
+});
