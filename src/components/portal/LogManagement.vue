@@ -93,7 +93,8 @@ const columns=computed(()=>{
     serial,requestId,
     {colKey:'createdAt',title:'登录时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},
     {colKey:'userName',title:'登录用户',width:120,ellipsis:true},{colKey:'account',title:'登录账号',width:150,ellipsis:true},
-    {colKey:'userType',title:'用户类别',width:120,cell:(_,ctx)=>label(ctx.row.userType)},{colKey:'identitySource',title:'身份来源',width:120,cell:(_,ctx)=>label(ctx.row.identitySource)},
+    {colKey:'actorType',title:'主体类型',width:130,cell:(_,ctx)=>actorTypeLabel(ctx.row)},{colKey:'authType',title:'认证类型',width:110,cell:(_,ctx)=>authTypeLabel(ctx.row)},
+    {colKey:'identitySource',title:'身份来源',width:120,cell:(_,ctx)=>label(ctx.row.identitySource)},
     {colKey:'loginSource',title:'登录来源',width:110},{colKey:'loginMethod',title:'登录方式',width:110,cell:(_,ctx)=>label(ctx.row.loginMethod)},
     commonStatus,{colKey:'failureReason',title:'失败原因',minWidth:180,ellipsis:true},{colKey:'ip',title:'IP',width:130},{colKey:'client',title:'客户端',width:160,ellipsis:true}
   ];
@@ -124,13 +125,23 @@ const columns=computed(()=>{
 
 const detailTitle=computed(()=>({login:'登录/认证日志详情',access:'应用访问日志详情',operation:'门户操作日志详情',api:'接口调用日志详情',error:'异常日志详情'}[props.kind]||'日志详情'));
 const detailKeys=computed(()=>({
-  login:[['createdAt','登录时间'],['userName','登录用户'],['account','登录账号'],['userType','用户类别'],['identitySource','身份来源'],['loginSource','登录来源'],['loginMethod','登录方式'],['status','登录结果'],['failureReason','失败原因'],['ip','IP'],['client','客户端'],['requestId','请求ID']],
+  login:[['createdAt','登录时间'],['userName','登录用户'],['account','登录账号'],['actorType','主体类型'],['authType','认证类型'],['identitySource','身份来源'],['loginSource','登录来源'],['loginMethod','登录方式'],['status','登录结果'],['failureReason','失败原因'],['ip','IP'],['client','客户端'],['requestId','请求ID']],
   access:[['createdAt','访问时间'],['userName','用户'],['account','账号'],['appName','应用'],['accessMode','访问模式'],['status','结果'],['ip','IP'],['requestId','请求ID']],
   operation:[['createdAt','操作时间'],['actor','操作人'],['moduleName','模块'],['pageName','页面'],['actionName','动作'],['objectType','对象类型'],['objectId','对象ID'],['status','结果'],['requestId','请求ID']],
   api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['status','结果'],['requestId','请求ID']],
   error:[['createdAt','发生时间'],['severity','级别'],['moduleName','模块'],['errorCode','错误编码'],['errorMessage','异常信息'],['resolutionStatus','处理状态'],['resolutionNote','处理说明'],['resolvedAt','处理时间'],['requestId','请求ID']]
 }[props.kind]||[]));
-const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>({key,label:labelText,value:key.endsWith('At')||key==='createdAt'?date(detail.value?.[key]):['status','userType','identitySource','loginMethod','accessMode','severity','resolutionStatus'].includes(key)?label(detail.value?.[key]):text(detail.value?.[key])||'-'})));
+const actorTypeLabel=row=>row?.actorType==='PORTAL_ADMIN_USER'||row?.userType==='LOCAL'?'门户管理用户':'门户访问用户';
+const authTypeLabel=row=>row?.authType==='LOCAL'||row?.userType==='LOCAL'?'本地账号':'外部身份';
+const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>{
+  let value;
+  if(key.endsWith('At')||key==='createdAt')value=date(detail.value?.[key]);
+  else if(key==='actorType')value=actorTypeLabel(detail.value);
+  else if(key==='authType')value=authTypeLabel(detail.value);
+  else if(['status','identitySource','loginMethod','accessMode','severity','resolutionStatus'].includes(key))value=label(detail.value?.[key]);
+  else value=text(detail.value?.[key])||'-';
+  return {key,label:labelText,value};
+}));
 
 function reset(){keyword.value='';appName.value='';status.value='';resolutionStatus.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
