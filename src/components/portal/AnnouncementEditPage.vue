@@ -84,6 +84,7 @@
 </template>
 
 <script setup>
+import {createUUID} from '../../utils/uuid.js';
 import {computed,reactive,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import AnnouncementEditor from './AnnouncementEditor.vue';
@@ -138,7 +139,7 @@ function assign(record){
   if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
   if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
   uploadFiles.value=(form.attachments||[]).map(file=>({
-    name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),
+    name:file.name||'附件',url:file.data||'',status:'success',id:file.id||createUUID(),
     originAttachment:JSON.parse(JSON.stringify(file))
   }));
   formError.value='';
@@ -170,13 +171,13 @@ async function normalizeFiles(files,originals){
     if(size>2*1024*1024)throw new Error('单个附件不能超过2MB');
     if(raw){
       result.push({
-        id:item.id||'FILE_'+crypto.randomUUID(),name:raw.name||item.name||'附件',size:raw.size||size,
+        id:item.id||'FILE_'+createUUID(),name:raw.name||item.name||'附件',size:raw.size||size,
         type:raw.type||item.type||'',uploadedAt:new Date().toISOString(),data:await fileToDataUrl(raw)
       });
       continue;
     }
     if(item?.url?.startsWith('data:'))result.push({
-      id:item.id||'FILE_'+crypto.randomUUID(),name:item.name||'附件',size,type:item.type||'',
+      id:item.id||'FILE_'+createUUID(),name:item.name||'附件',size,type:item.type||'',
       uploadedAt:new Date().toISOString(),data:item.url
     });
   }
