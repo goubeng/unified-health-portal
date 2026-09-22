@@ -127,7 +127,7 @@ const detailVisible=ref(false),detail=ref(null);
 const formVisible=ref(false),formMode=ref('edit'),form=reactive({}),formError=ref(''),saving=ref(false);
 
 const adminAuthType=row=>row?.authType||'EXTERNAL';
-const adminEnabled=row=>row?.enabled!==false&&row?.status!=='DISABLED'&&row?.adminStatus!=='DISABLED';
+const adminEnabled=row=>row?.enabled!==false;
 const authTypeLabel=value=>value==='LOCAL'?'本地账号':'外部身份';
 const identitySourceText=row=>text(row?.identitySource)||source(row)||'-';
 const authTypeOptions=[{value:'EXTERNAL',label:'外部身份'},{value:'LOCAL',label:'本地账号'}];
