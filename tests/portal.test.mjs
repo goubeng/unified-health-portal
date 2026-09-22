@@ -21,7 +21,7 @@ test('超级管理员可把外部访问用户授权为门户管理用户',async(
 test('门户管理用户维护需超级权限且外部身份主数据只读',async()=>{const {s,switchActor}=setup(2);const users=(await s.read('users')).data;assert(!users.some(x=>x.id==='MOCK_USER_1'));const user=users.find(x=>x.id==='MOCK_EDITOR');const saved=await s.command('savePortalUser',{...user,name:'越权改名',orgName:'越权组织',enabled:true,roleIds:['ROLE_ADMIN']});assert(saved.ok);assert.equal(saved.data.name,user.name);assert.equal(saved.data.orgName,user.orgName);assert.equal(saved.data.authType,'EXTERNAL');switchActor(0);assert.equal((await s.read('adminAnnouncements')).error.code,'FORBIDDEN');assert.equal((await s.read('settings')).error.code,'FORBIDDEN');assert.equal((await s.command('savePortalUser',{id:'MOCK_ADMIN',enabled:false,roleIds:[]})).error.code,'FORBIDDEN');});
 test('管理资格停用只阻止管理端，不影响外部身份继续使用用户端',async()=>{const {s,switchActor}=setup(2);assert.equal((await s.command('savePortalUser',{id:'MOCK_ADMIN',enabled:false,roleIds:['ROLE_SUPER']})).error.code,'INVALID_TRANSITION');assert.equal((await s.command('savePortalUser',{id:'MOCK_ADMIN',enabled:true,roleIds:[]})).error.code,'INVALID_TRANSITION');const editor=(await s.read('users')).data.find(x=>x.id==='MOCK_EDITOR');assert((await s.command('savePortalUser',{id:editor.id,version:editor.version,enabled:false,roleIds:editor.roleIds})).ok);switchActor(3);assert.equal((await s.read('adminHome')).error.code,'FORBIDDEN');assert.equal((await s.read('home')).ok,true);});
 
-test('新增应用可删除并清理关联Mock数据，预置应用只允许停用',async()=>{
+test('所有应用均可删除并清理关联Mock数据',async()=>{
   const {s,provider}=setup(2);
   const created=await s.command('saveApp',{name:'待删除应用',code:'DELETE_DEMO_APP',category:'政务协同',userType:'BOTH',accessMode:'DIRECT',postGrantMode:'DIRECT',accountBindingMode:'NONE',accountOpeningMode:'NONE',url:'https://example.invalid/delete-demo'});
   assert(created.ok);
@@ -32,8 +32,15 @@ test('新增应用可删除并清理关联Mock数据，预置应用只允许停�
   assert(removed.ok);
   assert(!provider.read().apps.some(x=>x.id===created.data.id));
   assert(!provider.read().integrations.some(x=>x.appId===created.data.id));
+
   const preset=provider.read().apps.find(x=>x.sourceNo===1);
-  const denied=await s.command('removeApp',{id:preset.id,version:preset.version});
-  assert.equal(denied.ok,false);
-  assert.equal(denied.error.code,'INVALID_TRANSITION');
+  assert(preset);
+  const presetRemoved=await s.command('removeApp',{id:preset.id,version:preset.version});
+  assert(presetRemoved.ok);
+  assert(!provider.read().apps.some(x=>x.id===preset.id));
+  assert(!(provider.read().integrations||[]).some(x=>x.appId===preset.id));
+  assert(!(provider.read().mappings||[]).some(x=>x.appId===preset.id));
+  assert(!(provider.read().applicationRequests||[]).some(x=>x.appId===preset.id));
+  assert(!(provider.read().todos||[]).some(x=>x.appId===preset.id));
+  assert(!(provider.read().messages||[]).some(x=>x.appId===preset.id));
 });
