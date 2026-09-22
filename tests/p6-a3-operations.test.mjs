@@ -70,7 +70,7 @@ test('撤回和失效公告可删除并进入Mock回收档案',async()=>{
   assert(!h.provider.read().announcements.some(x=>x.id===withdrawn.id));
   assert(h.provider.read().announcementTrash.some(x=>x.id===withdrawn.id));
 
-  const expired=(await h.read('adminAnnouncements')).find(x=>x.status==='EXPIRED');
+  const expired=(await h.read('adminAnnouncements')).find(x=>x.displayStatus==='EXPIRED');
   assert(expired);
   await h.run('removeAnnouncement',{id:expired.id,version:expired.version});
   assert(!h.provider.read().announcements.some(x=>x.id===expired.id));
