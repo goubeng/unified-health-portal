@@ -88,7 +88,7 @@ test('P5 未关联应用关联后进入并出现在我的应用，跨范围关�
   await h.login(0);
   const app = (await h.read('apps')).find(a => a.mappingStatus === 'UNBOUND' && a.ssoRuntimeStatus === 'NORMAL');
   assert(app, '必须存在未关联应用测试样本');
-  await h.reject('enterApp', {id: app.id}, 'INVALID_TRANSITION');
+  await h.reject('enterApp', {id: app.id}, 'ACCOUNT_BINDING_REQUIRED');
   const mapping = await h.run('bind', {appId: app.id, externalAccount: 'p5-citizen-account'});
   assert.equal(mapping.userId, actors[0].id);
   assert.equal(mapping.status, 'BOUND');
@@ -101,9 +101,9 @@ test('P5 未关联应用关联后进入并出现在我的应用，跨范围关�
   await h.reject('bind', {appId: govApp.id, externalAccount: 'p5-forbidden'}, 'FORBIDDEN');
 });
 
-async function enablePush(h, kind) {
+async function enablePush(h, kind, appId='MOCK_APP_1') {
   await h.login(2);
-  const config = h.snapshot().integrations.find(c => c.kind === kind && c.appId === 'MOCK_APP_1');
+  const config = h.snapshot().integrations.find(c => c.kind === kind && c.appId === appId);
   assert(config);
   await h.run('saveIntegration', {...config, enabled: 'ENABLED', mode: 'PUSH', credentialRef: 'PORTAL_P5_TEST', fieldMapping: {title: 'subject'}});
   return payload => h.request(`ingest/${config.appId}/${kind === 'TODO' ? 'todos' : 'messages'}`, payload,
@@ -136,7 +136,10 @@ test('P5 接入保存→消息推送→本人读取→重复推送保持已读�
 
 for (const terminal of ['COMPLETED', 'WITHDRAWN']) {
   test(`P5 待办推送→去处理→${terminal}终态与重试/回退保护`, async () => {
-    const h = setup(), push = await enablePush(h, 'TODO');
+    const h = setup(d => {
+      const sso=d.integrations.find(item=>item.appId==='MOCK_APP_1'&&item.kind==='SSO');
+      Object.assign(sso,{runtimeStatus:'NORMAL',configStatus:'CONFIGURED',enabled:'ENABLED'});
+    }), push = await enablePush(h, 'TODO');
     await h.login(0);
     const before = (await h.read('home')).todoCount;
     const payload = {eventId: 'p5-todo-1', sourceTodoId: 'p5-todo', userId: actors[0].id, status: 'PENDING', subject: 'P5待办'};
@@ -158,7 +161,7 @@ for (const terminal of ['COMPLETED', 'WITHDRAWN']) {
   });
 }
 
-test('P5 公告创建/发布/本人阅读/撤回闭环，仅草稿可删除', async () => {
+test('P5 公告创建/发布/本人阅读/撤回/删除闭环', async () => {
   const h = setup();
   await h.login(2);
   const input = {title: 'P5公告', content: '测试正文', scope: 'CITIZEN'};
@@ -183,7 +186,9 @@ test('P5 公告创建/发布/本人阅读/撤回闭环，仅草稿可删除', as
   await h.login(2);
   const withdrawn = await h.run('withdraw', {id: draft.id, version: published.version});
   assert.equal(withdrawn.status, 'WITHDRAWN');
-  await h.reject('removeAnnouncement', withdrawn, 'INVALID_TRANSITION');
+  await h.run('removeAnnouncement', withdrawn);
+  assert(!(await h.read('adminAnnouncements')).some(a => a.id === withdrawn.id));
+  assert(h.snapshot().announcementTrash.some(a => a.id === withdrawn.id && a.status === 'WITHDRAWN'));
   const disposable = await h.run('saveAnnouncement', {...input, title: 'P5待删除草稿'});
   await h.run('removeAnnouncement', disposable);
   assert(!(await h.read('adminAnnouncements')).some(a => a.id === disposable.id));
@@ -250,14 +255,16 @@ test('P5 消息批量已读/全部已读/删除仅影响本人，混入他人或
   assert.deepEqual(await h.read('messages'), foreign.filter(m => m.userId === actors[1].id));
 });
 
-test('P5 我的应用与待办按本人映射隔离，客户端userId不能改变会话身份', async () => {
+test('P5 我的应用与待办按当前用户可用范围隔离，客户端userId不能改变会话身份', async () => {
   const h = setup(d => { d.visits = []; });
   for (const index of [0, 1]) {
     await h.login(index);
     const actor = actors[index], d = h.snapshot();
-    const bound = new Set(d.mappings.filter(m => m.userId === actor.id && m.status === 'BOUND').map(m => m.appId));
-    const expected = d.apps.filter(a => bound.has(a.id) && a.enabled !== false && ['BOTH', actor.userType].includes(a.userType));
-    assert.deepEqual((await h.read('mine')).map(a => a.id), expected.map(a => a.id));
+    const mine = await h.read('mine');
+    assert(mine.length>0);
+    assert(mine.every(app=>app.enabled&&app.applicable&&['BOTH',actor.userType].includes(app.userType)));
+    const directIds=d.apps.filter(app=>app.enabled!==false&&['BOTH',actor.userType].includes(app.userType)&&app.accessMode==='DIRECT').map(app=>app.id);
+    for(const id of directIds)assert(mine.some(app=>app.id===id),'DIRECT应用应进入我的应用');
     assert.deepEqual(await h.read('todos'), d.todos.filter(t => t.userId === actor.id));
     const foreign = d.todos.find(t => t.userId !== actor.id && t.status === 'PENDING');
     assert(foreign);
@@ -294,25 +301,26 @@ test('P5 全范围公告阅读凭据按用户独立，未生效/过期公告不�
 });
 
 for (const kind of ['TODO', 'MESSAGE']) {
-  test(`P5 ${kind} PUSH无本人应用映射拒绝，绑定后同一事件可新增`, async () => {
-    const h = setup(d => { d.mappings = d.mappings.filter(m => !(m.userId === actors[0].id && m.appId === 'MOCK_APP_1')); });
-    const push = await enablePush(h, kind);
+  test(`P5 ${kind} PUSH对需绑定应用执行映射门禁，绑定后同一事件可新增`, async () => {
+    const appId='MOCK_APP_3';
+    const h = setup(d => { d.mappings = d.mappings.filter(m => !(m.userId === actors[0].id && m.appId === appId)); });
+    const push = await enablePush(h, kind, appId);
     const payload = {eventId: `p5-unmapped-${kind}`, userId: actors[0].id, subject: '映射门禁',
       ...(kind === 'TODO' ? {sourceTodoId: 'p5-unmapped-todo', status: 'PENDING'}
         : {sourceMessageId: 'p5-unmapped-message', content: '映射门禁消息'})};
     const before = h.snapshot();
     const rejected = await push(payload);
-    assert.equal(rejected.ok, false, '存在统一用户但没有本应用BOUND映射时不得新增');
+    assert.equal(rejected.ok, false, '需绑定应用没有本应用BOUND映射时不得新增');
     assert.equal(rejected.error.code, 'IDENTITY_UNRESOLVED');
     assert.deepEqual(h.snapshot(), before, '拒绝推送不得写业务记录或幂等凭据');
     assert.equal(h.events.at(-1).result, 'FAILURE');
     await h.login(0);
-    await h.run('bind', {appId: 'MOCK_APP_1', externalAccount: `p5-bound-${kind}`});
+    await h.run('bind', {appId, externalAccount: `p5-bound-${kind}`});
     const receipt = h.success(await push(payload));
     const resource = kind === 'TODO' ? 'todos' : 'messages';
     const row = (await h.read(resource)).find(x => x.id === receipt.entityId);
     assert.equal(row.userId, actors[0].id);
-    assert.equal(row.appId, 'MOCK_APP_1');
+    assert.equal(row.appId, appId);
     assert.deepEqual(h.success(await push(payload)), receipt);
     assert.equal((await h.read(resource)).filter(x => x.id === receipt.entityId).length, 1);
   });
