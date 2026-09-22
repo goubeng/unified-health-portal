@@ -102,7 +102,7 @@ function getCode(){
  timer=setInterval(()=>{countdown.value--;if(!countdown.value)clearInterval(timer);},1000);
 }
 function refreshQr(){startQr();notice.value='';}
-function handleQrClick(){if(qrStage.value==='expired'){refreshQr();return;}if(qrStage.value!=='ready')return;qrStage.value='success';notice.value='';clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);qrSuccessTimer=setTimeout(()=>enter(),420);}
+function handleQrClick(){if(qrStage.value==='success')return;if(qrStage.value==='expired')refreshQr();qrStage.value='success';notice.value='';clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);qrSuccessTimer=setTimeout(()=>enter(),420);}
 function openRegister(){window.open(platformLink.value,'_blank','noopener');}
 function openForgot(){window.open(platformLink.value,'_blank','noopener');}
 async function enterLocalAdmin(){
