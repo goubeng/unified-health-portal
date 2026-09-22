@@ -195,7 +195,7 @@ export function createPortalService(provider,getActor){
      syncUserRoleScopes(d,x);d.users.push(x);result=decorateUser(d,x);
     }else if(action==='setPortalUserStatus'){
      const x=requireRow(d.users,p.id,p.version);if(!['NORMAL','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');
-     if(x.userType==='LOCAL'&&!can(a,'super'))fail('FORBIDDEN','门户本地用户启停仅允许门户超级管理员操作');
+     if((x.authType||x.userType)==='LOCAL'&&!can(a,'super'))fail('FORBIDDEN','门户本地管理账号启停仅允许门户超级管理员操作');
      if(x.id===a.id&&p.status==='DISABLED')fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
      if(isSuper&&p.status==='DISABLED'){
@@ -389,7 +389,7 @@ export function createPortalService(provider,getActor){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
      const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)))fail('NOT_FOUND','消息不存在');const selected=new Set(ids);d.messageTrash??=[];d.messageTrash.push(...targets.map(x=>({...x,deletedAt:now,deletedBy:a.id})));d.messages=d.messages.filter(x=>!selected.has(x.id));result={count:ids.length};
     }else if(action==='enterApp'){
-     const app=requireRow(d.apps,p.id);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
+     const app=requireRow(d.apps,p.id);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
      const requiresBinding=appRequiresBinding(app);
@@ -397,7 +397,7 @@ export function createPortalService(provider,getActor){
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock访问校验已通过。当前未连接真实子系统，正式SSO将在联调阶段接入。'};
     }else if(action==='openTodo'){
      const todo=requireRow(d.todos,p.id);if(!own(todo,a))fail('NOT_FOUND','待办不存在');if(todo.status!=='PENDING')fail('INVALID_TRANSITION','该待办已终结');
-     const app=requireRow(d.apps,todo.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');if(app.runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','应用接入异常或未配置');
+     const app=requireRow(d.apps,todo.appId);if(app.status!=='ENABLED')fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||sso?.status||app.runtimeStatus;if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','当前用户尚未获得该应用入口资格');
      if(appRequiresBinding(app)&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock待办跳转校验已通过。真实子系统连接尚未开放。'};
