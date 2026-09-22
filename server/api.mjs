@@ -11,9 +11,10 @@ export {appContract as contract} from '../src/config/integration-contract.js';
 import {appContract as contract,publicContract,integrationFields} from '../src/config/integration-contract.js';
 const statusFor=r=>r.ok?200:({UNAUTHENTICATED:401,FORBIDDEN:403,NOT_FOUND:404,IDEMPOTENCY_CONFLICT:409,STALE_EVENT:409,INVALID_TRANSITION:409,VERSION_CONFLICT:409})[r.error?.code]||400;
 const isAllowedFrontendOrigin=origin=>{
+ if(!origin)return true;
  try{
   const u=new URL(origin);
-  if(u.protocol!=='http:'||u.port!=='4010')return false;
+  if(u.protocol!=='http:'&&u.protocol!=='https:')return false;
   const host=u.hostname;
   return host==='127.0.0.1'||host==='localhost'||/^10\./.test(host)||/^192\.168\./.test(host)||/^172\.(1[6-9]|2\d|3[01])\./.test(host);
  }catch{return false;}
