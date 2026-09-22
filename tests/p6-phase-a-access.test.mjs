@@ -35,9 +35,7 @@ test('LOCAL本地管理员不参与普通用户应用、待办、消息和子系
   assert.equal((await h.read('todos')).length,0);
   assert.equal((await h.read('messages')).length,0);
   const overview=await h.read('identityOverview');
-  const local=overview.find(x=>x.id===actors[4].id);
-  assert(local);
-  assert.equal(local.mappings.length,0);
+  assert(!overview.some(x=>x.id===actors[4].id));
 });
 
 test('REQUEST应用可提交、管理员审核、用户获得门户入口资格后直接进入',async()=>{
