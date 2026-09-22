@@ -2,7 +2,7 @@
 export function addMonitorScenarios(state){
  state.monitorSamples??=[];
  const states=['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'];
- state.apps.filter(app=>app.status==='ENABLED').slice(0,4).forEach((app,index)=>{
+ state.apps.filter(app=>app.enabled!==false).slice(0,4).forEach((app,index)=>{
   ['SSO','TODO','MESSAGE'].forEach((kind,offset)=>{
    const id=`SCENARIO_MONITOR_${app.id}_${kind}`;
    if(state.monitorSamples.some(x=>x.appId===app.id&&x.kind===kind))return;
