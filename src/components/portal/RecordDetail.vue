@@ -83,7 +83,7 @@ const detailTitle=(key)=>{
  if(key==='createdAt'&&['todos','messages'].includes(props.kind))return '接收时间';
  return titles[key]||key;
 };
-const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>key!=='priority'&&titles[key]&&(key==='scopes'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value),wide:['content','description','summary','remark','reason','reviewNote','handleNote','scopes','roleIds'].includes(key)})));
+const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>titles[key]&&(key==='permissions'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value),wide:['content','description','summary','remark','reason','reviewNote','handleNote','permissions','roleIds'].includes(key)})));
 const appDetails=computed(()=>{
   const row=props.record||{};
   const item=(key,labelText,wide=false)=>({key,label:labelText,value:display(key,row[key]),wide});
@@ -117,7 +117,7 @@ const metadata=computed(()=>details.value.filter(item=>['appName','status','scop
 const connectionRows=computed(()=>['SSO','TODO','MESSAGE'].map(kind=>{
   const item=props.accessProfile?.integrations?.[kind]||null;
   if(!item)return {kind,status:'UNCONFIGURED',enabled:'未配置',mode:'未配置'};
-  const configStatus=item.configStatus||item.configurationStatus||(item.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
+  const configStatus=item.configStatus||'UNCONFIGURED';
   return {
     kind,
     status:configStatus,
