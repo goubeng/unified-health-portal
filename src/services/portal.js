@@ -174,7 +174,7 @@ export function createPortalService(provider,getActor){
      return stamp(mapping);
     };
     let result=null;
-    const scopesByAction={removeAnnouncement:'announcement',submitAnnouncement:'announcement',saveRules:'super',createLocalPortalUser:'super',savePortalUser:'super',resetLocalPassword:'super',unlockLocalUser:'super',setPortalUserStatus:'system',saveSystemRole:'super',saveOrganization:'system',removeOrganization:'super',saveDictionaryType:'system',saveDictionaryItem:'system',saveApp:'application',setAppStatus:'application',saveCategory:'application',removeCategory:'application',saveAnnouncement:'announcement',publish:'announcement',withdraw:'announcement',saveConfig:'super',saveIntegration:'application',createAccessProfile:'application',approveApplicationRequest:'application',rejectApplicationRequest:'application',completeMockAccountOpeningRequest:'application',approveBindingReview:'identity',rejectBindingReview:'identity',resolveLogError:'audit',unbind:'identity',resolveMapping:'identity',pushTodo:'integration',pushMessage:'integration'};
+    const scopesByAction={removeAnnouncement:'announcement',submitAnnouncement:'announcement',saveRules:'super',createLocalPortalUser:'super',createExternalPortalAdmin:'super',savePortalUser:'super',resetLocalPassword:'super',unlockLocalUser:'super',setPortalUserStatus:'system',saveSystemRole:'super',saveOrganization:'system',removeOrganization:'super',saveDictionaryType:'system',saveDictionaryItem:'system',saveApp:'application',setAppStatus:'application',saveCategory:'application',removeCategory:'application',saveAnnouncement:'announcement',publish:'announcement',withdraw:'announcement',saveConfig:'super',saveIntegration:'application',createAccessProfile:'application',approveApplicationRequest:'application',rejectApplicationRequest:'application',completeMockAccountOpeningRequest:'application',approveBindingReview:'identity',rejectBindingReview:'identity',resolveLogError:'audit',unbind:'identity',resolveMapping:'identity',pushTodo:'integration',pushMessage:'integration'};
     if(scopesByAction[action])auth(a,scopesByAction[action]);
     if(action==='removeAnnouncement'){
      const x=requireRow(d.announcements,p.id,p.version),effectiveStatus=announcementDisplayStatus(x,Date.parse(now));
@@ -184,8 +184,17 @@ export function createPortalService(provider,getActor){
     }else if(action==='saveRules'){
      if(!Array.isArray(p.items)||p.items.length!==rules.length||new Set(p.items.map(x=>x.code)).size!==rules.length)fail('VALIDATION_ERROR','请提交完整规则配置');
      for(const item of p.items){const rule=rules.find(x=>x.code===item.code);if(!rule||!Number.isSafeInteger(item.value)||item.value<rule.min||item.value>rule.max)fail('VALIDATION_ERROR',`${rule?.name||item.code}超出允许范围`);const x=requireRow(d.settings,item.id,item.version);if(x.code!==item.code)fail('VALIDATION_ERROR','规则标识不匹配');x.value=item.value;x.status='CONFIGURED';stamp(x);}result=d.settings;
+    }else if(action==='createExternalPortalAdmin'){
+     const x=requireRow(d.users,p.accessUserId);
+     if(x.userType==='LOCAL')fail('VALIDATION_ERROR','本地管理账号请使用新增本地管理账号');
+     if(x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)fail('INVALID_TRANSITION','该用户已具备门户管理资格');
+     const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
+     if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
+     if(!['NORMAL','DISABLED'].includes(p.status||'NORMAL'))fail('VALIDATION_ERROR','启用状态无效');
+     Object.assign(x,{adminSubject:true,authType:'EXTERNAL',kind:'ADMIN',roleIds,status:p.status||'NORMAL'});
+     syncUserRoleScopes(d,x);result=decorateUser(d,stamp(x));
     }else if(action==='createLocalPortalUser'){
-     if(!p.account?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','登录账号与姓名为必填');
+     if(!p.account?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','管理账号与姓名为必填');
      if((d.users||[]).some(user=>String(user.account).toLowerCase()===p.account.trim().toLowerCase()))fail('VALIDATION_ERROR','登录账号已存在');
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
@@ -194,7 +203,7 @@ export function createPortalService(provider,getActor){
       scopes:[],roleIds,status:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
      syncUserRoleScopes(d,x);d.users.push(x);result=decorateUser(d,x);
     }else if(action==='setPortalUserStatus'){
-     const x=requireRow(d.users,p.id,p.version);if(!['NORMAL','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');
+     const x=requireRow(d.users,p.id,p.version);if(!(x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端启用状态');if(!['NORMAL','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','启用状态无效');
      if((x.authType||x.userType)==='LOCAL'&&!can(a,'super'))fail('FORBIDDEN','门户本地管理账号启停仅允许门户超级管理员操作');
      if(x.id===a.id&&p.status==='DISABLED')fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
@@ -210,7 +219,7 @@ export function createPortalService(provider,getActor){
      const x=requireRow(d.users,p.id,p.version);if(x.userType!=='LOCAL')fail('INVALID_TRANSITION','仅门户本地账号支持门户解锁');
      x.lockedUntil=null;x.failedLoginCount=0;result=stamp(x);
     }else if(action==='savePortalUser'){
-     const x=requireRow(d.users,p.id,p.version),roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:x.roleIds||[];
+     const x=requireRow(d.users,p.id,p.version);if(!(x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端授权');const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:x.roleIds||[];
      if(!['NORMAL','DISABLED'].includes(p.status)||roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效的启用状态与门户角色');
      const requested=scopesFromRoles(d,roleIds),removesSuper=(x.roleIds||[]).includes('ROLE_SUPER')&&!roleIds.includes('ROLE_SUPER');
      if(x.id===a.id&&(p.status==='DISABLED'||!requested.includes('super')))fail('INVALID_TRANSITION','不能停用当前账号或移除自身超级管理权限');
@@ -488,7 +497,7 @@ export function createPortalService(provider,getActor){
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
     }else fail('CAPABILITY_UNAVAILABLE','该动作尚未开放');
-    const actionNames={createLocalPortalUser:'新建本地管理账号',setPortalUserStatus:'变更管理用户启用状态',resetLocalPassword:'重置本地管理账号密码',unlockLocalUser:'解除本地管理账号锁定',savePortalUser:'维护门户管理用户',saveOrganization:'维护组织',removeOrganization:'删除组织',saveDictionaryType:'维护字典类型',saveDictionaryItem:'维护字典项',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',discoverApplicationAccountCandidates:'查找子系统候选账号',startApplicationAccountBinding:'自动关联子系统账号',sendSubsystemBindingOtp:'发送账号关联验证码',verifyBindingOtp:'验证账号关联验证码',verifyBindingBySubsystemCredential:'验证原系统账号',verifyBindingByUpstreamReauth:'重新认证身份',submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
+    const actionNames={createExternalPortalAdmin:'授权外部用户管理资格',createLocalPortalUser:'新建本地管理账号',setPortalUserStatus:'变更管理用户启用状态',resetLocalPassword:'重置本地管理账号密码',unlockLocalUser:'解除本地管理账号锁定',savePortalUser:'维护门户管理用户',saveOrganization:'维护组织',removeOrganization:'删除组织',saveDictionaryType:'维护字典类型',saveDictionaryItem:'维护字典项',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',discoverApplicationAccountCandidates:'查找子系统候选账号',startApplicationAccountBinding:'自动关联子系统账号',sendSubsystemBindingOtp:'发送账号关联验证码',verifyBindingOtp:'验证账号关联验证码',verifyBindingBySubsystemCredential:'验证原系统账号',verifyBindingByUpstreamReauth:'重新认证身份',submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
     const todoForLog=action==='openTodo'?(d.todos||[]).find(item=>item.id===p.id):null;
     const relatedForLog=[...(d.mappings||[]),...(d.applicationRequests||[]),...(d.accountOpeningRequests||[]),...(d.integrations||[])].find(item=>item.id===p.id);
     const logAppId=p.appId||todoForLog?.appId||relatedForLog?.appId||(action==='enterApp'?p.id:null);
@@ -500,7 +509,7 @@ export function createPortalService(provider,getActor){
     if(logKind==='api')Object.assign(log,{interfaceName:action==='pushTodo'?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:200,durationMs:80,errorMessage:null});
     if(logKind==='operation'){
      const pageByAction={
-      createLocalPortalUser:['系统管理','用户管理'],setPortalUserStatus:['系统管理','用户管理'],resetLocalPassword:['系统管理','用户管理'],unlockLocalUser:['系统管理','用户管理'],savePortalUser:['系统管理','用户管理'],
+      createExternalPortalAdmin:['系统管理','用户管理'],createLocalPortalUser:['系统管理','用户管理'],setPortalUserStatus:['系统管理','用户管理'],resetLocalPassword:['系统管理','用户管理'],unlockLocalUser:['系统管理','用户管理'],savePortalUser:['系统管理','用户管理'],
       saveSystemRole:['系统管理','角色管理'],saveOrganization:['系统管理','组织管理'],removeOrganization:['系统管理','组织管理'],saveDictionaryType:['系统管理','字典管理'],saveDictionaryItem:['系统管理','字典管理'],
       saveApp:['应用管理','应用列表'],setAppStatus:['应用管理','应用列表'],createAccessProfile:['应用管理','应用列表'],saveIntegration:['应用管理','应用列表'],
       submitApplicationRequest:['应用中心','应用访问申请'],withdrawApplicationRequest:['应用中心','我的申请'],approveApplicationRequest:['应用管理','应用访问申请'],rejectApplicationRequest:['应用管理','应用访问申请'],
