@@ -120,7 +120,7 @@
       <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
       <template #primary="{row}"><TableCellTooltip :text="text(row[primaryField])||'-'"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></TableCellTooltip></template>
       <template v-if="resource==='apps'" #enabled="{row}"><t-switch :value="row.enabled!==false" @change="toggleAppStatus(row,$event)"/></template>
-      <template #operation="{row}"><div class="row-actions">
+      <template #operation="{row}"><div class="row-actions" :class="{'app-list-row-actions':resource==='apps'&&admin}">
        <template v-if="resource==='apps'&&admin&&can(actor,'application:edit')"><t-button size="small" variant="text" theme="primary" @click="openForm('saveApp',row)">编辑</t-button><t-button size="small" variant="text" theme="primary" @click="openConnectionConfig(row)">连接配置</t-button><t-button size="small" variant="text" theme="danger" @click="confirm('removeApp',row,'确认删除该应用？删除后将同步清理该应用的连接配置、账号映射、申请、待办、消息等关联演示数据，且不可恢复。')">删除</t-button></template>
        <template v-if="resource==='categories'"><t-button size="small" variant="text" theme="primary" @click="openForm('saveCategory',row)">编辑</t-button><t-button size="small" variant="text" theme="danger" @click="confirm('removeCategory',row,'确认删除未被应用引用的分类？')">删除</t-button></template>
        <t-button v-if="resource==='todos'&&row.status==='PENDING'" size="small" variant="text" theme="primary" @click="run('openTodo',{id:row.id},true)">去处理</t-button>
@@ -376,7 +376,7 @@ const columnWidth=(key,index)=>{
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
  ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
- ...(hasOperations.value?[{colKey:'operation',title:'操作',width:200,fixed:'right'}]:[])
+ ...(hasOperations.value?[{colKey:'operation',title:'操作',width:resource.value==='apps'&&admin.value?240:200,fixed:'right'}]:[])
 ]);
 const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement'})[resource.value]);
 const createScope={apps:'application:edit',categories:'application:edit',announcements:'announcement:edit'};
