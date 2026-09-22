@@ -16,7 +16,7 @@
         <span class="todo-detail-meta-item">
           <Icon name="time"/>
           <em>接收时间：</em>
-          <strong>{{date(record.createdAt)}}</strong>
+          <strong>{{date(record.receivedAt)}}</strong>
         </span>
         <span class="todo-detail-meta-item">
           <Icon name="check-circle"/>
