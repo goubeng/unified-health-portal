@@ -59,6 +59,7 @@
  </div><footer>卫健XC统一门户 · 由中电福富提供技术支持</footer></div>
 </template>
 <script setup>
+import {createUUID} from '../utils/uuid.js';
 import {computed,onBeforeUnmount,ref,watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {CheckCircleIcon,RefreshIcon} from 'tdesign-icons-vue-next';
@@ -72,7 +73,7 @@ const localLoggingIn=ref(false),localAccount=ref('admin01'),localPassword=ref(''
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
 const platformLink=computed(()=>identityType.value==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn');
 const qrPrompt=computed(()=>`请使用${platform.value}扫一扫登录`);
-const qrNonce=ref(crypto.randomUUID()),qrPayload=computed(()=>'WJ-PORTAL:'+identityType.value+':'+qrNonce.value);
+const qrNonce=ref(createUUID()),qrPayload=computed(()=>'WJ-PORTAL:'+identityType.value+':'+qrNonce.value);
 const qrSeconds=ref(5);
 const displayCountdown=computed(()=>`${String(Math.floor(qrSeconds.value/60)).padStart(2,'0')}:${String(qrSeconds.value%60).padStart(2,'0')}`);
 let timer,qrExpireTimer,qrSuccessTimer,qrCountdownTimer;
@@ -89,7 +90,7 @@ function reset(){
  if(identityType.value==='LOCAL')refreshLocalCaptcha();else startQr();
 }
 function startQr(){
- qrNonce.value=crypto.randomUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);
+ qrNonce.value=createUUID();qrStage.value='ready';qrSeconds.value=5;clearTimeout(qrExpireTimer);clearInterval(qrCountdownTimer);
  if(identityType.value==='LOCAL'||method.value!=='qr')return;
  qrCountdownTimer=setInterval(()=>{if(qrSeconds.value>0)qrSeconds.value--;else clearInterval(qrCountdownTimer);},1000);
  qrExpireTimer=setTimeout(()=>{if(qrStage.value==='ready'){qrSeconds.value=0;qrStage.value='expired';clearInterval(qrCountdownTimer);}},5000);
