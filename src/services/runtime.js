@@ -1,7 +1,7 @@
 import {ref,computed} from 'vue';
 export const actor=ref(null),revision=ref(0),startupError=ref('');
 const users=ref([]);
-export const availableUsers=computed(()=>users.value.filter(x=>x.status!=='DISABLED'));
+export const availableUsers=computed(()=>users.value.filter(x=>x.status!=='DISABLED'&&x.userType!=='LOCAL'));
 async function request(path,body){
  try{const response=await fetch('/api/portal/'+path,{credentials:'same-origin',...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})});const result=await response.json();if(!result||typeof result.ok!=='boolean')throw Error();return result;}
  catch{return {ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'门户服务暂不可用，请确认本地接口服务已启动'}};}
