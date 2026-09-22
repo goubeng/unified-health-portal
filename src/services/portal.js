@@ -11,7 +11,7 @@ const identitySourceName=user=>user?.authType==='LOCAL'?'门户本地':user?.use
 const accessUserEnabled=x=>['CITIZEN','GOV'].includes(x?.userType)&&x?.enabled!==false&&x?.status!=='DISABLED';
 const adminUserEnabled=x=>Boolean(x&&(x.adminAccess||x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)&&x.adminEnabled!==false&&(x.adminStatus||'NORMAL')!=='DISABLED'&&(x.authType!=='LOCAL'||(x.enabled!==false&&x.status!=='DISABLED')));
 const actorSessionEnabled=x=>x?.authType==='LOCAL'?adminUserEnabled(x):accessUserEnabled(x);
-const appEnabled=app=>app?.enabled!==false&&app?.status!=='DISABLED';
+const appEnabled=app=>app?.enabled!==false;
 const announcementDisplayStatus=(x,now=Date.now())=>{
  if(x.status==='WITHDRAWN')return 'WITHDRAWN';
  if(x.status==='EXPIRED')return 'EXPIRED';
@@ -54,7 +54,8 @@ export function createPortalService(provider,getActor){
    FAILED:'RETRY_BIND',CONFLICT:'VIEW_CONFLICT',REQUEST_REQUIRED:'REQUEST',REQUEST_REJECTED:'VIEW_REQUEST',REQUEST_PENDING:'VIEW_REQUEST'
   })[accessState]||'VIEW';
   if(accessState==='FAILED'&&mapping?.externalAccountStatus==='DISABLED')primaryAction='VIEW_REASON';
-  return {...app,enabled:appEnabled(app),aggregateRuntimeStatus,ssoRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
+  const {status:_legacyStatus,runtimeStatus:_legacyRuntimeStatus,connectionStatus:_legacyConnectionStatus,...appDto}=app;
+  return {...appDto,enabled:appEnabled(app),aggregateRuntimeStatus,ssoRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
    requestStatus:request?.status||null,requestId:request?.id||null,grantStatus:grant?.status||null,accessState,primaryAction};
  });
  const accountApps=(d,a)=>{
