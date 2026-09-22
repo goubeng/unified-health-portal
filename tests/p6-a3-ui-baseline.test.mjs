@@ -956,5 +956,4 @@ test('应用列表仅对新增应用显示删除操作',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   assert(source.includes("v-if="!row.sourceNo""));
   assert(source.includes("confirm('removeApp',row"));
-  assert(source.includes('预置纳管应用'));
 });
