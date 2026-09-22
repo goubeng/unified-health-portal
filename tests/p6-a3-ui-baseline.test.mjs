@@ -71,7 +71,7 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
+  for(const label of ['纳管应用','启用应用','门户访问用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
@@ -342,15 +342,16 @@ test('新增草稿定时发布和已撤回编辑共用发布布局与操作按�
   const create=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const source=fs.readFileSync('src/components/portal/AnnouncementEditPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes("const isDraft=computed(()=>form.status==='DRAFT')"));
-  assert(source.includes("const isScheduled=computed(()=>form.status==='SCHEDULED')"));
-  assert(source.includes("const isWithdrawn=computed(()=>form.status==='WITHDRAWN')"));
+  assert(source.includes("const currentDisplayStatus=computed(()=>form.displayStatus||form.status||'DRAFT')"));
+  assert(source.includes("const isDraft=computed(()=>currentDisplayStatus.value==='DRAFT')"));
+  assert(source.includes("const isScheduled=computed(()=>currentDisplayStatus.value==='SCHEDULED')"));
+  assert(source.includes("const isWithdrawn=computed(()=>currentDisplayStatus.value==='WITHDRAWN')"));
   assert(source.includes('const isPublishEditable=computed(()=>isDraft.value||isScheduled.value||isWithdrawn.value)'));
   assert(source.includes('v-if="isPublishEditable"'));
   assert(source.includes('<template v-if="isPublishEditable">'));
   assert(source.includes('v-model="form.publishMode"'));
   assert(source.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
-  assert(source.includes("if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE'"));
+  assert(source.includes("else if(!form.publishMode)form.publishMode=currentDisplayStatus.value==='SCHEDULED'?'SCHEDULED':'IMMEDIATE'"));
   assert(source.includes('@click="saveDraft">保存草稿</t-button>'));
   assert(source.includes("@click=\"publishDraft\">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>"));
   assert(source.includes("saveBase({targetStatus:'DRAFT'})"));
@@ -395,10 +396,10 @@ test('公告操作权限为撤回可编辑删除且过期仅删除',()=>{
   const list=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const service=fs.readFileSync('src/services/portal.js','utf8');
-  assert(list.includes("['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(row.status)"));
-  assert(list.includes("['DRAFT','WITHDRAWN','EXPIRED'].includes(row.status)"));
-  assert(page.includes("['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(detail.status)"));
-  assert(page.includes("['DRAFT','WITHDRAWN','EXPIRED'].includes(detail.status)"));
+  assert(list.includes("['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(displayStatus(row))"));
+  assert(list.includes("['DRAFT','WITHDRAWN','EXPIRED'].includes(displayStatus(row))"));
+  assert(page.includes("['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(announcementViewStatus(detail))"));
+  assert(page.includes("['DRAFT','WITHDRAWN','EXPIRED'].includes(announcementViewStatus(detail))"));
   assert(page.includes('function removeAdminAnnouncementDetail(row){'));
   assert(service.includes("if(effectiveStatus==='EXPIRED')fail('INVALID_TRANSITION','已过期公告不可编辑')"));
   assert(service.includes("if(effectiveStatus==='WITHDRAWN'&&p.targetStatus!=='DRAFT'){x.status='WITHDRAWN'"));
@@ -493,6 +494,7 @@ test('运行监控详情使用单表展示接入配置与运行健康且不显�
   const source=fs.readFileSync('src/components/portal/MonitorManagement.vue','utf8');
   assert(source.includes("title:'接入服务'"));
   assert(source.includes("title:'配置状态'"));
+  assert(source.includes("title:'启用状态'"));
   assert(source.includes("title:'运行状态'"));
   assert(source.includes("title:'最近检测'"));
   assert(source.includes("title:'响应耗时'"));
@@ -537,19 +539,20 @@ test('页面数据完成前只显示Loading不渲染Empty业务内容',()=>{
   assert(css.includes('.portal-loading-placeholder{min-height:320px'));
 });
 
-test('用户类别Tag按类别使用不同配色',()=>{
+test('门户管理用户按认证类型区分标签且不把LOCAL作为普通用户类别',()=>{
   const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
-  assert(source.includes(':theme="userTypeTheme(row.userType)"'));
-  assert(source.includes("CITIZEN:'primary'"));
-  assert(source.includes("GOV:'success'"));
-  assert(source.includes("LOCAL:'warning'"));
+  assert(source.includes("adminAuthType(row)==='LOCAL'?'warning':'primary'"));
+  assert(source.includes("const authTypeOptions=[{value:'EXTERNAL',label:'外部身份'},{value:'LOCAL',label:'本地账号'}]"));
+  assert(source.includes('授权外部用户'));
+  assert(source.includes('新增本地管理账号'));
+  assert(!source.includes("const userTypeOptions=['CITIZEN','GOV','LOCAL']"));
 });
 
 test('系统提示框统一13px紧凑高度并覆盖用户详情来源提示',()=>{
   const user=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(user.includes('class="user-source-alert"'));
-  assert(user.includes('姓名、账号、用户类别和身份来源等权威身份字段来自'));
+  assert(user.includes('门户仅维护管理端授权，不修改上游权威身份主数据'));
   assert(css.includes('/* 2026-09-21 unified compact prompt/alert baseline. */'));
   assert(css.includes('.portal-page .t-alert,'));
   assert(css.includes('.t-dialog__body .t-alert{'));
