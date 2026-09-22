@@ -103,9 +103,10 @@ const uploadFiles=ref([]);
 const saving=ref(false),formError=ref('');
 const previewVisible=ref(false),previewRecord=ref(null);
 
-const isDraft=computed(()=>form.status==='DRAFT');
-const isScheduled=computed(()=>form.status==='SCHEDULED');
-const isWithdrawn=computed(()=>form.status==='WITHDRAWN');
+const currentDisplayStatus=computed(()=>form.displayStatus||form.status||'DRAFT');
+const isDraft=computed(()=>currentDisplayStatus.value==='DRAFT');
+const isScheduled=computed(()=>currentDisplayStatus.value==='SCHEDULED');
+const isWithdrawn=computed(()=>currentDisplayStatus.value==='WITHDRAWN');
 const isPublishEditable=computed(()=>isDraft.value||isScheduled.value||isWithdrawn.value);
 
 const typeOptions=computed(()=>{
@@ -132,8 +133,8 @@ function toEndOfDayIso(value){return value?new Date(String(value).slice(0,10)+'T
 function assign(record){
   Object.keys(form).forEach(key=>delete form[key]);
   Object.assign(form,JSON.parse(JSON.stringify(record||{})));
-  if(form.status==='WITHDRAWN'){form.publishMode='IMMEDIATE';form.scheduledPublishAt='';}
-  else if(!form.publishMode)form.publishMode=form.status==='SCHEDULED'?'SCHEDULED':'IMMEDIATE';
+  if(currentDisplayStatus.value==='WITHDRAWN'){form.publishMode='IMMEDIATE';form.scheduledPublishAt='';}
+  else if(!form.publishMode)form.publishMode=currentDisplayStatus.value==='SCHEDULED'?'SCHEDULED':'IMMEDIATE';
   if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
   if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
   uploadFiles.value=(form.attachments||[]).map(file=>({
@@ -198,7 +199,7 @@ async function saveBase(overrides={}){
   if(isScheduled.value&&form.publishMode==='SCHEDULED')payload.scheduledPublishAt=toIso(form.scheduledPublishAt);
   const result=await command('saveAnnouncement',payload);
   if(!result.ok){formError.value=result.error.message;return null;}
-  Object.assign(form,{id:result.data.id,version:result.data.version,status:result.data.status,scheduledPublishAt:result.data.scheduledPublishAt?toDateTimeValue(result.data.scheduledPublishAt):form.scheduledPublishAt});
+  Object.assign(form,{id:result.data.id,version:result.data.version,status:result.data.status,displayStatus:result.data.displayStatus||result.data.status,scheduledPublishAt:result.data.scheduledPublishAt?toDateTimeValue(result.data.scheduledPublishAt):form.scheduledPublishAt});
   return result.data;
 }
 
