@@ -51,6 +51,9 @@
             {{row.configStatus==='CONFIGURED'?'已配置':'未配置'}}
           </t-tag>
         </template>
+        <template #enabled="{row}">
+          <span>{{row.enabled}}</span>
+        </template>
         <template #runStatus="{row}">
           <StatusTag v-if="row.runStatus!=='-'" :value="row.runStatus"/>
           <span v-else>-</span>
@@ -93,6 +96,7 @@ const columns=[
 const detailColumns=[
   {colKey:'kind',title:'接入服务',width:100},
   {colKey:'configStatus',title:'配置状态',width:110},
+  {colKey:'enabled',title:'启用状态',width:100},
   {colKey:'runStatus',title:'运行状态',width:110},
   {colKey:'lastCheckedAt',title:'最近检测',width:165},
   {colKey:'lastSuccessAt',title:'最近成功',width:165},
@@ -103,11 +107,13 @@ const detailColumns=[
 
 const detailRows=computed(()=>kinds.map(kind=>{
   const item=detail.value?.services?.[kind]||{};
-  const configured=item.status!=='UNCONFIGURED';
+  const configStatus=item.configStatus||item.configurationStatus||(item.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
+  const runtimeStatus=item.runtimeStatus||item.status||'UNCONFIGURED';
   return {
     kind,
-    configStatus:configured?'CONFIGURED':'UNCONFIGURED',
-    runStatus:configured?(item.status||'-'):'-',
+    configStatus,
+    enabled:item.enabled==='ENABLED'?'启用':item.enabled==='DISABLED'?'停用':'-',
+    runStatus:configStatus==='CONFIGURED'?runtimeStatus:'-',
     lastCheckedAt:date(item.lastCheckedAt),
     lastSuccessAt:date(item.lastSuccessAt),
     lastFailureAt:date(item.lastFailureAt),
