@@ -41,13 +41,13 @@
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
-import {pages,can,scopes,labels} from './config/pages.js';
+import {pages,can,labels} from './config/pages.js';
 import {actor,availableUsers,portal,revision,login,logout} from './services/runtime.js';
 import PortalTooltip from './components/portal/PortalTooltip.vue';
 const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false),switching=ref(false);
 const admin=computed(()=>route.path.startsWith('/admin'));
 const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim();
-const typeLabel=user=>labels[user?.userType]||user?.userType||'用户';
+const typeLabel=user=>labels[user?.authType==='LOCAL'?'LOCAL':user?.userType]||user?.userType||'用户';
 const displayTitle=title=>String(title||'').replace('上层身份映射','闽政通 / 闽政务身份映射').replace('上层公共服务接入','公共服务接入');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
 const currentPageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':displayTitle(route.meta.title));
@@ -117,7 +117,7 @@ async function switchUser(id){
  finally{switching.value=false;}
 }
 function openProfile(){accountOpen.value=false;router.push('/portal/profile');}
-function changePassword(){accountOpen.value=false;if(actor.value?.userType==='LOCAL'){window.alert('当前为前端Mock阶段，本地账号密码修改将在数据库改造阶段接入真实凭证服务。');return;}window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
+function changePassword(){accountOpen.value=false;if(actor.value?.authType==='LOCAL'){window.alert('当前为前端Mock阶段，本地账号密码修改将在数据库改造阶段接入真实凭证服务。');return;}window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
 async function exitSystem(){accountOpen.value=false;try{await logout();router.replace('/login');}catch(error){window.alert(error.message);}}
 watch(()=>route.fullPath,()=>{accountOpen.value=false;});
 watch([actor,revision],async(_,__,onCleanup)=>{
