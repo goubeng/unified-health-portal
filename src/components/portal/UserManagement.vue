@@ -1,7 +1,8 @@
 <template>
   <section class="portal-list user-management">
     <Teleport v-if="canSuper" to="#page-header-actions">
-      <t-button theme="primary" @click="openCreate">新增本地管理账号</t-button>
+      <t-button variant="outline" theme="primary" @click="openCreateExternal">授权外部用户</t-button>
+      <t-button theme="primary" @click="openCreateLocal">新增本地管理账号</t-button>
     </Teleport>
 
     <t-form layout="inline" class="portal-query list-toolbar">
@@ -65,14 +66,14 @@
     <t-dialog
       v-model:visible="formVisible"
       placement="center"
-      :header="formMode==='create'?'新增本地管理账号':'编辑管理用户'"
+      :header="formMode==='createLocal'?'新增本地管理账号':formMode==='createExternal'?'授权外部用户':'编辑管理用户'"
       width="760px"
       :confirm-btn="{content:'保存',loading:saving}"
       :close-on-overlay-click="false"
       @confirm="save"
     >
       <div v-if="formError" class="error-note">{{formError}}</div>
-      <template v-if="formMode==='create'||adminAuthType(form)==='LOCAL'">
+      <template v-if="formMode==='createLocal'||formMode==='edit'&&adminAuthType(form)==='LOCAL'">
         <div class="form-grid">
           <div class="form-field"><label>管理账号 <span class="portal-required">*</span></label><t-input v-model="form.account" :disabled="formMode!=='create'" placeholder="请输入管理账号"/></div>
           <div class="form-field"><label>姓名 <span class="portal-required">*</span></label><t-input v-model="form.name" placeholder="请输入姓名"/></div>
@@ -86,7 +87,10 @@
         </t-alert>
       </template>
       <template v-else>
-        <DetailGrid :items="externalIdentityItems"/>
+        <div v-if="formMode==='createExternal'" class="form-grid">
+          <div class="form-field full"><label>绑定访问用户 <span class="portal-required">*</span></label><t-select v-model="form.accessUserId" filterable :options="accessUserOptions" placeholder="请选择闽政通/闽政务用户" @change="syncExternalCandidate"/></div>
+        </div>
+        <DetailGrid v-if="formMode!=='createExternal'||form.accessUserId" :items="externalIdentityItems"/>
         <div class="form-grid user-external-maintenance">
           <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
@@ -112,6 +116,7 @@ const props=defineProps({
   rows:{type:Array,default:()=>[]},
   roles:{type:Array,default:()=>[]},
   organizations:{type:Array,default:()=>[]},
+  accessUsers:{type:Array,default:()=>[]},
   canSuper:Boolean
 });
 const emit=defineEmits(['saved']);
@@ -128,6 +133,7 @@ const authTypeOptions=[{value:'EXTERNAL',label:'外部身份'},{value:'LOCAL',la
 const sourceOptions=['闽政通','闽政务','门户本地'].map(value=>({value,label:value}));
 const statusOptions=[{value:'NORMAL',label:'启用'},{value:'DISABLED',label:'停用'}];
 const roleOptions=computed(()=>props.roles.filter(role=>role.status==='ENABLED'||form.roleIds?.includes(role.id)).map(role=>({value:role.id,label:role.roleName})));
+const accessUserOptions=computed(()=>props.accessUsers.filter(user=>user.userType!=='LOCAL'&&!adminRows.value.some(admin=>admin.id===user.id||admin.accessUserId===user.id)).map(user=>({value:user.id,label:`${text(user.name)}（${text(user.account)} · ${text(user.identitySource)||source(user)}）`})));
 const adminRows=computed(()=>props.rows.filter(row=>row.adminSubject||row.kind==='ADMIN'||adminAuthType(row)==='LOCAL'||(row.roleIds||[]).length));
 
 const filtered=computed(()=>{
@@ -175,8 +181,14 @@ const externalIdentityItems=computed(()=>[
 function reset(){keyword.value='';authType.value='';identitySource.value='';roleId.value='';status.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function assignForm(row){Object.keys(form).forEach(key=>delete form[key]);Object.assign(form,JSON.parse(JSON.stringify(row)));}
-function openCreate(){formMode.value='create';assignForm({account:'',name:'',authType:'LOCAL',userType:'LOCAL',identitySource:'门户本地',status:'NORMAL',roleIds:[]});formError.value='';formVisible.value=true;}
+function openCreateLocal(){formMode.value='createLocal';assignForm({account:'',name:'',authType:'LOCAL',userType:'LOCAL',identitySource:'门户本地',status:'NORMAL',roleIds:[]});formError.value='';formVisible.value=true;}
+function openCreateExternal(){formMode.value='createExternal';assignForm({accessUserId:'',authType:'EXTERNAL',status:'NORMAL',roleIds:[]});formError.value='';formVisible.value=true;}
 function openEdit(row){formMode.value='edit';assignForm(row);formError.value='';formVisible.value=true;}
+function syncExternalCandidate(id){
+  const candidate=props.accessUsers.find(user=>user.id===id);
+  if(!candidate)return;
+  Object.assign(form,{account:candidate.account,name:candidate.name,userType:candidate.userType,identitySource:candidate.identitySource||source(candidate),orgName:candidate.orgName||'',accessUserId:candidate.id});
+}
 
 async function toggleStatus(row,enabled){
   const result=await command('setPortalUserStatus',{id:row.id,version:row.version,status:enabled?'NORMAL':'DISABLED'});
@@ -185,16 +197,19 @@ async function toggleStatus(row,enabled){
 }
 async function save(){
   if(saving.value)return;
-  if(!form.name?.trim()||formMode.value==='create'&&!form.account?.trim()){formError.value='请填写必填项';return;}
+  if(formMode.value==='createLocal'&&(!form.name?.trim()||!form.account?.trim())){formError.value='请填写必填项';return;}
+  if(formMode.value==='createExternal'&&!form.accessUserId){formError.value='请选择需要授权的外部用户';return;}
   saving.value=true;formError.value='';
-  const action=formMode.value==='create'?'createLocalPortalUser':'savePortalUser';
-  const payload=formMode.value==='create'
+  const action=formMode.value==='createLocal'?'createLocalPortalUser':formMode.value==='createExternal'?'createExternalPortalAdmin':'savePortalUser';
+  const payload=formMode.value==='createLocal'
     ?{account:form.account,name:form.name,roleIds:[...(form.roleIds||[])]}
-    :{id:form.id,version:form.version,status:form.status,roleIds:[...(form.roleIds||[])],name:form.name};
+    :formMode.value==='createExternal'
+      ?{accessUserId:form.accessUserId,status:form.status,roleIds:[...(form.roleIds||[])]}
+      :{id:form.id,version:form.version,status:form.status,roleIds:[...(form.roleIds||[])],name:form.name};
   const result=await command(action,payload);
   saving.value=false;
   if(!result.ok){formError.value=result.error.message;return;}
-  formVisible.value=false;MessagePlugin.success(formMode.value==='create'?'本地管理账号已创建':'管理用户信息已保存');emit('saved');
+  formVisible.value=false;MessagePlugin.success(formMode.value==='createLocal'?'本地管理账号已创建':formMode.value==='createExternal'?'外部用户管理资格已授权':'管理用户信息已保存');emit('saved');
 }
 function resetPassword(row){
   const dialog=DialogPlugin.confirm({placement:'center',header:'重置密码',body:'确认重置该门户本地管理账号密码？当前阶段只记录重置状态，不生成真实密码。',onConfirm:async()=>{
