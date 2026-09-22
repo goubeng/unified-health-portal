@@ -34,9 +34,9 @@
         <template #authType="{row}"><t-tag :theme="adminAuthType(row)==='LOCAL'?'warning':'primary'" variant="light">{{authTypeLabel(adminAuthType(row))}}</t-tag></template>
         <template #identitySource="{row}"><TableCellTooltip :text="identitySourceText(row)">{{identitySourceText(row)}}</TableCellTooltip></template>
         <template #roleLabels="{row}"><TableCellTooltip :text="text(row.roleLabels)||'无管理角色'">{{text(row.roleLabels)||'无管理角色'}}</TableCellTooltip></template>
-        <template #status="{row}">
+        <template #enabled="{row}">
           <t-switch
-            :value="row.status!=='DISABLED'"
+            :value="adminEnabled(row)"
             :disabled="adminAuthType(row)==='LOCAL'&&!canSuper"
             @change="toggleStatus(row,$event)"
           />
@@ -79,7 +79,7 @@
           <div class="form-field"><label>姓名 <span class="portal-required">*</span></label><t-input v-model="form.name" placeholder="请输入姓名"/></div>
           <div class="form-field"><label>认证类型</label><t-input :value="authTypeLabel('LOCAL')" disabled/></div>
           <div class="form-field"><label>身份来源</label><t-input value="门户本地" disabled/></div>
-          <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
+          <div class="form-field"><label>启用状态</label><t-switch v-model="form.enabled"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <t-alert theme="info" class="user-source-alert">
@@ -92,7 +92,7 @@
         </div>
         <DetailGrid v-if="formMode!=='createExternal'||form.accessUserId" :items="externalIdentityItems"/>
         <div class="form-grid user-external-maintenance">
-          <div class="form-field"><label>启用状态</label><t-switch :value="form.status!=='DISABLED'" @change="form.status=$event?'NORMAL':'DISABLED'"/></div>
+          <div class="form-field"><label>启用状态</label><t-switch v-model="form.enabled"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <t-alert theme="info" class="user-external-edit-alert">
@@ -126,15 +126,16 @@ const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null);
 const formVisible=ref(false),formMode=ref('edit'),form=reactive({}),formError=ref(''),saving=ref(false);
 
-const adminAuthType=row=>row?.authType||(row?.userType==='LOCAL'?'LOCAL':'EXTERNAL');
+const adminAuthType=row=>row?.authType||'EXTERNAL';
+const adminEnabled=row=>row?.enabled!==false&&row?.status!=='DISABLED'&&row?.adminStatus!=='DISABLED';
 const authTypeLabel=value=>value==='LOCAL'?'本地账号':'外部身份';
 const identitySourceText=row=>text(row?.identitySource)||source(row)||'-';
 const authTypeOptions=[{value:'EXTERNAL',label:'外部身份'},{value:'LOCAL',label:'本地账号'}];
 const sourceOptions=['闽政通','闽政务','门户本地'].map(value=>({value,label:value}));
-const statusOptions=[{value:'NORMAL',label:'启用'},{value:'DISABLED',label:'停用'}];
+const statusOptions=[{value:'ENABLED',label:'启用'},{value:'DISABLED',label:'停用'}];
 const roleOptions=computed(()=>props.roles.filter(role=>role.status==='ENABLED'||form.roleIds?.includes(role.id)).map(role=>({value:role.id,label:role.roleName})));
-const adminRows=computed(()=>props.rows.filter(row=>row.adminSubject||row.kind==='ADMIN'||adminAuthType(row)==='LOCAL'||(row.roleIds||[]).length));
-const accessUserOptions=computed(()=>props.accessUsers.filter(user=>user.userType!=='LOCAL'&&!adminRows.value.some(admin=>admin.id===user.id||admin.accessUserId===user.id)).map(user=>({value:user.id,label:`${text(user.name)}（${text(user.account)} · ${text(user.identitySource)||source(user)}）`})));
+const adminRows=computed(()=>props.rows.filter(row=>row.adminSubject||row.adminAccess||row.kind==='ADMIN'||(row.roleIds||[]).length));
+const accessUserOptions=computed(()=>props.accessUsers.filter(user=>['CITIZEN','GOV'].includes(user.userType)&&!adminRows.value.some(admin=>admin.id===user.id||admin.accessUserId===user.id)).map(user=>({value:user.id,label:`${text(user.name)}（${text(user.account)} · ${text(user.identitySource)||source(user)}）`})));
 
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
@@ -143,7 +144,7 @@ const filtered=computed(()=>{
     const matchType=!authType.value||adminAuthType(row)===authType.value;
     const matchSource=!identitySource.value||identitySourceText(row)===identitySource.value;
     const matchRole=!roleId.value||(row.roleIds||[]).includes(roleId.value);
-    const matchStatus=!status.value||row.status===status.value;
+    const matchStatus=!status.value||(status.value==='ENABLED'?adminEnabled(row):!adminEnabled(row));
     return matchKeyword&&matchType&&matchSource&&matchRole&&matchStatus;
   });
 });
@@ -156,7 +157,7 @@ const columns=[
   {colKey:'authType',title:'认证类型',width:110},
   {colKey:'identitySource',title:'身份来源',width:110},
   {colKey:'roleLabels',title:'门户角色',width:220,ellipsis:true},
-  {colKey:'status',title:'启用状态',width:110},
+  {colKey:'enabled',title:'启用状态',width:110},
   {colKey:'lastLoginAt',title:'最近管理端登录',width:180},
   {colKey:'operation',title:'操作',width:210,fixed:'right'}
 ];
@@ -165,7 +166,7 @@ const detailItems=computed(()=>{
   const row=detail.value||{};
   const items=[
     ['account','管理账号',row.account],['name','姓名',row.name],['authType','认证类型',authTypeLabel(adminAuthType(row))],['identitySource','身份来源',identitySourceText(row)],
-    ['roleLabels','门户角色',row.roleLabels||'无管理角色'],['status','启用状态',row.status==='DISABLED'?'停用':'启用'],['lastLoginAt','最近管理端登录',date(row.lastLoginAt)]
+    ['roleLabels','门户角色',row.roleLabels||'无管理角色'],['enabled','启用状态',adminEnabled(row)?'启用':'停用'],['lastLoginAt','最近管理端登录',date(row.lastLoginAt)]
   ];
   if(adminAuthType(row)==='LOCAL')items.push(['lockedUntil','锁定至',date(row.lockedUntil)]);
   return items.map(([key,labelText,value])=>({key,label:labelText,value}));
@@ -181,9 +182,9 @@ const externalIdentityItems=computed(()=>[
 function reset(){keyword.value='';authType.value='';identitySource.value='';roleId.value='';status.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function assignForm(row){Object.keys(form).forEach(key=>delete form[key]);Object.assign(form,JSON.parse(JSON.stringify(row)));}
-function openCreateLocal(){formMode.value='createLocal';assignForm({account:'',name:'',authType:'LOCAL',userType:'LOCAL',identitySource:'门户本地',status:'NORMAL',roleIds:[]});formError.value='';formVisible.value=true;}
-function openCreateExternal(){formMode.value='createExternal';assignForm({accessUserId:'',authType:'EXTERNAL',status:'NORMAL',roleIds:[]});formError.value='';formVisible.value=true;}
-function openEdit(row){formMode.value='edit';assignForm(row);formError.value='';formVisible.value=true;}
+function openCreateLocal(){formMode.value='createLocal';assignForm({account:'',name:'',authType:'LOCAL',identitySource:'门户本地',enabled:true,roleIds:[]});formError.value='';formVisible.value=true;}
+function openCreateExternal(){formMode.value='createExternal';assignForm({accessUserId:'',authType:'EXTERNAL',enabled:true,roleIds:[]});formError.value='';formVisible.value=true;}
+function openEdit(row){formMode.value='edit';assignForm({...row,enabled:adminEnabled(row)});formError.value='';formVisible.value=true;}
 function syncExternalCandidate(id){
   const candidate=props.accessUsers.find(user=>user.id===id);
   if(!candidate)return;
@@ -191,7 +192,7 @@ function syncExternalCandidate(id){
 }
 
 async function toggleStatus(row,enabled){
-  const result=await command('setPortalUserStatus',{id:row.id,version:row.version,status:enabled?'NORMAL':'DISABLED'});
+  const result=await command('setPortalUserStatus',{id:row.id,version:row.version,enabled});
   if(!result.ok){MessagePlugin.error(result.error.message);return;}
   MessagePlugin.success(enabled?'管理用户已启用':'管理用户已停用');emit('saved');
 }
@@ -204,8 +205,8 @@ async function save(){
   const payload=formMode.value==='createLocal'
     ?{account:form.account,name:form.name,roleIds:[...(form.roleIds||[])]}
     :formMode.value==='createExternal'
-      ?{accessUserId:form.accessUserId,status:form.status,roleIds:[...(form.roleIds||[])]}
-      :{id:form.id,version:form.version,status:form.status,roleIds:[...(form.roleIds||[])],name:form.name};
+      ?{accessUserId:form.accessUserId,enabled:form.enabled!==false,roleIds:[...(form.roleIds||[])]}
+      :{id:form.id,version:form.version,enabled:form.enabled!==false,roleIds:[...(form.roleIds||[])],name:form.name};
   const result=await command(action,payload);
   saving.value=false;
   if(!result.ok){formError.value=result.error.message;return;}
