@@ -19,8 +19,8 @@ test('应用逐项匹配原始需求42个未划除系统，描述与归组齐全
 
 test('每人多条待办消息、应用关联、公告与日志有足够展示数据且无展示占位词',()=>{
  const d=createSeed();assert.equal(d.schemaVersion,6);assert.equal(d.users.length,5);
- for(const actor of actors.filter(x=>x.userType!=='LOCAL')){assert(d.todos.filter(x=>x.userId===actor.id&&x.status==='PENDING').length>=8);assert(d.messages.filter(x=>x.userId===actor.id&&x.status==='UNREAD').length>=8);assert(d.mappings.filter(x=>x.userId===actor.id&&x.status==='BOUND').length>=5);}
- const local=actors.find(x=>x.userType==='LOCAL');assert(local);assert.equal(d.todos.filter(x=>x.userId===local.id).length,0);assert.equal(d.messages.filter(x=>x.userId===local.id).length,0);assert.equal(d.mappings.filter(x=>x.userId===local.id).length,0);
+ for(const actor of actors.filter(x=>['CITIZEN','GOV'].includes(x.userType))){assert(d.todos.filter(x=>x.userId===actor.id&&x.status==='PENDING').length>=8);assert(d.messages.filter(x=>x.userId===actor.id&&x.status==='UNREAD').length>=8);assert(d.mappings.filter(x=>x.userId===actor.id&&x.status==='BOUND').length>=5);}
+ const local=actors.find(x=>x.authType==='LOCAL');assert(local);assert.equal(local.userType,undefined);assert.equal(d.todos.filter(x=>x.userId===local.id).length,0);assert.equal(d.messages.filter(x=>x.userId===local.id).length,0);assert.equal(d.mappings.filter(x=>x.userId===local.id).length,0);
  assert(d.announcements.length>=8);assert(d.integrations.length>=42);
  for(const kind of ['login','access','operation','api','error'])assert(d.logs.some(x=>x.kind===kind));
  for(const rows of [d.apps,d.users,d.todos,d.messages,d.announcements])for(const row of rows)for(const key of ['name','title','description','content','orgName','roleName'])assert(!/模拟|演示|示例|上层身份/.test(row[key]||''),key);
@@ -28,8 +28,8 @@ test('每人多条待办消息、应用关联、公告与日志有足够展示�
 
 test('公众仅查看适用应用且不能绑定政务限定应用',async()=>{
  const d=createMockProvider();const s=createPortalService(d,()=>actors[0]);
- const apps=(await s.read('apps')).data;assert.equal(apps.length,15);assert(apps.every(x=>x.applicable&&x.status==='ENABLED'));
- const gov=d.read().apps.find(x=>x.userType==='GOV'&&x.status==='ENABLED');assert(!apps.some(x=>x.id===gov.id));
+ const apps=(await s.read('apps')).data;assert.equal(apps.length,15);assert(apps.every(x=>x.applicable&&x.enabled!==false));
+ const gov=d.read().apps.find(x=>x.userType==='GOV'&&x.enabled!==false);assert(!apps.some(x=>x.id===gov.id));
  assert.equal((await s.command('bind',{appId:gov.id,externalAccount:'account'})).error.code,'FORBIDDEN');
 });
 
@@ -41,7 +41,7 @@ test('v6缓存与旧版本隔离，持久化失败不提交内存事务',()=>{
 
 test('已有账号前后空白不能绕过占用冲突',async()=>{
  let actor=actors[1];const p=createMockProvider(),s=createPortalService(p,()=>actor);
- const app=p.read().apps.find(x=>x.userType==='BOTH'&&x.status==='ENABLED'&&!p.read().mappings.some(m=>m.appId===x.id));
+ const app=p.read().apps.find(x=>x.userType==='BOTH'&&x.enabled!==false&&!p.read().mappings.some(m=>m.appId===x.id));
  assert(app);assert((await s.command('bind',{appId:app.id,externalAccount:'shared_account'})).ok);
  actor=actors[0];assert.equal((await s.command('bind',{appId:app.id,externalAccount:' shared_account '})).data.status,'CONFLICT');
 });
