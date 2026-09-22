@@ -163,6 +163,7 @@
 </template>
 
 <script setup>
+import {createUUID} from '../utils/uuid.js';
 import EmptyState from '../components/portal/EmptyState.vue';
 import TableCellTooltip from '../components/portal/TableCellTooltip.vue';
 import {computed,h,reactive,ref,watch} from 'vue';
@@ -414,14 +415,14 @@ const userFormIdentity=computed(()=>[
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function openForm(action,row={}){
  Object.keys(form).forEach(key=>delete form[key]);
- const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',eventId:crypto.randomUUID(),sourceTodoId:'',sourceMessageId:''};
+ const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
  if(action==='savePortalUser')defaults.status='NORMAL';
  if(action==='saveSystemRole')defaults.status='ENABLED';
  Object.assign(form,defaults,JSON.parse(JSON.stringify(row)));
  if(action==='saveIntegration'){form.enabled=row.enabled||'DISABLED';form.protocol=['OIDC','SAML2','CUSTOM'].includes(row.protocol)?row.protocol:'OIDC';form.mode='PUSH';form.fieldMapping=JSON.stringify(row.fieldMapping||{},null,2);}
  for(const key of ['effectiveStart','effectiveEnd'])if(form[key])form[key]=toDateTimeValue(form[key]);
  formAction.value=action;formError.value='';bindFeedback.value=null;
- announcementUploadFiles.value=action==='saveAnnouncement'?(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),originAttachment:JSON.parse(JSON.stringify(file))})):[];
+ announcementUploadFiles.value=action==='saveAnnouncement'?(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||createUUID(),originAttachment:JSON.parse(JSON.stringify(file))})):[];
  formVisible.value=true;
 }
 async function saveForm(){
@@ -533,10 +534,10 @@ async function normalizeAnnouncementFiles(files){
   if(size>2*1024*1024)throw new Error('单个附件不能超过2MB');
   if(raw){
    const data=await fileToDataUrl(raw);
-   result.push({id:item.id||'FILE_'+crypto.randomUUID(),name:raw.name||item.name||'附件',size:raw.size||size,type:raw.type||item.type||'',uploadedAt:new Date().toISOString(),data});
+   result.push({id:item.id||'FILE_'+createUUID(),name:raw.name||item.name||'附件',size:raw.size||size,type:raw.type||item.type||'',uploadedAt:new Date().toISOString(),data});
    continue;
   }
-  if(item?.url?.startsWith('data:'))result.push({id:item.id||'FILE_'+crypto.randomUUID(),name:item.name||'附件',size,type:item.type||'',uploadedAt:new Date().toISOString(),data:item.url});
+  if(item?.url?.startsWith('data:'))result.push({id:item.id||'FILE_'+createUUID(),name:item.name||'附件',size,type:item.type||'',uploadedAt:new Date().toISOString(),data:item.url});
  }
  return result;
 }
