@@ -124,6 +124,7 @@
 </template>
 
 <script setup>
+import {createUUID} from '../../utils/uuid.js';
 import {computed,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
@@ -179,7 +180,7 @@ function assign(row){
   if(!form.status)form.status='DRAFT';
   if(form.effectiveEnd)form.effectiveEnd=toDateValue(form.effectiveEnd);
   if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
-  uploadFiles.value=(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||crypto.randomUUID(),originAttachment:JSON.parse(JSON.stringify(file))}));
+  uploadFiles.value=(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||createUUID(),originAttachment:JSON.parse(JSON.stringify(file))}));
 }
 function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',publishMode:'IMMEDIATE',scheduledPublishAt:'',effectiveEnd:'',content:'',attachments:[]});formError.value='';formVisible.value=true;}
 function openEdit(row){editRow.value=JSON.parse(JSON.stringify(row));editVisible.value=true;}
@@ -265,8 +266,8 @@ async function normalizeFiles(files,originals){
     if(original?.data){result.push(original);continue;}
     const raw=item?.raw||item?.rawFile||item?.file||((typeof File!=='undefined'&&item instanceof File)?item:null);
     const size=Number(raw?.size??item?.size??0);if(size>2*1024*1024)throw new Error('单个附件不能超过2MB');
-    if(raw){result.push({id:item.id||'FILE_'+crypto.randomUUID(),name:raw.name||item.name||'附件',size:raw.size||size,type:raw.type||item.type||'',uploadedAt:new Date().toISOString(),data:await fileToDataUrl(raw)});continue;}
-    if(item?.url?.startsWith('data:'))result.push({id:item.id||'FILE_'+crypto.randomUUID(),name:item.name||'附件',size,type:item.type||'',uploadedAt:new Date().toISOString(),data:item.url});
+    if(raw){result.push({id:item.id||'FILE_'+createUUID(),name:raw.name||item.name||'附件',size:raw.size||size,type:raw.type||item.type||'',uploadedAt:new Date().toISOString(),data:await fileToDataUrl(raw)});continue;}
+    if(item?.url?.startsWith('data:'))result.push({id:item.id||'FILE_'+createUUID(),name:item.name||'附件',size,type:item.type||'',uploadedAt:new Date().toISOString(),data:item.url});
   }
   return result;
 }
