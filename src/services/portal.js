@@ -1,5 +1,5 @@
 import {createUUID} from '../utils/uuid.js';
-import {can,permissions,permissionsFromScopes,scopesFromPermissions} from '../config/pages.js';
+import {can,permissions,permissionsFromScopes} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
 import {rules} from '../config/rules.js';
 import {integrationFields,terminalStatuses} from '../config/integration-contract.js';
@@ -68,9 +68,9 @@ export function createPortalService(provider,getActor){
  const roleNames=(d,user)=>(user.roleIds||[]).map(id=>(d.roles||[]).find(role=>role.id===id)?.roleName).filter(Boolean);
  const permissionsFromRoles=(d,ids)=>[...new Set((ids||[]).flatMap(id=>{const role=(d.roles||[]).find(item=>item.id===id&&item.status==='ENABLED');return role?.permissions||permissionsFromScopes(role?.scopes||[]);} ))];
  const adminSubject=user=>Boolean(user.adminAccess||user.adminSubject||user.kind==='ADMIN'||(user.roleIds||[]).length);
- const decorateUser=(d,user)=>({...user,enabled:accessUserEnabled(user),accessStatus:user.status,authType:user.authType||'EXTERNAL',adminSubject:adminSubject(user),adminAccess:adminSubject(user)&&adminUserEnabled(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色',permissions:user.permissions||permissionsFromRoles(d,user.roleIds||[])});
+ const decorateUser=(d,user)=>{const {scopes:_legacyScopes,...base}=user;return {...base,enabled:accessUserEnabled(user),accessStatus:user.status,authType:user.authType||'EXTERNAL',adminSubject:adminSubject(user),adminAccess:adminSubject(user)&&adminUserEnabled(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色',permissions:user.permissions||permissionsFromRoles(d,user.roleIds||[])};};
  const decorateAdminUser=(d,user)=>({...decorateUser(d,user),enabled:adminUserEnabled(user),status:user.adminStatus||'NORMAL',adminStatus:user.adminStatus||'NORMAL'});
- const syncUserRolePermissions=(d,user)=>{const requested=permissionsFromRoles(d,user.roleIds||[]);user.permissions=requested;user.scopes=scopesFromPermissions(requested);user.adminSubject=Boolean(user.adminSubject||user.authType==='LOCAL'||requested.length);user.adminAccess=user.adminSubject&&adminUserEnabled(user);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
+ const syncUserRolePermissions=(d,user)=>{const requested=permissionsFromRoles(d,user.roleIds||[]);user.permissions=requested;delete user.scopes;user.adminSubject=Boolean(user.adminSubject||user.authType==='LOCAL'||requested.length);user.adminAccess=user.adminSubject&&adminUserEnabled(user);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
  const monitorStatus=(app,item)=>{
   if(!appEnabled(app))return 'DISABLED';
   if(!item)return 'UNCONFIGURED';
@@ -149,7 +149,7 @@ export function createPortalService(provider,getActor){
    });
    if(resource==='identityMappings')return (d.users||actors).filter(x=>['CITIZEN','GOV'].includes(x.userType)).map(x=>({id:x.id,name:x.name,source:identitySourceName(x),status:'BOUND'}));
    if(resource==='exceptions')return d.mappings.filter(x=>x.status==='CONFLICT'||x.status==='FAILED');
-   if(resource==='roles')return (d.roles||[]).map(role=>({...role,permissions:role.permissions||permissionsFromScopes(role.scopes||[]),userCount:(d.users||[]).filter(user=>adminSubject(user)&&(user.roleIds||[]).includes(role.id)).length,permissionLabels:(role.permissions||permissionsFromScopes(role.scopes||[])).map(code=>permissions[code]||code).join('、')||'无门户管理权限'}));
+   if(resource==='roles')return (d.roles||[]).map(role=>{const rolePermissions=role.permissions||permissionsFromScopes(role.scopes||[]),{scopes:_legacyScopes,...base}=role;return {...base,permissions:rolePermissions,userCount:(d.users||[]).filter(user=>adminSubject(user)&&(user.roleIds||[]).includes(role.id)).length,permissionLabels:rolePermissions.map(code=>permissions[code]||code).join('、')||'无门户管理权限'};});
    if(resource==='permissions')return Object.entries(permissions).map(([code,name])=>({id:code,code,name,description:'用于控制卫健统一门户内部页面与操作权限；不授予任何子系统业务权限。',status:'ENABLED'}));
    if(resource==='external')return [];
    if(resource==='adminHome'){
@@ -220,7 +220,7 @@ export function createPortalService(provider,getActor){
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'LOCAL',identitySource:'门户本地',
       orgName:'',orgKey:'',mobile:'未提供',email:'未提供',department:'',jobTitle:'',
-      permissions:[],scopes:[],roleIds,enabled:true,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
+      permissions:[],roleIds,enabled:true,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
      syncUserRolePermissions(d,x);d.users.push(x);result=decorateAdminUser(d,x);
     }else if(action==='setPortalUserStatus'){
      const x=requireRow(d.users,p.id,p.version);if(!adminSubject(x))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端启用状态');
@@ -301,7 +301,7 @@ export function createPortalService(provider,getActor){
      if(p.id==='ROLE_SUPER'&&(!requested.includes('system:super')||p.status==='DISABLED'))fail('INVALID_TRANSITION','门户超级管理员角色必须保持启用并保留超级管理权限');
      const x=p.id?requireRow(d.roles,p.id,p.version):{id:id(),version:0,createdAt:now,builtIn:false};
      if(x.builtIn&&(p.roleCode.trim()!==x.roleCode||p.roleName.trim()!==x.roleName))fail('INVALID_TRANSITION','内置角色名称与编码不可修改');
-     Object.assign(x,{roleName:p.roleName.trim(),roleCode:p.roleCode.trim(),description:p.description||'',permissions:requested,scopes:scopesFromPermissions(requested),status:p.status});stamp(x);if(!p.id)d.roles.push(x);
+     Object.assign(x,{roleName:p.roleName.trim(),roleCode:p.roleCode.trim(),description:p.description||'',permissions:requested,status:p.status});delete x.scopes;stamp(x);if(!p.id)d.roles.push(x);
      (d.users||[]).forEach(user=>{if((user.roleIds||[]).includes(x.id)){syncUserRolePermissions(d,user);stamp(user);}});
      const current=(d.users||[]).find(user=>user.id===a.id);if(current&&!can(current,'system:super'))fail('INVALID_TRANSITION','本次角色修改会移除当前账号超级管理权限，请先调整用户角色');
      result=x;
