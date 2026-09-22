@@ -6,9 +6,10 @@ import {createPortalService} from '../src/services/portal.js';
 import {actors} from '../src/mock/seed.js';
 import {createMemoryRepository} from '../server/repository.mjs';
 
-function setup(index=0){
+function setup(index=0,prepare=()=>{}){
   let actor=actors[index];
   const provider=createMockProvider();
+  provider.transact(data=>{prepare(data);return null;});
   const service=createPortalService(provider,()=>actor);
   return {
     provider,service,
@@ -39,7 +40,10 @@ test('LOCAL本地管理员不参与普通用户应用、待办、消息和子系
 });
 
 test('REQUEST应用可提交、管理员审核、用户获得门户入口资格后直接进入',async()=>{
-  const h=setup(0);
+  const h=setup(0,data=>{
+    data.applicationRequests=(data.applicationRequests||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_13'));
+    data.applicationGrants=(data.applicationGrants||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_13'));
+  });
   let app=(await h.read('apps')).find(x=>x.id==='MOCK_APP_13');
   assert.equal(app.accessState,'REQUEST_REQUIRED');
 
@@ -59,7 +63,11 @@ test('REQUEST应用可提交、管理员审核、用户获得门户入口资格�
 });
 
 test('REQUEST+BIND应用审核通过后仍需绑定，OTP验证后才允许进入',async()=>{
-  const h=setup(0);
+  const h=setup(0,data=>{
+    data.applicationRequests=(data.applicationRequests||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_17'));
+    data.applicationGrants=(data.applicationGrants||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_17'));
+    data.mappings=(data.mappings||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_17'));
+  });
   let app=(await h.read('apps')).find(x=>x.id==='MOCK_APP_17');
   assert.equal(app.accessState,'REQUEST_REQUIRED');
 
@@ -87,7 +95,10 @@ test('REQUEST+BIND应用审核通过后仍需绑定，OTP验证后才允许进�
 });
 
 test('未找到子系统账号时可提交开通申请，管理员模拟完成后重新发现候选并关联',async()=>{
-  const h=setup(0);
+  const h=setup(0,data=>{
+    data.accountOpeningRequests=(data.accountOpeningRequests||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_6'));
+    data.mappings=(data.mappings||[]).filter(x=>!(x.userId===actors[0].id&&x.appId==='MOCK_APP_6'&&x.status==='BOUND'));
+  });
   const app=(await h.read('apps')).find(x=>x.id==='MOCK_APP_6');
   const before=await h.run('discoverApplicationAccountCandidates',{appId:app.id});
   assert.equal(before.state,'NO_ACCOUNT');
