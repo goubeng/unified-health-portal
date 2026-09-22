@@ -26,7 +26,7 @@ function setup(prepare = () => {}) {
   async function request(path, payload, headers = {}) {
     const req = Readable.from(payload === undefined ? [] : [JSON.stringify(payload)]);
     Object.assign(req, {url: '/api/portal/' + path, method: payload === undefined ? 'GET' : 'POST',
-      headers: {host: 'localhost:3800', origin: 'http://localhost:3800', cookie, ...headers}});
+      headers: {host: 'localhost:4011', origin: 'http://localhost:4010', cookie, ...headers}});
     let status, result;
     const responseHeaders = {};
     const res = {
@@ -62,10 +62,10 @@ test('P5 公众/政务应用范围、当前会话与审计身份随切换更新'
   for (const index of [0, 1]) {
     await h.login(index);
     const actor = actors[index];
-    const expected = h.snapshot().apps.filter(a => a.status === 'ENABLED' && ['BOTH', actor.userType].includes(a.userType));
+    const expected = h.snapshot().apps.filter(a => a.enabled !== false && ['BOTH', actor.userType].includes(a.userType));
     assert.deepEqual((await h.read('apps')).map(a => a.id), expected.map(a => a.id));
     assert.equal((await h.read('profile')).id, actor.id);
-    const app = (await h.read('mine')).find(a => a.mappingStatus === 'BOUND' && a.runtimeStatus === 'NORMAL');
+    const app = (await h.read('mine')).find(a => a.mappingStatus === 'BOUND' && a.ssoRuntimeStatus === 'NORMAL');
     await h.run('enterApp', {id: app.id});
     const event = h.events.at(-1);
     assert.equal(event.actorId, actor.id);
@@ -86,7 +86,7 @@ test('P5 公众/政务应用范围、当前会话与审计身份随切换更新'
 test('P5 未关联应用关联后进入并出现在我的应用，跨范围关联被拒绝', async () => {
   const h = setup();
   await h.login(0);
-  const app = (await h.read('apps')).find(a => a.mappingStatus === 'UNBOUND' && a.runtimeStatus === 'NORMAL');
+  const app = (await h.read('apps')).find(a => a.mappingStatus === 'UNBOUND' && a.ssoRuntimeStatus === 'NORMAL');
   assert(app, '必须存在未关联应用测试样本');
   await h.reject('enterApp', {id: app.id}, 'INVALID_TRANSITION');
   const mapping = await h.run('bind', {appId: app.id, externalAccount: 'p5-citizen-account'});
@@ -97,7 +97,7 @@ test('P5 未关联应用关联后进入并出现在我的应用，跨范围关�
   assert.equal(entered.mode, 'MOCK');
   assert((await h.read('mine')).some(a => a.id === app.id));
   assert(h.snapshot().visits.some(v => v.appId === app.id && v.userId === actors[0].id));
-  const govApp = h.snapshot().apps.find(a => a.userType === 'GOV' && a.status === 'ENABLED');
+  const govApp = h.snapshot().apps.find(a => a.userType === 'GOV' && a.enabled !== false);
   await h.reject('bind', {appId: govApp.id, externalAccount: 'p5-forbidden'}, 'FORBIDDEN');
 });
 
@@ -209,7 +209,7 @@ test('P5 全量规则保存读回与非法值原子回滚，接入配置保存�
   await h.reject('saveRules', {items: current.map((item, i) => i === current.length - 1 ? current[0] : item)}, 'VALIDATION_ERROR');
   const config = (await h.read('sso'))[0];
   const updated = await h.run('saveIntegration', {...config, enabled: 'DISABLED', protocol: 'OIDC', clientId: 'p5-prototype', credentialRef: '', fieldMapping: {}});
-  assert.equal(updated.status, 'DISABLED');
+  assert.equal(updated.runtimeStatus, 'DISABLED');
   assert.equal((await h.read('sso')).find(c => c.id === config.id).clientId, 'p5-prototype');
   assert.equal(h.events.at(-1).actorId, actors[2].id);
   await h.login(0);
@@ -256,7 +256,7 @@ test('P5 我的应用与待办按本人映射隔离，客户端userId不能改�
     await h.login(index);
     const actor = actors[index], d = h.snapshot();
     const bound = new Set(d.mappings.filter(m => m.userId === actor.id && m.status === 'BOUND').map(m => m.appId));
-    const expected = d.apps.filter(a => bound.has(a.id) && a.status === 'ENABLED' && ['BOTH', actor.userType].includes(a.userType));
+    const expected = d.apps.filter(a => bound.has(a.id) && a.enabled !== false && ['BOTH', actor.userType].includes(a.userType));
     assert.deepEqual((await h.read('mine')).map(a => a.id), expected.map(a => a.id));
     assert.deepEqual(await h.read('todos'), d.todos.filter(t => t.userId === actor.id));
     const foreign = d.todos.find(t => t.userId !== actor.id && t.status === 'PENDING');
