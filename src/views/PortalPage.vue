@@ -38,7 +38,7 @@
       <section class="panel admin-work-panel">
        <div class="section-head"><h2>常用管理</h2></div>
        <div class="admin-shortcut-grid">
-        <button v-if="can(actor,'announcement')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
+        <button v-if="can(actor,'announcement:edit')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
          <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
          <span><strong>新增公告</strong><small>创建并发布门户公告</small></span>
         </button>
@@ -52,9 +52,9 @@
 
      <div class="admin-health-workbench-grid">
       <section v-if="overview.serviceHealth" class="panel admin-service-health-panel">
-       <div class="section-head"><h2>接入运行状态</h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看运行监控</router-link></div>
+       <div class="section-head"><h2>接入运行状态</h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看运行监控</router-link></div>
        <div class="admin-service-health-grid">
-        <button v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" type="button" class="admin-service-health-card" @click="can(actor,'integration')&&router.push('/admin/monitor')">
+        <button v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" type="button" class="admin-service-health-card" @click="can(actor,'monitor:view')&&router.push('/admin/monitor')">
          <strong>{{kind}}</strong>
          <span class="admin-health-stat is-normal"><Icon name="check-circle"/><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
          <span class="admin-health-stat is-abnormal"><Icon name="error-circle"/><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
@@ -64,9 +64,9 @@
       </section>
 
       <section class="panel admin-exception-panel">
-       <div class="section-head"><h2>接入异常 <span class="portal-count">{{homeExceptions.length}}</span></h2><router-link v-if="can(actor,'integration')" to="/admin/monitor">查看全部</router-link></div>
+       <div class="section-head"><h2>接入异常 <span class="portal-count">{{homeExceptions.length}}</span></h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看全部</router-link></div>
        <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button><p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p></div><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></div>
-       <EmptyState v-if="!homeExceptions.length" :description="can(actor,'integration')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
+       <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
       </section>
      </div>
 
@@ -80,14 +80,14 @@
      <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/all">应用中心</router-link></div><AppCards :apps="homeApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
    </template>
-   <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
+   <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.path" :rows="rows" :can-manage="can(actor,'identity:review')" :exceptions-only="route.path==='/admin/mapping-exceptions'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
    <TodoCenter v-else-if="resource==='todos'" :rows="rows"/>
    <MessageCenter v-else-if="resource==='messages'" :rows="rows" :receiver="actor?.name"/>
    <RulesSettings v-else-if="resource==='settings'" :rows="rows" @saved="load"/>
    <PersonalProfile v-else-if="resource==='profile'" :user="actor"/>
-   <UserManagement v-else-if="resource==='users'" :rows="rows" :roles="systemRoles" :organizations="organizations" :access-users="availableUsers" :can-super="can(actor,'super')" @saved="load"/>
+   <UserManagement v-else-if="resource==='users'" :rows="rows" :roles="systemRoles" :organizations="organizations" :access-users="availableUsers" :can-super="can(actor,'system:super')" @saved="load"/>
    <RoleManagement v-else-if="resource==='roles'" :rows="rows" @saved="load"/>
-   <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'super')" @saved="load"/>
+   <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'system:super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
    <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load" @detail="openAdminAnnouncementDetail"/>
    <MonitorManagement v-else-if="resource==='monitor'" :rows="rows"/>
@@ -121,7 +121,7 @@
       <template #primary="{row}"><TableCellTooltip :text="text(row[primaryField])||'-'"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></TableCellTooltip></template>
       <template v-if="resource==='apps'" #enabled="{row}"><t-switch :value="row.enabled!==false" @change="toggleAppStatus(row,$event)"/></template>
       <template #operation="{row}"><div class="row-actions">
-       <template v-if="resource==='apps'&&admin&&can(actor,'application')"><t-button size="small" variant="text" theme="primary" @click="openForm('saveApp',row)">编辑</t-button><t-button size="small" variant="text" theme="primary" @click="openConnectionConfig(row)">连接配置</t-button></template>
+       <template v-if="resource==='apps'&&admin&&can(actor,'application:edit')"><t-button size="small" variant="text" theme="primary" @click="openForm('saveApp',row)">编辑</t-button><t-button size="small" variant="text" theme="primary" @click="openConnectionConfig(row)">连接配置</t-button></template>
        <template v-if="resource==='categories'"><t-button size="small" variant="text" theme="primary" @click="openForm('saveCategory',row)">编辑</t-button><t-button size="small" variant="text" theme="danger" @click="confirm('removeCategory',row,'确认删除未被应用引用的分类？')">删除</t-button></template>
        <t-button v-if="resource==='todos'&&row.status==='PENDING'" size="small" variant="text" theme="primary" @click="run('openTodo',{id:row.id},true)">去处理</t-button>
        <template v-if="resource==='announcements'&&admin"><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="danger" @click="confirm('removeAnnouncement',row,'确认删除此草稿？删除后退出公告列表，回收档案保留。')">删除</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openForm('saveAnnouncement',row)">编辑</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="confirm('publish',row,'确认发布公告？发布后不可直接编辑。')">发布</t-button><t-button v-if="row.status==='PUBLISHED'" size="small" variant="text" theme="danger" @click="confirm('withdraw',row,'确认撤回公告？撤回后用户将不可见。')">撤回</t-button></template>
@@ -209,21 +209,21 @@ const accessDialogTitle=computed(()=>accessProfile.value?`${text(accessProfile.v
 const announcementViewStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const adminShortcuts=computed(()=>pages.filter(item=>['PG-202','PG-228','PG-205'].includes(item.id)&&can(actor.value,item.scope)));
 const adminOverviewCards=computed(()=>[
- {label:'纳管应用',value:overview.value.appCount??0,icon:'app',tone:'blue',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'启用应用',value:overview.value.enabledCount??0,icon:'check-circle',tone:'green',path:can(actor.value,'application')?'/admin/apps':''},
- {label:'门户访问用户',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'identity')?'/admin/identities':''},
- {label:'接入异常',value:overview.value.abnormalServiceCount??0,icon:'error-circle',tone:'red',path:can(actor.value,'integration')?'/admin/monitor':''}
+ {label:'纳管应用',value:overview.value.appCount??0,icon:'app',tone:'blue',path:can(actor.value,'application:view')?'/admin/apps':''},
+ {label:'启用应用',value:overview.value.enabledCount??0,icon:'check-circle',tone:'green',path:can(actor.value,'application:view')?'/admin/apps':''},
+ {label:'门户访问用户',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'identity:view')?'/admin/identities':''},
+ {label:'接入异常',value:overview.value.abnormalServiceCount??0,icon:'error-circle',tone:'red',path:can(actor.value,'monitor:view')?'/admin/monitor':''}
 ]);
 const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户管理用户授权',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
 const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
 const adminPendingItems=computed(()=>[
- {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
- {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
- {label:'账号确认审核',value:overview.value.pendingBindingReviewCount??0,hint:'高风险账号待审核',path:can(actor.value,'identity')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
- {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
- {label:'异常日志',value:overview.value.openErrorCount??0,hint:'待处理异常日志',path:can(actor.value,'audit')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
- {label:'待发布公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement')?'/admin/announcements':'',danger:false}
+ {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application:view')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
+ {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application:view')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
+ {label:'账号确认审核',value:overview.value.pendingBindingReviewCount??0,hint:'高风险账号待审核',path:can(actor.value,'identity:view')?'/admin/identities':'',danger:(overview.value.pendingBindingReviewCount??0)>0},
+ {label:'映射异常',value:overview.value.mappingExceptionCount??0,hint:'冲突/失败映射',path:can(actor.value,'identity:view')?'/admin/mapping-exceptions':'',danger:(overview.value.mappingExceptionCount??0)>0},
+ {label:'异常日志',value:overview.value.openErrorCount??0,hint:'待处理异常日志',path:can(actor.value,'audit:view')?'/admin/logs/error':'',danger:(overview.value.openErrorCount??0)>0},
+ {label:'待发布公告',value:overview.value.scheduledAnnouncementCount??0,hint:'等待定时发布',path:can(actor.value,'announcement:view')?'/admin/announcements':'',danger:false}
  ]);
 let loadVersion=0;
 async function read(key){const result=await portal.read(key);if(!result.ok)throw new Error(result.error.message);return result.data;}
@@ -232,20 +232,20 @@ async function load(){
  try{
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
   const tasks={apps:read(isAdmin?'adminApps':'apps')};
-  if(can(actor.value,'application')){tasks.categories=read('categories');if(isAdmin&&key==='apps')tasks.accessProfiles=read('access');}
+  if(can(actor.value,'application:view')){tasks.categories=read('categories');if(isAdmin&&key==='apps')tasks.accessProfiles=read('access');}
   if(home){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
-   if(isAdmin&&can(actor.value,'integration'))tasks.monitor=read('monitor');
+   if(isAdmin&&can(actor.value,'monitor:view'))tasks.monitor=read('monitor');
   }else if(center)tasks.mine=read('mine');
   else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}
   else if(key==='users'){tasks.rows=read('users');tasks.systemRoles=read('roles');tasks.organizations=read('organizations');}
   else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
   else if(key==='dictionaries'){tasks.dictionaryData=read('dictionaries');}
-  else if(key==='announcements'&&isAdmin){tasks.rows=read('adminAnnouncements');if(can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');}
+  else if(key==='announcements'&&isAdmin){tasks.rows=read('adminAnnouncements');if(can(actor.value,'dictionary:view'))tasks.dictionaryData=read('dictionaries');}
   else if(key==='announcementDetail'){
    tasks.rows=read(isAdmin?'adminAnnouncements':'announcements');
-   if(isAdmin&&can(actor.value,'system'))tasks.dictionaryData=read('dictionaries');
+   if(isAdmin&&can(actor.value,'dictionary:view'))tasks.dictionaryData=read('dictionaries');
   }
   else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcements'&&isAdmin?'adminAnnouncements':key);
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
@@ -307,8 +307,6 @@ const querySpec=computed(()=>{
   filterDef('userType','适用用户','请选择适用用户',fixedOptions(['BOTH','CITIZEN','GOV']),'userType')
  ]};
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
- if(key==='users')return {keywordPlaceholder:'姓名 / 登录账号 / 所属单位',keywordFields:['name','account','orgName'],filters:[filterDef('userType','用户类别','请选择用户类别',fixedOptions(['CITIZEN','GOV']),'userType'),filterDef('status','启用状态','请选择启用状态',fixedOptions(['NORMAL','DISABLED']),'status')]};
- if(key==='roles')return {keywordPlaceholder:'角色名称 / 角色编码 / 描述',keywordFields:['roleName','roleCode','description'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
  if(key==='myApplicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED','PROCESSING','COMPLETED']),'status')]};
  if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
  if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED']),'status')]};
@@ -337,7 +335,7 @@ watch([search,()=>JSON.stringify(filterValues),pageSize,appPageSize],()=>{page.v
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 const appGroups=computed(()=>['mine','other'].map(key=>{const entries=filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'));const current=Math.min(appPages[key],Math.max(1,Math.ceil(entries.length/appPageSize.value)));return {key,title:key==='mine'?'我的应用':'其它应用',page:current,total:entries.length,rows:entries.slice((current-1)*appPageSize.value,current*appPageSize.value)};}));
 function setAppPage(key,value){appPages[key]=value;}
-const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','permissionLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],todos:['title','appName','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
 const hasOperations=computed(()=>['apps','categories','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
