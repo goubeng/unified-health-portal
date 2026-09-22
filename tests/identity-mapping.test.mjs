@@ -33,13 +33,14 @@ test('identityOverview按用户聚合所有子系统映射，区分来源/有效
   });
   const before = h.provider.read();
   const rows = await h.read('identityOverview');
-  assert.equal(rows.length, before.users.length, '每个用户只占一行，零映射用户仍保留');
-  assert.equal(new Set(rows.map(row => row.id)).size, before.users.length);
-  for (const user of before.users) {
+  const accessUsers=before.users.filter(user=>['CITIZEN','GOV'].includes(user.userType));
+  assert.equal(rows.length, accessUsers.length, '每个访问用户只占一行，零映射用户仍保留');
+  assert.equal(new Set(rows.map(row => row.id)).size, accessUsers.length);
+  for (const user of accessUsers) {
     const row = rows.find(x => x.id === user.id);
     assert(row, `缺少用户 ${user.id}`);
     assert.equal(row.name, user.name);
-    assert.equal(row.source, user.userType === 'GOV' ? '闽政务' : user.userType === 'LOCAL' ? '门户本地' : '闽政通');
+    assert.equal(row.source, user.userType === 'GOV' ? '闽政务' : '闽政通');
     assert(Array.isArray(row.mappings), 'mappings必须为数组');
     const expected = before.mappings.filter(m => m.userId === user.id);
     assert.deepEqual(row.mappings.map(m => m.id).sort(), expected.map(m => m.id).sort());
@@ -58,11 +59,11 @@ test('identityOverview按用户聚合所有子系统映射，区分来源/有效
 test('identityOverview供门户管理员读取，普通用户不可读取', async () => {
   const h = setup();
   h.switchActor(3);
-  assert.equal((await h.read('identityOverview')).length, h.provider.read().users.length);
+  assert.equal((await h.read('identityOverview')).length, h.provider.read().users.filter(user=>['CITIZEN','GOV'].includes(user.userType)).length);
   h.switchActor(0);
   assert.equal((await h.service.read('identityOverview')).error?.code, 'FORBIDDEN');
   h.switchActor(4);
-  assert.equal((await h.read('identityOverview')).length, h.provider.read().users.length);
+  assert.equal((await h.read('identityOverview')).length, h.provider.read().users.filter(user=>['CITIZEN','GOV'].includes(user.userType)).length);
 });
 
 test('identityOverview解绑后更新聚合计数，保留映射历史且不影响其他用户', async () => {
