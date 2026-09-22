@@ -27,11 +27,11 @@
 
 - P3 数据库历史验收事实保持不变；
 - 0.3.0-A 前端页面字段与 DTO 已按 V20260921-01 冻结；仍需本地测试、构建和逐页浏览器验收后才能标记 PASS_FRONTEND；
-- B阶段输入契约已冻结：accessSubject/adminUser 拆分、resource:action permissions、应用 enabled、接入 configStatus/enabled/runtimeStatus、TODO/MESSAGE receivedAt、公告 status+displayStatus 均已在前端/Mock Service 对齐；历史 scopes 仅保留只读兼容适配，不再由新 Seed/新写入产生；正式数据库与 REST API 仍留 0.3.0-B/C，详见 `docs/02-开发/02-评审/现有前端差异核对.md`；
+- 演示业务契约已冻结：accessSubject/adminUser 拆分、resource:action permissions、应用 enabled、接入 configStatus/enabled/runtimeStatus、TODO/MESSAGE receivedAt、公告 status+displayStatus 均已在前端/Mock Service 对齐；历史 scopes 仅保留只读兼容适配，不再由新 Seed/新写入产生；这些目标模型继续作为Mock、接口文档和可选演示持久化的统一依据，详见 `docs/02-开发/02-评审/现有前端差异核对.md`；
 - 原0.3.0-B生产级数据库目标结构与Migration设计继续保留为参考，但不再作为当前演示原型的强制交付门槛；如演示需要数据持久化，只做当前业务模型所需的最小结构对齐；
 - 真实闽政通/闽政务、SSO/TODO/MESSAGE及约43个子系统逐一联调退出当前原型交付范围；相关设计文档继续作为接口真实性和后续实施参考；
 - 当前标准 `npm run api` 继续使用 MEMORY_A，不访问本地数据库；
-- 数据库改造和真实联调不得在 A 阶段提前标记完成；
+- 生产级数据库改造和真实联调不属于当前原型验收范围，不得误标为已完成；
 - 当前面向实施的需求/页面辅助口径已按主SRS清理；历史过程记录保留，不作为当前实现口径；
 - 当前P3数据库结构继续作为历史验收基线，尚未按V20260921-01目标Schema执行0.3.0-B迁移。
 
