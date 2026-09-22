@@ -133,8 +133,8 @@ const authTypeOptions=[{value:'EXTERNAL',label:'外部身份'},{value:'LOCAL',la
 const sourceOptions=['闽政通','闽政务','门户本地'].map(value=>({value,label:value}));
 const statusOptions=[{value:'NORMAL',label:'启用'},{value:'DISABLED',label:'停用'}];
 const roleOptions=computed(()=>props.roles.filter(role=>role.status==='ENABLED'||form.roleIds?.includes(role.id)).map(role=>({value:role.id,label:role.roleName})));
-const accessUserOptions=computed(()=>props.accessUsers.filter(user=>user.userType!=='LOCAL'&&!adminRows.value.some(admin=>admin.id===user.id||admin.accessUserId===user.id)).map(user=>({value:user.id,label:`${text(user.name)}（${text(user.account)} · ${text(user.identitySource)||source(user)}）`})));
 const adminRows=computed(()=>props.rows.filter(row=>row.adminSubject||row.kind==='ADMIN'||adminAuthType(row)==='LOCAL'||(row.roleIds||[]).length));
+const accessUserOptions=computed(()=>props.accessUsers.filter(user=>user.userType!=='LOCAL'&&!adminRows.value.some(admin=>admin.id===user.id||admin.accessUserId===user.id)).map(user=>({value:user.id,label:`${text(user.name)}（${text(user.account)} · ${text(user.identitySource)||source(user)}）`})));
 
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
