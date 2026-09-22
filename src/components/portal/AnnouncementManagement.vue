@@ -28,18 +28,18 @@
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}"><TableCellTooltip :text="text(row.title)"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></TableCellTooltip></template>
         <template #scope="{row}">{{label(row.scope)}}</template>
-        <template #status="{row}"><t-tag :theme="statusTheme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
+        <template #status="{row}"><t-tag :theme="statusTheme(displayStatus(row))" variant="light">{{label(displayStatus(row))}}</t-tag></template>
         <template #publishAt="{row}">
-          <span v-if="row.status==='SCHEDULED'">{{date(row.scheduledPublishAt)}}</span>
+          <span v-if="displayStatus(row)==='SCHEDULED'">{{date(row.scheduledPublishAt)}}</span>
           <span v-else>{{date(row.publishedAt)}}</span>
         </template>
         <template #effectiveEnd="{row}">{{row.effectiveEnd?dateOnly(row.effectiveEnd):'永久有效'}}</template>
         <template #operation="{row}">
           <div class="row-actions">
-            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(row.status)" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
-            <t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openSubmit(row)">提交</t-button>
-            <t-button v-if="['SCHEDULED','PUBLISHED'].includes(row.status)" size="small" variant="text" theme="danger" @click="withdraw(row)">撤回</t-button>
-            <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(row.status)" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
+            <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(displayStatus(row))" size="small" variant="text" theme="primary" @click="openEdit(row)">编辑</t-button>
+            <t-button v-if="displayStatus(row)==='DRAFT'" size="small" variant="text" theme="primary" @click="openSubmit(row)">提交</t-button>
+            <t-button v-if="['SCHEDULED','PUBLISHED'].includes(displayStatus(row))" size="small" variant="text" theme="danger" @click="withdraw(row)">撤回</t-button>
+            <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(displayStatus(row))" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
           </div>
         </template>
       </t-table>
@@ -151,11 +151,12 @@ const typeOptions=computed(()=>{
 });
 const scopeOptions=['ALL','CITIZEN','GOV'].map(value=>({value,label:label(value)}));
 const statusOptions=['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'].map(value=>({value,label:label(value)}));
+const displayStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const statusTheme=value=>value==='PUBLISHED'?'success':value==='SCHEDULED'?'warning':['WITHDRAWN','EXPIRED'].includes(value)?'default':'primary';
 
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
-  return props.rows.filter(row=>(!term||text(row.title).toLowerCase().includes(term))&&(!type.value||row.type===type.value)&&(!scope.value||row.scope===scope.value)&&(!status.value||row.status===status.value))
+  return props.rows.filter(row=>(!term||text(row.title).toLowerCase().includes(term))&&(!type.value||row.type===type.value)&&(!scope.value||row.scope===scope.value)&&(!status.value||displayStatus(row)===status.value))
     .sort((a,b)=>(Date.parse(b.updatedAt||b.createdAt)||0)-(Date.parse(a.updatedAt||a.createdAt)||0));
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
