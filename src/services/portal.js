@@ -8,7 +8,9 @@ const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
 const appRequiresBinding=app=>app?.accessMode==='BIND'||(app?.accessMode==='REQUEST'&&app?.postGrantMode==='BIND');
 const identitySourceName=user=>user?.authType==='LOCAL'?'门户本地':user?.userType==='GOV'?'闽政务':'闽政通';
-const entityEnabled=x=>x?.enabled!==false&&x?.enabled!=='DISABLED'&&x?.status!=='DISABLED'&&(x?.adminStatus||'NORMAL')!=='DISABLED';
+const accessUserEnabled=x=>['CITIZEN','GOV'].includes(x?.userType)&&x?.enabled!==false&&x?.status!=='DISABLED';
+const adminUserEnabled=x=>Boolean(x&&(x.adminAccess||x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)&&x.adminEnabled!==false&&(x.adminStatus||'NORMAL')!=='DISABLED'&&(x.authType!=='LOCAL'||(x.enabled!==false&&x.status!=='DISABLED')));
+const actorSessionEnabled=x=>x?.authType==='LOCAL'?adminUserEnabled(x):accessUserEnabled(x);
 const appEnabled=app=>app?.enabled!==false&&app?.status!=='DISABLED';
 const announcementDisplayStatus=(x,now=Date.now())=>{
  if(x.status==='WITHDRAWN')return 'WITHDRAWN';
@@ -24,7 +26,7 @@ const decorateAnnouncement=(x,now=Date.now())=>({...x,status:canonicalAnnounceme
 const visible=(x,a)=>announcementDisplayStatus(x)==='PUBLISHED'&&(!x.effectiveStart||Date.parse(x.effectiveStart)<=Date.now())&&(!x.effectiveEnd||Date.parse(x.effectiveEnd)>Date.now())&&(x.scope==='ALL'||x.scope===a.userType);
 const checkUrl=url=>{try{const u=new URL(url);if(!['https:','http:'].includes(u.protocol))throw Error();return u;}catch{fail('VALIDATION_ERROR','请输入有效的 HTTP/HTTPS 地址');}};
 export function createPortalService(provider,getActor){
- const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||!entityEnabled(actor))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:createUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:createUUID()};}};
+ const wrap=fn=>async(...args)=>{try{const selected=getActor();if(!selected)fail('UNAUTHENTICATED','请先登录');const actor=provider.kind==='mock'?(provider.read().users||actors).find(x=>x.id===selected.id):selected;if(!actor||!actorSessionEnabled(actor))fail('FORBIDDEN','当前用户已停用或不存在，请联系门户管理员');return {ok:true,data:await fn(actor,...args),requestId:createUUID()};}catch(e){return {ok:false,error:{code:e.code||'ERROR',message:e.message,retryable:false},requestId:createUUID()};}};
  const auth=(a,s)=>{if(!can(a,s))fail('FORBIDDEN','当前身份没有该权限范围');};
  const requireRow=(list,id,version)=>{const row=list.find(x=>x.id===id);if(!row)fail('NOT_FOUND','记录不存在');if(version!==undefined&&row.version!==version)fail('VERSION_CONFLICT','记录已更新，请刷新后重试');return row;};
  const requestFor=(d,a,appId)=>[...(d.applicationRequests||[])].filter(x=>x.userId===a.id&&x.appId===appId).sort((x,y)=>(Date.parse(y.submittedAt||y.createdAt)||0)-(Date.parse(x.submittedAt||x.createdAt)||0))[0]||null;
@@ -66,9 +68,9 @@ export function createPortalService(provider,getActor){
  const roleNames=(d,user)=>(user.roleIds||[]).map(id=>(d.roles||[]).find(role=>role.id===id)?.roleName).filter(Boolean);
  const permissionsFromRoles=(d,ids)=>[...new Set((ids||[]).flatMap(id=>{const role=(d.roles||[]).find(item=>item.id===id&&item.status==='ENABLED');return role?.permissions||permissionsFromScopes(role?.scopes||[]);} ))];
  const adminSubject=user=>Boolean(user.adminAccess||user.adminSubject||user.kind==='ADMIN'||(user.roleIds||[]).length);
- const decorateUser=(d,user)=>({...user,enabled:entityEnabled(user),accessStatus:user.status,authType:user.authType||'EXTERNAL',adminSubject:adminSubject(user),adminAccess:adminSubject(user)&&entityEnabled(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色',permissions:user.permissions||permissionsFromRoles(d,user.roleIds||[])});
- const decorateAdminUser=(d,user)=>({...decorateUser(d,user),enabled:entityEnabled(user),status:user.adminStatus||user.status,adminStatus:user.adminStatus||user.status});
- const syncUserRolePermissions=(d,user)=>{const requested=permissionsFromRoles(d,user.roleIds||[]);user.permissions=requested;user.scopes=scopesFromPermissions(requested);user.adminSubject=Boolean(user.adminSubject||user.authType==='LOCAL'||requested.length);user.adminAccess=user.adminSubject&&entityEnabled(user);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
+ const decorateUser=(d,user)=>({...user,enabled:accessUserEnabled(user),accessStatus:user.status,authType:user.authType||'EXTERNAL',adminSubject:adminSubject(user),adminAccess:adminSubject(user)&&adminUserEnabled(user),identitySource:identitySourceName(user),roleNames:roleNames(d,user),roleLabels:roleNames(d,user).join('、')||'无管理角色',permissions:user.permissions||permissionsFromRoles(d,user.roleIds||[])});
+ const decorateAdminUser=(d,user)=>({...decorateUser(d,user),enabled:adminUserEnabled(user),status:user.adminStatus||'NORMAL',adminStatus:user.adminStatus||'NORMAL'});
+ const syncUserRolePermissions=(d,user)=>{const requested=permissionsFromRoles(d,user.roleIds||[]);user.permissions=requested;user.scopes=scopesFromPermissions(requested);user.adminSubject=Boolean(user.adminSubject||user.authType==='LOCAL'||requested.length);user.adminAccess=user.adminSubject&&adminUserEnabled(user);user.kind=user.adminSubject?'ADMIN':'USER';user.roleName=roleNames(d,user)[0]||'普通用户';return user;};
  const monitorStatus=(app,item)=>{
   if(!appEnabled(app))return 'DISABLED';
   if(!item)return 'UNCONFIGURED';
@@ -160,7 +162,7 @@ export function createPortalService(provider,getActor){
     const accessUsers=(d.users||[]).filter(x=>['CITIZEN','GOV'].includes(x.userType));
     const adminUsers=(d.users||[]).filter(x=>adminSubject(x));
     return {appCount:d.apps.length,enabledCount:d.apps.filter(app=>appEnabled(app)).length,
-     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:accessUsers.length,enabledUserCount:accessUsers.filter(user=>entityEnabled(user)).length,adminUserCount:adminUsers.length,
+     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:accessUsers.length,enabledUserCount:accessUsers.filter(user=>accessUserEnabled(user)).length,adminUserCount:adminUsers.length,
      pendingAccessCount:(d.applicationRequests||[]).filter(x=>x.status==='PENDING').length,pendingAccountOpeningCount:(d.accountOpeningRequests||[]).filter(x=>['PENDING','PROCESSING'].includes(x.status)).length,
      pendingBindingReviewCount:(d.mappings||[]).filter(x=>x.status==='REVIEWING').length,mappingExceptionCount:(d.mappings||[]).filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,
      openErrorCount:(d.logs||[]).filter(x=>x.kind==='error'&&x.resolutionStatus==='OPEN').length,scheduledAnnouncementCount:(d.announcements||[]).filter(x=>announcementDisplayStatus(x)==='SCHEDULED').length,
@@ -209,14 +211,14 @@ export function createPortalService(provider,getActor){
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
      const enabled=p.enabled!==false;
-     Object.assign(x,{adminSubject:true,adminAccess:enabled,authType:'EXTERNAL',kind:'ADMIN',roleIds,enabled,adminStatus:enabled?'NORMAL':'DISABLED'});
+     Object.assign(x,{adminSubject:true,adminAccess:enabled,adminEnabled:enabled,authType:'EXTERNAL',kind:'ADMIN',roleIds,adminStatus:enabled?'NORMAL':'DISABLED'});
      syncUserRolePermissions(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='createLocalPortalUser'){
      if(!p.account?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','管理账号与姓名为必填');
      if((d.users||[]).some(user=>String(user.account).toLowerCase()===p.account.trim().toLowerCase()))fail('VALIDATION_ERROR','登录账号已存在');
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
-     const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,adminAccess:true,authType:'LOCAL',identitySource:'门户本地',
+     const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'LOCAL',identitySource:'门户本地',
       orgName:'',orgKey:'',mobile:'未提供',email:'未提供',department:'',jobTitle:'',
       permissions:[],scopes:[],roleIds,enabled:true,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
      syncUserRolePermissions(d,x);d.users.push(x);result=decorateAdminUser(d,x);
@@ -227,10 +229,10 @@ export function createPortalService(provider,getActor){
      if(x.id===a.id&&!p.enabled)fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
      if(isSuper&&!p.enabled){
-      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&entityEnabled(user)&&(user.roleIds||[]).includes('ROLE_SUPER'));
+      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&adminUserEnabled(user)&&(user.roleIds||[]).includes('ROLE_SUPER'));
       if(!activeSupers.length)fail('INVALID_TRANSITION','不能停用最后一个有效门户超级管理员');
      }
-     x.enabled=p.enabled;x.adminAccess=p.enabled;x.adminStatus=p.enabled?'NORMAL':'DISABLED';if(x.authType==='LOCAL')x.status=x.adminStatus;result=stamp(x);
+     x.adminEnabled=p.enabled;x.adminAccess=p.enabled;x.adminStatus=p.enabled?'NORMAL':'DISABLED';if(x.authType==='LOCAL'){x.enabled=p.enabled;x.status=x.adminStatus;}result=stamp(x);
     }else if(action==='resetLocalPassword'){
      const x=requireRow(d.users,p.id,p.version);if(x.authType!=='LOCAL')fail('INVALID_TRANSITION','外部身份用户密码由闽政通/闽政务管理');
      x.mustChangePassword=true;x.passwordResetAt=now;x.credentialStatus='MOCK_RESET';result=stamp(x);
@@ -243,11 +245,11 @@ export function createPortalService(provider,getActor){
      const requested=permissionsFromRoles(d,roleIds),removesSuper=(x.roleIds||[]).includes('ROLE_SUPER')&&!roleIds.includes('ROLE_SUPER');
      if(x.id===a.id&&(!p.enabled||!requested.includes('system:super')))fail('INVALID_TRANSITION','不能停用当前账号或移除自身超级管理权限');
      if(removesSuper||!p.enabled){
-      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&entityEnabled(user)&&(user.roleIds||[]).includes('ROLE_SUPER'));
+      const activeSupers=(d.users||[]).filter(user=>user.id!==x.id&&adminUserEnabled(user)&&(user.roleIds||[]).includes('ROLE_SUPER'));
       if((x.roleIds||[]).includes('ROLE_SUPER')&&!activeSupers.length)fail('INVALID_TRANSITION','不能移除或停用最后一个有效门户超级管理员');
      }
-     const editable={enabled:p.enabled,adminAccess:p.enabled,adminStatus:p.enabled?'NORMAL':'DISABLED',roleIds};
-     if(x.authType==='LOCAL')Object.assign(editable,{status:p.enabled?'NORMAL':'DISABLED',name:p.name?.trim()||x.name,adminSubject:true,authType:'LOCAL'});
+     const editable={adminEnabled:p.enabled,adminAccess:p.enabled,adminStatus:p.enabled?'NORMAL':'DISABLED',roleIds};
+     if(x.authType==='LOCAL')Object.assign(editable,{enabled:p.enabled,status:p.enabled?'NORMAL':'DISABLED',name:p.name?.trim()||x.name,adminSubject:true,authType:'LOCAL'});
      Object.assign(x,editable);syncUserRolePermissions(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='saveOrganization'){
      if(!p.code?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','组织编码与组织名称为必填');
