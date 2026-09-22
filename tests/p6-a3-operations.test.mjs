@@ -79,7 +79,7 @@ test('撤回和失效公告可删除并进入Mock回收档案',async()=>{
 test('登录日志覆盖LOCAL门户本地账号密码登录字段',async()=>{
   const h=setup();
   const rows=await h.read('logs:login');
-  const local=rows.find(x=>x.userType==='LOCAL');
+  const local=rows.find(x=>x.authType==='LOCAL');
   assert(local);
   assert.equal(local.identitySource,'PORTAL_LOCAL');
   assert.equal(local.loginMethod,'PASSWORD');
