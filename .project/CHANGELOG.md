@@ -1,3 +1,16 @@
+## 0.3.0-A3 - 2026-09-22 · B阶段启动前前端模型冻结
+
+- 前端页面字段与 DTO 按 V20260921-01 完成最终收口，状态进入 PRE_B_MODEL_FROZEN / LOCAL_RUN_PENDING。
+- 门户权限以 resource:action permissions 为权威字段；新 Seed、角色保存和管理用户授权不再写入 scopes，历史 scopes 仅作为只读兼容输入。
+- LOCAL 仅通过 adminUser.authType=LOCAL 表达，不再作为普通访问 userType；身份映射继续只处理 CITIZEN/GOV。
+- 应用页面与卡片统一消费 enabled，应用综合运行状态只使用 aggregateRuntimeStatus；旧 app.status/runtimeStatus/connectionStatus 不再输出到页面 DTO。
+- SSO/TODO/MESSAGE 统一消费 configStatus / enabled / runtimeStatus，移除 configurationStatus / connectionStatus 等页面兼容字段。
+- TODO 与 MESSAGE 列表、详情及首页统一消费 receivedAt，不再以 createdAt 作为接收时间 fallback。
+- Session 返回模型收敛为 accessSubject / adminUser / adminAccess / roles / permissions / authType / identitySource；前端 actor 仅由拆分 Session 派生，不再作为 Session DTO 字段。
+- 更新前端差异核对、分阶段执行计划、BASELINE、project.yaml 与 A阶段过程记录，并新增 pre-B 静态防回退测试。
+- 本轮未执行 npm test / npm run build / 浏览器逐页验收，因此 A阶段仍未标记 PASS_FRONTEND。
+- 本轮未执行任何数据库 DDL、Migration、Seed、NocoDB 写入或 api:db；0.3.0-B 仍为 NOT_STARTED。
+
 ## 0.3.0-A2 - 2026-09-22 · 前端业务模型收口
 
 - 管理首页“门户用户”改为“门户访问用户”，入口指向身份与子系统映射域。
