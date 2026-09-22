@@ -26,7 +26,24 @@ export function createPortalApi({repository=null,env=process.env}={}){
  const sessions=new Map();let queue=Promise.resolve();
  const serial=fn=>{const next=queue.then(fn,fn);queue=next.catch(()=>{});return next;};
  const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({...data,requestId:data.requestId||randomUUID()}));};
- const resolveActor=(req,state)=>{const sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('wj_portal='))?.slice(10),session=sessions.get(sid);if(!session||session.expires<Date.now()){if(sid)sessions.delete(sid);return null;}return state.users.find(x=>x.id===session.userId&&x.status!=='DISABLED')||null;};
+ const actorEnabled=x=>x&&x.enabled!==false&&x.status!=='DISABLED'&&(x.adminStatus||'NORMAL')!=='DISABLED';
+ const resolveActor=(req,state)=>{const sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('wj_portal='))?.slice(10),session=sessions.get(sid);if(!session||session.expires<Date.now()){if(sid)sessions.delete(sid);return null;}return state.users.find(x=>x.id===session.userId&&actorEnabled(x))||null;};
+ const sessionView=(state,actor)=>{
+  const access=actor&&['CITIZEN','GOV'].includes(actor.userType)?actor:null;
+  const admin=actor&&(actor.adminAccess||actor.adminSubject||actor.kind==='ADMIN')?actor:null;
+  const roles=admin?(admin.roleIds||[]).map(id=>(state.roles||[]).find(role=>role.id===id)).filter(Boolean).map(role=>({id:role.id,code:role.roleCode,name:role.roleName})):[];
+  return {
+   actor,
+   accessSubject:access?{id:access.id,account:access.account,name:access.name,userType:access.userType,identitySource:access.identitySource,orgName:access.orgName,enabled:access.enabled!==false}:null,
+   adminUser:admin?{id:admin.id,account:admin.account,name:admin.name,authType:admin.authType||'EXTERNAL',accessUserId:admin.authType==='EXTERNAL'&&access?access.id:null,enabled:actorEnabled(admin),lastLoginAt:admin.lastLoginAt||null}:null,
+   adminAccess:Boolean(admin&&actorEnabled(admin)),
+   roles,
+   permissions:admin?.permissions||[],
+   authType:admin?.authType||'EXTERNAL',
+   identitySource:admin?.identitySource||access?.identitySource||null,
+   users:(state.users||[]).filter(x=>actorEnabled(x)&&['CITIZEN','GOV'].includes(x.userType))
+  };
+ };
  const handle=async(req,res)=>{
   try{
    if(!/^((127\.0\.0\.1|localhost)(:4011)?)$/.test(req.headers.host||''))return send(res,403,resultError('FORBIDDEN','仅允许本机API入口'));
@@ -37,14 +54,14 @@ export function createPortalApi({repository=null,env=process.env}={}){
    await serial(async()=>{
     const {state,version}=await repository.load();const actor=resolveActor(req,state);
     if(path==='/api/portal/health')return send(res,200,{ok:true,data:{repository:repository.mode||'UNKNOWN',database:repository.database||null,schema:repository.schema||null,phase:repository.mode==='DATABASE'?'0.3.0-B/C':'0.3.0-A',version}});
-    if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:{actor,users:state.users.filter(x=>x.status!=='DISABLED')}});
+    if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:sessionView(state,actor)});
     if(path==='/api/portal/session'&&req.method==='POST'){
-     const next=state.users.find(x=>x.id===payload.userId&&x.status!=='DISABLED');if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
+     const next=state.users.find(x=>x.id===payload.userId&&actorEnabled(x));if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
      const event=makeEvent({actor:next,action:actor?'SWITCH_USER':'LOGIN',payload:{previousActor:actor?.id},state,result:{ok:true},kind:'LOGIN'});
      await repository.commit(state,state,version,event);
      const sid=randomBytes(32).toString('hex'),ttl=Number(state.settings.find(x=>x.code==='auth.session_ttl_seconds')?.value)||7200;
      const old=(req.headers.cookie||'').match(/wj_portal=([^;]+)/)?.[1];if(old)sessions.delete(old);sessions.set(sid,{userId:next.id,expires:Date.now()+ttl*1000});
-     res.setHeader('Set-Cookie',`wj_portal=${sid}; HttpOnly; SameSite=Strict; Path=/api/portal; Max-Age=${ttl}`);return send(res,200,{ok:true,data:next});
+     res.setHeader('Set-Cookie',`wj_portal=${sid}; HttpOnly; SameSite=Strict; Path=/api/portal; Max-Age=${ttl}`);return send(res,200,{ok:true,data:sessionView(state,next)});
     }
     if(path==='/api/portal/logout'&&req.method==='POST'){
      if(actor)await repository.commit(state,state,version,makeEvent({actor,action:'LOGOUT',state,result:{ok:true},kind:'LOGIN'}));
@@ -55,25 +72,25 @@ export function createPortalApi({repository=null,env=process.env}={}){
      const match=path.match(/^\/api\/portal\/ingest\/([^/]+)\/(todos|messages)$/);if(!match)return send(res,404,resultError('NOT_FOUND','接口不存在'));
      const appId=decodeURIComponent(match[1]),kind=match[2]==='todos'?'TODO':'MESSAGE',config=state.integrations.find(x=>x.appId===appId&&x.kind===kind);
      const rejectPush=async(code,message,status)=>{const result=resultError(code,message);const event=makeEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'});event.actorKind='APPLICATION';await repository.commit(state,state,version,event);return send(res,status,result);};
-     if(!config||config.enabled!=='ENABLED'||state.apps.find(x=>x.id===appId)?.status!=='ENABLED')return rejectPush('FORBIDDEN','来源接入未启用',403);
+     if(!config||config.enabled!=='ENABLED'||state.apps.find(x=>x.id===appId)?.enabled===false)return rejectPush('FORBIDDEN','来源接入未启用',403);
      const key=env[config.credentialRef],supplied=(req.headers.authorization||'').replace(/^Bearer /,'');
      if(!key||!supplied||!timingSafeEqual(hash(key),hash(supplied)))return rejectPush('UNAUTHENTICATED','接入凭据不匹配',401);
      const fields=integrationFields[kind];
      const input=Object.fromEntries(fields.map(k=>[k,payload[config.fieldMapping?.[k]||k]]));input.appId=appId;
      if(kind==='TODO')input.status=config.valueMapping?.status?.[input.status]||input.status;
-     if(fields.some(key=>key==='sourceRevision'?!Number.isSafeInteger(input[key]):typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');await repository.commit(state,state,version,makeEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'}));return send(res,400,result);}
-     const principal=state.users.find(x=>x.status!=='DISABLED'&&x.scopes.includes('super'));const machineService=createPortalService(provider,()=>principal);
+     if(fields.some(key=>typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');await repository.commit(state,state,version,makeEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'}));return send(res,400,result);}
+     const principal=state.users.find(x=>actorEnabled(x)&&can(x,'system:super'));const machineService=createPortalService(provider,()=>principal);
      const action=kind==='TODO'?'pushTodo':'pushMessage',result=await machineService.command(action,input);
      const event=makeEvent({action,payload:input,state,result,kind:'API'});event.actorKind='APPLICATION';event.details.source='BEARER_PUSH';
      await repository.commit(state,provider.read(),version,event);return send(res,statusFor(result),result);
     }
     if(!actor)return send(res,401,resultError('UNAUTHENTICATED','请先登录'));
     if(path==='/api/portal/contracts/public'&&req.method==='GET'){
-     if(!can(actor,'application'))return send(res,403,resultError('FORBIDDEN','需要应用管理权限'));
+     if(!can(actor,'application:view'))return send(res,403,resultError('FORBIDDEN','需要应用管理权限'));
      await repository.commit(state,state,version,makeEvent({actor,action:'DOWNLOAD_CONTRACT',state,result:{ok:true}}));return send(res,200,{ok:true,data:publicContract()});
     }
     if(path.startsWith('/api/portal/contracts/')&&req.method==='GET'){
-     if(!can(actor,'application'))return send(res,403,resultError('FORBIDDEN','需要集成管理权限'));
+     if(!can(actor,'application:view'))return send(res,403,resultError('FORBIDDEN','需要集成管理权限'));
      const [,kind,appId]=path.match(/^\/api\/portal\/contracts\/(TODO|MESSAGE)\/([^/]+)$/)||[];
      if(!kind||!state.apps.some(x=>x.id===appId))return send(res,404,resultError('NOT_FOUND','接入对象不存在'));
      const doc=contract(kind,appId),config=state.integrations.find(x=>x.kind===kind&&x.appId===appId);doc['x-field-mapping']=config?.fieldMapping||{};doc['x-value-mapping']=config?.valueMapping||{};
