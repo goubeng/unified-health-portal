@@ -131,8 +131,8 @@ const detailKeys=computed(()=>({
   api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['status','结果'],['requestId','请求ID']],
   error:[['createdAt','发生时间'],['severity','级别'],['moduleName','模块'],['errorCode','错误编码'],['errorMessage','异常信息'],['resolutionStatus','处理状态'],['resolutionNote','处理说明'],['resolvedAt','处理时间'],['requestId','请求ID']]
 }[props.kind]||[]));
-const actorTypeLabel=row=>row?.actorType==='PORTAL_ADMIN_USER'||row?.userType==='LOCAL'?'门户管理用户':'门户访问用户';
-const authTypeLabel=row=>row?.authType==='LOCAL'||row?.userType==='LOCAL'?'本地账号':'外部身份';
+const actorTypeLabel=row=>row?.actorType==='PORTAL_ADMIN_USER'?'门户管理用户':row?.actorType==='APPLICATION'?'应用':'门户访问用户';
+const authTypeLabel=row=>row?.authType==='LOCAL'?'本地账号':'外部身份';
 const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>{
   let value;
   if(key.endsWith('At')||key==='createdAt')value=date(detail.value?.[key]);
