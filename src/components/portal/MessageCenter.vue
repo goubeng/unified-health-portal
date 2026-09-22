@@ -12,7 +12,7 @@
     <template v-if="!activeMessage">
       <t-form layout="inline" class="portal-query list-toolbar message-filters">
         <t-form-item class="portal-query-keyword query-width-keyword" label="关键词"><t-input v-model="keyword" placeholder="消息标题" clearable/></t-form-item>
-        <t-form-item class="portal-query-select query-width-source" label="来源应用"><t-select v-model="sourceFilter" clearable placeholder="全部" :options="sourceOptions"/></t-form-item>
+        <t-form-item class="portal-query-select query-width-source" label="来源应用"><t-select v-model="sourceFilter" clearable filterable placeholder="全部" :options="sourceOptions"/></t-form-item>
         <t-form-item class="portal-query-select query-width-message-type" label="消息类型"><t-select v-model="typeFilter" clearable placeholder="全部" :options="typeOptions"/></t-form-item>
         <t-form-item class="portal-query-select query-width-status" label="阅读状态"><t-select v-model="statusFilter" clearable placeholder="全部" :options="statusOptions"/></t-form-item>
         <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetFilters">重置</t-button></t-form-item>
