@@ -63,7 +63,7 @@ function buttonText(app){
 }
 function buttonDisabled(app){
  if(app.status!=='ENABLED')return true;
- if(app.primaryAction==='ENTER'&&(app.aggregateRuntimeStatus||app.runtimeStatus)!=='NORMAL')return true;
+ if(app.primaryAction==='ENTER'&&(app.ssoRuntimeStatus||app.runtimeStatus)!=='NORMAL')return true;
  return false;
 }
 function trigger(app){
