@@ -18,11 +18,11 @@
         <t-tooltip content="右对齐"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('justifyRight')"><Icon name="format-vertical-align-right"/></t-button></t-tooltip>
         <span class="toolbar-divider"></span>
         <t-tooltip content="插入图片"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="imageInput?.click()"><Icon name="image"/></t-button></t-tooltip>
-        <t-tooltip content="导入Word/文本"><t-button size="small" variant="text" @click.prevent="wordInput?.click()">导入Word</t-button></t-tooltip>
+        <t-tooltip content="导入HTML/TXT"><t-button size="small" variant="text" @click.prevent="importInput?.click()">导入文本</t-button></t-tooltip>
         <span class="toolbar-divider"></span>
         <t-tooltip content="清除格式"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('removeFormat')"><Icon name="clear"/></t-button></t-tooltip>
         <input ref="imageInput" class="editor-hidden-input" type="file" accept="image/*" @change="insertImage"/>
-        <input ref="wordInput" class="editor-hidden-input" type="file" accept=".doc,.docx,.html,.htm,.txt" @change="importDocument"/>
+        <input ref="importInput" class="editor-hidden-input" type="file" accept=".html,.htm,.txt" @change="importDocument"/>
       </div>
       <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent"></div>
     </div>
@@ -51,7 +51,7 @@ import {Icon} from 'tdesign-icons-vue-next';
 
 const props=defineProps({modelValue:{type:String,default:''},files:{type:Array,default:()=>[]}});
 const emit=defineEmits(['update:modelValue','update:files']);
-const editor=ref(null),localFiles=ref([]),imageInput=ref(null),wordInput=ref(null);
+const editor=ref(null),localFiles=ref([]),imageInput=ref(null),importInput=ref(null);
 let syncing=false;
 
 function syncEditor(value){
@@ -84,7 +84,7 @@ async function importDocument(event){
   try{const raw=String(await readFile(file));const html=ext==='txt'?raw.replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])).replace(/\r?\n/g,'<br>'):raw;editor.value.innerHTML=html;syncContent();MessagePlugin.success('正文已导入');}catch(cause){MessagePlugin.error(cause.message);}
   return;
  }
- MessagePlugin.warning('当前A阶段已保留Word导入交互；.doc/.docx正文解析依赖尚未接入，请暂使用富文本编辑或上传为附件。');
+ MessagePlugin.warning('仅支持HTML/TXT正文导入；Word文件请作为附件上传。');
 }
 function emitFiles(){nextTick(()=>emit('update:files',[...localFiles.value]));}
 
