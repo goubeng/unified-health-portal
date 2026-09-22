@@ -118,13 +118,13 @@ export function createPortalService(provider,getActor){
   read:wrap((a,resource)=>{
    if(provider.kind!=='mock')fail('CAPABILITY_UNAVAILABLE','真实服务尚未配置');
    const d=provider.read(),allApps=decorate(d,a),userApps=accountApps(d,a);
-   if(resource==='apps')return allApps.filter(x=>x.applicable&&x.status==='ENABLED');
-   if(resource==='adminApps'){auth(a,'application');return allApps;}
+   if(resource==='apps')return allApps.filter(x=>x.applicable&&x.enabled);
+   if(resource==='adminApps'){auth(a,'application:view');return allApps;}
    if(resource==='mine')return userApps.filter(x=>['DIRECT','BOUND'].includes(x.accessState));
    if(resource==='todos')return d.todos.filter(x=>own(x,a));
    if(resource==='messages')return d.messages.filter(x=>own(x,a)&&!x.deleted);
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...decorateAnnouncement(x),readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
-   if(resource==='adminAnnouncements'){auth(a,'announcement');return d.announcements.map(x=>decorateAnnouncement(x));}
+   if(resource==='adminAnnouncements'){auth(a,'announcement:view');return d.announcements.map(x=>decorateAnnouncement(x));}
    if(resource==='profile')return decorateUser(d,a);
    if(resource==='myApplicationRequests'){
     const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>{const app=d.apps.find(item=>item.id===x.appId);return {...x,requestType:'APPLICATION_ACCESS',appName:app?.name||x.appName,accessMode:app?.accessMode||'REQUEST',postGrantMode:app?.postGrantMode||'DIRECT'};});
@@ -132,23 +132,23 @@ export function createPortalService(provider,getActor){
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
    if(resource==='home')return {appCount:userApps.length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
-   const permissions={categories:'application',access:'application',applicationRequests:'application',accountOpeningRequests:'application',identityOverview:'identity',identities:'identity',identityMappings:'identity',mappings:'identity',exceptions:'identity',roles:'system',permissions:'super',sso:'integration',todoIntegration:'integration',messageIntegration:'integration',external:'integration',settings:'super',monitor:'integration',adminHome:'any',users:'system',organizations:'system',dictionaries:'system'};
-   auth(a,resource.startsWith('logs:')?'audit':permissions[resource]||'super');
+   const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',adminHome:'any',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
+   auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
    if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(['categories','settings','mappings','organizations'].includes(resource))return d[resource];
    if(resource==='dictionaries')return {types:d.dictTypes||[],items:d.dictItems||[]};
    if(resource==='users')return (d.users||actors).filter(user=>adminSubject(user)).map(user=>decorateAdminUser(d,user));
-   if(resource==='identities')return (d.users||actors).filter(user=>user.userType!=='LOCAL').map(user=>decorateUser(d,user));
-   if(resource==='identityOverview')return d.users.filter(user=>user.userType!=='LOCAL').map(user=>{
+   if(resource==='identities')return (d.users||actors).filter(user=>['CITIZEN','GOV'].includes(user.userType)).map(user=>decorateUser(d,user));
+   if(resource==='identityOverview')return d.users.filter(user=>['CITIZEN','GOV'].includes(user.userType)).map(user=>{
     const mappings=d.mappings.filter(m=>m.userId===user.id).map(m=>({...m,appName:d.apps.find(app=>app.id===m.appId)?.name||m.appName,todoCount:d.todos.filter(t=>t.userId===user.id&&t.appId===m.appId).length,messageCount:d.messages.filter(t=>t.userId===user.id&&t.appId===m.appId).length}));
     return {...decorateUser(d,user),user:{...decorateUser(d,user),source:identitySourceName(user)},source:identitySourceName(user),mappings,boundCount:mappings.filter(m=>m.status==='BOUND').length,reviewCount:mappings.filter(m=>m.status==='REVIEWING').length,exceptionCount:mappings.filter(m=>['FAILED','CONFLICT'].includes(m.status)).length};
    });
-   if(resource==='identityMappings')return (d.users||actors).filter(x=>x.userType!=='LOCAL').map(x=>({id:x.id,name:x.name,source:identitySourceName(x),status:'BOUND'}));
+   if(resource==='identityMappings')return (d.users||actors).filter(x=>['CITIZEN','GOV'].includes(x.userType)).map(x=>({id:x.id,name:x.name,source:identitySourceName(x),status:'BOUND'}));
    if(resource==='exceptions')return d.mappings.filter(x=>x.status==='CONFLICT'||x.status==='FAILED');
-   if(resource==='roles')return (d.roles||[]).map(role=>({...role,userCount:(d.users||[]).filter(user=>(user.adminSubject||user.kind==='ADMIN'||user.userType==='LOCAL'||(user.roleIds||[]).length)&&(user.roleIds||[]).includes(role.id)).length,scopeLabels:(role.scopes||[]).map(s=>scopes[s]||s).join('、')||'无门户管理权限'}));
-   if(resource==='permissions')return Object.entries(scopes).map(([code,name])=>({id:code,code,name,description:'用于控制卫健统一门户内部页面与操作权限；不授予任何子系统业务权限。',status:'ENABLED'}));
+   if(resource==='roles')return (d.roles||[]).map(role=>({...role,permissions:role.permissions||permissionsFromScopes(role.scopes||[]),userCount:(d.users||[]).filter(user=>adminSubject(user)&&(user.roleIds||[]).includes(role.id)).length,permissionLabels:(role.permissions||permissionsFromScopes(role.scopes||[])).map(code=>permissions[code]||code).join('、')||'无门户管理权限'}));
+   if(resource==='permissions')return Object.entries(permissions).map(([code,name])=>({id:code,code,name,description:'用于控制卫健统一门户内部页面与操作权限；不授予任何子系统业务权限。',status:'ENABLED'}));
    if(resource==='external')return [];
    if(resource==='adminHome'){
     const monitor=monitorProfiles(d),health={};
@@ -157,7 +157,7 @@ export function createPortalService(provider,getActor){
       abnormal:monitor.filter(row=>row.services[kind].status==='ABNORMAL').length,
       unconfigured:monitor.filter(row=>['UNCONFIGURED','DISABLED'].includes(row.services[kind].status)).length
     };
-    const accessUsers=(d.users||[]).filter(x=>x.userType!=='LOCAL');
+    const accessUsers=(d.users||[]).filter(x=>['CITIZEN','GOV'].includes(x.userType));
     const adminUsers=(d.users||[]).filter(x=>x.adminSubject||x.kind==='ADMIN'||x.userType==='LOCAL'||(x.roleIds||[]).length);
     return {appCount:d.apps.length,enabledCount:d.apps.filter(x=>x.status==='ENABLED').length,
      abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:accessUsers.length,enabledUserCount:accessUsers.filter(x=>x.status!=='DISABLED').length,adminUserCount:adminUsers.length,
@@ -183,8 +183,17 @@ export function createPortalService(provider,getActor){
      return stamp(mapping);
     };
     let result=null;
-    const scopesByAction={removeAnnouncement:'announcement',submitAnnouncement:'announcement',saveRules:'super',createLocalPortalUser:'super',createExternalPortalAdmin:'super',savePortalUser:'super',resetLocalPassword:'super',unlockLocalUser:'super',setPortalUserStatus:'system',saveSystemRole:'super',saveOrganization:'system',removeOrganization:'super',saveDictionaryType:'system',saveDictionaryItem:'system',saveApp:'application',setAppStatus:'application',saveCategory:'application',removeCategory:'application',saveAnnouncement:'announcement',publish:'announcement',withdraw:'announcement',saveConfig:'super',saveIntegration:'application',createAccessProfile:'application',approveApplicationRequest:'application',rejectApplicationRequest:'application',completeMockAccountOpeningRequest:'application',approveBindingReview:'identity',rejectBindingReview:'identity',resolveLogError:'audit',unbind:'identity',resolveMapping:'identity',pushTodo:'integration',pushMessage:'integration'};
-    if(scopesByAction[action])auth(a,scopesByAction[action]);
+    const permissionByAction={
+     removeAnnouncement:'announcement:edit',submitAnnouncement:'announcement:publish',saveRules:'settings:edit',
+     createLocalPortalUser:'admin-user:create',createExternalPortalAdmin:'admin-user:create',savePortalUser:'admin-user:assign-role',resetLocalPassword:'admin-user:reset-password',unlockLocalUser:'admin-user:reset-password',setPortalUserStatus:'admin-user:enable',
+     saveSystemRole:'role:edit',saveOrganization:'organization:edit',removeOrganization:'system:super',saveDictionaryType:'dictionary:edit',saveDictionaryItem:'dictionary:edit',
+     saveApp:'application:edit',setAppStatus:'application:enable',saveCategory:'application:edit',removeCategory:'application:edit',
+     saveAnnouncement:'announcement:edit',publish:'announcement:publish',withdraw:'announcement:publish',saveConfig:'settings:edit',
+     saveIntegration:'integration:edit',createAccessProfile:'integration:edit',approveApplicationRequest:'application:review',rejectApplicationRequest:'application:review',completeMockAccountOpeningRequest:'application:review',
+     approveBindingReview:'identity:review',rejectBindingReview:'identity:review',resolveLogError:'audit:resolve',unbind:'identity:unbind',resolveMapping:'identity:review',
+     pushTodo:'integration:edit',pushMessage:'integration:edit'
+    };
+    if(permissionByAction[action])auth(a,permissionByAction[action]);
     if(action==='removeAnnouncement'){
      const x=requireRow(d.announcements,p.id,p.version),effectiveStatus=announcementDisplayStatus(x,Date.parse(now));
      if(!['DRAFT','WITHDRAWN','EXPIRED'].includes(effectiveStatus))fail('INVALID_TRANSITION','仅草稿、已撤回或已失效公告可以删除');
