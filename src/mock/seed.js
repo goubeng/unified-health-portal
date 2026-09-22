@@ -6,9 +6,9 @@ import { applicationCatalog, platforms } from './catalog.js';
 export const actors = [
  {id:'MOCK_USER_1',name:'林晓',account:'linxiao',kind:'USER',userType:'CITIZEN',orgName:'',orgKey:'',scopes:[],roleIds:[],roleName:'普通用户',department:'',jobTitle:'',identitySource:'闽政通'},
  {id:'MOCK_USER_2',name:'陈宁',account:'chenning',kind:'USER',userType:'GOV',orgName:'卫生健康业务处',orgKey:'HEALTH',scopes:[],roleIds:[],roleName:'普通用户',department:'业务协同科',jobTitle:'业务经办',identitySource:'闽政务'},
- {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
- {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['system','application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',scopeDescription:'日常门户维护',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
- {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
+ {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',adminSubject:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
+ {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',adminSubject:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['system','application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',scopeDescription:'日常门户维护',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
+ {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',adminSubject:true,authType:'LOCAL',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
 ].map(actor => ({...actor,status:'NORMAL',mobile:'未提供',email:'未提供'}));
 
 export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
@@ -118,12 +118,15 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const integrations=apps.flatMap((app,i)=>['SSO','TODO','MESSAGE'].map((kind,k)=>row('MOCK_INT_'+app.id+kind,{
   appId:app.id,appName:app.name,name:app.name+' · '+kind,kind,mode:kind==='SSO'?'SSO':'PUSH',
   status:app.status==='DISABLED'?'DISABLED':['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'][(i+k)%4],
+  runtimeStatus:app.status==='DISABLED'?'DISABLED':['UNCONFIGURED','NORMAL','ABNORMAL','DISABLED'][(i+k)%4],
+  configStatus:(i+k)%4===0?'UNCONFIGURED':'CONFIGURED',
+  enabled:app.status==='DISABLED'||(i+k)%4===3?'DISABLED':'ENABLED',
   connectionStatus:'UNCONFIGURED',remark:'接入参数待业务系统确认',lastCheckedAt:at(-k-1)
  })));
  const identityCode=actor=>actor.userType==='LOCAL'?'PORTAL_LOCAL':actor.userType==='GOV'?'MINZHENGWU':'MINZHENGTONG';
  const logs=['login','access','operation','api','error'].flatMap((kind,k)=>actors.map((actor,i)=>{
   const app=apps[i],failed=kind==='login'&&i===3,errorOpen=kind==='error'&&i%2===0;
-  const common={kind,actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,identitySource:identityCode(actor),
+  const common={kind,actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,actorType:actor.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:actor.authType||(actor.userType==='LOCAL'?'LOCAL':'EXTERNAL'),identitySource:identityCode(actor),
    appId:app.id,appName:app.name,status:kind==='error'?'FAILURE':failed?'FAILURE':'SUCCESS',createdAt:at(-k*4-i),requestId:'P4_REQUEST_'+k+'_'+i,ip:'127.0.0.1',client:'Chrome / Windows'};
   if(kind==='login')return row('MOCK_LOG_login_'+i,{...common,name:'身份登录',loginSource:'统一登录',loginMethod:actor.userType==='LOCAL'?'PASSWORD':'QR',failureReason:failed?'上层认证超时':null,description:failed?'登录认证失败':'登录成功'});
   if(kind==='access')return row('MOCK_LOG_access_'+i,{...common,name:'应用访问',accessMethod:'门户入口',accessMode:app.accessMode,description:'访问应用 '+app.name});
