@@ -36,17 +36,14 @@
     </t-tab-panel>
    </t-tabs>
   </div>
-  <footer class="access-config-footer">
-   <t-button theme="primary" :loading="saving" :disabled="saving" @click="save(activeKind)">保存配置</t-button>
-  </footer>
  </section>
 </template>
 <script setup>
 import {reactive,ref,watch} from 'vue';
 import {text,label,theme} from './presentation.js';
-const props=defineProps({profile:{type:Object,default:null},saving:Boolean});
+const props=defineProps({profile:{type:Object,default:null}});
 const emit=defineEmits(['save']);
-const kinds=['SSO','TODO','MESSAGE'],activeKind=ref('SSO'),savingKind=ref('');
+const kinds=['SSO','TODO','MESSAGE'],activeKind=ref('SSO');
 const protocolOptions=['OIDC','SAML2','CUSTOM'].map(value=>({value,label:value}));
 const modeOptions=[{value:'PUSH',label:'PUSH（推送）'}];
 const forms=reactive({SSO:{},TODO:{},MESSAGE:{}});
@@ -56,5 +53,6 @@ const runtimeStatus=item=>item?.runtimeStatus||'UNCONFIGURED';
 const loadedSources={};let loadedApp=null;
 function init(){if(loadedApp!==props.profile?.appId){for(const kind of kinds)delete loadedSources[kind];loadedApp=props.profile?.appId;activeKind.value='SSO';}for(const kind of kinds){const item=source(kind)||{},signature=JSON.stringify(item);if(loadedSources[kind]===signature)continue;loadedSources[kind]=signature;forms[kind]={enabled:item.enabled||'DISABLED',protocol:['OIDC','SAML2','CUSTOM'].includes(item.protocol)?item.protocol:'OIDC',mode:kind==='SSO'?'SSO':(item.mode||'PUSH'),clientId:item.clientId||'',authorizeUrl:item.authorizeUrl||'',tokenUrl:item.tokenUrl||'',callbackUrl:item.callbackUrl||'',credentialRef:item.credentialRef||'',fieldMapping:JSON.stringify(item.fieldMapping||{},null,2),valueMapping:JSON.stringify(item.valueMapping||{},null,2),remark:item.remark||''};}}
 watch(()=>props.profile,init,{immediate:true,deep:true});
-async function save(kind){const item=source(kind);if(!item)return;savingKind.value=kind;try{await emit('save',{kind,payload:{id:item.id,version:item.version,...forms[kind],mode:kind==='SSO'?'SSO':(forms[kind].mode||'PUSH')}});}finally{savingKind.value='';}}
+function save(kind){const item=source(kind);if(!item)return;emit('save',{kind,payload:{id:item.id,version:item.version,...forms[kind],mode:kind==='SSO'?'SSO':(forms[kind].mode||'PUSH')}});}
+defineExpose({saveActive:()=>save(activeKind.value)});
 </script>
