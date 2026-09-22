@@ -62,7 +62,7 @@ function buttonText(app){
  }[app.primaryAction]||'';
 }
 function buttonDisabled(app){
- if(app.status!=='ENABLED')return true;
+ if(app.enabled===false)return true;
  if(app.primaryAction==='ENTER'&&app.ssoRuntimeStatus!=='NORMAL')return true;
  return false;
 }
