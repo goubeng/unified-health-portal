@@ -9,7 +9,7 @@ export const actors = [
  {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',adminSubject:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
  {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',adminSubject:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['system','application','integration','announcement','audit','identity'],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',scopeDescription:'日常门户维护',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
  {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',adminSubject:true,authType:'LOCAL',userType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',scopes:['super','system','application','integration','announcement','audit','identity'],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
-].map(actor => ({...actor,status:'NORMAL',mobile:'未提供',email:'未提供'}));
+].map(actor => ({...actor,status:'NORMAL',adminStatus:actor.kind==='ADMIN'?'NORMAL':null,mobile:'未提供',email:'未提供'}));
 
 export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const epoch = new Date(now).getTime();
