@@ -6,7 +6,7 @@
             <h2>{{text(record.title)}}</h2>
             <div class="portal-message-meta">
               <div><Icon name="user"/><span>接收对象</span><strong>{{text(receiver)||'当前登录用户'}}</strong></div>
-              <div><Icon name="time"/><span>接收时间</span><strong>{{date(record.createdAt)}}</strong></div>
+              <div><Icon name="time"/><span>接收时间</span><strong>{{date(record.receivedAt)}}</strong></div>
               <div><Icon name="mail"/><span>消息类型</span><strong>{{label(record.messageType||'BUSINESS')}}</strong></div>
               <div><Icon name="tag"/><span>消息来源</span><strong>{{text(record.appName||'统一门户')}}</strong></div>
               <div><Icon name="user-talk"/><span>发送方</span><strong>{{text(record.appName||'统一门户')}}</strong></div>
@@ -70,7 +70,7 @@ const showBasicSectionTitle=computed(()=>props.kind==='apps'&&props.showConnecti
 const dialogTitle=computed(()=>props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
 const detailTitle=(key)=>{
  const overrides={
-  apps:{name:'应用名称',code:'应用编码',status:'启用状态'},
+  apps:{name:'应用名称',code:'应用编码',enabled:'启用状态'},
   myApplicationRequests:{requestNo:'申请编号',requestType:'申请类型',appName:'应用名称',status:'申请状态'},
   categories:{status:'启用状态'},
   users:{name:'姓名',status:'启用状态'},
@@ -80,7 +80,7 @@ const detailTitle=(key)=>{
   monitor:{appName:'应用名称'}
  };
  if(overrides[props.kind]?.[key])return overrides[props.kind][key];
- if(key==='createdAt'&&['todos','messages'].includes(props.kind))return '接收时间';
+ if(key==='receivedAt'&&['todos','messages'].includes(props.kind))return '接收时间';
  return titles[key]||key;
 };
 const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>titles[key]&&(key==='permissions'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value),wide:['content','description','summary','remark','reason','reviewNote','handleNote','permissions','roleIds'].includes(key)})));
@@ -91,10 +91,10 @@ const appDetails=computed(()=>{
     item('name','应用名称'),
     item('code','应用编码'),
     item('category','系统分类'),
-    item('status','启用状态'),
+    item('enabled','启用状态'),
     item('userType','用户类别'),
     item('createdAt','创建时间'),
-    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus||row.runtimeStatus),wide:true},
+    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus),wide:true},
     item('url','入口地址',true),
     item('description','说明',true)
   ];
