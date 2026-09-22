@@ -9,7 +9,8 @@
     <t-tab-panel v-for="kind in kinds" :key="kind" :value="kind" :label="kind+' 接入配置'">
      <div class="access-config-scroll">
       <div class="access-config-tab-head">
-       <div><span>当前状态</span><t-tag :theme="theme(source(kind)?.status||'UNCONFIGURED')" variant="light">{{label(source(kind)?.status||'UNCONFIGURED')}}</t-tag></div>
+       <div><span>配置状态</span><t-tag :theme="theme(configStatus(source(kind)))" variant="light">{{label(configStatus(source(kind)))}}</t-tag></div>
+       <div><span>运行状态</span><t-tag :theme="theme(runtimeStatus(source(kind)))" variant="light">{{label(runtimeStatus(source(kind)))}}</t-tag></div>
       </div>
       <div class="access-config-grid">
        <label class="access-field">
@@ -28,7 +29,7 @@
         <label class="access-field full"><span>字段映射</span><t-textarea v-model="forms[kind].fieldMapping" :autosize="{minRows:3,maxRows:7}" placeholder="JSON：标准字段 → 来源字段"/></label>
         <label v-if="kind==='TODO'" class="access-field full"><span>状态映射</span><t-textarea v-model="forms[kind].valueMapping" :autosize="{minRows:2,maxRows:5}" placeholder='{"status":{"待处理":"PENDING","已完成":"COMPLETED"}}'/></label>
        </template>
-       <label class="access-field full"><span>凭据环境变量名</span><t-input v-model="forms[kind].credentialRef" placeholder="例如 PORTAL_APP_01_TOKEN"/></label>
+       <label class="access-field full"><span>服务端凭据引用</span><t-input v-model="forms[kind].credentialRef" placeholder="例如 PORTAL_APP_01_TOKEN"/><small class="form-helper">仅填写服务端凭据引用标识，不填写真实密钥。</small></label>
        <label class="access-field full"><span>备注</span><t-textarea v-model="forms[kind].remark" :autosize="{minRows:2,maxRows:4}" placeholder="请输入接入说明或备注"/></label>
       </div>
      </div>
@@ -50,6 +51,8 @@ const protocolOptions=['OIDC','SAML2','CUSTOM'].map(value=>({value,label:value})
 const modeOptions=[{value:'PUSH',label:'PUSH（推送）'}];
 const forms=reactive({SSO:{},TODO:{},MESSAGE:{}});
 const source=kind=>props.profile?.integrations?.[kind]||null;
+const configStatus=item=>item?.configStatus||item?.configurationStatus||(item?.status==='UNCONFIGURED'?'UNCONFIGURED':'CONFIGURED');
+const runtimeStatus=item=>item?.runtimeStatus||item?.status||'UNCONFIGURED';
 const loadedSources={};let loadedApp=null;
 function init(){if(loadedApp!==props.profile?.appId){for(const kind of kinds)delete loadedSources[kind];loadedApp=props.profile?.appId;activeKind.value='SSO';}for(const kind of kinds){const item=source(kind)||{},signature=JSON.stringify(item);if(loadedSources[kind]===signature)continue;loadedSources[kind]=signature;forms[kind]={enabled:item.enabled||'DISABLED',protocol:['OIDC','SAML2','CUSTOM'].includes(item.protocol)?item.protocol:'OIDC',mode:kind==='SSO'?'SSO':(item.mode||'PUSH'),clientId:item.clientId||'',authorizeUrl:item.authorizeUrl||'',tokenUrl:item.tokenUrl||'',callbackUrl:item.callbackUrl||'',credentialRef:item.credentialRef||'',fieldMapping:JSON.stringify(item.fieldMapping||{},null,2),valueMapping:JSON.stringify(item.valueMapping||{},null,2),remark:item.remark||''};}}
 watch(()=>props.profile,init,{immediate:true,deep:true});
