@@ -90,7 +90,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
      await repository.commit(state,state,version,makeEvent({actor,action:'DOWNLOAD_CONTRACT',state,result:{ok:true}}));return send(res,200,{ok:true,data:publicContract()});
     }
     if(path.startsWith('/api/portal/contracts/')&&req.method==='GET'){
-     if(!can(actor,'application:view'))return send(res,403,resultError('FORBIDDEN','需要集成管理权限'));
+     if(!can(actor,'integration:view'))return send(res,403,resultError('FORBIDDEN','需要集成管理权限'));
      const [,kind,appId]=path.match(/^\/api\/portal\/contracts\/(TODO|MESSAGE)\/([^/]+)$/)||[];
      if(!kind||!state.apps.some(x=>x.id===appId))return send(res,404,resultError('NOT_FOUND','接入对象不存在'));
      const doc=contract(kind,appId),config=state.integrations.find(x=>x.kind===kind&&x.appId===appId);doc['x-field-mapping']=config?.fieldMapping||{};doc['x-value-mapping']=config?.valueMapping||{};
