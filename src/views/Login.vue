@@ -63,7 +63,7 @@ import {createUUID} from '../utils/uuid.js';
 import {computed,onBeforeUnmount,ref,watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {CheckCircleIcon,RefreshIcon} from 'tdesign-icons-vue-next';
-import {actor,login} from '../services/runtime.js';
+import {login} from '../services/runtime.js';
 import PortalTooltip from '../components/portal/PortalTooltip.vue';
 import loginBackground from '../assets/login-health-bg-3840x2160.png';
 
