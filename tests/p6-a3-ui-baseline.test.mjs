@@ -24,16 +24,14 @@ test('所有TDesign业务弹窗显式垂直居中',()=>{
   }
 });
 
-test('登录页为三身份一键进入且身份页签字重与间距固定',()=>{
+test('登录页保留三身份与模拟认证元素且身份页签样式固定',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes("const adminAccount='admin'"));
-  assert(source.includes('@click="enterSelected"'));
-  assert(source.includes("identityType==='LOCAL'?'进入管理端':'进入系统'"));
-  for(const removed of ['<t-qrcode','login-phone','login-code','login-slider','local-password','local-captcha','获取验证码','扫码登录','手机号登录'])assert(!source.includes(removed));
+  for(const marker of ['扫码登录','手机号登录','<t-qrcode','login-phone','login-slider','login-code','local-account','local-password','local-captcha'])assert(source.includes(marker),marker+' 应保留');
+  assert(source.includes("localAccount=ref('admin')"));
+  assert(!source.includes("method.value==='phone'&&!verified.value"));
   assert(css.includes('.login-identity-switch{justify-content:space-around;align-items:flex-end;gap:32px;padding:0 22px;margin-top:10px!important}'));
   assert(css.includes('.identity-pill{font-size:18px!important;font-weight:500!important'));
-  assert(css.includes('.demo-login-panel{display:flex;flex-direction:column;gap:20px;margin-top:32px}'));
 });
 
 test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
@@ -884,9 +882,13 @@ test('登录框内容左右增加10px留白且登录按钮加高',()=>{
 });
 
 
-test('登录页不再渲染二维码与手机号录入控件',()=>{
+test('登录二维码与手机号模拟控件保持显示',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
-  for(const removed of ['<t-qrcode','qr-auth','phone-auth','手机号','验证码'])assert(!source.includes(removed));
+  assert(source.includes('<t-qrcode'));
+  assert(source.includes('qr-auth'));
+  assert(source.includes('phone-auth'));
+  assert(source.includes('手机号'));
+  assert(source.includes('验证码'));
 });
 
 
@@ -901,38 +903,39 @@ test('登录页使用独立图片层渲染卫健高清背景',()=>{
 });
 
 
-test('登录页身份切换与一键进入内容区间距一致且登录框高度自适应',()=>{
+test('登录页身份切换与模拟登录内容区间距一致且登录框高度自适应',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes('class="demo-login-panel"'));
-  assert(source.includes('class="demo-login-summary"'));
+  assert(source.includes('class="local-auth phone-auth"'));
   assert(css.includes('.login-card{width:460px!important;max-width:460px!important;height:auto!important;min-height:0!important;display:block!important}'));
   assert(css.includes('.login-identity-switch{margin-bottom:32px!important}'));
-  assert(css.includes('.demo-login-panel{display:flex;flex-direction:column;gap:20px;margin-top:32px}'));
+  assert(css.includes('.qr-auth{padding-top:32px!important}'));
+  assert(css.includes('.phone-auth:not(.local-auth){margin-top:32px!important}'));
+  assert(css.includes('.local-auth{display:block!important;margin-top:32px!important}'));
 });
 
-test('管理端演示账号固定为admin且无需录入凭据',()=>{
+test('管理端演示账号固定为admin且输入内容不参与校验',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   const seed=fs.readFileSync('src/mock/seed.js','utf8');
-  assert(source.includes("const adminAccount='admin'"));
-  assert(source.includes('用户账号：<b>{{ adminAccount }}</b>'));
+  assert(source.includes("localAccount=ref('admin')"));
   assert(seed.includes("account:'admin'"));
-  for(const field of ['local-password','local-captcha','localAccount','localPassword','localCaptchaInput'])assert(!source.includes(field));
+  for(const field of ['local-account','local-password','local-captcha'])assert(source.includes(field));
+  const adminFn=source.split('async function enterLocalAdmin(){')[1].split('\n}')[0];
+  assert(!/localAccount|localPassword|localCaptchaInput|localCaptchaCode/.test(adminFn));
 });
 
 
-test('登录页只保留身份Tab与一键进入操作',()=>{
+test('登录页保留身份Tab和登录方式切换',()=>{
   const source=fs.readFileSync('src/views/Login.vue','utf8');
   assert(source.includes('class="login-identity-switch"'));
-  assert(source.includes('class="demo-login-panel"'));
-  assert(!source.includes('auth-method-pills'));
-  assert(!source.includes('method-pill'));
+  assert(source.includes('auth-method-pills'));
+  assert(source.includes('method-pill'));
 });
 
 
-test('登录页一键进入按钮使用统一高度',()=>{
+test('登录页登录按钮使用统一高度',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.demo-login-panel .login-submit{margin:0!important;height:40px!important;min-height:40px!important}'));
+  assert(css.includes('.login-submit{height:40px!important;min-height:40px!important}'));
 });
 
 
