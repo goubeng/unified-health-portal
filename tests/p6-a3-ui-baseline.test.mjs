@@ -967,3 +967,13 @@ test('子系统映射统计项使用统一背景框',()=>{
   assert(css.includes('.identity-mappings-summary{box-sizing:border-box;display:inline-flex;min-height:28px;align-items:center;gap:6px;padding:3px 10px;border:1px solid #e5e8ef;border-radius:3px;background:#f6f8fb'));
   assert(css.includes('.identity-mapping-summary-item+.identity-mapping-summary-item{margin-left:0;padding-left:0;border-left:0}'));
 });
+
+
+test('应用列表操作列加宽且三个操作不换行',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes("width:resource.value==='apps'&&admin.value?240:200"));
+  assert(source.includes("'app-list-row-actions':resource==='apps'&&admin"));
+  assert(css.includes('.portal-table-panel .app-list-row-actions{flex-wrap:nowrap!important;white-space:nowrap!important;gap:8px!important}'));
+  assert(css.includes('.portal-table-panel .app-list-row-actions .t-button{flex:none!important;white-space:nowrap!important}'));
+});
