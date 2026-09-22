@@ -54,7 +54,7 @@ test('外部身份型管理用户编辑只改变门户管理授权，不修改�
   const h=setup(2);
   const user=(await h.read('users')).find(x=>x.id==='MOCK_EDITOR');
   const saved=await h.run('savePortalUser',{
-    id:user.id,version:user.version,status:'NORMAL',roleIds:['ROLE_ADMIN'],
+    id:user.id,version:user.version,enabled:true,roleIds:['ROLE_ADMIN'],
     name:'篡改姓名',orgName:'篡改组织',mobile:'10086',email:'bad@example.invalid'
   });
   assert.equal(saved.name,user.name);
@@ -108,6 +108,6 @@ test('角色页只预置两个内置角色，super权限不能授予其它角色
   assert.deepEqual(builtIn.map(x=>x.roleCode).sort(),['PORTAL_ADMIN','SUPER_ADMIN']);
 
   const admin=roles.find(x=>x.roleCode==='PORTAL_ADMIN');
-  const denied=await h.service.command('saveSystemRole',{...admin,scopes:[...(admin.scopes||[]),'super']});
+  const denied=await h.service.command('saveSystemRole',{...admin,permissions:[...(admin.permissions||[]),'system:super']});
   assert.equal(denied.error?.code,'INVALID_TRANSITION');
 });
