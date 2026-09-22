@@ -28,7 +28,7 @@ export const actors = [
  {id:'MOCK_USER_2',name:'陈宁',account:'chenning',kind:'USER',userType:'GOV',orgName:'卫生健康业务处',orgKey:'HEALTH',permissions:[],roleIds:[],roleName:'普通用户',department:'业务协同科',jobTitle:'业务经办',identitySource:'闽政务'},
  {id:'MOCK_ADMIN',name:'周明',account:'zhouming',kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...SUPER_PERMISSIONS],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'闽政务'},
  {id:'MOCK_EDITOR',name:'郑颖',account:'zhengying',kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'EXTERNAL',userType:'GOV',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...PORTAL_ADMIN_PERMISSIONS],roleIds:['ROLE_ADMIN'],roleName:'门户管理员',department:'信息发布科',jobTitle:'信息编辑',identitySource:'闽政务'},
- {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin01',kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...SUPER_PERMISSIONS],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
+ {id:'MOCK_LOCAL_ADMIN',name:'门户管理员',account:'admin',kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'LOCAL',orgName:'门户运行保障中心',orgKey:'PORTAL',permissions:[...SUPER_PERMISSIONS],roleIds:['ROLE_SUPER'],roleName:'门户超级管理员',department:'运行保障科',jobTitle:'系统管理',identitySource:'门户本地'}
 ].map(actor => ({...actor,enabled:true,status:'NORMAL',adminStatus:actor.kind==='ADMIN'?'NORMAL':null,mobile:'未提供',email:'未提供'}));
 
 export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
