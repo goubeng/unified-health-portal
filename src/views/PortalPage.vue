@@ -75,7 +75,7 @@
      <div class="portal-home-feeds">
       <section class="panel"><div class="section-head"><h2>我的待办 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.todoCount??0}}</t-tag></h2><router-link to="/portal/todos">全部待办</router-link></div><div v-for="item in homeTodos" :key="item.id" class="list-row"><div><button class="portal-field-link" @click="showDetail(item,'todos')">{{text(item.title)}}</button><p>{{text(item.appName)}}</p></div><t-button size="small" variant="text" theme="primary" @click="run('openTodo',{id:item.id},true)">去处理</t-button></div><EmptyState v-if="!homeTodos.length" description="暂无待办"/></section>
       <section class="panel"><div class="section-head"><h2>通知公告 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadAnnouncementCount??0}}</t-tag></h2><router-link to="/portal/announcements">全部公告</router-link></div><div v-for="item in homeAnnouncements" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.readStatus==='UNREAD'}" @click="showDetail(item,'announcements')">{{text(item.title)}}</button><p>{{date(item.publishedAt)}}</p></div></div><EmptyState v-if="!homeAnnouncements.length" description="暂无公告"/></section>
-      <section class="panel"><div class="section-head"><h2>消息 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadCount??0}}</t-tag></h2><router-link to="/portal/messages">全部消息</router-link></div><div v-for="item in homeMessages" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.status==='UNREAD'}" @click="showDetail(item,'messages')">{{text(item.title)}}</button><p>{{text(item.appName)}} · {{date(item.createdAt)}}</p></div></div><EmptyState v-if="!homeMessages.length" description="暂无消息"/></section>
+      <section class="panel"><div class="section-head"><h2>消息 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadCount??0}}</t-tag></h2><router-link to="/portal/messages">全部消息</router-link></div><div v-for="item in homeMessages" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.status==='UNREAD'}" @click="showDetail(item,'messages')">{{text(item.title)}}</button><p>{{text(item.appName)}} · {{date(item.receivedAt||item.createdAt)}}</p></div></div><EmptyState v-if="!homeMessages.length" description="暂无消息"/></section>
      </div>
      <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/all">应用中心</router-link></div><AppCards :apps="homeApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
@@ -119,12 +119,10 @@
       <template #empty><EmptyState description="暂无符合条件的记录"/></template>
       <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
       <template #primary="{row}"><TableCellTooltip :text="text(row[primaryField])||'-'"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></TableCellTooltip></template>
-      <template v-if="resource==='apps'" #status="{row}"><t-switch :value="row.status==='ENABLED'" @change="toggleAppStatus(row,$event)"/></template>
+      <template v-if="resource==='apps'" #enabled="{row}"><t-switch :value="row.enabled!==false" @change="toggleAppStatus(row,$event)"/></template>
       <template #operation="{row}"><div class="row-actions">
        <template v-if="resource==='apps'&&admin&&can(actor,'application')"><t-button size="small" variant="text" theme="primary" @click="openForm('saveApp',row)">编辑</t-button><t-button size="small" variant="text" theme="primary" @click="openConnectionConfig(row)">连接配置</t-button></template>
        <template v-if="resource==='categories'"><t-button size="small" variant="text" theme="primary" @click="openForm('saveCategory',row)">编辑</t-button><t-button size="small" variant="text" theme="danger" @click="confirm('removeCategory',row,'确认删除未被应用引用的分类？')">删除</t-button></template>
-       <t-button v-if="resource==='users'&&can(actor,'super')" size="small" variant="text" theme="primary" @click="openForm('savePortalUser',row)">编辑</t-button>
-       <t-button v-if="resource==='roles'&&can(actor,'super')" size="small" variant="text" theme="primary" @click="openForm('saveSystemRole',row)">编辑</t-button>
        <t-button v-if="resource==='todos'&&row.status==='PENDING'" size="small" variant="text" theme="primary" @click="run('openTodo',{id:row.id},true)">去处理</t-button>
        <template v-if="resource==='announcements'&&admin"><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="danger" @click="confirm('removeAnnouncement',row,'确认删除此草稿？删除后退出公告列表，回收档案保留。')">删除</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="openForm('saveAnnouncement',row)">编辑</t-button><t-button v-if="row.status==='DRAFT'" size="small" variant="text" theme="primary" @click="confirm('publish',row,'确认发布公告？发布后不可直接编辑。')">发布</t-button><t-button v-if="row.status==='PUBLISHED'" size="small" variant="text" theme="danger" @click="confirm('withdraw',row,'确认撤回公告？撤回后用户将不可见。')">撤回</t-button></template>
        <t-button v-if="resource==='mappings'&&row.status==='BOUND'" size="small" variant="text" theme="danger" @click="confirm('unbind',row,'确认解除此账号关联？不会修改子系统账号或授权。')">解绑</t-button>
@@ -148,10 +146,8 @@
    <p v-if="formAction==='submitApplicationRequest'" class="inline-note">申请应用：{{text(form.appName)}}。申请通过后，如目标系统还需要完成账号确认，门户会提示下一步操作。</p>
    <p v-if="formAction==='rejectApplicationRequest'" class="inline-note">请填写驳回原因。驳回后用户可在“我的申请”中查看并重新申请。</p>
    <p v-if="formAction==='saveIntegration'" class="inline-note">待办和消息采用PUSH方式接收。凭据填写服务端环境变量名，不填写密钥。SSO参数可维护，认证适配器尚未接入。</p>
-   <template v-if="formAction==='savePortalUser'"><h3>身份信息</h3><DetailGrid :items="userFormIdentity"/><p class="muted">身份资料由{{source(form)}}提供；此处仅维护启用状态和系统角色，不授予子系统业务权限。</p></template>
-   <template v-if="formAction==='saveSystemRole'"><p class="inline-note">系统角色仅控制卫健统一门户自身页面与操作权限。应用内部业务权限仍由各子系统自行管理。</p></template>
    <div v-if="formError" role="alert" class="error-note">{{text(formError)}}</div><t-alert v-if="bindFeedback" :theme="bindFeedback.theme" :message="bindFeedback.message" class="portal-bind-feedback"/>
-   <div class="form-grid"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><t-switch v-if="field.key==='status'&&['savePortalUser','saveSystemRole'].includes(formAction)" :value="form.status!=='DISABLED'" @change="form.status=$event?(formAction==='savePortalUser'?'NORMAL':'ENABLED'):'DISABLED'"/><t-select v-else-if="field.options" v-model="form[field.key]" :options="field.options" :multiple="['scopes','roleIds'].includes(field.key)" :clearable="['scopes','roleIds'].includes(field.key)"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :autosize="{minRows:4,maxRows:8}"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
+   <div class="form-grid"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><t-select v-if="field.options" v-model="form[field.key]" :options="field.options"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :autosize="{minRows:4,maxRows:8}"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
    <AnnouncementEditor v-if="formAction==='saveAnnouncement'" v-model="form.content" v-model:files="announcementUploadFiles"/>
   </t-dialog>
   <t-dialog v-model:visible="accessDialogVisible" placement="center" :header="accessDialogTitle" width="1180px" :footer="false" :close-on-overlay-click="false">
@@ -171,7 +167,7 @@ import {useRoute,useRouter} from 'vue-router';
 import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
 import {actor,portal,command,revision,availableUsers,downloadAccessContract} from '../services/runtime.js';
-import {scopes,pages,can} from '../config/pages.js';
+import {pages,can} from '../config/pages.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
 import MessageCenter from '../components/portal/MessageCenter.vue';
 import TodoCenter from '../components/portal/TodoCenter.vue';
@@ -260,7 +256,7 @@ async function load(){
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
    homeMessages.value=latest(data.messages||[]);homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
-   const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>(item.services?.[kind]?.runtimeStatus||item.services?.[kind]?.status)==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
+   const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.runtimeStatus==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
@@ -341,10 +337,10 @@ watch([search,()=>JSON.stringify(filterValues),pageSize,appPageSize],()=>{page.v
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 const appGroups=computed(()=>['mine','other'].map(key=>{const entries=filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'));const current=Math.min(appPages[key],Math.max(1,Math.ceil(entries.length/appPageSize.value)));return {key,title:key==='mine'?'我的应用':'其它应用',page:current,total:entries.length,rows:entries.slice((current-1)*appPageSize.value,current*appPageSize.value)};}));
 function setAppPage(key,value){appPages[key]=value;}
-const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','status'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','createdAt'],messages:['title','appName','messageType','status','createdAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','scopeLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],users:['name','account','orgName','userType','roleLabels','status'],todos:['title','appName','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],roles:['roleCode','roleName','permissionLabels','status','description'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
-const hasOperations=computed(()=>['apps','categories','users','roles','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
+const hasOperations=computed(()=>['apps','categories','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
 const columnTitle=(key)=>{
  const resourceKey=listResource.value;
  const overrides={
@@ -357,7 +353,7 @@ const columnTitle=(key)=>{
   monitor:{appName:'应用名称'}
  };
  if(overrides[resourceKey]?.[key])return overrides[resourceKey][key];
- if(key==='createdAt'&&['todos','messages'].includes(resourceKey))return '接收时间';
+ if(key==='receivedAt'&&['todos','messages'].includes(resourceKey))return '接收时间';
  return titles[key]||key;
 };
 const columnWidth=(key,index)=>{
@@ -366,26 +362,25 @@ const columnWidth=(key,index)=>{
   if(key==='status')return 110;
  }
  if(index===0)return 250;
- if(['scopeLabels','roleLabels'].includes(key))return 280;
+ if(['permissionLabels','roleLabels'].includes(key))return 280;
  if(key==='description')return 300;
  return 160;
 };
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
- ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='status'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
+ ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
  ...(hasOperations.value?[{colKey:'operation',title:'操作',width:200,fixed:'right'}]:[])
 ]);
-const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement',roles:'saveSystemRole'})[resource.value]);
-const createScope={apps:'application',categories:'application',announcements:'announcement',roles:'super'};
+const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement'})[resource.value]);
+const createScope={apps:'application:edit',categories:'application:edit',announcements:'announcement:edit'};
 const canCreate=computed(()=>admin.value&&!!createAction.value&&can(actor.value,createScope[resource.value]));
-const createLabel=computed(()=>({apps:'新增应用',categories:'新增分类',announcements:'新增公告',roles:'新增角色'})[resource.value]);
-const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',savePortalUser:'编辑门户管理用户',saveSystemRole:'系统角色',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',rejectBindingReview:'驳回账号关联审核',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
+const createLabel=computed(()=>({apps:'新增应用',categories:'新增分类',announcements:'新增公告'})[resource.value]);
+const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',rejectBindingReview:'驳回账号关联审核',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
 const opt=values=>values.map(value=>({value,label:label(value)}));
 const formFields=computed(()=>{
  const f=(key,labelText,type='text',required=false,options=null,full=false)=>({key,label:labelText,type,required,options,full});
  const appOpts=allApps.value.map(item=>({value:item.id,label:text(item.name)}));
  const userOpts=availableUsers.value.map(item=>({value:item.id,label:text(item.name)}));
- const roleOpts=systemRoles.value.filter(item=>item.status==='ENABLED'||form.roleIds?.includes(item.id)).map(item=>({value:item.id,label:text(item.roleName)}));
  return ({
   saveApp:[f('name','应用名称','text',true),f('code','应用编码','text',true),f('category','系统分类','text',true,categories.value.map(item=>({value:item.name,label:text(item.name)}))),f('userType','适用用户','text',true,opt(['BOTH','CITIZEN','GOV'])),
    f('accessMode','访问模式','text',true,opt(['DIRECT','BIND','REQUEST'])),
@@ -398,26 +393,16 @@ const formFields=computed(()=>{
   submitApplicationRequest:[f('reason','申请原因','textarea',true,null,true),f('contact','联系方式','text',false),f('remark','备注','textarea',false,null,true)],
   rejectApplicationRequest:[f('reviewNote','驳回原因','textarea',true,null,true)],
   rejectBindingReview:[f('reviewNote','驳回原因','textarea',true,null,true)],
-  savePortalUser:[f('status','启用状态'),f('roleIds','系统角色','text',false,roleOpts,true)],
-  saveSystemRole:[f('roleCode','角色编码','text',true),f('roleName','角色名称','text',true),f('status','启用状态'),f('scopes','门户权限范围','text',true,Object.entries(scopes).map(([value,labelText])=>({value,label:labelText})),true),f('description','角色描述','textarea',false,null,true)],
   saveConfig:[f('value','配置值（使用当前参数标注单位）','number',true,null,true)],
   saveIntegration:[f('enabled','启用接入','text',true,opt(['ENABLED','DISABLED'])),...(form.kind==='SSO'?[f('protocol','协议','text',true,opt(['OIDC','SAML2','CUSTOM'])),f('clientId','Client ID'),f('authorizeUrl','授权地址'),f('tokenUrl','令牌地址'),f('callbackUrl','回调地址')]:[f('mode','接入方式','text',true,opt(['PUSH'])),f('fieldMapping','字段映射（JSON：标准字段→来源字段）','textarea',false,null,true)]),f('credentialRef','服务端凭据引用'),f('remark','接入说明','textarea',false,null,true)],resolveMapping:[f('reason','核验证据说明','textarea',true,null,true)],
   pushTodo:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceTodoId','源事项ID','text',true),f('eventId','事件ID','text',true),f('status','源状态','text',true,opt(['PENDING','COMPLETED','WITHDRAWN'])),f('title','待办标题','text',true,null,true)],
   pushMessage:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceMessageId','源消息ID','text',true),f('eventId','事件ID','text',true),f('title','消息标题','text',true,null,true),f('content','消息内容','textarea',true,null,true)]
  })[formAction.value]||[];
 });
-const userFormIdentity=computed(()=>[
- {key:'account',label:'管理账号',value:display('account',form.account)},
- {key:'name',label:'姓名',value:display('name',form.name)},
- {key:'authType',label:'认证类型',value:form.authType==='LOCAL'||form.userType==='LOCAL'?'本地账号':'外部身份'},
- {key:'source',label:'身份来源',value:source(form)}
-]);
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function openForm(action,row={}){
  Object.keys(form).forEach(key=>delete form[key]);
- const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',scopes:[],roleIds:[],roleCode:'',roleName:'',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
- if(action==='savePortalUser')defaults.status='NORMAL';
- if(action==='saveSystemRole')defaults.status='ENABLED';
+ const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
  Object.assign(form,defaults,JSON.parse(JSON.stringify(row)));
  if(action==='saveIntegration'){form.enabled=row.enabled||'DISABLED';form.protocol=['OIDC','SAML2','CUSTOM'].includes(row.protocol)?row.protocol:'OIDC';form.mode='PUSH';form.fieldMapping=JSON.stringify(row.fieldMapping||{},null,2);}
  for(const key of ['effectiveStart','effectiveEnd'])if(form[key])form[key]=toDateTimeValue(form[key]);
@@ -434,7 +419,6 @@ async function saveForm(){
  try{
   let payload=JSON.parse(JSON.stringify(form));
   if(formAction.value==='saveAnnouncement')payload.attachments=await normalizeAnnouncementFiles(announcementUploadFiles.value);
-  if(formAction.value==='savePortalUser')payload={id:form.id,version:form.version,status:form.status,roleIds:[...(form.roleIds||[])]};
   if(formAction.value==='bind')payload={appId:form.appId,externalAccount:form.externalAccount.trim()};
   if(formAction.value==='submitApplicationRequest')payload={appId:form.appId,reason:form.reason.trim(),contact:form.contact?.trim()||'',remark:form.remark?.trim()||''};
   if(formAction.value==='rejectApplicationRequest')payload={id:form.id,version:form.version,reviewNote:form.reviewNote.trim()};
@@ -514,7 +498,7 @@ function handleAdminAnnouncementSaved(saved){
  announcementEditVisible.value=false;
 }
 async function downloadAccessSpec(){try{await downloadAccessContract();MessagePlugin.success('接口文件已下载');}catch(cause){MessagePlugin.error(cause.message);}}
-async function toggleAppStatus(row,enabled){const result=await command('setAppStatus',{id:row.id,version:row.version,status:enabled?'ENABLED':'DISABLED'});if(!result.ok){MessagePlugin.error(text(result.error.message));await load();return;}MessagePlugin.success(enabled?'应用已启用':'应用已停用');await load();}
+async function toggleAppStatus(row,enabled){const result=await command('setAppStatus',{id:row.id,version:row.version,enabled});if(!result.ok){MessagePlugin.error(text(result.error.message));await load();return;}MessagePlugin.success(enabled?'应用已启用':'应用已停用');await load();}
 async function openConnectionConfig(app){
  let profile=accessProfiles.value.find(item=>item.appId===app.id);
  if(!profile||['SSO','TODO','MESSAGE'].some(kind=>!profile.integrations[kind])){const created=await command('createAccessProfile',{appId:app.id});if(!created.ok){MessagePlugin.error(text(created.error.message));return;}profile=created.data;accessProfiles.value=[...accessProfiles.value.filter(item=>item.appId!==app.id),profile];}
