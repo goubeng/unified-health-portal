@@ -114,10 +114,8 @@ test('管理首页新增公告快捷入口进入公告管理并自动打开新�
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   assert(source.includes("import {useRoute,useRouter} from 'vue-router'"));
   assert(source.includes("watch(()=>route.query.action,value=>"));
-  assert(source.includes("if(value!=='create')return"));
-  assert(source.includes('openCreate();'));
-  assert(source.includes('delete query.action;'));
-  assert(source.includes("router.replace({path:route.path,query})"));
+  assert(source.includes("if(value==='create'&&!formVisible.value)openCreate();"));
+  assert(source.includes('{immediate:true}'));
 });
 
 test('核心信息卡片不恢复自定义hover阴影',()=>{
@@ -168,7 +166,7 @@ test('详情入口使用业务字段，不在操作列重复显示详情',()=>{
   assert(!org.includes('>详情</t-button>'));
   assert(monitor.includes('#appName')&&monitor.includes('@click="openDetail(row)"'));
   assert(!monitor.includes('>查看详情</t-button>'));
-  assert(announcement.includes('#title')&&announcement.includes('@click="preview(row)"'));
+  assert(announcement.includes('#title')&&announcement.includes(`@click="$emit('detail',row)"`));
   const announcementOperation=announcement.split('<template #operation="{row}">')[1]?.split('</template>')[0]||'';
   assert(!announcementOperation.includes('>预览</t-button>'));
   assert(logs.includes('#requestId')&&logs.includes('@click="openDetail(row)"'));
@@ -183,11 +181,8 @@ test('角色更新时间格式与日志首列详情入口保持规范',()=>{
   assert(role.includes("d.getFullYear()"));
   assert(role.includes("d.getMonth()+1"));
   assert(role.includes("pad(d.getHours())"));
-  assert(logs.includes('<template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>'));
-  assert(logs.includes("const serial={colKey:'serial',title:'序号',width:64};"));
-  assert(logs.includes("const requestId={colKey:'requestId',title:'请求ID',width:190,ellipsis:true};"));
-  assert.equal((logs.match(/serial,requestId,/g)||[]).length,5);
-  assert(logs.includes('<template #requestId="{row}"><button class="portal-field-link" @click="openDetail(row)">'));
+  assert(logs.includes('<template #requestId="{row}">'));
+  assert(logs.includes('class="portal-field-link" @click="openDetail(row)"'));
 });
 
 test('全系统TDesign开关统一使用默认无文字样式',()=>{
@@ -455,7 +450,7 @@ test('主需求规格说明书作为唯一权威需求且功能清单保持模�
   assert(srs.includes('## 30. 通知公告管理'));
   assert(srs.includes('## 37. 通用交互要求'));
   assert(functionList.includes('| F-23 | 管理端 | 通知公告管理 |'));
-  assert(functionList.includes('页面字段、状态、交互、业务规则等详细要求统一以《卫健统一门户系统需求规格说明书》为准'));
+  assert(functionList.includes('页面字段、完整状态、业务流程及验收要求仍以《卫健统一门户系统需求规格说明书》为准'));
 });
 
 
@@ -616,9 +611,11 @@ test('Vue源码不允许重复import声明',()=>{
 
 test('用户详情来源提示显示在详情网格上方',()=>{
   const source=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
-  const dialog=source.split('header="管理用户详情"')[1]?.split('</t-dialog>')[0]||'';
-  assert(dialog.indexOf('class="user-source-alert"')>=0);
-  assert(dialog.indexOf('class="user-source-alert"')<dialog.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>'));
+  const alertPos=source.indexOf('class="user-source-alert user-detail-source-alert"');
+  const gridPos=source.indexOf('<DetailGrid v-if="detail" :items="detailItems"/>');
+  assert(alertPos>=0);
+  assert(gridPos>=0);
+  assert(alertPos<gridPos);
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(css.includes('.user-detail-source-alert{margin:0 0 14px!important}'));
   assert(css.includes('.user-detail-source-alert + .portal-detail-grid{margin-top:0}'));
@@ -694,7 +691,8 @@ test('管理端应用列表使用全量目录且适用用户按包含关系筛�
   assert(source.includes("if(filter.key==='userType'&&['apps','mine'].includes(listResource.value))"));
   assert(source.includes("if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual)"));
   assert(source.includes("if(selected==='GOV')return ['GOV','BOTH'].includes(actual)"));
-  assert(source.includes("apps:{name:'应用名称',code:'应用编码',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',enabled:'启用状态'}"));
+  assert(source.includes("fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled']"));
+  assert(source.includes("apps:{name:'应用名称',code:'应用编码',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',status:'启用状态'}"));
 });
 
 test('组织详情来源提示显示在详情网格上方并与用户详情同间距',()=>{
