@@ -80,7 +80,7 @@ const filtered=computed(()=>{
   }).sort((a,b)=>{
     if(a.status==='PENDING'&&b.status!=='PENDING')return -1;
     if(a.status!=='PENDING'&&b.status==='PENDING')return 1;
-    return (Date.parse(b.receivedAt||b.createdAt)||0)-(Date.parse(a.receivedAt||a.createdAt)||0);
+    return (Date.parse(b.receivedAt)||0)-(Date.parse(a.receivedAt)||0);
   });
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
@@ -93,7 +93,7 @@ const columns=[
   {colKey:'appName',title:'来源应用',width:320,ellipsis:true},
   {colKey:'businessType',title:'业务类型',width:120},
   {colKey:'status',title:'状态',width:120},
-  {colKey:'receivedAt',title:'接收时间',width:170,cell:(_,context)=>date(context.row.receivedAt||context.row.createdAt)},
+  {colKey:'receivedAt',title:'接收时间',width:170,cell:(_,context)=>date(context.row.receivedAt)},
   {colKey:'operation',title:'操作',width:100,fixed:'right'}
 ];
 
