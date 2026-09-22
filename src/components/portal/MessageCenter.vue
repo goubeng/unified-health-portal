@@ -14,7 +14,7 @@
         <t-form-item class="portal-query-keyword query-width-keyword" label="关键词"><t-input v-model="keyword" placeholder="消息标题" clearable/></t-form-item>
         <t-form-item class="portal-query-select query-width-source" label="来源应用"><t-select v-model="sourceFilter" clearable placeholder="全部" :options="sourceOptions"/></t-form-item>
         <t-form-item class="portal-query-select query-width-message-type" label="消息类型"><t-select v-model="typeFilter" clearable placeholder="全部" :options="typeOptions"/></t-form-item>
-        <t-form-item class="portal-query-select query-width-status" label="状态"><t-select v-model="statusFilter" clearable placeholder="全部" :options="statusOptions"/></t-form-item>
+        <t-form-item class="portal-query-select query-width-status" label="阅读状态"><t-select v-model="statusFilter" clearable placeholder="全部" :options="statusOptions"/></t-form-item>
         <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetFilters">重置</t-button></t-form-item>
       </t-form>
 
@@ -90,7 +90,7 @@ const columns=computed(()=>[
  {colKey:'title',title:'标题',minWidth:280,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.title)||'-'},()=>h('button',{class:'portal-field-link message-title-link',onClick:()=>open(context.row)},text(context.row.title)||'-'))},
  {colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.appName)||'统一门户'},()=>text(context.row.appName)||'统一门户')},
  {colKey:'messageType',title:'消息类型',width:130,cell:(_,context)=>label(context.row.messageType||'BUSINESS')},
- {colKey:'status',title:'状态',width:90,cell:(_,context)=>h(resolveComponent('t-tag'),{theme:theme(context.row.status),variant:'light'},()=>label(context.row.status))},
+ {colKey:'status',title:'阅读状态',width:100,cell:(_,context)=>h(resolveComponent('t-tag'),{theme:theme(context.row.status),variant:'light'},()=>label(context.row.status))},
  {colKey:'createdAt',title:'接收时间',width:180,cell:(_,context)=>date(context.row.createdAt)}
 ]);
 
