@@ -1,6 +1,6 @@
 # 卫健XC统一门户 · P4交互原型
 
-当前代码版本 0.2.0，Vue3 + Vite + TDesign。P3历史验收已完成，P4核心Mock可运行；下一阶段目标设计为 V20260920-03，尚不是生产发布包。
+当前代码版本 0.2.0，Vue3 + Vite + TDesign。P3历史验收已完成，P4核心Mock可运行；下一阶段目标设计为 V20260921-01，尚不是生产发布包。
 
 ## 文档入口
 
@@ -52,13 +52,17 @@ http://192.168.1.100:4010
 
 当前登录、SSO、子系统账号核验、PUSH外部联调仍以Mock/本地契约为主，不代表正式生产集成。
 
-最新目标身份模型为：
+最新目标身份与授权模型为：
 
-- 闽政通 → CITIZEN / 公众用户；
-- 闽政务 → GOV / 政务用户；
-- 门户本地 → LOCAL / 门户本地用户。
+- 闽政通 → CITIZEN / 公众门户访问主体；
+- 闽政务 → GOV / 政务门户访问主体；
+- 门户管理用户由独立的 `portal_admin_user` 管理授权域承载；
+- LOCAL 仅表示门户本地管理认证方式，不是第三类普通访问用户；
+- 管理用户可通过 EXTERNAL 绑定现有访问主体，或使用 LOCAL 本地管理账号。
 
-默认门户角色收敛为 SUPER_ADMIN 和 PORTAL_ADMIN，子系统业务角色和业务权限仍由各子系统负责。
+默认门户角色收敛为 SUPER_ADMIN 和 PORTAL_ADMIN；门户权限采用 `resource:action` 权限码，子系统业务角色和业务权限仍由各子系统负责。
+
+0.3.0-A 前端 DTO 已按 V20260921-01 冻结：管理用户/访问主体分离、应用 `enabled`、接入 `configStatus/enabled/runtimeStatus`、TODO/消息 `receivedAt`、公告 `status + displayStatus` 及拆分 Session 模型已进入 Mock/Service。正式数据库表与 REST API 仍需在 0.3.0-B 实施。
 
 ## 历史验收
 
