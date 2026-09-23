@@ -205,7 +205,8 @@ test('新增公告主操作固定在Dialog Footer，正文单独滚动',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   assert(source.includes('<template #footer>'));
   assert(source.includes('class="announcement-form-actions"'));
-  const formDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
+  const formDialog=source.split(':mode="createFullscreen?\'full-screen\':\'modal\'"')[1]?.split('</t-dialog>')[0]||'';
+  assert(formDialog.includes('<span>新增公告</span>'));
   assert(formDialog.includes('<template #footer>'));
   assert(!formDialog.includes(':footer="false"'));
   const editorIndex=source.indexOf('<AnnouncementEditor');
@@ -245,7 +246,8 @@ test('我的申请Tab与列表保持16px间距',()=>{
 
 test('新增公告启用Dialog Footer且主操作不会被footer=false关闭',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
-  const formDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
+  const formDialog=source.split(':mode="createFullscreen?\'full-screen\':\'modal\'"')[1]?.split('</t-dialog>')[0]||'';
+  assert(formDialog.includes('<span>新增公告</span>'));
   assert(formDialog.includes('<template #footer>'));
   assert(!formDialog.includes(':footer="false"'));
   assert(formDialog.includes('取消'));
@@ -298,14 +300,15 @@ test('管理端公告详情保留右侧内容区而编辑统一使用弹窗',()=
   assert(page.includes("@detail=\"openAdminAnnouncementDetail\""));
   assert(!page.includes('route.query.mode'));
   assert(editor.includes('<t-dialog'));
-  assert(editor.includes('header="编辑公告"'));
+  assert(editor.includes('<span>编辑公告</span>'));
+  assert(editor.includes(":mode=\"isFullscreen?'full-screen':'modal'\""));
   assert(!editor.includes('to="#page-header-actions"'));
 });
 
 test('新增公告仅定时发布时显示定时发布时间且失效日期按当天235959处理',()=>{
   const source=fs.readFileSync('src/components/portal/AnnouncementManagement.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  const createDialog=source.split('header="新增公告"')[1]?.split('</t-dialog>')[0]||'';
+  const createDialog=source.split(':mode="createFullscreen?\'full-screen\':\'modal\'"')[1]?.split('</t-dialog>')[0]||'';
   assert(createDialog.includes("class=\"announcement-publish-row\" :class=\"{'is-scheduled':form.publishMode==='SCHEDULED'}\""));
   assert(createDialog.includes('v-model="form.publishMode"'));
   assert(createDialog.includes('value="IMMEDIATE"'));
@@ -617,8 +620,8 @@ test('用户详情来源提示显示在详情网格上方',()=>{
   assert(gridPos>=0);
   assert(alertPos<gridPos);
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(css.includes('.user-detail-source-alert{margin:0 0 14px!important}'));
-  assert(css.includes('.user-detail-source-alert + .portal-detail-grid{margin-top:0}'));
+  assert(css.includes('.user-detail-source-alert,.organization-detail-source-alert{margin:0 0 14px!important}'));
+  assert(css.includes('.user-detail-source-alert + .portal-detail-grid,.organization-detail-source-alert + .portal-detail-grid{margin-top:0}'));
 });
 
 
@@ -757,7 +760,8 @@ test('应用中心与我的申请覆盖主要结果状态和下一步操作',()=
 
   assert(mine.includes("row.status==='APPROVED'&&row.postGrantMode==='DIRECT'"));
   assert(mine.includes("@click=\"emit('enter',row)\">进入应用"));
-  assert(mine.includes("@click=\"emit('detail',row)\">查看"));
+  assert(mine.includes("@click=\"emit('detail',row)\""));
+  assert(!mine.includes("@click=\"emit('detail',row)\">查看"));
   assert(mine.includes("@click=\"emit('reapply',row)\">重新申请"));
   assert(mine.includes("@click=\"emit('withdraw',row)\">撤回"));
   assert(mine.includes("@click=\"emit('bind',row)\">完成账号确认"));
