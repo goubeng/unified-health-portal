@@ -280,7 +280,14 @@
 .rule-help{margin:6px 0 0;color:#86909c;font-size:12px;line-height:1.55}
 .rules-settings .t-form{margin-top:0}
 
-.announcement-edit-dialog-header{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px}.announcement-edit-dialog-header>span{font-size:16px;font-weight:500;color:#1f2329}.announcement-edit-dialog.is-fullscreen{box-sizing:border-box!important;width:calc(100vw - 24px)!important;height:calc(100vh - 24px)!important;max-width:none!important;max-height:none!important;display:flex!important;flex-direction:column!important;margin:12px!important}.announcement-edit-dialog.is-fullscreen .t-dialog__header,.announcement-edit-dialog.is-fullscreen .t-dialog__footer{flex:none}.announcement-edit-dialog.is-fullscreen .t-dialog__body{flex:1;min-height:0;max-height:none!important;overflow:auto}.announcement-edit-dialog.is-fullscreen .rich-editor-content{min-height:320px;max-height:none}.announcement-editor{margin-top:14px}
+.announcement-edit-dialog-header{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px}.announcement-edit-dialog-header>span{font-size:16px;font-weight:500;color:#1f2329}
+/* Announcement edit full-screen: use TDesign full-screen mode, keep a stable 12px viewport inset and only scroll inside the dialog body. */
+.t-dialog__ctx:has(.announcement-edit-dialog.is-fullscreen) .t-dialog__wrap{box-sizing:border-box!important;padding:12px!important;overflow:hidden!important}
+.t-dialog__ctx:has(.announcement-edit-dialog.is-fullscreen) .t-dialog__position_fullscreen{box-sizing:border-box!important;width:100%!important;height:100%!important;min-height:0!important}
+.announcement-edit-dialog.is-fullscreen{box-sizing:border-box!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;overflow:hidden!important}
+.announcement-edit-dialog.is-fullscreen .t-dialog__body{min-height:0!important;max-height:none!important;overflow:auto!important}
+.announcement-edit-dialog.is-fullscreen .rich-editor-content{min-height:320px;max-height:none}
+.announcement-editor{margin-top:14px}
 .announcement-editor-label{display:block;margin:0 0 8px;color:#344054;font-size:13px}
 .attachment-label{margin-top:14px}
 .rich-editor-shell{overflow:hidden;border:1px solid #dcdfe6;border-radius:3px;background:#fff}

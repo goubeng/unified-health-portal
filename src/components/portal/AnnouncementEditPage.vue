@@ -1,8 +1,9 @@
 <template>
   <t-dialog
     :visible="visible"
+    :mode="isFullscreen?'full-screen':'modal'"
     placement="center"
-    :width="isFullscreen?'calc(100vw - 24px)':'min(1180px, calc(100vw - 48px))'"
+    width="min(1180px, calc(100vw - 48px))"
     :dialog-class-name="isFullscreen?'announcement-edit-dialog is-fullscreen':'announcement-edit-dialog'"
     :close-on-overlay-click="false"
     @update:visible="updateVisible"
