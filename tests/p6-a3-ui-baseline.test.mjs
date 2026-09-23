@@ -849,14 +849,17 @@ test('公共文本清洗不保留演示前缀产生的孤立冒号',()=>{
 });
 
 
-test('应用中心我的应用和其他应用固定每页20条',()=>{
+test('应用中心我的应用和其他应用默认每页20条并支持10/20/50切换',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
-  assert(source.includes('const appPageSize=ref(20),appPages=reactive({mine:1,other:1});'));
+  assert(source.includes('const appPageSizes=reactive({mine:20,other:20}),appPages=reactive({mine:1,other:1});'));
   const center=source.split('<template v-if="isAppCenter">')[1]?.split('</template>')[0]||'';
-  assert(center.includes(':page-size="appPageSize"'));
+  assert(center.includes(':page-size="group.pageSize"'));
+  assert(center.includes(':page-size-options="[10,20,50]"'));
   assert(center.includes('@current-change="setAppPage(group.key,$event)"'));
-  assert(!center.includes(':page-size-options'));
-  assert(!center.includes('@page-size-change'));
+  assert(center.includes('@page-size-change="setAppPageSize(group.key,$event)"'));
+  assert(source.includes('const size=appPageSizes[key];'));
+  assert(source.includes('entries.slice((current-1)*size,current*size)'));
+  assert(source.includes('function setAppPageSize(key,value){appPageSizes[key]=Number(value)||20;appPages[key]=1;}'));
 });
 
 
