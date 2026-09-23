@@ -1,6 +1,6 @@
-# 卫健XC统一门户 · P4交互原型
+# 卫健XC统一门户 · 本地持久化演示
 
-当前代码版本 0.2.0，Vue3 + Vite + TDesign。P3历史验收已完成，P4核心Mock可运行；下一阶段目标设计为 V20260921-01，尚不是生产发布包。
+Vue3 + Vite + TDesign 前端已接入本地 PostgreSQL 业务数据。登录仍采用模拟会话，上下游系统仍处于接口预留阶段。
 
 ## 文档入口
 
@@ -14,18 +14,11 @@
 
 ## 本地运行
 
-Node.js 20.19+或22 LTS，首次执行 `npm ci`。保持两个终端运行：
+Node.js 20.19+ 或 22 LTS，首次执行 `npm ci`。本地 PostgreSQL 的目标 schema 须先完成 `001`–`009` 迁移，并执行 `npm run db:bootstrap-missing` 补齐旧快照缺省的演示样本。当前仓库使用本机 Docker 容器 `postgres14` 中的 `nocodb_data.pb3gir75kkooyea`；换环境时需先调整数据库连接配置。
 
-1. `npm run api`：本地服务4011，**默认使用0.3.0-A纯内存Repository，不访问PostgreSQL/NocoDB**；
-2. `npm run dev`：前端监听 `0.0.0.0:4010`；本机可访问 `http://127.0.0.1:4010`，同一局域网用户可访问 `http://<本机局域网IPv4>:4010`。
+执行 `npm run dev` 会同时启动数据库模式 API（`127.0.0.1:4011`）和前端（`0.0.0.0:4010`）。本机访问 `http://127.0.0.1:4010`；局域网访问 `http://<本机局域网IPv4>:4010`。如果 4011 已有内存模式 API，先停止旧进程再启动数据库模式，启动器不会静默复用错误的数据源。
 
-仅在明确进入0.3.0-B/C数据库阶段后，才允许执行：
-
-```bash
-npm run api:db
-```
-
-`api:db` 会连接当前项目既有本地PostgreSQL/NocoDB数据源，A阶段禁止使用。
+隔离测试仍可用 `npm run dev:mock`，或分别运行 `npm run api` 与 `npm run dev:ui`。仅启动数据库 API 可用 `npm run api:db`。
 
 健康检查 `/api/portal/health` 会返回 `repository=MEMORY_A` 或 `DATABASE`，用于确认当前运行模式。
 
@@ -50,7 +43,7 @@ http://192.168.1.100:4010
 
 ## 当前实现边界
 
-当前登录、SSO、子系统账号核验、PUSH外部联调仍以Mock/本地契约为主，不代表正式生产集成。
+当前登录、SSO、子系统账号核验、PUSH 外部联调仍为模拟或本地契约，不代表正式生产集成。
 
 最新目标身份与授权模型为：
 
@@ -62,7 +55,7 @@ http://192.168.1.100:4010
 
 默认门户角色收敛为 SUPER_ADMIN 和 PORTAL_ADMIN；门户权限采用 `resource:action` 权限码，子系统业务角色和业务权限仍由各子系统负责。
 
-0.3.0-A 前端 DTO 已按 V20260921-01 冻结：管理用户/访问主体分离、应用 `enabled`、接入 `configStatus/enabled/runtimeStatus`、TODO/消息 `receivedAt`、公告 `status + displayStatus` 及拆分 Session 模型已进入 Mock/Service。正式数据库表与 REST API 仍需在 0.3.0-B 实施。
+公告、应用和分类、待办、消息、应用访问申请与授权、账号开通申请已由数据库业务表读写。组织、字典、角色、用户、映射与本地配置等使用逐条持久化的过渡实体表；完整生产关系模型和外部系统对接仍需后续建设。旧 `P4RUN_STATE` 继续承担兼容快照和全局版本控制。
 
 ## 历史验收
 
@@ -71,18 +64,4 @@ http://192.168.1.100:4010
 
 P4不等于生产联调或最终验收；P7/P7.5冻结、正式用户手册、测试交付、部署包等后续统一进入 `docs/03-交付/`。
 
-## 本地原型运行
-
-安装依赖后直接执行：
-
-```bash
-npm ci
-npm run dev
-```
-
-`npm run dev` 会同时启动：
-
-- 前端：http://127.0.0.1:4010
-- 本地 Mock API：http://127.0.0.1:4011
-
-无需再单独执行 `npm run api`。如4011上已经存在可用的本地 Mock API，开发启动器会直接复用。
+本轮迁移、备份、数据库读回和数据清理证据见 [doc/progress.md](doc/progress.md)。

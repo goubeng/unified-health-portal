@@ -2,6 +2,10 @@ import {spawn} from 'node:child_process';
 import {randomUUID,createHash} from 'node:crypto';
 import {createSeed} from '../src/mock/seed.js';
 import {ensureRules} from '../src/config/rules.js';
+import {loadApplicationState,applicationMirrorSql} from './application-persistence.mjs';
+import {loadMessageTodoState,messageTodoMirrorSql} from './message-todo-persistence.mjs';
+import {loadRequestState,requestMirrorSql} from './request-persistence.mjs';
+import {loadRemainingState,remainingMirrorSql} from './remaining-persistence.mjs';
 
 export const schema='pb3gir75kkooyea';
 export const dbId=id=>id?'P4FIX_'+String(id).replace(/^MOCK_/,''):null;
@@ -74,20 +78,18 @@ export function announcementMirrorSql(before,after){
 export function mirrorSql(before,after){
  const statements=[];
  const changed=(key,fn)=>{const old=new Map((before[key]||[]).map(x=>[x.id,JSON.stringify(x)]));for(const row of after[key]||[])if(old.get(row.id)!==JSON.stringify(row))statements.push(fn(row));};
- changed('categories',x=>upsert('application_category',{...base(x),code:'P4FIX_'+x.code,name:x.name,sort_order:x.sortOrder||0,status:x.status||'ENABLED'}));
  changed('users',x=>upsert('unified_user',{...base(x),display_name:x.name,org_key:x.orgKey||null,org_name:x.orgName||null,status:x.status}));
- changed('apps',x=>upsert('application',{...base(x),code:'P4FIX_'+x.code,name:x.name,category_id:dbId(after.categories.find(c=>c.name===x.category)?.id),user_type:x.userType,application_url:x.url,description:x.description||'',sort_order:x.sortOrder||0,status:x.status,runtime_status:x.connectionStatus==='CONNECTED'?x.runtimeStatus:'UNCONFIGURED',allowed_origins:[],binding_methods:['SELF','ADMIN']}));
  changed('mappings',x=>{const subject=dbId(x.externalUserId||'ACCOUNT_'+x.externalAccount),app=dbId(x.appId);return upsert('application_user_mapping',{...base(x),user_id:dbId(x.userId),application_id:app,external_user_id:subject,external_account:x.externalAccount,binding_method:x.bindingMethod||'SELF',status:x.status,active_account_key:x.status==='BOUND'?JSON.stringify([app,subject]):null,bound_at:x.status==='BOUND'?x.boundAt||x.updatedAt:null,unbound_at:x.status==='UNBOUND'?x.updatedAt:null,conflict_reason:x.conflictReason||null});});
  changed('monitorSamples',x=>upsert('monitor_status',{...base(x),target_key:dbId(x.appId),service_type:x.kind,status:x.status,last_success_at:x.status==='NORMAL'?x.lastCheckedAt:null,last_failure_at:x.status==='ABNORMAL'?x.lastCheckedAt:null,failure_count:x.status==='ABNORMAL'?1:0,response_time_ms:x.responseTimeMs||null,last_error:x.status==='ABNORMAL'?'接口响应超时（场景样本）':null}));
- changed('todos',x=>upsert('todo_item',{...base(x),application_id:dbId(x.appId),source_todo_id:'P4FIX_'+x.sourceTodoId,target_user_id:dbId(x.userId),title:x.title,summary:x.summary||'',status:x.status,priority:x.priority||'MEDIUM',source_created_at:x.createdAt,source_updated_at:x.updatedAt,source_revision:x.sourceRevision,due_at:x.dueAt||null,terminal_at:x.status==='PENDING'?null:x.terminalAt||x.updatedAt,business_url:x.url}));
- changed('messages',x=>upsert('message',{...base(x),application_id:dbId(x.appId),source_kind:x.appId?'APPLICATION':'PORTAL',source_key:dbId(x.appId)||'PORTAL',source_message_id:'P4FIX_'+(x.sourceMessageId||x.id),message_type:x.messageType||'BUSINESS',title:x.title,content:x.content,business_url:x.url||null,source_created_at:x.createdAt})+upsert('message_recipient',{...base({...x,id:'RECIPIENT_'+x.id}),message_id:dbId(x.id),user_id:dbId(x.userId),read_status:x.status,read_at:x.readAt||null}));
  changed('settings',x=>upsert('system_config',{...base(x),code:'P4FIX_'+x.code,value:x.value,unit:x.unit||'count',status:x.value==null?'UNCONFIGURED':'CONFIGURED',description:x.name||x.code}));
  changed('integrations',x=>x.kind==='SSO'?upsert('sso_config',{...base({...x,id:'SSO_'+x.appId}),application_id:dbId(x.appId),enabled:x.enabled||'DISABLED',remark:x.remark||'',protocol:x.protocol||'UNCONFIGURED',client_id:x.clientId||null,secret_ref:x.credentialRef||null,endpoints:{authorizeUrl:x.authorizeUrl||'',tokenUrl:x.tokenUrl||'',callbackUrl:x.callbackUrl||''},status:x.status==='DISABLED'?'DISABLED':'UNCONFIGURED'}):upsert('push_integration_config',{...base({...x,id:'PUSH_'+x.appId+'_'+x.kind}),application_id:dbId(x.appId),kind:x.kind,enabled:x.enabled||'DISABLED',remark:x.remark||'',mode:'PUSH',credential_ref:x.credentialRef||null,field_mapping:x.fieldMapping||{},value_mapping:x.valueMapping||{},target_key_kind:'UNIFIED_USER_ID',status:x.status==='DISABLED'?'DISABLED':'UNCONFIGURED'}));
  const receiptKey=x=>[x.appId,x.kind|| (JSON.parse(x.payload).sourceTodoId?'TODO':'MESSAGE'),x.eventId].join('|');
  const previousReceipts=new Set((before.receipts||[]).map(receiptKey));
  for(const x of after.receipts||[])if(!previousReceipts.has(receiptKey(x))){const key=receiptKey(x);statements.push(upsert('ingest_receipt',{...base({id:'RECEIPT_'+createHash('sha256').update(key).digest('hex'),version:1}),application_id:dbId(x.appId),kind:x.kind||(JSON.parse(x.payload).sourceTodoId?'TODO':'MESSAGE'),event_id:x.eventId,payload_hash:createHash('sha256').update(x.payload).digest('hex'),status:'APPLIED',result:x.result,applied_at:new Date().toISOString()}));}
- for(const row of before.messages||[])if(!(after.messages||[]).some(x=>x.id===row.id)){const id=lit(dbId(row.id));statements.push(`DELETE FROM ${table('message_recipient')} WHERE message_id=${id} AND user_id=${lit(dbId(row.userId))};DELETE FROM ${table('message')} WHERE id=${id} AND NOT EXISTS(SELECT 1 FROM ${table('message_recipient')} WHERE message_id=${id});`);}
- for(const row of before.categories||[])if(!(after.categories||[]).some(x=>x.id===row.id))statements.push(`DELETE FROM ${table('application_category')} WHERE id=${lit(dbId(row.id))};`);
+ statements.push(remainingMirrorSql(before,after));
+ statements.push(applicationMirrorSql(before,after));
+ statements.push(messageTodoMirrorSql(before,after));
+ statements.push(requestMirrorSql(before,after));
  statements.push(announcementMirrorSql(before,after));
  return statements.filter(Boolean).join('\n');
 }
@@ -133,7 +135,13 @@ export function createRepository(query=sqlQuery){
   mode:'DATABASE',database:'nocodb_data',schema,
    async load(){
     const raw=await query(`SELECT json_build_object('version',version,'state',value::jsonb) FROM ${table('system_config')} WHERE id='P4RUN_STATE';`);
-    if(raw){const record=JSON.parse(raw);ensureRules(record.state);record.state=await loadAnnouncementState(query,record.state);return record;}
+    if(raw){const record=JSON.parse(raw);ensureRules(record.state);
+     record.state=await loadRemainingState(query,record.state);
+     record.state=await loadApplicationState(query,record.state);
+     record.state=await loadMessageTodoState(query,record.state);
+     record.state=await loadRequestState(query,record.state);
+     record.state=await loadAnnouncementState(query,record.state);
+     return record;}
    const state=ensureRules(createSeed());
    await query(`INSERT INTO ${table('system_config')}(id,created_at,updated_at,version,code,value,unit,status,description) VALUES ('P4RUN_STATE',now(),now(),1,'P4_RUNTIME_STATE_V1',${lit(state)},'json','CONFIGURED','P4 runtime isolated snapshot; not production identity') ON CONFLICT(id) DO NOTHING;`);
    return this.load();

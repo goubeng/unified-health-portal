@@ -134,6 +134,10 @@ test('DATABASE Repository 每次 load 都以公告规范表恢复且不污染持
   const repository=createRepository(async sql=>{
     sqlCalls.push(sql);
     if(sql.includes("id='P4RUN_STATE'"))return JSON.stringify({version:9,state:storedState});
+    if(sql.includes('portal_runtime_entity_domain'))return '[]';
+    if(sql.includes("'categories'"))return JSON.stringify({categories:[],apps:[]});
+    if(sql.includes("'todos'"))return JSON.stringify({todos:[],messages:[]});
+    if(sql.includes("'applicationRequests'"))return JSON.stringify({applicationRequests:[],applicationGrants:[],accountOpeningRequests:[]});
     if(sql.includes("'announcements'"))return JSON.stringify(databasePayload);
     throw new Error('测试未预期的 SQL');
   });
@@ -145,7 +149,8 @@ test('DATABASE Repository 每次 load 都以公告规范表恢复且不污染持
 
   assert.equal(first.version,9);
   assert.equal(second.state.announcements[0].title,'重载公告');
-  assert.equal(second.state.apps.length,storedState.apps.length);
+  assert.equal(second.state.apps.length,0);
+  assert.ok(storedState.apps.length>0);
   assert.deepEqual(second.state.customMarker,{keep:'repository-state'});
   assert.equal(sqlCalls.filter(sql=>sql.includes("id='P4RUN_STATE'")).length,2);
   assert.equal(sqlCalls.filter(sql=>sql.includes("'announcements'")).length,2);
