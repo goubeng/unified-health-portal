@@ -30,12 +30,12 @@ stage_review:
   p1: "PASS_DESIGN"
   p2: "PASS_DESIGN"
   p3: "PASS_STAGE_GATE"
-  p4: "PRE_B_MODEL_FROZEN_LOCAL_RUN_PENDING"
+  p4: "A3_IN_PROGRESS_TEST_RERUN_PENDING"
   p3_native_tables: 32
   p3_business_fields: 356
   p3_seed_rows: 12
   p3_constraints: "199_CONSTRAINTS_VERIFIED_PG14_20"
-  baseline_status: "Frontend DTO frozen / local acceptance pending"
+  baseline_status: "A2 manual acceptance passed on prior baseline / A3 latest-HEAD regression and demo freeze pending"
   report: "docs/02-开发/02-评审/P0-P2阶段审查.md"
 
 prototype:
