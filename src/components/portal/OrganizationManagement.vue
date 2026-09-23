@@ -69,7 +69,18 @@
         <div class="form-field"><label>组织编码 <span class="portal-required">*</span></label><t-input v-model="form.code" :disabled="Boolean(form.id)" placeholder="请输入组织编码"/></div>
         <div class="form-field"><label>组织名称 <span class="portal-required">*</span></label><t-input v-model="form.name" placeholder="请输入组织名称"/></div>
         <div class="form-field"><label>组织类型</label><t-select v-model="form.type" :options="typeOptions"/></div>
-        <div class="form-field"><label>上级组织</label><t-select v-model="form.parentId" clearable filterable :options="parentOptions"/></div>
+        <div class="form-field">
+          <label>上级组织</label>
+          <t-tree-select
+            v-model="form.parentId"
+            :data="parentTreeOptions"
+            :filter="parentFilter"
+            :tree-props="{expandAll:true}"
+            clearable
+            filterable
+            placeholder="请选择上级组织"
+          />
+        </div>
         <div class="form-field"><label>数据来源</label><t-input value="门户本地" disabled/></div>
         <div class="form-field"><label>启用状态</label><t-switch :value="form.status==='ENABLED'" @change="form.status=$event?'ENABLED':'DISABLED'"/></div>
         <div class="form-field full"><label>备注</label><t-textarea v-model="form.remark" :autosize="{minRows:3,maxRows:5}"/></div>
@@ -104,7 +115,55 @@ const typeOptions=computed(()=>{
     {value:'PORTAL_UNIT',label:'门户单位'},{value:'GOV_DEPARTMENT',label:'政务部门'},{value:'OTHER',label:'其他组织'}
   ];
 });
-const parentOptions=computed(()=>props.rows.filter(row=>row.status==='ENABLED'&&row.id!==form.id).map(row=>({value:row.id,label:row.path||row.name})));
+const parentExcludedIds=computed(()=>{
+  const excluded=new Set();
+  if(!form.id)return excluded;
+  excluded.add(form.id);
+  let changed=true;
+  while(changed){
+    changed=false;
+    props.rows.forEach(row=>{
+      if(!excluded.has(row.id)&&row.parentId&&excluded.has(row.parentId)){
+        excluded.add(row.id);
+        changed=true;
+      }
+    });
+  }
+  return excluded;
+});
+const parentTreeOptions=computed(()=>{
+  const rows=props.rows
+    .filter(row=>!parentExcludedIds.value.has(row.id))
+    .map(row=>({
+      value:row.id,
+      label:text(row.name)||text(row.code),
+      code:text(row.code),
+      path:text(row.path),
+      sortOrder:Number(row.sortOrder)||0,
+      disabled:row.status!=='ENABLED',
+      parentId:row.parentId||null,
+      children:[]
+    }));
+  const byId=new Map(rows.map(row=>[row.value,row]));
+  const roots=[];
+  rows.forEach(row=>{
+    const parent=row.parentId?byId.get(row.parentId):null;
+    if(parent)parent.children.push(row);
+    else roots.push(row);
+  });
+  const sortNodes=list=>{
+    list.sort((a,b)=>a.sortOrder-b.sortOrder||a.label.localeCompare(b.label,'zh-CN'));
+    list.forEach(node=>sortNodes(node.children));
+  };
+  sortNodes(roots);
+  return roots;
+});
+const parentFilter=(searchText,node)=>{
+  const term=text(searchText).trim().toLowerCase();
+  if(!term)return true;
+  const data=node?.data||{};
+  return [data.label,data.code,data.path].some(value=>text(value).toLowerCase().includes(term));
+};
 const typeLabel=value=>typeOptions.value.find(item=>item.value===value)?.label||text(value);
 const sourceLabel=value=>({MINZHENGWU:'闽政务',PORTAL_LOCAL:'门户本地',MINZHENGTONG:'闽政通'}[value]||text(value));
 
