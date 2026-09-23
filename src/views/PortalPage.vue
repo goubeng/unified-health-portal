@@ -77,7 +77,7 @@
       <section class="panel"><div class="section-head"><h2>通知公告 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadAnnouncementCount??0}}</t-tag></h2><router-link to="/portal/announcements">全部公告</router-link></div><div v-for="item in homeAnnouncements" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.readStatus==='UNREAD'}" @click="showDetail(item,'announcements')">{{text(item.title)}}</button><p>{{date(item.publishedAt)}}</p></div></div><EmptyState v-if="!homeAnnouncements.length" description="暂无公告"/></section>
       <section class="panel"><div class="section-head"><h2>消息 <t-tag class="portal-count-tag" theme="danger" variant="light" size="small">{{overview.unreadCount??0}}</t-tag></h2><router-link to="/portal/messages">全部消息</router-link></div><div v-for="item in homeMessages" :key="item.id" class="list-row"><div><button class="portal-field-link" :class="{'is-unread':item.status==='UNREAD'}" @click="showDetail(item,'messages')">{{text(item.title)}}</button><p>{{text(item.appName)}} · {{date(item.receivedAt)}}</p></div></div><EmptyState v-if="!homeMessages.length" description="暂无未读消息"/></section>
      </div>
-     <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用</h2><router-link to="/portal/apps/all">应用中心</router-link></div><AppCards :apps="homeApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
+     <section class="panel portal-home-apps"><div class="section-head"><h2>我的应用<span class="portal-section-count">（<span class="portal-section-count-number">{{homeAppCount}}</span>）</span></h2><router-link v-if="homeAppCount>homeAppLimit" to="/portal/apps/all">更多</router-link></div><AppCards :apps="homeVisibleApps" compact hide-normal-state @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
     </template>
    </template>
    <IdentityMappings v-else-if="resource==='identityOverview'" :key="route.fullPath" :rows="rows" :can-manage="can(actor,'identity:review')" :exceptions-only="route.query.mapping==='exception'" @unbind="confirm('unbind',$event,'确认解除此账号关联？不会修改子系统账号或授权。')" @resolve="openForm('resolveMapping',$event)" @approve="confirm('approveBindingReview',$event,'确认通过此高权限账号关联？通过后用户可从门户进入该应用。')" @reject="openForm('rejectBindingReview',$event)"/>
@@ -199,6 +199,9 @@ const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.v
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
 const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
 const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
+const homeAppLimit=10;
+const homeAppCount=computed(()=>homeApps.value.length);
+const homeVisibleApps=computed(()=>homeApps.value.slice(0,homeAppLimit));
 const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10),tableSort=ref(null);
 const appPageSizes=reactive({mine:20,other:20}),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);

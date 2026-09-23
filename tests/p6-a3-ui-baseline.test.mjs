@@ -596,10 +596,15 @@ test('所有列表空态统一使用nopic公共组件且通用列表不回退纯
   assert(!todo.includes('empty="暂无符合条件的待办"'));
 });
 
-test('用户端首页我的应用应用中心链接进入可用应用中心路由',()=>{
+test('用户端首页我的应用展示可访问数量、最多10个并在超量时显示更多',()=>{
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
-  assert(page.includes('<router-link to="/portal/apps/all">应用中心</router-link>'));
-  assert(!page.includes('<router-link to="/portal/apps/mine">应用中心</router-link>'));
+  assert(page.includes('const homeAppLimit=10;'));
+  assert(page.includes('const homeAppCount=computed(()=>homeApps.value.length);'));
+  assert(page.includes('const homeVisibleApps=computed(()=>homeApps.value.slice(0,homeAppLimit));'));
+  assert(page.includes('{{homeAppCount}}'));
+  assert(page.includes('v-if="homeAppCount>homeAppLimit"'));
+  assert(page.includes('to="/portal/apps/all">更多</router-link>'));
+  assert(page.includes(':apps="homeVisibleApps"'));
 });
 
 
