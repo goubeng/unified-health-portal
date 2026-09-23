@@ -48,11 +48,20 @@
 
     <t-dialog
       v-model:visible="formVisible"
+      :mode="createFullscreen?'full-screen':'modal'"
       placement="center"
-      header="新增公告"
       width="min(1180px, calc(100vw - 48px))"
+      :dialog-class-name="createFullscreen?'announcement-edit-dialog is-fullscreen':'announcement-edit-dialog'"
       :close-on-overlay-click="false"
     >
+      <template #header>
+        <div class="announcement-edit-dialog-header">
+          <span>新增公告</span>
+          <t-button size="small" variant="text" theme="primary" @click="createFullscreen=!createFullscreen">
+            {{createFullscreen?'退出全屏':'全屏'}}
+          </t-button>
+        </div>
+      </template>
       <div v-if="formError" class="error-note">{{formError}}</div>
       <div class="form-grid announcement-form-grid">
         <div class="form-field full"><label>公告标题 <span class="portal-required">*</span></label><t-input v-model="form.title" :maxlength="120"/></div>
@@ -86,7 +95,7 @@
       <AnnouncementEditor v-model="form.content" v-model:files="uploadFiles"/>
       <template #footer>
         <div class="announcement-form-actions">
-          <t-button variant="outline" @click="formVisible=false">取消</t-button>
+          <t-button variant="outline" @click="closeCreate">取消</t-button>
           <t-button variant="outline" theme="primary" @click="previewForm">预览</t-button>
           <t-button variant="outline" theme="primary" :loading="saving" @click="saveAnnouncement">保存草稿</t-button>
           <t-button theme="primary" :loading="saving" @click="saveAndPublish">{{form.publishMode==='SCHEDULED'?'定时发布':'立即发布'}}</t-button>
@@ -141,7 +150,7 @@ const route=useRoute(),router=useRouter();
 const emit=defineEmits(['saved','detail']);
 
 const keyword=ref(''),type=ref(''),scope=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
-const formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false),uploadFiles=ref([]);
+const formVisible=ref(false),createFullscreen=ref(false),form=reactive({}),formError=ref(''),saving=ref(false),uploadFiles=ref([]);
 const submitVisible=ref(false),submitRow=ref(null),publishMode=ref('IMMEDIATE'),scheduledPublishAt=ref('');
 const previewVisible=ref(false),previewRecord=ref(null);
 const editVisible=ref(false),editRow=ref(null);
@@ -182,7 +191,8 @@ function assign(row){
   if(form.scheduledPublishAt)form.scheduledPublishAt=toDateTimeValue(form.scheduledPublishAt);
   uploadFiles.value=(form.attachments||[]).map(file=>({name:file.name||'附件',url:file.data||'',status:'success',id:file.id||createUUID(),originAttachment:JSON.parse(JSON.stringify(file))}));
 }
-function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',publishMode:'IMMEDIATE',scheduledPublishAt:'',effectiveEnd:'',content:'',attachments:[]});formError.value='';formVisible.value=true;}
+function openCreate(){assign({title:'',type:typeOptions.value[0]?.value||'通知',scope:'ALL',status:'DRAFT',publishMode:'IMMEDIATE',scheduledPublishAt:'',effectiveEnd:'',content:'',attachments:[]});formError.value='';createFullscreen.value=false;formVisible.value=true;}
+function closeCreate(){createFullscreen.value=false;formVisible.value=false;}
 function openEdit(row){editRow.value=JSON.parse(JSON.stringify(row));editVisible.value=true;}
 function handleEditSaved(){editVisible.value=false;editRow.value=null;emit('saved');}
 function previewForm(){previewRecord.value={...JSON.parse(JSON.stringify(form)),attachments:uploadFiles.value.map(file=>file.originAttachment||{id:file.id,name:file.name,size:file.size||0})};previewVisible.value=true;}
@@ -277,6 +287,7 @@ watch(()=>route.query.action,value=>{
   if(value==='create'&&!formVisible.value)openCreate();
 },{immediate:true});
 watch(formVisible,visible=>{
+  if(!visible)createFullscreen.value=false;
   if(visible||route.query.action!=='create')return;
   const query={...route.query};delete query.action;
   router.replace({path:route.path,query});
