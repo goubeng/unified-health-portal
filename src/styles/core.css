@@ -854,15 +854,10 @@
 }
 
 
-/* Organization tree: compact chevron matching the reference hierarchy style. */
-.organization-management .organization-tree-chevron{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  border-right:1.5px solid #86909c;
-  border-bottom:1.5px solid #86909c;
-  transform-origin:center;
-  vertical-align:middle;
-}
-.organization-management .organization-tree-chevron.is-collapsed{transform:rotate(-45deg)}
-.organization-management .organization-tree-chevron.is-expanded{transform:rotate(45deg)}
+/* Organization tree alignment follows the office-house system-management pattern. */
+.organization-management .organization-name{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;vertical-align:middle}
+.organization-management .tree-toggle,.organization-management .tree-toggle-placeholder{width:18px;height:18px;flex:none}
+.organization-management .tree-toggle{display:inline-flex;align-items:center;justify-content:center;border:0;padding:0;background:transparent;color:#697386;cursor:pointer;line-height:1}
+.organization-management .tree-toggle :is(.t-icon,svg){display:block;width:14px;height:14px;font-size:14px}
+.organization-management .tree-toggle:hover{color:#2454ff;background:#eef3ff}
+.organization-management .organization-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:20px}

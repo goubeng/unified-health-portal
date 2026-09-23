@@ -23,17 +23,24 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-enhanced-table
-        row-key="id"
-        :data="paged"
-        :columns="columns"
-        :tree="treeConfig"
-        :tree-expand-and-fold-icon="treeExpandIcon"
-        hover
-        table-layout="fixed"
-        size="medium"
-      >
+      <t-table row-key="id" :data="organizationRows" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的组织"/></template>
+        <template #name="{row}">
+          <span class="organization-name" :style="{paddingLeft:`${row._treeLevel * 22}px`}">
+            <button
+              v-if="row._hasChildren"
+              class="tree-toggle"
+              type="button"
+              :aria-label="expandedOrgIds.has(row.id)?'折叠组织':'展开组织'"
+              @click="toggleOrganization(row)"
+            >
+              <ChevronDownIcon v-if="expandedOrgIds.has(row.id)"/>
+              <ChevronRightIcon v-else/>
+            </button>
+            <span v-else class="tree-toggle-placeholder"></span>
+            <span class="organization-name-text">{{text(row.name)}}</span>
+          </span>
+        </template>
         <template #code="{row}"><TableCellTooltip :text="text(row.code)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.code)}}</button></TableCellTooltip></template>
         <template #type="{row}">{{typeLabel(row.type)}}</template>
         <template #source="{row}"><t-tag variant="light">{{sourceLabel(row.source)}}</t-tag></template>
@@ -44,7 +51,7 @@
             <t-button v-if="canSuper&&row.source==='PORTAL_LOCAL'" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
           </div>
         </template>
-      </t-enhanced-table>
+      </t-table>
       <t-pagination v-if="treeRows.length" v-model="page" v-model:page-size="pageSize" :total="treeRows.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
 
@@ -90,8 +97,9 @@
 </template>
 
 <script setup>
-import {computed,h,reactive,ref,watch} from 'vue';
+import {computed,reactive,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
+import {ChevronDownIcon,ChevronRightIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
@@ -106,6 +114,7 @@ const props=defineProps({
 const emit=defineEmits(['saved']);
 
 const keyword=ref(''),type=ref(''),sourceValue=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
+const expandedOrgIds=ref(new Set());
 const detailVisible=ref(false),detail=ref(null),formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false);
 const statusOptions=[{value:'ENABLED',label:'启用'},{value:'DISABLED',label:'停用'}];
 const sourceOptions=[{value:'MINZHENGWU',label:'闽政务'},{value:'PORTAL_LOCAL',label:'门户本地'}];
@@ -191,11 +200,22 @@ const treeRows=computed(()=>{
   return roots;
 });
 const paged=computed(()=>treeRows.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
-const treeConfig={childrenKey:'children',treeNodeColumnIndex:0,indent:28,defaultExpandAll:true};
-const treeExpandIcon=(_,context)=>h('span',{
-  class:['organization-tree-chevron',context.type==='expand'?'is-collapsed':'is-expanded'],
-  'aria-hidden':'true'
-});
+const hasOrgFilters=computed(()=>Boolean(keyword.value.trim()||type.value||sourceValue.value||status.value));
+function flattenOrganizations(rows=[],level=0,respectExpanded=true){
+  return rows.flatMap(row=>{
+    const children=Array.isArray(row.children)?row.children:[];
+    const item={...row,_treeLevel:level,_hasChildren:children.length>0};
+    if(respectExpanded&&children.length&&!expandedOrgIds.value.has(row.id))return [item];
+    return [item,...flattenOrganizations(children,level+1,respectExpanded)];
+  });
+}
+const organizationRows=computed(()=>flattenOrganizations(paged.value,0,!hasOrgFilters.value));
+function toggleOrganization(row){
+  const next=new Set(expandedOrgIds.value);
+  if(next.has(row.id))next.delete(row.id);
+  else next.add(row.id);
+  expandedOrgIds.value=next;
+}
 const columns=[
   {colKey:'name',title:'组织名称',width:220,ellipsis:true},
   {colKey:'code',title:'组织编码',width:160,ellipsis:true},
@@ -238,4 +258,9 @@ function remove(row){
 }
 watch([keyword,type,sourceValue,status,pageSize],()=>{page.value=1;});
 watch(()=>treeRows.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(treeRows.value.length/pageSize.value)));});
+watch(()=>props.rows.map(row=>`${row.id}:${row.parentId||''}`).join('|'),()=>{
+  const parents=new Set();
+  props.rows.forEach(row=>{if(props.rows.some(child=>child.parentId===row.id))parents.add(row.id);});
+  expandedOrgIds.value=parents;
+},{immediate:true});
 </script>
