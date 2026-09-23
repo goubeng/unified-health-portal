@@ -23,9 +23,16 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <t-enhanced-table
+        row-key="id"
+        :data="paged"
+        :columns="columns"
+        :tree="treeConfig"
+        hover
+        table-layout="fixed"
+        size="medium"
+      >
         <template #empty><EmptyState description="暂无符合条件的组织"/></template>
-        <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #code="{row}"><TableCellTooltip :text="text(row.code)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.code)}}</button></TableCellTooltip></template>
         <template #type="{row}">{{typeLabel(row.type)}}</template>
         <template #source="{row}"><t-tag variant="light">{{sourceLabel(row.source)}}</t-tag></template>
@@ -36,8 +43,8 @@
             <t-button v-if="canSuper&&row.source==='PORTAL_LOCAL'" size="small" variant="text" theme="danger" @click="remove(row)">删除</t-button>
           </div>
         </template>
-      </t-table>
-      <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
+      </t-enhanced-table>
+      <t-pagination v-if="treeRows.length" v-model="page" v-model:page-size="pageSize" :total="treeRows.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
 
     <t-dialog v-model:visible="detailVisible" placement="center" header="组织详情" width="760px" :footer="false">
@@ -107,11 +114,27 @@ const filtered=computed(()=>{
     return matchKeyword&&(!type.value||row.type===type.value)&&(!sourceValue.value||row.source===sourceValue.value)&&(!status.value||row.status===status.value);
   });
 });
-const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const treeRows=computed(()=>{
+  const sourceRows=filtered.value.map(row=>({...row,children:[]}));
+  const byId=new Map(sourceRows.map(row=>[row.id,row]));
+  const roots=[];
+  sourceRows.forEach(row=>{
+    const parent=row.parentId?byId.get(row.parentId):null;
+    if(parent)parent.children.push(row);
+    else roots.push(row);
+  });
+  const sortRows=list=>{
+    list.sort((a,b)=>(Number(a.sortOrder)||0)-(Number(b.sortOrder)||0)||text(a.name).localeCompare(text(b.name),'zh-CN'));
+    list.forEach(row=>sortRows(row.children));
+  };
+  sortRows(roots);
+  return roots;
+});
+const paged=computed(()=>treeRows.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const treeConfig={childrenKey:'children',treeNodeColumnIndex:0,indent:28,defaultExpandAll:true};
 const columns=[
-  {colKey:'serial',title:'序号',width:64},
+  {colKey:'name',title:'组织名称',width:220,ellipsis:true},
   {colKey:'code',title:'组织编码',width:160,ellipsis:true},
-  {colKey:'name',title:'组织名称',width:180,ellipsis:true},
   {colKey:'type',title:'组织类型',width:120},
   {colKey:'parentName',title:'上级组织',width:180,ellipsis:true},
   {colKey:'path',title:'组织路径',minWidth:260,ellipsis:true},
@@ -150,5 +173,5 @@ function remove(row){
   }});
 }
 watch([keyword,type,sourceValue,status,pageSize],()=>{page.value=1;});
-watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
+watch(()=>treeRows.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(treeRows.value.length/pageSize.value)));});
 </script>
