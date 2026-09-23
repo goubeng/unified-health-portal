@@ -21,6 +21,7 @@
     <section class="panel portal-table-panel">
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的运行监控记录"/></template>
+        <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #appName="{row}"><TableCellTooltip :text="text(row.appName)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.appName)}}</button></TableCellTooltip></template>
         <template #ssoStatus="{row}"><StatusTag :value="row.ssoStatus"/></template>
         <template #todoStatus="{row}"><StatusTag :value="row.todoStatus"/></template>
@@ -85,6 +86,7 @@ const filtered=computed(()=>{
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const columns=[
+  {colKey:'serial',title:'序号',width:64},
   {colKey:'appName',title:'应用名称',minWidth:250,ellipsis:true},
   {colKey:'appCode',title:'应用编码',width:170,ellipsis:true},
   {colKey:'ssoStatus',title:'SSO状态',width:120},
