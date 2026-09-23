@@ -7,10 +7,10 @@ const physical=id=>id?'P4FIX_'+String(id).replace(/^MOCK_/,'').replace(/^P4FIX_/
 const runtime=id=>id?String(id).startsWith('P4FIX_')?'MOCK_'+String(id).slice(6):String(id):null;
 const source=id=>String(id||'').replace(/^P4FIX_/,'');
 const parse=value=>typeof value==='string'?JSON.parse(value):value;
-const upsert=(name,row)=>{
+const upsert=(name,row,conflictCols=['id'])=>{
  const keys=Object.keys(row),cols=keys.map(key=>`"${key}"`).join(','),values=keys.map(key=>literal(row[key])).join(',');
- const updates=keys.filter(key=>!['id','created_at'].includes(key)).map(key=>`"${key}"=EXCLUDED."${key}"`).join(',');
- return `INSERT INTO ${table(name)} (${cols}) VALUES (${values}) ON CONFLICT (id) DO UPDATE SET ${updates};`;
+ const updates=keys.filter(key=>!['id','created_at',...conflictCols].includes(key)).map(key=>`"${key}"=EXCLUDED."${key}"`).join(',');
+ return `INSERT INTO ${table(name)} (${cols}) VALUES (${values}) ON CONFLICT (${conflictCols.map(key=>`"${key}"`).join(',')}) DO UPDATE SET ${updates};`;
 };
 const base=row=>({id:physical(row.id),created_at:row.createdAt||new Date().toISOString(),updated_at:row.updatedAt||new Date().toISOString(),version:row.version||1});
 const recipientId=row=>'P4FIX_RECIPIENT_'+String(row.id).replace(/^MOCK_/,'').replace(/^P4FIX_/,'');
@@ -25,7 +25,7 @@ export async function loadMessageTodoState(query,state){
   id:row.runtime_id||runtime(row.id),version:Number(row.version)||1,createdAt:row.created_at,updatedAt:row.updated_at,
   receivedAt:row.received_at||row.created_at,sourceCreatedAt:row.source_created_at,sourceUpdatedAt:row.source_updated_at,
   appId:runtime(row.application_id),appName:appNames.get(runtime(row.application_id))||'',sourceTodoId:source(row.source_todo_id),
-  userId:runtime(row.target_user_id),title:row.title,summary:row.summary||'',businessType:row.business_type||'',status:row.status,url:row.business_url
+  userId:runtime(row.target_user_id),title:row.title,summary:row.summary||'',businessType:row.businessType||'',status:row.status,url:row.business_url
  }));
  const messages=(data.messages||[]).map(({message:row,recipient})=>({
   id:row.runtime_id||runtime(row.id),version:Number(recipient.version)||1,createdAt:row.created_at,updatedAt:recipient.updated_at,
@@ -57,7 +57,7 @@ export function messageTodoMirrorSql(before,after){
    title:row.title,content:row.content,business_url:row.url||null,source_created_at:row.sourceCreatedAt||row.createdAt,received_at:row.receivedAt||row.createdAt}));
   statements.push(upsert('message_recipient',{...base({...row,id:recipientId(row)}),message_id:physical(row.id),user_id:physical(row.userId),
    read_status:row.status,read_at:row.status==='READ'?row.readAt||row.updatedAt:null,received_at:row.receivedAt||row.createdAt,
-   deleted_at:row.deleted?row.deletedAt||row.updatedAt:null}));
+   deleted_at:row.deleted?row.deletedAt||row.updatedAt:null},['message_id','user_id']));
  }
  for(const row of before.todos||[])if(!(after.todos||[]).some(next=>next.id===row.id))statements.push(`DELETE FROM ${table('todo_item')} WHERE id=${literal(physical(row.id))};`);
  for(const row of before.messages||[])if(!(after.messages||[]).some(next=>next.id===row.id)){

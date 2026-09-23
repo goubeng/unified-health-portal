@@ -227,6 +227,7 @@ export function createPortalService(provider,getActor){
      const x=requireRow(d.users,p.id,p.version);if(!adminSubject(x))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端启用状态');
      if(typeof p.enabled!=='boolean')fail('VALIDATION_ERROR','启用状态无效');
      if(x.authType==='LOCAL'&&!can(a,'system:super'))fail('FORBIDDEN','门户本地管理账号启停仅允许门户超级管理员操作');
+     if(x.id==='MOCK_LOCAL_ADMIN'&&!p.enabled)fail('INVALID_TRANSITION','系统预置本地超级管理员不能停用');
      if(x.id===a.id&&!p.enabled)fail('INVALID_TRANSITION','不能停用当前登录账号');
      const isSuper=(x.roleIds||[]).includes('ROLE_SUPER');
      if(isSuper&&!p.enabled){
@@ -243,6 +244,7 @@ export function createPortalService(provider,getActor){
     }else if(action==='savePortalUser'){
      const x=requireRow(d.users,p.id,p.version);if(!adminSubject(x))fail('INVALID_TRANSITION','仅门户管理用户可维护管理端授权');const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:x.roleIds||[];
      if(typeof p.enabled!=='boolean'||roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效的启用状态与门户角色');
+     if(x.id==='MOCK_LOCAL_ADMIN'&&(!p.enabled||!roleIds.includes('ROLE_SUPER')))fail('INVALID_TRANSITION','系统预置本地超级管理员必须保持启用并保留超级管理员角色');
      const requested=permissionsFromRoles(d,roleIds),removesSuper=(x.roleIds||[]).includes('ROLE_SUPER')&&!roleIds.includes('ROLE_SUPER');
      if(x.id===a.id&&(!p.enabled||!requested.includes('system:super')))fail('INVALID_TRANSITION','不能停用当前账号或移除自身超级管理权限');
      if(removesSuper||!p.enabled){
