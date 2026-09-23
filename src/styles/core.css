@@ -834,13 +834,11 @@
 .portal-table-panel .app-list-row-actions .t-button{flex:none!important;white-space:nowrap!important}
 
 
-/* Compact table sorting: clearly highlight the active direction and reduce icon size by 2px. */
+/* Compact table sorting: keep TDesign's default inactive color; only reduce icon size by 2px. */
 .portal-page .t-table__sort-icon{
   width:12px!important;
   height:12px!important;
   font-size:12px!important;
-  color:#c9cdd4!important;
-  opacity:.72;
 }
 .portal-page .t-table__sort-icon :is(.t-icon,svg){
   width:12px!important;
@@ -854,3 +852,17 @@
 .portal-page .t-table__sort-icon--active :is(.t-icon,svg){
   color:#0052d9!important;
 }
+
+
+/* Organization tree: compact chevron matching the reference hierarchy style. */
+.organization-management .organization-tree-chevron{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-right:1.5px solid #86909c;
+  border-bottom:1.5px solid #86909c;
+  transform-origin:center;
+  vertical-align:middle;
+}
+.organization-management .organization-tree-chevron.is-collapsed{transform:rotate(-45deg)}
+.organization-management .organization-tree-chevron.is-expanded{transform:rotate(45deg)}

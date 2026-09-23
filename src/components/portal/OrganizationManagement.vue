@@ -28,6 +28,7 @@
         :data="paged"
         :columns="columns"
         :tree="treeConfig"
+        :tree-expand-and-fold-icon="treeExpandIcon"
         hover
         table-layout="fixed"
         size="medium"
@@ -78,7 +79,7 @@
 </template>
 
 <script setup>
-import {computed,reactive,ref,watch} from 'vue';
+import {computed,h,reactive,ref,watch} from 'vue';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
@@ -132,6 +133,10 @@ const treeRows=computed(()=>{
 });
 const paged=computed(()=>treeRows.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const treeConfig={childrenKey:'children',treeNodeColumnIndex:0,indent:28,defaultExpandAll:true};
+const treeExpandIcon=(_,context)=>h('span',{
+  class:['organization-tree-chevron',context.type==='expand'?'is-collapsed':'is-expanded'],
+  'aria-hidden':'true'
+});
 const columns=[
   {colKey:'name',title:'组织名称',width:220,ellipsis:true},
   {colKey:'code',title:'组织编码',width:160,ellipsis:true},
