@@ -77,7 +77,7 @@ export async function buildPlan(dbState,seedState,physicalState){
  return {safe:issues.length===0,issues,accessDiff,archiveTodos:pending.map(row=>row.row.runtime_id),archiveMessages:visible.map(row=>row.message.runtime_id),physical:physicalState};
 }
 
-const guard=(table,id,hash,extra='')=>`IF NOT EXISTS(SELECT 1 FROM ${s}."${table}" row WHERE row.id=${lit(id)} AND md5(to_jsonb(row)::text)=${lit(hash)} ${extra}) THEN RAISE EXCEPTION 'Stale ${table}: ${id}'; END IF;`;
+const guard=(table,id,hash)=>`IF NOT EXISTS(SELECT 1 FROM ${s}."${table}" item WHERE item.id=${lit(id)} AND md5(to_jsonb(item)::text)=${lit(hash)}) THEN RAISE EXCEPTION 'Stale ${table}: ${id}'; END IF;`;
 const archive=(resource,id,select)=>`INSERT INTO ${s}."portal_demo_restore_archive"(archive_key,resource,runtime_id,original_payload,reason) ${select};`;
 const stamp=`to_char(now() AT TIME ZONE 'utc','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`;
 
