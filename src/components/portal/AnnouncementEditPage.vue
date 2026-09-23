@@ -2,11 +2,19 @@
   <t-dialog
     :visible="visible"
     placement="center"
-    header="编辑公告"
-    width="min(1180px, calc(100vw - 48px))"
+    :width="isFullscreen?'calc(100vw - 24px)':'min(1180px, calc(100vw - 48px))'"
+    :dialog-class-name="isFullscreen?'announcement-edit-dialog is-fullscreen':'announcement-edit-dialog'"
     :close-on-overlay-click="false"
     @update:visible="updateVisible"
   >
+    <template #header>
+      <div class="announcement-edit-dialog-header">
+        <span>编辑公告</span>
+        <t-button size="small" variant="text" theme="primary" @click="toggleFullscreen">
+          {{isFullscreen?'退出全屏':'全屏'}}
+        </t-button>
+      </div>
+    </template>
     <div v-if="formError" class="error-note">{{formError}}</div>
 
     <div class="form-grid announcement-form-grid">
@@ -103,6 +111,7 @@ const form=reactive({});
 const uploadFiles=ref([]);
 const saving=ref(false),formError=ref('');
 const previewVisible=ref(false),previewRecord=ref(null);
+const isFullscreen=ref(false);
 
 const currentDisplayStatus=computed(()=>form.displayStatus||form.status||'DRAFT');
 const isDraft=computed(()=>currentDisplayStatus.value==='DRAFT');
@@ -145,11 +154,15 @@ function assign(record){
   formError.value='';
 }
 watch(()=>props.record,record=>{if(record)assign(record);},{immediate:true,deep:true});
-watch(()=>props.visible,value=>{if(value&&props.record)assign(props.record);});
+watch(()=>props.visible,value=>{
+  if(value&&props.record)assign(props.record);
+  if(!value)isFullscreen.value=false;
+});
 watch(()=>form.publishMode,value=>{if(isPublishEditable.value&&value!=='SCHEDULED')form.scheduledPublishAt='';});
 
 function updateVisible(value){emit('update:visible',value);}
-function close(){emit('update:visible',false);}
+function toggleFullscreen(){isFullscreen.value=!isFullscreen.value;}
+function close(){isFullscreen.value=false;emit('update:visible',false);}
 
 async function fileToDataUrl(file){
   return new Promise((resolve,reject)=>{

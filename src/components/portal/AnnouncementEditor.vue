@@ -36,6 +36,9 @@
         <t-tooltip content="导入HTML/TXT"><t-button size="small" variant="text" @click.prevent="importInput?.click()">导入文本</t-button></t-tooltip>
         <span class="toolbar-divider"></span>
         <t-tooltip content="清除格式"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('removeFormat')"><Icon name="clear"/></t-button></t-tooltip>
+        <t-tooltip content="清空全部正文">
+          <t-button class="editor-clear-content-button" size="small" variant="text" theme="danger" @click.prevent="clearContent">清空正文</t-button>
+        </t-tooltip>
         <input ref="imageInput" class="editor-hidden-input" type="file" accept="image/*" @change="insertImage"/>
         <input ref="importInput" class="editor-hidden-input" type="file" accept=".html,.htm,.txt" @change="importDocument"/>
       </div>
@@ -103,6 +106,13 @@ function exec(command,value=null){
  syncContent();
 }
 function block(tag){exec('formatBlock',tag);}
+function clearContent(){
+ if(!editor.value)return;
+ editor.value.innerHTML='';
+ savedRange=null;
+ emit('update:modelValue','');
+ editor.value.focus();
+}
 function changeFontSize(value){
  if(!value)return;
  fontSize.value=value;
