@@ -30,11 +30,13 @@ test('登录响应直接建立当前Session',()=>{
 });
 
 
-test('npm run dev 自动启动前端与Mock API',()=>{
+test('npm run dev 自动启动前端与数据库 API',()=>{
   const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
   const dev=fs.readFileSync('server/dev.mjs','utf8');
   assert.equal(pkg.scripts.dev,'node server/dev.mjs');
   assert.equal(pkg.scripts['dev:ui'],'vite --host 0.0.0.0 --port 4010 --strictPort');
   assert(dev.includes("http://127.0.0.1:4011/api/portal/health"));
   assert(dev.includes("node_modules/vite/bin/vite.js"));
+  assert(dev.includes("[apiBin,'--db']"));
+  assert.equal(pkg.scripts['dev:mock'],'node server/dev.mjs --mock');
 });

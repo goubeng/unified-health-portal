@@ -41,6 +41,7 @@ function start(label,args){
 function shutdown(code=0){
  if(closing)return;
  closing=true;
+ process.exitCode=code;
  for(const child of children){
   if(!child.killed)child.kill();
  }

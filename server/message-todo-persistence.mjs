@@ -17,7 +17,7 @@ const recipientId=row=>'P4FIX_RECIPIENT_'+String(row.id).replace(/^MOCK_/,'').re
 
 export async function loadMessageTodoState(query,state){
  const raw=await query(`SELECT json_build_object(
-  'todos',coalesce((SELECT json_agg(t ORDER BY t.created_at,t.id) FROM ${table('todo_item')} t),'[]'::json),
+  'todos',coalesce((SELECT json_agg(t ORDER BY t.created_at,t.id) FROM ${table('todo_item')} t WHERE t.archived_at IS NULL),'[]'::json),
   'messages',coalesce((SELECT json_agg(json_build_object('message',m,'recipient',r) ORDER BY m.created_at,m.id,r.id) FROM ${table('message')} m JOIN ${table('message_recipient')} r ON r.message_id=m.id),'[]'::json)
  );`);
  const data=parse(raw)||{},appNames=new Map((state.apps||[]).map(app=>[app.id,app.name]));

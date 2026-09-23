@@ -5,7 +5,7 @@ import {ensureRules} from '../src/config/rules.js';
 import {loadApplicationState,applicationMirrorSql} from './application-persistence.mjs';
 import {loadMessageTodoState,messageTodoMirrorSql} from './message-todo-persistence.mjs';
 import {loadRequestState,requestMirrorSql} from './request-persistence.mjs';
-import {loadRemainingState,remainingMirrorSql} from './remaining-persistence.mjs';
+import {loadRemainingState,remainingMirrorSql,remainingResources} from './remaining-persistence.mjs';
 
 export const schema='pb3gir75kkooyea';
 export const dbId=id=>id?'P4FIX_'+String(id).replace(/^MOCK_/,''):null;
@@ -136,11 +136,17 @@ export function createRepository(query=sqlQuery){
    async load(){
     const raw=await query(`SELECT json_build_object('version',version,'state',value::jsonb) FROM ${table('system_config')} WHERE id='P4RUN_STATE';`);
     if(raw){const record=JSON.parse(raw);ensureRules(record.state);
-     record.state=await loadRemainingState(query,record.state);
-     record.state=await loadApplicationState(query,record.state);
-     record.state=await loadMessageTodoState(query,record.state);
-     record.state=await loadRequestState(query,record.state);
-     record.state=await loadAnnouncementState(query,record.state);
+     const [remaining,applications,announcements]=await Promise.all([
+      loadRemainingState(query,record.state),loadApplicationState(query,record.state),loadAnnouncementState(query,record.state)
+     ]);
+     const state={...record.state};
+     for(const key of remainingResources)if(Object.hasOwn(remaining,key))state[key]=remaining[key];
+     Object.assign(state,{categories:applications.categories,apps:applications.apps,
+      announcements:announcements.announcements,announcementTrash:announcements.announcementTrash,announcementReads:announcements.announcementReads});
+     const [messageTodo,requests]=await Promise.all([loadMessageTodoState(query,state),loadRequestState(query,state)]);
+     Object.assign(state,{todos:messageTodo.todos,messages:messageTodo.messages,
+      applicationRequests:requests.applicationRequests,applicationGrants:requests.applicationGrants,accountOpeningRequests:requests.accountOpeningRequests});
+     record.state=state;
      return record;}
    const state=ensureRules(createSeed());
    await query(`INSERT INTO ${table('system_config')}(id,created_at,updated_at,version,code,value,unit,status,description) VALUES ('P4RUN_STATE',now(),now(),1,'P4_RUNTIME_STATE_V1',${lit(state)},'json','CONFIGURED','P4 runtime isolated snapshot; not production identity') ON CONFLICT(id) DO NOTHING;`);

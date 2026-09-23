@@ -62,7 +62,7 @@ export function createPortalService(provider,getActor){
   const ids=new Set();
   d.mappings.filter(x=>own(x,a)&&x.status!=='UNBOUND').forEach(x=>ids.add(x.appId));
   d.todos.filter(x=>own(x,a)).forEach(x=>ids.add(x.appId));
-  d.messages.filter(x=>own(x,a)&&x.appId).forEach(x=>ids.add(x.appId));
+  d.messages.filter(x=>own(x,a)&&x.appId&&!x.deleted).forEach(x=>ids.add(x.appId));
   d.visits.filter(x=>x.userId===a.id).forEach(x=>ids.add(x.appId));
   return decorate(d,a).filter(x=>x.enabled&&x.applicable&&(ids.has(x.id)||['DIRECT','BOUND'].includes(x.accessState)));
  };

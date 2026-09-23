@@ -1,5 +1,36 @@
 # 执行进度
 
+## 2026-09-23 演示状态恢复与性能优化（进行中）
+
+- 状态补丁执行阶段：已获准仅补缺失应用场景及本地模拟管理员；执行前先对精确业务表做归档备份、校验与基线回读。此记录起点尚无数据库写入。
+- 写前基线：42 个活动应用的 5 个演示字段均缺失（共 210 个空缺），`preservedDigest=cdd44bb6062b55c5e538af1b0b54477b`；访问申请为 APPROVED 2 / EXPIRED 1 / PENDING 1 / REJECTED 2 / WITHDRAWN 1，授权 ACTIVE 2，映射 BOUND 32 / CONFLICT 4 / FAILED 4。本地模拟管理员运行态、物理用户、角色授权均缺；物理管理员角色及授权人存在。
+- 已生成精确归档 [uhp-demo-state-preapply-20260923-195402.dump](../database/backups/uhp-demo-state-preapply-20260923-195402.dump)，含 application/category、unified_user、portal_role、portal_user_role、portal_runtime_entity/domain、application_access_request/grant、account_opening_request、application_user_mapping、audit_event 共 12 表。归档 111822 字节、172 TOC 项，目标表均有 TABLE DATA；项目副本与容器原件 SHA256 一致：`B5677A9703B049E8C4E08BEC5C0E000FD6FA57AD1CEBC039A3D707C48C1A13CD`。此刻尚未执行状态补丁。
+- 已执行应用场景补丁 `--apply`：42 个匹配应用更新，5 字段完整数从 0→42，剩余可补应用 0；非目标字段、原有状态及版本的 `preservedDigest` 前后均为 `cdd44bb6062b55c5e538af1b0b54477b`。应用数仍为 42，申请、授权、映射状态分布与写前逐项相同。尚未执行本地模拟管理员补种。
+- 本地模拟管理员补种首次执行失败并已停下：脚本从 `createSeed().users` 获取的用户无 `createdAt/updatedAt`，生成 SQL 中时间为 `undefined`，PostgreSQL 报 `invalid input syntax for type timestamp with time zone`；该事务没有提交。按失败即停原则未绕过约束或重试，需只读核对残留并修正脚本后再审查。
+- 失败后只读预览再次证明运行态 `MOCK_LOCAL_ADMIN`、物理用户 `P4FIX_LOCAL_ADMIN`、角色授权三处均为 `null`，即事务已回滚、无残留。脚本已改用当前种子首个应用的固定 UTC `createdAt/updatedAt`，新增时间戳有效性与生成 SQL 不含 `undefined` 的断言；两专项测试 5/5、语法检查及再预览均通过。尚未重试数据库写入，等待重新审查。
+- 重试前只读确认：物理 `P4FIX_ROLE_ADMIN` 处于 ENABLED，既有 `P4FIX_ADMIN`（运行态超级管理员）已绑定同一角色；其 `org_key=P4FIX_PORTAL`，`unified_user.org_key` 无额外检查约束。获审查后仅重试一次 `--apply` 成功：运行态 `MOCK_LOCAL_ADMIN`、物理 `P4FIX_LOCAL_ADMIN`、物理 `P4FIX_UR_MOCK_LOCAL_ADMIN→P4FIX_ROLE_ADMIN` 三处同时读回，无密码材料。API health 仍为 DATABASE、version 214；HTTP 登录待验。
+- 本地模拟管理员实际 HTTP 登录成功：`POST /api/portal/session` 返回 `ok=true`、admin ID `MOCK_LOCAL_ADMIN`、`authType=LOCAL`、`adminAccess=true`；同一 Cookie 的 `GET /api/portal/session` 仍读回该管理员。登录仍为模拟方式，没有数据库密码校验。最终只读回查：42 个应用场景全部完整、缺失 0，非目标摘要仍为 `cdd44bb6062b55c5e538af1b0b54477b`；三处管理员记录均在；访问申请、授权、映射各状态计数与写前完全一致。
+- 补充只读业务验收：`MOCK_USER_1` 在真实库与新种子均看到 15 个应用，`MOCK_ADMIN` 均看到 42 个管理应用，管理员 10 个关键应用的场景/动作一致；公众用户仍有历史映射差异。真实库公众状态 BOUND 7 / UNBOUND 3 / CONFLICT 1 / FAILED 1 / DIRECT 2 / REQUEST_PENDING 1，当前种子为 BOUND 5 / UNBOUND 5 / CONFLICT 1 / FAILED 1 / DIRECT 2 / REQUEST_PENDING 1。APP_2–6 在真实库为 BOUND/ENTER、种子为 UNBOUND/BIND；APP_11 为 BOUND/ENTER 对 FAILED/VIEW_REASON，APP_12 为 BOUND/ENTER 对 CONFLICT/VIEW_CONFLICT。APP_1 仅映射标识不同，DIRECT/ENTER 一致；APP_13/17 一致。
+- 逐 ID 审计确认 APP_1/2/3/4/5/6/11/12 的 `MOCK_USER_1` 映射在逐实体表、物理映射表和旧快照中均为版本 1、同一旧时间与 BOUND，无对应后续绑定审计，属于历史演示样本证据；但每个应用又有 1 条管理范围授权、1–2 条待办和 1 条消息，APP_11/12 还无异常记录。故本次不擅自覆盖或删除这些映射；恢复完整动作需协调映射、授权范围、异常及消息待办，不能宣称演示状态已完全恢复。
+- 全主体只读对比：`MOCK_USER_1` 有 12 个应用的访问状态/操作与当前种子不同（APP_2/3/4/5/6/11/12/24/25/26/28/33）；`MOCK_USER_2`、`MOCK_ADMIN`、`MOCK_EDITOR`、`MOCK_LOCAL_ADMIN` 的可见应用访问状态/操作均与种子逐项相同。USER_1 旧 APP_2–6/11/12 各有 PENDING 待办，相关消息仍可点“查看关联业务”，仅改单条映射会留下错误入口。
+- 为可恢复归档新增 010 结构迁移，执行前备份 [uhp-user1-demo-pre010-20260923-200824.dump](../database/backups/uhp-user1-demo-pre010-20260923-200824.dump)：含 todo_item/message/message_recipient/scope/映射/异常/运行态/旧快照/回执 9 表，126631 字节、168 TOC，项目副本与容器原件 SHA256 同为 `870BC22C5D2A0DDF0456877E8EE4E735B73A11ABE2B44E71CB8EF189F9A732FD`。010 两次执行成功且幂等，仅加 `todo_item.archived_at` 和原始 JSON 归档表，没有归档业务行；回读 archived_at 非空 0、归档表 0、todo 44/message 40/recipient 40 不变，新 Repository 可加载。
+- 已完成只读定位：当前 42 个应用的数据库 `runtime_payload` 缺 5 个场景字段，导致原模拟应用访问状态退回默认；申请 7、授权 2、开通申请 3、映射 40 均在，不能覆盖或重建已有业务状态。
+- 已新增默认只读、显式 `--apply` 的精确补丁脚本并预览：42 个应用、210 个缺失字段；应用 ID+编码双重匹配，仅补空缺 JSON 字段，专项测试 3/3 通过。真实数据库尚未执行补丁。
+- 另发现本地模拟管理员 `MOCK_LOCAL_ADMIN` 不在当前 DB 4 个用户中，登录页对应入口会被拒绝；正在设计仅缺失时补种并保持模拟登录的修复。
+- 已实测本机单次 health/session 均约 2 秒；每次完整读取需 6 次 Docker/psql 调用，首页并发读还受 API 串行队列排队。
+- API 已加入进程内 1 秒只读快照：仅 GET health/session/read 复用；POST、可能写审计的其它 GET、定时清理均强制新读并使缓存失效。模拟仓库测试证实 6 个并发 GET 只调用一次 Repository.load，写入后立即读到新版本/新分类，过期后重新加载；匿名及低权限请求仍分别返回 401/403，不会共享管理员权限。完整 `npm test` 为 209/209 通过。
+- 补种完成后确认原 4010/4011 及共同启动器的命令行均指向本项目，再仅停止这三个精确进程并由 `server/dev.mjs` 重新启动；新服务健康检查为 `repository=DATABASE`、version 215。经 4010 代理实测：首次冷 health 2164 ms，同一秒内 session/health/session 分别 8/6/6 ms；缓存过期后 6 个并发 health 整批 2085 ms。模拟管理员登录 2499 ms 后，等待缓存到期，6 个实际业务读取（应用 42、分类 6、管理首页、监控 42、访问申请 7、开通申请 3）整批 2099 ms 且均成功。登录是模拟会话，产生一条正常登录审计；未执行其它业务写入。首次冷读仍约 2 秒，外部进程直写数据库最多 1 秒缓存可见延迟。
+- 进一步只改 Repository 读取顺序：先读取兼容快照/version，第一波并发读剩余实体、应用/分类、公告，第二波在取得最新用户及应用后并发读待办/消息与申请/授权；分域按负责键合并，避免覆盖或丢失快照其它字段。专项测试验证并发峰值 3/2、名称依赖及快照缺失时的初始化 fallback，完整 `npm test` 为 211/211 通过。真实数据库只读直接调用三次分别为 1037/1017/1008 ms，version 216、应用 42、访问申请 7 均一致，未修改业务状态。
+- 010 迁移完成并确认新 Repository.load 可读后重新恢复本项目 4010/4011 服务；经 4010 代理复测冷 health 1183 ms，缓存过期后的 6 个并发实际业务读取整批 1115 ms，缓存命中的单次应用读取 15 ms。六项业务均成功，数量为应用 42、分类 6、监控 42、访问申请 7、开通申请 3。测试中模拟管理员登录产生正常审计记录；没有执行应用、授权等业务修改。此性能结论是本机当前数据量的实测，不代表其它机器的固定时延。
+
+## 2026-09-23 持久化收口验证
+
+- 默认 `npm run dev` 已切换为数据库 API，模拟模式独立为 `npm run dev:mock`；启动器会识别 4011 既有 API 模式，不复用错误数据源。当前本机前端 `127.0.0.1:4010` 与数据库 API `127.0.0.1:4011` 可通过代理访问。
+- 真实库 Repository 针对应用、分类、待办、消息、申请/授权/开通申请、组织、字典、角色进行了新增、编辑、重新实例加载、删除与精确清理，验收标记 `DBACC_53c046d9b188`；活动集合及关联物理表残留均为 0。
+- 真实数据库 API 先经模拟登录读取应用 42、分类 6、组织 3、字典 6/22 等数据；随后新增 API 链路验收 `DBAPI_53f98b01cecd`：应用新增→启用→编辑→新 Repository 读回→公众用户提交访问申请→管理员审批并生成授权→删除应用。重新加载验证申请、授权随应用删除清理，精确删除测试软删行及关联审计后，应用/申请/授权/审计物理表残留均为 0。
+- 以上覆盖本地数据库持久化和关键业务 HTTP 操作；生产外部接入、真实身份认证、全部页面视觉验收不在本轮结论内。旧 `P4RUN_STATE` 仍承担兼容快照与全局版本控制。
+- 最后回归 `npm test` 为 203/203 通过，`git diff --check` 无内容错误。演示进程曾退出导致代理暂时返回 502；重新以 `npm run dev` 启动后，前端根路径返回 200，前端代理健康检查返回 `repository=DATABASE`、`database=nocodb_data`、`schema=pb3gir75kkooyea`、version 214。
+
 ## 2026-09-23 续接：其他业务持久化（数据库迁移已完成）
 
 - 已完成 006–009 的代码与迁移文件：应用/分类、消息/待办、应用访问申请/授权/账号开通分别读取和写入业务表；组织、字典、角色、用户、映射、配置、监控及本地回执改为按实体逐条持久化的兼容表。
