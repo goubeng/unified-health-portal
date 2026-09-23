@@ -18,10 +18,19 @@
         <div class="portal-announcement-attachment-list">
           <div v-for="file in record.attachments" :key="file.id || file.name" class="portal-announcement-attachment-row">
             <div class="portal-announcement-file-info">
-              <Icon name="file"/>
-              <div><strong>{{ text(file.name) }}</strong><span>{{ fileSize(file.size) }}</span></div>
+              <Icon :name="fileIcon(file)" :class="['portal-announcement-file-icon','is-'+fileKind(file)]"/>
+              <div class="portal-announcement-file-text">
+                <div class="portal-announcement-file-name-line">
+                  <strong>{{ text(file.name) }}</strong>
+                  <t-tooltip content="下载附件">
+                    <t-button class="portal-announcement-download" size="small" variant="text" theme="primary" :aria-label="'下载'+text(file.name)" @click="$emit('download',file)">
+                      <Icon name="download"/>
+                    </t-button>
+                  </t-tooltip>
+                </div>
+                <span>{{ fileSize(file.size) }}</span>
+              </div>
             </div>
-            <t-button size="small" variant="text" theme="primary" @click="$emit('download',file)">下载附件</t-button>
           </div>
         </div>
       </section>
@@ -34,6 +43,17 @@ import {Icon} from 'tdesign-icons-vue-next';
 import {text,label,date,richText} from './presentation.js';
 defineProps({record:{type:Object,default:null}});
 defineEmits(['download']);
+const fileKind=file=>{
+ const name=String(file?.name||'').toLowerCase();
+ const ext=name.includes('.')?name.split('.').pop():'';
+ const mime=String(file?.type||'').toLowerCase();
+ if(ext==='pdf'||mime.includes('pdf'))return 'pdf';
+ if(['jpg','jpeg','png','gif','bmp','webp','svg'].includes(ext)||mime.startsWith('image/'))return 'image';
+ if(['doc','docx'].includes(ext)||mime.includes('word'))return 'word';
+ if(['xls','xlsx','csv'].includes(ext)||mime.includes('excel')||mime.includes('spreadsheet'))return 'excel';
+ return 'file';
+};
+const fileIcon=file=>({pdf:'file-pdf',image:'image',word:'file-word',excel:'file-excel'}[fileKind(file)]||'file');
 const fileSize=value=>{
  const size=Number(value||0);
  if(!size)return '附件';
