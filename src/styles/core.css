@@ -825,3 +825,25 @@
 /* Application list: keep Edit / Connection config / Delete on one line. */
 .portal-table-panel .app-list-row-actions{flex-wrap:nowrap!important;white-space:nowrap!important;gap:8px!important}
 .portal-table-panel .app-list-row-actions .t-button{flex:none!important;white-space:nowrap!important}
+
+
+/* Compact table sorting: clearly highlight the active direction and reduce icon size by 2px. */
+.portal-page .t-table__sort-icon{
+  width:12px!important;
+  height:12px!important;
+  font-size:12px!important;
+  color:#c9cdd4!important;
+  opacity:.72;
+}
+.portal-page .t-table__sort-icon :is(.t-icon,svg){
+  width:12px!important;
+  height:12px!important;
+  font-size:12px!important;
+}
+.portal-page .t-table__sort-icon--active{
+  color:#0052d9!important;
+  opacity:1!important;
+}
+.portal-page .t-table__sort-icon--active :is(.t-icon,svg){
+  color:#0052d9!important;
+}
