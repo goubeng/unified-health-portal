@@ -189,7 +189,7 @@ export function createPortalService(provider,getActor){
     const permissionByAction={
      removeAnnouncement:'announcement:edit',submitAnnouncement:'announcement:publish',saveRules:'settings:edit',
      createLocalPortalUser:'admin-user:create',createExternalPortalAdmin:'admin-user:create',savePortalUser:'admin-user:assign-role',resetLocalPassword:'admin-user:reset-password',unlockLocalUser:'admin-user:reset-password',setPortalUserStatus:'admin-user:enable',
-     saveSystemRole:'role:edit',saveOrganization:'organization:edit',removeOrganization:'system:super',saveDictionaryType:'dictionary:edit',saveDictionaryItem:'dictionary:edit',
+     saveSystemRole:'role:edit',saveOrganization:'organization:edit',removeOrganization:'system:super',saveDictionaryType:'dictionary:edit',saveDictionaryItem:'dictionary:edit',removeDictionaryItem:'dictionary:edit',
      saveApp:'application:edit',removeApp:'application:edit',setAppStatus:'application:enable',saveCategory:'application:edit',removeCategory:'application:edit',
      saveAnnouncement:'announcement:edit',publish:'announcement:publish',withdraw:'announcement:publish',saveConfig:'settings:edit',
      saveIntegration:'integration:edit',createAccessProfile:'integration:edit',approveApplicationRequest:'application:review',rejectApplicationRequest:'application:review',completeMockAccountOpeningRequest:'application:review',
@@ -293,6 +293,16 @@ export function createPortalService(provider,getActor){
       d.apps.filter(app=>app.categoryId===category.id||app.category===current?.label).forEach(app=>{app.category=x.label;app.categoryId=category.id;stamp(app);});
      }
      result=x;
+    }else if(action==='removeDictionaryItem'){
+     const x=requireRow(d.dictItems||[],p.id,p.version);
+     const type=(d.dictTypes||[]).find(item=>item.code===x.typeCode);
+     if(type?.systemLocked||x.systemLocked)fail('INVALID_TRANSITION','系统受控字典项不允许删除');
+     if(x.typeCode==='application_category'){
+      const category=(d.categories||[]).find(item=>item.code===x.value||item.name===x.label);
+      if((d.apps||[]).some(app=>app.category===x.label||app.categoryId===category?.id))fail('INVALID_TRANSITION','该字典项仍被应用使用，不能删除');
+      if(category)d.categories=d.categories.filter(item=>item.id!==category.id);
+     }
+     d.dictItems=d.dictItems.filter(item=>item.id!==x.id);result={id:x.id,typeCode:x.typeCode};
     }else if(action==='saveSystemRole'){
      if(!p.roleName?.trim()||!p.roleCode?.trim())fail('VALIDATION_ERROR','角色名称与角色编码为必填');
      const requested=Array.isArray(p.permissions)?[...new Set(p.permissions)]:[];
@@ -529,7 +539,7 @@ export function createPortalService(provider,getActor){
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null,deleted:false,deletedAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
     }else fail('CAPABILITY_UNAVAILABLE','该动作尚未开放');
-    const actionNames={createExternalPortalAdmin:'授权外部用户管理资格',createLocalPortalUser:'新建本地管理账号',setPortalUserStatus:'变更管理用户启用状态',resetLocalPassword:'重置本地管理账号密码',unlockLocalUser:'解除本地管理账号锁定',savePortalUser:'维护门户管理用户',saveOrganization:'维护组织',removeOrganization:'删除组织',saveDictionaryType:'维护字典类型',saveDictionaryItem:'维护字典项',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',removeApp:'删除应用',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',discoverApplicationAccountCandidates:'查找子系统候选账号',startApplicationAccountBinding:'自动关联子系统账号',sendSubsystemBindingOtp:'发送账号关联验证码',verifyBindingOtp:'验证账号关联验证码',verifyBindingBySubsystemCredential:'验证原系统账号',verifyBindingByUpstreamReauth:'重新认证身份',submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
+    const actionNames={createExternalPortalAdmin:'授权外部用户管理资格',createLocalPortalUser:'新建本地管理账号',setPortalUserStatus:'变更管理用户启用状态',resetLocalPassword:'重置本地管理账号密码',unlockLocalUser:'解除本地管理账号锁定',savePortalUser:'维护门户管理用户',saveOrganization:'维护组织',removeOrganization:'删除组织',saveDictionaryType:'维护字典类型',saveDictionaryItem:'维护字典项',removeDictionaryItem:'删除字典项',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',removeApp:'删除应用',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',discoverApplicationAccountCandidates:'查找子系统候选账号',startApplicationAccountBinding:'自动关联子系统账号',sendSubsystemBindingOtp:'发送账号关联验证码',verifyBindingOtp:'验证账号关联验证码',verifyBindingBySubsystemCredential:'验证原系统账号',verifyBindingByUpstreamReauth:'重新认证身份',submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
     const todoForLog=action==='openTodo'?(d.todos||[]).find(item=>item.id===p.id):null;
     const relatedForLog=[...(d.mappings||[]),...(d.applicationRequests||[]),...(d.accountOpeningRequests||[]),...(d.integrations||[])].find(item=>item.id===p.id);
     const logAppId=p.appId||todoForLog?.appId||relatedForLog?.appId||(['enterApp','removeApp'].includes(action)?p.id:null);
@@ -542,7 +552,7 @@ export function createPortalService(provider,getActor){
     if(logKind==='operation'){
      const pageByAction={
       createExternalPortalAdmin:['系统管理','用户管理'],createLocalPortalUser:['系统管理','用户管理'],setPortalUserStatus:['系统管理','用户管理'],resetLocalPassword:['系统管理','用户管理'],unlockLocalUser:['系统管理','用户管理'],savePortalUser:['系统管理','用户管理'],
-      saveSystemRole:['系统管理','角色管理'],saveOrganization:['系统管理','组织管理'],removeOrganization:['系统管理','组织管理'],saveDictionaryType:['系统管理','字典管理'],saveDictionaryItem:['系统管理','字典管理'],
+      saveSystemRole:['系统管理','角色管理'],saveOrganization:['系统管理','组织管理'],removeOrganization:['系统管理','组织管理'],saveDictionaryType:['系统管理','字典管理'],saveDictionaryItem:['系统管理','字典管理'],removeDictionaryItem:['系统管理','字典管理'],
       saveApp:['应用管理','应用列表'],removeApp:['应用管理','应用列表'],setAppStatus:['应用管理','应用列表'],createAccessProfile:['应用管理','应用列表'],saveIntegration:['应用管理','应用列表'],
       submitApplicationRequest:['应用中心','应用访问申请'],withdrawApplicationRequest:['应用中心','我的申请'],approveApplicationRequest:['应用管理','应用访问申请'],rejectApplicationRequest:['应用管理','应用访问申请'],
       submitAccountOpeningRequest:['应用中心','子系统账号开通申请'],completeMockAccountOpeningRequest:['应用管理','子系统账号开通申请'],

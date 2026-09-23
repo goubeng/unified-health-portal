@@ -61,7 +61,12 @@
           <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
           <template #label="{row}"><TableCellTooltip :text="text(row.label)"><button class="portal-field-link" @click="openItemEdit(row)">{{text(row.label)}}</button></TableCellTooltip></template>
           <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
-          <template #operation="{row}"><t-button size="small" variant="text" theme="primary" @click="openItemEdit(row)">编辑</t-button></template>
+          <template #operation="{row}">
+            <div class="row-actions">
+              <t-button size="small" variant="text" theme="primary" @click="openItemEdit(row)">编辑</t-button>
+              <t-button v-if="!selectedType?.systemLocked&&!row.systemLocked" size="small" variant="text" theme="danger" @click="removeItem(row)">删除</t-button>
+            </div>
+          </template>
         </t-table>
         <t-pagination v-if="selectedType" v-model="page" v-model:page-size="pageSize" :total="filteredItems.length" :page-size-options="[10,20,50]" show-jumper/>
       </section>
@@ -110,7 +115,7 @@
 
 <script setup>
 import {computed,reactive,ref,watch} from 'vue';
-import {MessagePlugin} from 'tdesign-vue-next';
+import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {label,text} from './presentation.js';
@@ -143,7 +148,7 @@ const columns=[
   {colKey:'sortOrder',title:'排序',width:90},
   {colKey:'status',title:'启用状态',width:100},
   {colKey:'remark',title:'备注',minWidth:240,ellipsis:true},
-  {colKey:'operation',title:'操作',width:100,fixed:'right'}
+  {colKey:'operation',title:'操作',width:130,fixed:'right'}
 ];
 
 function resetItemQuery(){itemKeyword.value='';itemStatus.value='';page.value=1;}
@@ -170,6 +175,21 @@ async function saveItem(){
   saving.value=false;
   if(!result.ok){formError.value=result.error.message;return;}
   itemDialogVisible.value=false;MessagePlugin.success('字典项已保存');emit('saved');
+}
+function removeItem(row){
+  if(selectedType.value?.systemLocked||row.systemLocked)return;
+  const dialog=DialogPlugin.confirm({
+    placement:'center',
+    theme:'warning',
+    header:'删除字典项',
+    body:`确认删除字典项“${text(row.label)}”吗？删除后当前列表将不再保留该项。`,
+    confirmBtn:{content:'确认删除',theme:'danger'},
+    onConfirm:async()=>{
+      const result=await command('removeDictionaryItem',{id:row.id,version:row.version});
+      if(!result.ok){MessagePlugin.error(result.error.message);return;}
+      dialog.hide();MessagePlugin.success('字典项已删除');emit('saved');
+    }
+  });
 }
 watch(types,value=>{if(!value.some(item=>item.code===selectedTypeCode.value))selectedTypeCode.value=value[0]?.code||'';},{immediate:true});
 watch([selectedTypeCode,itemKeyword,itemStatus,pageSize],()=>{page.value=1;});
