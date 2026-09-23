@@ -2,13 +2,25 @@
   <section class="announcement-editor">
     <label class="announcement-editor-label">正文<span class="portal-required"> *</span></label>
     <div class="rich-editor-shell">
-      <div class="rich-editor-toolbar" role="toolbar" aria-label="公告正文格式工具栏">
+      <div class="rich-editor-toolbar" role="toolbar" aria-label="公告正文格式工具栏" @mousedown.capture="saveSelection">
         <t-tooltip content="加粗"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('bold')"><Icon name="textformat-bold"/></t-button></t-tooltip>
         <t-tooltip content="斜体"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('italic')"><Icon name="textformat-italic"/></t-button></t-tooltip>
         <t-tooltip content="下划线"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('underline')"><Icon name="textformat-underline"/></t-button></t-tooltip>
         <span class="toolbar-divider"></span>
-        <t-select class="editor-toolbar-select editor-font-size-select" size="small" :value="fontSize" :options="fontSizeOptions" @change="changeFontSize"/>
-        <t-select class="editor-toolbar-select editor-color-select" size="small" :value="textColor" :options="colorOptions" @change="changeTextColor"/>
+        <t-tooltip content="文字大小">
+          <t-select v-model="fontSize" class="editor-toolbar-select editor-font-size-select" size="small" :options="fontSizeOptions" @change="changeFontSize"/>
+        </t-tooltip>
+        <t-tooltip content="文字颜色">
+          <t-color-picker
+            v-model="textColor"
+            class="editor-color-picker"
+            size="small"
+            format="HEX"
+            :enable-alpha="false"
+            :swatch-colors="colorSwatches"
+            @change="changeTextColor"
+          />
+        </t-tooltip>
         <span class="toolbar-divider"></span>
         <t-tooltip content="正文"><t-button size="small" variant="text" @click.prevent="block('p')">正文</t-button></t-tooltip>
         <t-tooltip content="标题"><t-button size="small" variant="text" @click.prevent="block('h3')">标题</t-button></t-tooltip>
@@ -27,7 +39,7 @@
         <input ref="imageInput" class="editor-hidden-input" type="file" accept="image/*" @change="insertImage"/>
         <input ref="importInput" class="editor-hidden-input" type="file" accept=".html,.htm,.txt" @change="importDocument"/>
       </div>
-      <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent" @mouseup="saveSelection" @keyup="saveSelection" @focus="saveSelection"></div>
+      <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent" @mouseup="saveSelection" @keyup="saveSelection"></div>
     </div>
 
     <label class="announcement-editor-label attachment-label">附件</label>
@@ -57,15 +69,7 @@ const emit=defineEmits(['update:modelValue','update:files']);
 const editor=ref(null),localFiles=ref([]),imageInput=ref(null),importInput=ref(null);
 const fontSize=ref('13px'),textColor=ref('#1f2329');
 const fontSizeOptions=['12px','13px','14px','16px','18px','20px','24px','32px'].map(value=>({value,label:value}));
-const colorOptions=[
- {value:'#1f2329',label:'默认'},
- {value:'#d54941',label:'红色'},
- {value:'#ed7b2f',label:'橙色'},
- {value:'#2ba471',label:'绿色'},
- {value:'#2454ff',label:'蓝色'},
- {value:'#8b5cf6',label:'紫色'},
- {value:'#86909c',label:'灰色'}
-];
+const colorSwatches=['#1f2329','#d54941','#ed7b2f','#e37318','#2ba471','#00a870','#0052d9','#2454ff','#7356e8','#8b5cf6','#86909c','#ffffff'];
 let syncing=false,savedRange=null;
 
 function syncEditor(value){
@@ -77,7 +81,6 @@ function syncContent(){
  if(!editor.value)return;
  const html=editor.value.innerHTML;
  emit('update:modelValue',html==='<br>'?'':html);
- saveSelection();
 }
 function saveSelection(){
  const selection=window.getSelection?.();
@@ -115,7 +118,11 @@ function changeFontSize(value){
 function changeTextColor(value){
  if(!value)return;
  textColor.value=value;
- exec('foreColor',value);
+ focusEditor();
+ document.execCommand('styleWithCSS',false,true);
+ document.execCommand('foreColor',false,value);
+ saveSelection();
+ syncContent();
 }
 function readFile(file,mode='text'){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('文件读取失败'));mode==='data'?reader.readAsDataURL(file):reader.readAsText(file);});}
 async function insertImage(event){
