@@ -265,7 +265,7 @@ async function normalizeFiles(files,originals){
     const original=item?.originAttachment||(originals||[]).find(file=>file.id===item?.id||file.name===item?.name);
     if(original?.data){result.push(original);continue;}
     const raw=item?.raw||item?.rawFile||item?.file||((typeof File!=='undefined'&&item instanceof File)?item:null);
-    const size=Number(raw?.size??item?.size??0);if(size>2*1024*1024)throw new Error('单个附件不能超过2MB');
+    const size=Number(raw?.size??item?.size??0);if(size>20*1024*1024)throw new Error('单个附件不能超过20MB');
     if(raw){result.push({id:item.id||'FILE_'+createUUID(),name:raw.name||item.name||'附件',size:raw.size||size,type:raw.type||item.type||'',uploadedAt:new Date().toISOString(),data:await fileToDataUrl(raw)});continue;}
     if(item?.url?.startsWith('data:'))result.push({id:item.id||'FILE_'+createUUID(),name:item.name||'附件',size,type:item.type||'',uploadedAt:new Date().toISOString(),data:item.url});
   }

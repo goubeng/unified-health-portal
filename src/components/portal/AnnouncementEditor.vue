@@ -53,9 +53,9 @@
       multiple
       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
       :max="5"
-      :size-limit="{ size: 2, unit: 'MB' }"
+      :size-limit="{ size: 20, unit: 'MB' }"
       :abridge-name="[16,8]"
-      tips="支持图片、PDF、Word、Excel、TXT、ZIP，单个不超过2MB，最多5个附件"
+      tips="支持图片、PDF、Word、Excel、TXT、ZIP，单个不超过20MB，最多5个附件"
       @change="emitFiles"
       @remove="emitFiles"
     />

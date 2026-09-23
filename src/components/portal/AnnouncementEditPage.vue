@@ -181,7 +181,7 @@ async function normalizeFiles(files,originals){
     if(original?.data){result.push(original);continue;}
     const raw=item?.raw||item?.rawFile||item?.file||((typeof File!=='undefined'&&item instanceof File)?item:null);
     const size=Number(raw?.size??item?.size??0);
-    if(size>2*1024*1024)throw new Error('单个附件不能超过2MB');
+    if(size>20*1024*1024)throw new Error('单个附件不能超过20MB');
     if(raw){
       result.push({
         id:item.id||'FILE_'+createUUID(),name:raw.name||item.name||'附件',size:raw.size||size,
