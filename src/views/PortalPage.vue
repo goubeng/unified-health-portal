@@ -115,7 +115,7 @@
      <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="group.pageSize" :total="group.total" :page-size-options="[10,20,50]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="setAppPageSize(group.key,$event)"/></section>
     </template>
     <section v-else class="panel portal-table-panel">
-     <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+     <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleTableSortChange">
       <template #empty><EmptyState description="暂无符合条件的记录"/></template>
       <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
       <template #primary="{row}"><TableCellTooltip :text="text(row[primaryField])||'-'"><button class="portal-field-link" :class="{'is-unread':row.status==='UNREAD'||row.readStatus==='UNREAD'}" @click="showDetail(row)">{{text(row[primaryField])||'-'}}</button></TableCellTooltip></template>
@@ -199,7 +199,7 @@ const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.v
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
 const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
 const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
-const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10);
+const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10),tableSort=ref(null);
 const appPageSizes=reactive({mine:20,other:20}),appPages=reactive({mine:1,other:1});
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
@@ -272,6 +272,7 @@ async function load(){
 function resetQuery(){
  search.value='';
  for(const key of Object.keys(filterValues))delete filterValues[key];
+ tableSort.value=listResource.value==='applicationRequests'?{sortBy:'submittedAt',descending:true}:null;
  page.value=1;appPages.mine=1;appPages.other=1;
 }
 watch(()=>route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
@@ -322,15 +323,34 @@ const querySpec=computed(()=>{
  return {keywordPlaceholder:'关键词',keywordFields:Object.keys(titles),filters:[]};
 });
 const queryFilters=computed(()=>querySpec.value.filters||[]);
+const normalizeSortKey=sortBy=>sortBy==='primary'?({apps:'name',applicationRequests:'requestNo'}[listResource.value]||sortBy):sortBy;
+const compareTableValue=(a,b,key)=>{
+ if(['submittedAt','createdAt','publishedAt','receivedAt','lastCheckedAt'].includes(key))return (Date.parse(a?.[key])||0)-(Date.parse(b?.[key])||0);
+ const av=['status','aggregateRuntimeStatus','userType'].includes(key)?label(a?.[key]):text(a?.[key]);
+ const bv=['status','aggregateRuntimeStatus','userType'].includes(key)?label(b?.[key]):text(b?.[key]);
+ return String(av||'').localeCompare(String(bv||''),'zh-CN',{numeric:true,sensitivity:'base'});
+};
 const filtered=computed(()=>{
  const term=search.value.trim().toLowerCase();
  const keywordFields=querySpec.value.keywordFields||[];
- return rows.value.filter(row=>{
+ const result=rows.value.filter(row=>{
   const matchesFilters=queryFilters.value.every(filter=>{const selected=filterValues[filter.key];if(!selected)return true;const actual=String(row[filter.key]??'');if(filter.key==='userType'&&['apps','mine'].includes(listResource.value)){if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual);if(selected==='GOV')return ['GOV','BOTH'].includes(actual);}return actual===String(selected);});
   const matchesKeyword=!term||keywordFields.some(key=>display(key,row[key]).toLowerCase().includes(term));
   return matchesFilters&&matchesKeyword;
- }).sort((a,b)=>'sortOrder'in a?(a.sortOrder||0)-(b.sortOrder||0):(Date.parse(b.publishedAt||b.createdAt)||0)-(Date.parse(a.publishedAt||a.createdAt)||0));
+ });
+ const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+ if(active?.sortBy){
+  const key=normalizeSortKey(active.sortBy);
+  const direction=active.descending?-1:1;
+  return result.sort((a,b)=>direction*compareTableValue(a,b,key));
+ }
+ return result.sort((a,b)=>'sortOrder'in a?(a.sortOrder||0)-(b.sortOrder||0):(Date.parse(b.publishedAt||b.createdAt)||0)-(Date.parse(a.publishedAt||a.createdAt)||0));
 });
+function handleTableSortChange(sort){
+ const next=Array.isArray(sort)?sort[0]:sort;
+ tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
+ page.value=1;
+}
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 watch([search,()=>JSON.stringify(filterValues),pageSize],()=>{page.value=1;appPages.mine=1;appPages.other=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
@@ -379,9 +399,14 @@ const columnWidth=(key,index)=>{
  if(key==='description')return 300;
  return 160;
 };
+const sortableFields={
+ apps:new Set(['name','code','aggregateRuntimeStatus','userType']),
+ applicationRequests:new Set(['requestNo','userName','appName','reason','status','submittedAt'])
+};
+const isSortableField=key=>sortableFields[listResource.value]?.has(key)===true;
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
- ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
+ ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,sorter:isSortableField(key),sortType:'all',cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
  ...(hasOperations.value?[{colKey:'operation',title:'操作',width:resource.value==='apps'&&admin.value?240:200,fixed:'right'}]:[])
 ]);
 const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement'})[resource.value]);
@@ -399,7 +424,7 @@ const formFields=computed(()=>{
    f('accessMode','访问模式','text',true,opt(['DIRECT','BIND','REQUEST'])),
    ...(form.accessMode==='REQUEST'?[f('postGrantMode','申请通过后','text',true,opt(['DIRECT','BIND']))]:[]),
    ...((form.accessMode==='BIND'||(form.accessMode==='REQUEST'&&form.postGrantMode==='BIND'))?[f('accountBindingMode','账号关联方式','text',true,opt(['AUTO','SELF','REVIEW','ADMIN'])),f('accountOpeningMode','未找到账号时','text',true,[{value:'NONE',label:'仅提示联系管理员'},{value:'REQUEST',label:'允许提交开通申请'}])]:[]),
-   f('url','入口地址','text',true,null,true),f('sortOrder','显示排序','number'),f('description','说明','textarea',false,null,true)],
+   f('url','入口地址','text',true,null,true),...(form.id?[]:[f('sortOrder','显示排序','number')]),f('description','说明','textarea',false,null,true)],
   saveCategory:[f('name','分类名称','text',true),f('code','分类编码','text',true),f('sortOrder','排序','number')],
   saveAnnouncement:[f('title','公告标题','text',true,null,true),f('type','公告类型'),f('scope','发布范围','text',true,opt(['ALL','CITIZEN','GOV'])),f('effectiveStart','生效时间','date'),f('effectiveEnd','失效时间','date')],
   bind:[f('externalAccount','已有子系统账号','text',true,null,true)],
