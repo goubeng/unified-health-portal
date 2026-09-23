@@ -7,6 +7,9 @@
         <t-tooltip content="斜体"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('italic')"><Icon name="textformat-italic"/></t-button></t-tooltip>
         <t-tooltip content="下划线"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('underline')"><Icon name="textformat-underline"/></t-button></t-tooltip>
         <span class="toolbar-divider"></span>
+        <t-select class="editor-toolbar-select editor-font-size-select" size="small" :value="fontSize" :options="fontSizeOptions" @change="changeFontSize"/>
+        <t-select class="editor-toolbar-select editor-color-select" size="small" :value="textColor" :options="colorOptions" @change="changeTextColor"/>
+        <span class="toolbar-divider"></span>
         <t-tooltip content="正文"><t-button size="small" variant="text" @click.prevent="block('p')">正文</t-button></t-tooltip>
         <t-tooltip content="标题"><t-button size="small" variant="text" @click.prevent="block('h3')">标题</t-button></t-tooltip>
         <span class="toolbar-divider"></span>
@@ -24,7 +27,7 @@
         <input ref="imageInput" class="editor-hidden-input" type="file" accept="image/*" @change="insertImage"/>
         <input ref="importInput" class="editor-hidden-input" type="file" accept=".html,.htm,.txt" @change="importDocument"/>
       </div>
-      <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent"></div>
+      <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent" @mouseup="saveSelection" @keyup="saveSelection" @focus="saveSelection"></div>
     </div>
 
     <label class="announcement-editor-label attachment-label">附件</label>
@@ -52,25 +55,68 @@ import {Icon} from 'tdesign-icons-vue-next';
 const props=defineProps({modelValue:{type:String,default:''},files:{type:Array,default:()=>[]}});
 const emit=defineEmits(['update:modelValue','update:files']);
 const editor=ref(null),localFiles=ref([]),imageInput=ref(null),importInput=ref(null);
-let syncing=false;
+const fontSize=ref('13px'),textColor=ref('#1f2329');
+const fontSizeOptions=['12px','13px','14px','16px','18px','20px','24px','32px'].map(value=>({value,label:value}));
+const colorOptions=[
+ {value:'#1f2329',label:'默认'},
+ {value:'#d54941',label:'红色'},
+ {value:'#ed7b2f',label:'橙色'},
+ {value:'#2ba471',label:'绿色'},
+ {value:'#2454ff',label:'蓝色'},
+ {value:'#8b5cf6',label:'紫色'},
+ {value:'#86909c',label:'灰色'}
+];
+let syncing=false,savedRange=null;
 
 function syncEditor(value){
  if(!editor.value)return;
  const html=String(value||'');
- if(editor.value.innerHTML!==html)editor.value.innerHTML=html;
+ if(editor.value.innerHTML!==html){editor.value.innerHTML=html;savedRange=null;}
 }
 function syncContent(){
  if(!editor.value)return;
  const html=editor.value.innerHTML;
  emit('update:modelValue',html==='<br>'?'':html);
+ saveSelection();
 }
-function focusEditor(){editor.value?.focus();}
+function saveSelection(){
+ const selection=window.getSelection?.();
+ if(!selection?.rangeCount||!editor.value?.contains(selection.anchorNode))return;
+ savedRange=selection.getRangeAt(0).cloneRange();
+}
+function restoreSelection(){
+ if(!savedRange)return;
+ try{
+  const selection=window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(savedRange);
+ }catch{savedRange=null;}
+}
+function focusEditor(){editor.value?.focus();restoreSelection();}
 function exec(command,value=null){
  focusEditor();
  document.execCommand(command,false,value);
+ saveSelection();
  syncContent();
 }
 function block(tag){exec('formatBlock',tag);}
+function changeFontSize(value){
+ if(!value)return;
+ fontSize.value=value;
+ focusEditor();
+ document.execCommand('fontSize',false,'7');
+ editor.value?.querySelectorAll('font[size="7"]').forEach(node=>{
+  node.removeAttribute('size');
+  node.style.fontSize=value;
+ });
+ saveSelection();
+ syncContent();
+}
+function changeTextColor(value){
+ if(!value)return;
+ textColor.value=value;
+ exec('foreColor',value);
+}
 function readFile(file,mode='text'){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('文件读取失败'));mode==='data'?reader.readAsDataURL(file):reader.readAsText(file);});}
 async function insertImage(event){
  const file=event.target.files?.[0];event.target.value='';if(!file)return;
