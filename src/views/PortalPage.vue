@@ -308,7 +308,7 @@ const querySpec=computed(()=>{
  if(key==='apps'||key==='mine')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['name','code'],filters:[
   filterDef('category','系统分类','请选择系统分类',rowOptions('category'),'category'),
   filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']),'aggregateRuntimeStatus'),
-  ...(admin.value?[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]:[]),
+  ...(admin.value?[filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]:[]),
   filterDef('userType','适用用户','请选择适用用户',fixedOptions(['BOTH','CITIZEN','GOV']),'userType')
  ]};
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
@@ -337,7 +337,7 @@ const filtered=computed(()=>{
  const term=search.value.trim().toLowerCase();
  const keywordFields=querySpec.value.keywordFields||[];
  const result=rows.value.filter(row=>{
-  const matchesFilters=queryFilters.value.every(filter=>{const selected=filterValues[filter.key];if(!selected)return true;const actual=String(row[filter.key]??'');if(filter.key==='userType'&&['apps','mine'].includes(listResource.value)){if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual);if(selected==='GOV')return ['GOV','BOTH'].includes(actual);}return actual===String(selected);});
+  const matchesFilters=queryFilters.value.every(filter=>{const selected=filterValues[filter.key];if(selected===undefined||selected===null||selected==='')return true;if(filter.key==='enabled')return (row.enabled===false?'DISABLED':'ENABLED')===String(selected);const actual=String(row[filter.key]??'');return actual===String(selected);});
   const matchesKeyword=!term||keywordFields.some(key=>display(key,row[key]).toLowerCase().includes(term));
   return matchesFilters&&matchesKeyword;
  });

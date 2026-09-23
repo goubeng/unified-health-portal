@@ -693,14 +693,14 @@ test('列表文本仅在溢出截断时显示完整内容Tooltip',()=>{
 });
 
 
-test('管理端应用列表使用全量目录且适用用户按包含关系筛选',()=>{
+test('管理端应用列表使用全量目录且启用状态与适用用户按实际字段精确筛选',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   assert(source.includes("else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}"));
-  assert(source.includes("if(filter.key==='userType'&&['apps','mine'].includes(listResource.value))"));
-  assert(source.includes("if(selected==='CITIZEN')return ['CITIZEN','BOTH'].includes(actual)"));
-  assert(source.includes("if(selected==='GOV')return ['GOV','BOTH'].includes(actual)"));
+  assert(source.includes("filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')"));
+  assert(source.includes("if(filter.key==='enabled')return (row.enabled===false?'DISABLED':'ENABLED')===String(selected)"));
+  assert(!source.includes("if(filter.key==='userType'&&['apps','mine'].includes(listResource.value))"));
+  assert(source.includes("const actual=String(row[filter.key]??'');return actual===String(selected);"));
   assert(source.includes("fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled']"));
-  assert(source.includes("apps:{name:'应用名称',code:'应用编码',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',status:'启用状态'}"));
 });
 
 test('组织详情来源提示显示在详情网格上方并与用户详情同间距',()=>{
