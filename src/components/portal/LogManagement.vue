@@ -24,7 +24,7 @@
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #resolutionStatus="{row}"><t-tag :theme="row.resolutionStatus==='RESOLVED'?'success':'warning'" variant="light">{{label(row.resolutionStatus||'OPEN')}}</t-tag></template>
-        <template #requestId="{row}"><TableCellTooltip :text="text(row.requestId)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.requestId)||'-'}}</button></TableCellTooltip></template>
+        <template #requestId="{row}"><TableCellTooltip :text="auditText(row.requestId)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{auditText(row.requestId)||'-'}}</button></TableCellTooltip></template>
         <template #operation="{row}">
           <div class="row-actions">
             <t-button v-if="kind==='error'&&row.resolutionStatus!=='RESOLVED'" size="small" variant="text" theme="primary" @click="openResolve(row)">处理</t-button>
@@ -56,10 +56,11 @@ import {MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
-import {date,label,text} from './presentation.js';
+import {date,label} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},kind:{type:String,default:'operation'}});
+const auditText=value=>String(value??'').trim();
 const emit=defineEmits(['saved']);
 const keyword=ref(''),appName=ref(''),status=ref(''),resolutionStatus=ref(''),page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null),resolveVisible=ref(false),resolveRow=ref(null),resolutionNote=ref(''),formError=ref(''),saving=ref(false);
@@ -78,11 +79,12 @@ const searchFields=computed(()=>({
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
   return props.rows.filter(row=>{
-    const matchesKeyword=!term||searchFields.value.some(key=>text(row[key]).toLowerCase().includes(term));
+    const matchesKeyword=!term||searchFields.value.some(key=>auditText(row[key]).toLowerCase().includes(term));
     return matchesKeyword&&(!appName.value||row.appName===appName.value)&&(!status.value||row.status===status.value)&&(!resolutionStatus.value||row.resolutionStatus===resolutionStatus.value);
   }).sort((a,b)=>(Date.parse(b.createdAt)||0)-(Date.parse(a.createdAt)||0));
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const column=(colKey,title,options={})=>({colKey,title,...options,cell:(_,ctx)=>auditText(ctx.row[colKey])||'-'});
 
 const columns=computed(()=>{
   const serial={colKey:'serial',title:'序号',width:64};
@@ -92,34 +94,34 @@ const columns=computed(()=>{
   if(props.kind==='login')return [
     serial,requestId,
     {colKey:'createdAt',title:'登录时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},
-    {colKey:'userName',title:'登录用户',width:120,ellipsis:true},{colKey:'account',title:'登录账号',width:150,ellipsis:true},
+    column('userName','登录用户',{width:120,ellipsis:true}),column('account','登录账号',{width:150,ellipsis:true}),
     {colKey:'actorType',title:'主体类型',width:130,cell:(_,ctx)=>actorTypeLabel(ctx.row)},{colKey:'authType',title:'认证类型',width:110,cell:(_,ctx)=>authTypeLabel(ctx.row)},
     {colKey:'identitySource',title:'身份来源',width:120,cell:(_,ctx)=>label(ctx.row.identitySource)},
-    {colKey:'loginSource',title:'登录来源',width:110},{colKey:'loginMethod',title:'登录方式',width:110,cell:(_,ctx)=>label(ctx.row.loginMethod)},
-    commonStatus,{colKey:'failureReason',title:'失败原因',minWidth:180,ellipsis:true},{colKey:'ip',title:'IP',width:130},{colKey:'client',title:'客户端',width:160,ellipsis:true}
+    column('loginSource','登录来源',{width:110}),{colKey:'loginMethod',title:'登录方式',width:110,cell:(_,ctx)=>label(ctx.row.loginMethod)},
+    commonStatus,column('failureReason','失败原因',{minWidth:180,ellipsis:true}),column('ip','IP',{width:130}),column('client','客户端',{width:160,ellipsis:true})
   ];
   if(props.kind==='access')return [
     serial,requestId,
-    {colKey:'createdAt',title:'访问时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'userName',title:'用户',width:120},{colKey:'account',title:'账号',width:150},
-    {colKey:'appName',title:'来源应用',minWidth:230,ellipsis:true},{colKey:'accessMode',title:'访问模式',width:110,cell:(_,ctx)=>label(ctx.row.accessMode)},commonStatus,
-    {colKey:'ip',title:'IP',width:130}
+    {colKey:'createdAt',title:'访问时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},column('userName','用户',{width:120}),column('account','账号',{width:150}),
+    column('appName','来源应用',{minWidth:230,ellipsis:true}),{colKey:'accessMode',title:'访问模式',width:110,cell:(_,ctx)=>label(ctx.row.accessMode)},commonStatus,
+    column('ip','IP',{width:130})
   ];
   if(props.kind==='operation')return [
     serial,requestId,
-    {colKey:'createdAt',title:'操作时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'actor',title:'操作人',width:120},{colKey:'moduleName',title:'模块',width:130},
-    {colKey:'pageName',title:'页面',width:140},{colKey:'actionName',title:'操作动作',width:140},{colKey:'objectType',title:'对象类型',width:120},commonStatus
+    {colKey:'createdAt',title:'操作时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},column('actor','操作人',{width:120}),column('moduleName','模块',{width:130}),
+    column('pageName','页面',{width:140}),column('actionName','操作动作',{width:140}),column('objectType','对象类型',{width:120}),commonStatus
   ];
   if(props.kind==='api')return [
     serial,requestId,
-    {colKey:'createdAt',title:'调用时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true},
-    {colKey:'interfaceName',title:'接口',minWidth:250,ellipsis:true},commonStatus,{colKey:'httpMethod',title:'方法',width:90},{colKey:'statusCode',title:'状态码',width:90},
-    {colKey:'durationMs',title:'耗时(ms)',width:100},{colKey:'errorMessage',title:'错误信息',minWidth:200,ellipsis:true}
+    {colKey:'createdAt',title:'调用时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},column('appName','来源应用',{minWidth:220,ellipsis:true}),
+    column('interfaceName','接口',{minWidth:250,ellipsis:true}),commonStatus,column('httpMethod','方法',{width:90}),column('statusCode','状态码',{width:90}),
+    column('durationMs','耗时(ms)',{width:100}),column('errorMessage','错误信息',{minWidth:200,ellipsis:true})
   ];
   return [
     serial,requestId,
     {colKey:'createdAt',title:'发生时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'severity',title:'级别',width:90,cell:(_,ctx)=>label(ctx.row.severity)},
-    {colKey:'moduleName',title:'模块',width:130},{colKey:'errorCode',title:'错误编码',width:190,ellipsis:true},{colKey:'errorMessage',title:'异常信息',minWidth:260,ellipsis:true},
-    {colKey:'resolutionStatus',title:'处理状态',width:110},{colKey:'resolutionNote',title:'处理说明',minWidth:220,ellipsis:true},operation
+    column('moduleName','模块',{width:130}),column('errorCode','错误编码',{width:190,ellipsis:true}),column('errorMessage','异常信息',{minWidth:260,ellipsis:true}),
+    {colKey:'resolutionStatus',title:'处理状态',width:110},column('resolutionNote','处理说明',{minWidth:220,ellipsis:true}),operation
   ];
 });
 
@@ -131,15 +133,15 @@ const detailKeys=computed(()=>({
   api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['status','结果'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['requestId','请求ID']],
   error:[['createdAt','发生时间'],['severity','级别'],['moduleName','模块'],['errorCode','错误编码'],['errorMessage','异常信息'],['resolutionStatus','处理状态'],['resolutionNote','处理说明'],['resolvedAt','处理时间'],['requestId','请求ID']]
 }[props.kind]||[]));
-const actorTypeLabel=row=>row?.actorType==='PORTAL_ADMIN_USER'?'门户管理用户':row?.actorType==='APPLICATION'?'应用':'门户访问用户';
-const authTypeLabel=row=>row?.authType==='LOCAL'?'本地账号':'外部身份';
+const actorTypeLabel=row=>row?.actorType==='PORTAL_ADMIN_USER'?'门户管理用户':row?.actorType==='APPLICATION'?'应用':row?.actorType==='ACCESS_USER'?'门户访问用户':'-';
+const authTypeLabel=row=>row?.authType==='LOCAL'?'本地账号':row?.authType==='EXTERNAL'?'外部身份':'-';
 const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>{
   let value;
   if(key.endsWith('At')||key==='createdAt')value=date(detail.value?.[key]);
   else if(key==='actorType')value=actorTypeLabel(detail.value);
   else if(key==='authType')value=authTypeLabel(detail.value);
   else if(['status','identitySource','loginMethod','accessMode','severity','resolutionStatus'].includes(key))value=label(detail.value?.[key]);
-  else value=text(detail.value?.[key])||'-';
+  else value=auditText(detail.value?.[key])||'-';
   return {key,label:labelText,value};
 }));
 

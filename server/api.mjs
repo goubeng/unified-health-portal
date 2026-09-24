@@ -56,6 +56,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
  };
  const handle=async(req,res)=>{
   try{
+   const startedAt=Date.now(),auditEvent=args=>makeEvent({...args,requestMeta:{ip:(req.socket?.remoteAddress||'').replace(/^::ffff:/,''),client:String(req.headers['user-agent']||'').slice(0,160),durationMs:Date.now()-startedAt}});
    if(!/^((127\.0\.0\.1|localhost)(:4011)?)$/.test(req.headers.host||''))return send(res,403,resultError('FORBIDDEN','仅允许本机API入口'));
    const url=new URL(req.url,'http://127.0.0.1:4011'),path=url.pathname;
    const external=path.startsWith('/api/portal/ingest/');
@@ -69,44 +70,46 @@ export function createPortalApi({repository=null,env=process.env}={}){
     if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:sessionView(state,actor)});
     if(path==='/api/portal/session'&&req.method==='POST'){
      const next=state.users.find(x=>x.id===payload.userId&&sessionActorEnabled(x));if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
-     const event=makeEvent({actor:next,action:actor?'SWITCH_USER':'LOGIN',payload:{previousActor:actor?.id},state,result:{ok:true},kind:'LOGIN'});
+     const loginMethod=actor?'SWITCH':next.authType==='LOCAL'?'PASSWORD':['QR','SMS'].includes(payload.loginMethod)?payload.loginMethod:'QR';
+     const event=auditEvent({actor:next,action:actor?'SWITCH_USER':'LOGIN',payload:{previousActor:actor?.id,loginMethod},state,result:{ok:true},kind:'LOGIN'});
      await repository.commit(state,state,version,event);
      const sid=randomBytes(32).toString('hex'),ttl=Number(state.settings.find(x=>x.code==='auth.session_ttl_seconds')?.value)||7200;
      const old=(req.headers.cookie||'').match(/wj_portal=([^;]+)/)?.[1];if(old)sessions.delete(old);sessions.set(sid,{userId:next.id,expires:Date.now()+ttl*1000});
      res.setHeader('Set-Cookie',`wj_portal=${sid}; HttpOnly; SameSite=Strict; Path=/api/portal; Max-Age=${ttl}`);return send(res,200,{ok:true,data:sessionView(state,next)});
     }
     if(path==='/api/portal/logout'&&req.method==='POST'){
-     if(actor)await repository.commit(state,state,version,makeEvent({actor,action:'LOGOUT',state,result:{ok:true},kind:'LOGIN'}));
+     if(actor)await repository.commit(state,state,version,auditEvent({actor,action:'LOGOUT',state,result:{ok:true},kind:'LOGIN'}));
      const sid=(req.headers.cookie||'').match(/wj_portal=([^;]+)/)?.[1];if(sid)sessions.delete(sid);res.setHeader('Set-Cookie','wj_portal=; HttpOnly; SameSite=Strict; Path=/api/portal; Max-Age=0');return send(res,200,{ok:true});
     }
     const provider=stateProvider(state),service=createPortalService(provider,()=>actor);
     if(external&&req.method==='POST'){
      const match=path.match(/^\/api\/portal\/ingest\/([^/]+)\/(todos|messages)$/);if(!match)return send(res,404,resultError('NOT_FOUND','接口不存在'));
      const appId=decodeURIComponent(match[1]),kind=match[2]==='todos'?'TODO':'MESSAGE',config=state.integrations.find(x=>x.appId===appId&&x.kind===kind);
-     const rejectPush=async(code,message,status)=>{const result=resultError(code,message);const event=makeEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'});event.actorKind='APPLICATION';await repository.commit(state,state,version,event);return send(res,status,result);};
+     const rejectPush=async(code,message,status)=>{const result=resultError(code,message);const event=auditEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'});event.actorKind='APPLICATION';Object.assign(event.details,{interfaceName:`/api/portal/ingest/${kind==='TODO'?'todos':'messages'}`,httpMethod:'POST',statusCode:status});await repository.commit(state,state,version,event);return send(res,status,result);};
      if(!config||config.enabled!=='ENABLED'||state.apps.find(x=>x.id===appId)?.enabled===false)return rejectPush('FORBIDDEN','来源接入未启用',403);
      const key=env[config.credentialRef],supplied=(req.headers.authorization||'').replace(/^Bearer /,'');
      if(!key||!supplied||!timingSafeEqual(hash(key),hash(supplied)))return rejectPush('UNAUTHENTICATED','接入凭据不匹配',401);
      const fields=integrationFields[kind];
      const input=Object.fromEntries(fields.map(k=>[k,payload[config.fieldMapping?.[k]||k]]));input.appId=appId;
      if(kind==='TODO')input.status=config.valueMapping?.status?.[input.status]||input.status;
-     if(fields.some(key=>typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');await repository.commit(state,state,version,makeEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'}));return send(res,400,result);}
+     if(fields.some(key=>typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');const event=auditEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'});event.actorKind='APPLICATION';Object.assign(event.details,{interfaceName:`/api/portal/ingest/${kind==='TODO'?'todos':'messages'}`,httpMethod:'POST',statusCode:400});await repository.commit(state,state,version,event);return send(res,400,result);}
      const principal=state.users.find(x=>adminUserEnabled(x)&&can(x,'system:super'));const machineService=createPortalService(provider,()=>principal);
      const action=kind==='TODO'?'pushTodo':'pushMessage',result=await machineService.command(action,input);
-     const event=makeEvent({action,payload:input,state,result,kind:'API'});event.actorKind='APPLICATION';event.details.source='BEARER_PUSH';
-     await repository.commit(state,provider.read(),version,event);return send(res,statusFor(result),result);
+     const after=provider.read(),sourceLog=(after.logs||[]).find(row=>!(state.logs||[]).some(old=>old.id===row.id));
+     const event=auditEvent({action,payload:input,state:after,result,kind:'API',sourceLog});event.actorKind='APPLICATION';Object.assign(event.details,{source:'BEARER_PUSH',interfaceName:`/api/portal/ingest/${kind==='TODO'?'todos':'messages'}`,httpMethod:'POST',statusCode:statusFor(result)});
+     await repository.commit(state,after,version,event);return send(res,statusFor(result),result);
     }
     if(!actor)return send(res,401,resultError('UNAUTHENTICATED','请先登录'));
     if(path==='/api/portal/contracts/public'&&req.method==='GET'){
      if(!can(actor,'application:view'))return send(res,403,resultError('FORBIDDEN','需要应用管理权限'));
-     await repository.commit(state,state,version,makeEvent({actor,action:'DOWNLOAD_CONTRACT',state,result:{ok:true}}));return send(res,200,{ok:true,data:publicContract()});
+     await repository.commit(state,state,version,auditEvent({actor,action:'DOWNLOAD_CONTRACT',state,result:{ok:true}}));return send(res,200,{ok:true,data:publicContract()});
     }
     if(path.startsWith('/api/portal/contracts/')&&req.method==='GET'){
      if(!can(actor,'integration:view'))return send(res,403,resultError('FORBIDDEN','需要集成管理权限'));
      const [,kind,appId]=path.match(/^\/api\/portal\/contracts\/(TODO|MESSAGE)\/([^/]+)$/)||[];
      if(!kind||!state.apps.some(x=>x.id===appId))return send(res,404,resultError('NOT_FOUND','接入对象不存在'));
      const doc=contract(kind,appId),config=state.integrations.find(x=>x.kind===kind&&x.appId===appId);doc['x-field-mapping']=config?.fieldMapping||{};doc['x-value-mapping']=config?.valueMapping||{};
-     await repository.commit(state,state,version,makeEvent({actor,action:'DOWNLOAD_CONTRACT',payload:{appId},state,result:{ok:true}}));return send(res,200,{ok:true,data:doc});
+     await repository.commit(state,state,version,auditEvent({actor,action:'DOWNLOAD_CONTRACT',payload:{appId},state,result:{ok:true}}));return send(res,200,{ok:true,data:doc});
     }
     if(path==='/api/portal/read'&&req.method==='GET'){
      const resource=url.searchParams.get('resource')||'';const result=await service.read(resource);
@@ -120,7 +123,8 @@ export function createPortalApi({repository=null,env=process.env}={}){
      const operationProvider=operationState===state?provider:stateProvider(operationState);
      const operationService=operationState===state?service:createPortalService(operationProvider,()=>actor);
      const result=await operationService.command(action,input);
-     await repository.commit(operationState,operationProvider.read(),version,makeEvent({actor,action,payload:input,state:operationProvider.read(),result}));return send(res,statusFor(result),result);
+     const after=operationProvider.read(),sourceLog=(after.logs||[]).find(row=>!(operationState.logs||[]).some(old=>old.id===row.id));
+     await repository.commit(operationState,after,version,auditEvent({actor,action,payload:input,state:after,result,sourceLog}));return send(res,statusFor(result),result);
     }
     send(res,404,resultError('NOT_FOUND','接口不存在'));
    });

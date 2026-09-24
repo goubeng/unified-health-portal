@@ -37,7 +37,7 @@ test('API log result column is before HTTP method',()=>{
   const source=read('src/components/portal/LogManagement.vue');
   const api=source.split("if(props.kind==='api')return [")[1]?.split('];')[0]||'';
   assert(api.indexOf('commonStatus')>=0);
-  assert(api.indexOf('commonStatus')<api.indexOf("colKey:'httpMethod'"));
+  assert(api.indexOf('commonStatus')<api.indexOf("column('httpMethod'"));
 });
 
 test('account opening request examples cover main statuses',()=>{

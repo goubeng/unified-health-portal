@@ -2,6 +2,7 @@ import {spawn} from 'node:child_process';
 import {randomUUID,createHash} from 'node:crypto';
 import {createSeed} from '../src/mock/seed.js';
 import {ensureRules} from '../src/config/rules.js';
+import {auditActionNames,auditActionPages} from '../src/config/audit-activity.js';
 import {loadApplicationState,applicationMirrorSql} from './application-persistence.mjs';
 import {loadMessageTodoState,messageTodoMirrorSql} from './message-todo-persistence.mjs';
 import {loadRequestState,requestMirrorSql} from './request-persistence.mjs';
@@ -25,6 +26,24 @@ export function sqlQuery(sql){
 const upsert=(name,row)=>{const keys=Object.keys(row);return `INSERT INTO ${table(name)} (${keys.map(ident).join(',')}) VALUES (${keys.map(k=>lit(row[k])).join(',')}) ON CONFLICT (id) DO UPDATE SET ${keys.filter(k=>k!=='id'&&k!=='created_at').map(k=>`${ident(k)}=EXCLUDED.${ident(k)}`).join(',')};`;};
 const base=x=>({id:dbId(x.id),created_at:x.createdAt||new Date().toISOString(),updated_at:x.updatedAt||new Date().toISOString(),version:x.version||1});
 const json=value=>{if(value==null||typeof value==='object')return value;try{return JSON.parse(value);}catch{return null;}};
+export function auditLogDto(row){
+ const {actorProfile,appProfile,...publicRow}=row;
+ const details=json(row.details)||{},profile=json(actorProfile)||{},app=json(appProfile)||{},action=row.name,[moduleName,pageName]=auditActionPages[action]||[];
+ const identitySource=details.identitySource||profile.identitySource||null,authType=details.authType||profile.authType||(identitySource==='PORTAL_LOCAL'?'LOCAL':identitySource?'EXTERNAL':null);
+ return {...publicRow,details,
+  actor:details.actorName||row.actor||profile.name||null,userName:details.userName||details.actorName||row.actor||profile.name||null,account:details.account||details.actorAccount||profile.account||null,
+  actorType:details.actorType||(row.actorKind==='APPLICATION'?'APPLICATION':profile.kind==='ADMIN'||authType==='LOCAL'?'PORTAL_ADMIN_USER':profile.kind==='USER'?'ACCESS_USER':null),authType,identitySource,
+  loginSource:details.loginSource||(row.kind==='auth'?'权限核验':({PORTAL_LOCAL:'门户本地',MINZHENGWU:'闽政务',MINZHENGTONG:'闽政通'})[identitySource]||identitySource||null),
+  loginMethod:details.loginMethod||(row.kind==='login'?(authType==='LOCAL'?'PASSWORD':authType==='EXTERNAL'?'QR':null):null),failureReason:details.failureReason||(['login','auth'].includes(row.kind)&&row.status!=='SUCCESS'?row.description:null),
+  ip:details.ip||null,client:details.client||null,accessMode:details.accessMode||app.accessMode||null,
+  moduleName:details.moduleName||moduleName||row.moduleName||'统一门户',pageName:details.pageName||pageName||null,
+  actionName:details.actionName||auditActionNames[action]||action,objectType:details.objectType||row.objectType||null,
+  interfaceName:details.interfaceName||({pushTodo:'/api/portal/ingest/todos',pushMessage:'/api/portal/ingest/messages'})[action]||null,
+  httpMethod:details.httpMethod||null,statusCode:details.statusCode??null,durationMs:details.durationMs??null,
+  severity:details.severity||null,errorCode:details.errorCode||null,errorMessage:details.errorMessage||(row.kind==='error'||row.kind==='api'&&row.status!=='SUCCESS'?row.description:null),
+  resolutionStatus:row.resolutionStatus||'OPEN',resolutionNote:details.resolutionNote||row.resolutionNote||null,resolvedAt:details.resolvedAt||row.resolvedAt||null,resolvedBy:details.resolvedBy||row.resolvedBy||null
+ };
+}
 const announcementRows=state=>{
  const rows=new Map();
  for(const row of state.announcements||[])rows.set(row.id,{...row,deletedAt:null,deletedBy:null,deleteReason:null});
@@ -90,7 +109,7 @@ export function mirrorSql(before,after){
   for(const row of after.logs||[]){
    const old=previousLogs.get(row.id);
    if(!old||old.kind!=='error'||row.resolutionStatus===old.resolutionStatus)continue;
-   statements.push(`DO $$ BEGIN UPDATE ${table('audit_event')} SET resolution_status=${lit(row.resolutionStatus)},details=coalesce(details,'{}'::jsonb)||${lit({resolutionNote:row.resolutionNote||'',resolvedAt:row.resolvedAt||null,resolvedBy:row.resolvedBy||null})}::jsonb,version=${Number(row.version)},updated_at=now() WHERE id=${lit(row.id)} AND kind='ERROR' AND version=${Number(old.version)}; IF NOT FOUND THEN RAISE EXCEPTION 'LOG_VERSION_CONFLICT'; END IF; END $$;`);
+   statements.push(`DO $$ BEGIN UPDATE ${table('audit_event')} SET resolution_status=${lit(row.resolutionStatus)},details=(coalesce(nullif(details,''),'{}')::jsonb||${lit({resolutionNote:row.resolutionNote||'',resolvedAt:row.resolvedAt||null,resolvedBy:row.resolvedBy||null})}::jsonb)::text,version=${Number(row.version)},updated_at=now() WHERE id=${lit(row.id)} AND kind='ERROR' AND version=${Number(old.version)}; IF NOT FOUND THEN RAISE EXCEPTION 'LOG_VERSION_CONFLICT'; END IF; END $$;`);
   }
   statements.push(remainingMirrorSql(before,after));
  statements.push(applicationMirrorSql(before,after));
@@ -99,13 +118,22 @@ export function mirrorSql(before,after){
  statements.push(announcementMirrorSql(before,after));
  return statements.filter(Boolean).join('\n');
 }
-export function makeEvent({actor,action,payload={},state,result,kind}){
+export function makeEvent({actor,action,payload={},state,result,kind,sourceLog=null,requestMeta=null}){
  const todo=action==='openTodo'?state.todos.find(x=>x.id===payload.id):null;
  const related=[...(state.integrations||[]),...(state.mappings||[]),...(state.messages||[])].find(x=>x.id===payload.id);
  const appId=payload.appId||todo?.appId||related?.appId||(['enterApp','saveApp','setAppStatus'].includes(action)?payload.id||result?.data?.id:null);
  const eventKind=kind||(result?.ok===false?'ERROR':['enterApp','openTodo'].includes(action)?'ACCESS':action.startsWith('push')?'API':'OPERATION');
  const identitySource=actor?.authType==='LOCAL'?'PORTAL_LOCAL':actor?.userType==='GOV'?'MINZHENGWU':actor?.userType==='CITIZEN'?'MINZHENGTONG':null;
- return {id:'P4EV_'+randomUUID(),at:new Date().toISOString(),kind:eventKind,action,actorId:actor?.id||null,actorKind:actor?'USER':'SYSTEM',appId:state.apps.some(x=>x.id===appId)?appId:null,objectId:payload.id||result?.data?.entityId||result?.data?.id||null,result:result?.ok===false?(result.error?.code==='FORBIDDEN'?'DENIED':'FAILURE'):'SUCCESS',summary:result?.ok===false?result.error.message:action,requestId:result?.requestId||randomUUID(),details:{actorName:actor?.name||'系统任务',actorAccount:actor?.account||null,userType:actor?.userType||null,identitySource,loginMethod:actor?.authType==='LOCAL'?'PASSWORD':'QR',errorCode:result?.error?.code||null,applicationName:state.apps.find(x=>x.id===appId)?.name||null,accessMode:state.apps.find(x=>x.id===appId)?.accessMode||null,objectType:action==='openTodo'?'todo':appId?'application':action.includes('Announcement')?'announcement':'portal',previousActor:payload.previousActor||null,objectIds:payload.ids||[],accessOutcome:['enterApp','openTodo'].includes(action)?'ENTRY_REQUEST_ONLY':null}};
+ const details={actorName:actor?.name||'系统任务',actorAccount:actor?.account||null,userType:actor?.userType||null,actorType:actor?.kind==='ADMIN'?'PORTAL_ADMIN_USER':actor?'ACCESS_USER':null,authType:actor?.authType||null,
+  identitySource,loginSource:actor?.authType==='LOCAL'?'门户本地':actor?.userType==='GOV'?'闽政务':actor?.userType==='CITIZEN'?'闽政通':null,
+  loginMethod:payload.loginMethod|| (actor?.authType==='LOCAL'?'PASSWORD':actor?'QR':null),errorCode:result?.error?.code||null,applicationName:state.apps.find(x=>x.id===appId)?.name||null,
+  accessMode:state.apps.find(x=>x.id===appId)?.accessMode||null,objectType:action==='openTodo'?'todo':appId?'application':action.includes('Announcement')?'announcement':'portal',
+  severity:eventKind==='ERROR'?'HIGH':null,moduleName:appId?'应用集成':'统一门户',errorMessage:result?.ok===false?result.error?.message||null:null,
+  previousActor:payload.previousActor||null,objectIds:payload.ids||[],accessOutcome:['enterApp','openTodo'].includes(action)?'ENTRY_REQUEST_ONLY':null};
+ for(const key of ['userName','account','actorType','authType','identitySource','accessMode','moduleName','pageName','actionName','objectType','interfaceName','httpMethod','statusCode'])if(sourceLog?.[key]!=null)details[key]=sourceLog[key];
+ if(requestMeta)Object.assign(details,{ip:requestMeta.ip||null,client:requestMeta.client||null,durationMs:requestMeta.durationMs??null});
+ return {id:'P4EV_'+randomUUID(),at:new Date().toISOString(),kind:eventKind,action,actorId:actor?.id||null,actorKind:actor?'USER':'SYSTEM',appId:state.apps.some(x=>x.id===appId)?appId:null,objectId:payload.id||result?.data?.entityId||result?.data?.id||null,
+  result:result?.ok===false?(result.error?.code==='FORBIDDEN'?'DENIED':'FAILURE'):'SUCCESS',summary:result?.ok===false?result.error.message:action,requestId:result?.requestId||randomUUID(),details};
 }
 
 export function createMemoryRepository(initialState=createSeed()){
@@ -163,7 +191,7 @@ export function createRepository(query=sqlQuery){
    const insert=event?`INSERT INTO ${table('audit_event')}(id,created_at,updated_at,version,kind,event_code,request_id,actor_user_id,actor_kind,application_id,object_type,object_id,result,summary,details) VALUES (${lit(event.id)},${lit(event.at)},${lit(event.at)},1,${lit(event.kind)},${lit(event.action)},${lit(event.requestId)},${lit(dbId(event.actorId))},${lit(event.actorKind)},${lit(dbId(event.appId))},${lit(event.details.objectType||'portal')},${lit(event.objectId)},${lit(event.result)},${lit(event.summary)},${lit(event.details)});`:'';
    await query(`BEGIN; SET LOCAL lock_timeout='5s'; SELECT pg_advisory_xact_lock(38013800); DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM ${table('system_config')} WHERE id='P4RUN_STATE' AND version=${Number(version)} FOR UPDATE) THEN RAISE EXCEPTION 'STATE_VERSION_CONFLICT'; END IF; END $$; ${mirrorSql(before,after)} ${insert} UPDATE ${table('system_config')} SET value=${lit(after)},version=version+1,updated_at=now() WHERE id='P4RUN_STATE'; COMMIT;`);
   },
-   async logs(kind){const raw=await query(`SELECT coalesce(json_agg(r),'[]'::json) FROM (SELECT a.id,a.version,lower(a.kind) AS kind,a.event_code AS name,u.display_name AS actor,a.summary AS description,a.result AS status,a.created_at AS "createdAt",a.request_id AS "requestId",p.name AS "appName",a.application_id AS "appId",a.object_id AS "objectId",a.details::jsonb AS details,coalesce(a.resolution_status,'OPEN') AS "resolutionStatus",a.details->>'resolutionNote' AS "resolutionNote",a.details->>'resolvedAt' AS "resolvedAt",a.details->>'resolvedBy' AS "resolvedBy",a.details->>'errorCode' AS "errorCode",a.summary AS "errorMessage",coalesce(a.details->>'moduleName','统一门户') AS "moduleName" FROM ${table('audit_event')} a LEFT JOIN ${table('unified_user')} u ON a.actor_user_id=u.id LEFT JOIN ${table('application')} p ON a.application_id=p.id WHERE ${kind==='login'?"a.kind IN ('LOGIN','AUTH')":`a.kind=${lit(kind.toUpperCase())}`} ORDER BY a.created_at DESC LIMIT 1000) r;`);return JSON.parse(raw);},
+   async logs(kind){const raw=await query(`SELECT coalesce(json_agg(r),'[]'::json) FROM (SELECT a.id,a.version,lower(a.kind) AS kind,a.event_code AS name,u.display_name AS actor,a.actor_kind AS "actorKind",r.payload AS "actorProfile",p.runtime_payload AS "appProfile",a.summary AS description,a.result AS status,a.created_at AS "createdAt",a.request_id AS "requestId",p.name AS "appName",a.application_id AS "appId",a.object_type AS "objectType",a.object_id AS "objectId",a.details::jsonb AS details,coalesce(a.resolution_status,'OPEN') AS "resolutionStatus",a.details::jsonb->>'resolutionNote' AS "resolutionNote",a.details::jsonb->>'resolvedAt' AS "resolvedAt",a.details::jsonb->>'resolvedBy' AS "resolvedBy" FROM ${table('audit_event')} a LEFT JOIN ${table('unified_user')} u ON a.actor_user_id=u.id LEFT JOIN ${table('portal_runtime_entity')} r ON r.resource='users' AND r.runtime_id=regexp_replace(a.actor_user_id,'^P4FIX_','MOCK_') LEFT JOIN ${table('application')} p ON a.application_id=p.id WHERE ${kind==='login'?"a.kind IN ('LOGIN','AUTH')":`a.kind=${lit(kind.toUpperCase())}`} ORDER BY a.created_at DESC LIMIT 1000) r;`);return JSON.parse(raw).map(auditLogDto);},
    async openErrorCount(){const raw=await query(`SELECT count(*) FROM ${table('audit_event')} WHERE kind='ERROR' AND coalesce(resolution_status,'OPEN')='OPEN';`);return Number(raw);}
  };
 }

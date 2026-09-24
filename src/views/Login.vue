@@ -108,13 +108,13 @@ function openForgot(){window.open(platformLink.value,'_blank','noopener');}
 async function enterLocalAdmin(){
  if(localLoggingIn.value)return;
  localLoggingIn.value=true;notice.value='';
- try{await login('MOCK_LOCAL_ADMIN');}
+ try{await login('MOCK_LOCAL_ADMIN','PASSWORD');}
  catch(error){notice.value=error.message;localLoggingIn.value=false;return;}
  router.replace('/admin/home');
 }
 async function enter(){
  if(identityType.value==='LOCAL'){await enterLocalAdmin();return;}
- try{await login(identityType.value==='GOV'?'MOCK_USER_2':'MOCK_USER_1');}catch(error){notice.value=error.message;return;}
+ try{await login(identityType.value==='GOV'?'MOCK_USER_2':'MOCK_USER_1',method.value==='phone'?'SMS':'QR');}catch(error){notice.value=error.message;return;}
  router.replace('/portal/home');
 }
 watch([identityType,method],()=>reset(),{immediate:true});

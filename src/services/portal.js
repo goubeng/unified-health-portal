@@ -3,6 +3,7 @@ import {can,permissions,permissionsFromScopes} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
 import {rules} from '../config/rules.js';
 import {integrationFields,terminalStatuses} from '../config/integration-contract.js';
+import {auditActionNames,auditActionPages} from '../config/audit-activity.js';
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
@@ -553,29 +554,18 @@ export function createPortalService(provider,getActor){
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null,deleted:false,deletedAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
     }else fail('CAPABILITY_UNAVAILABLE','该动作尚未开放');
-    const actionNames={createExternalPortalAdmin:'授权外部用户管理资格',createLocalPortalUser:'新建本地管理账号',setPortalUserStatus:'变更管理用户启用状态',resetLocalPassword:'重置本地管理账号密码',unlockLocalUser:'解除本地管理账号锁定',savePortalUser:'维护门户管理用户',saveOrganization:'维护组织',removeOrganization:'删除组织',saveDictionaryType:'维护字典类型',saveDictionaryItem:'维护字典项',removeDictionaryItem:'删除字典项',saveSystemRole:'维护系统角色',markAnnouncementRead:'阅读公告',saveApp:'维护应用信息',removeApp:'删除应用',setAppStatus:'变更应用启用状态',saveCategory:'维护系统分类',removeCategory:'删除分类',markRead:'阅读消息',markMessagesRead:'批量阅读消息',markAllMessagesRead:'全部消息已读',deleteMessages:'删除消息',enterApp:'访问应用',openTodo:'打开待办',discoverApplicationAccountCandidates:'查找子系统候选账号',startApplicationAccountBinding:'自动关联子系统账号',sendSubsystemBindingOtp:'发送账号关联验证码',verifyBindingOtp:'验证账号关联验证码',verifyBindingBySubsystemCredential:'验证原系统账号',verifyBindingByUpstreamReauth:'重新认证身份',submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息'};
     const todoForLog=action==='openTodo'?(d.todos||[]).find(item=>item.id===p.id):null;
     const relatedForLog=[...(d.mappings||[]),...(d.applicationRequests||[]),...(d.accountOpeningRequests||[]),...(d.integrations||[])].find(item=>item.id===p.id);
     const logAppId=p.appId||todoForLog?.appId||relatedForLog?.appId||(['enterApp','removeApp'].includes(action)?p.id:null);
     const logApp=(d.apps||[]).find(item=>item.id===logAppId);
     const logKind=['enterApp','openTodo'].includes(action)?'access':action.startsWith('push')?'api':'operation';
-    const log={id:id(),version:1,name:actionNames[action]||action,kind:logKind,actor:a.name,userId:a.id,userName:a.name,account:a.account,userType:a.userType,actorType:a.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:a.authType||'EXTERNAL',identitySource:identitySourceName(a),
-     appId:logAppId||null,appName:logApp?.name||result?.appName||null,status:'SUCCESS',createdAt:now,requestId:'MOCK_RUNTIME_'+createUUID(),ip:'127.0.0.1',client:'Chrome / Windows',description:p.reason||actionNames[action]||'操作已记录'};
+    const log={id:id(),version:1,name:auditActionNames[action]||action,kind:logKind,actor:a.name,userId:a.id,userName:a.name,account:a.account,userType:a.userType,actorType:a.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:a.authType||'EXTERNAL',identitySource:identitySourceName(a),
+     appId:logAppId||null,appName:logApp?.name||result?.appName||null,status:'SUCCESS',createdAt:now,requestId:'MOCK_RUNTIME_'+createUUID(),ip:'127.0.0.1',client:'Chrome / Windows',description:p.reason||auditActionNames[action]||'操作已记录'};
     if(logKind==='access')Object.assign(log,{accessMethod:'门户入口',accessMode:logApp?.accessMode||null});
     if(logKind==='api')Object.assign(log,{interfaceName:action==='pushTodo'?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:200,durationMs:80,errorMessage:null});
     if(logKind==='operation'){
-     const pageByAction={
-      createExternalPortalAdmin:['系统管理','用户管理'],createLocalPortalUser:['系统管理','用户管理'],setPortalUserStatus:['系统管理','用户管理'],resetLocalPassword:['系统管理','用户管理'],unlockLocalUser:['系统管理','用户管理'],savePortalUser:['系统管理','用户管理'],
-      saveSystemRole:['系统管理','角色管理'],saveOrganization:['系统管理','组织管理'],removeOrganization:['系统管理','组织管理'],saveDictionaryType:['系统管理','字典管理'],saveDictionaryItem:['系统管理','字典管理'],removeDictionaryItem:['系统管理','字典管理'],
-      saveApp:['应用管理','应用列表'],removeApp:['应用管理','应用列表'],setAppStatus:['应用管理','应用列表'],createAccessProfile:['应用管理','应用列表'],saveIntegration:['应用管理','应用列表'],
-      submitApplicationRequest:['应用中心','应用访问申请'],withdrawApplicationRequest:['应用中心','我的申请'],approveApplicationRequest:['应用管理','应用访问申请'],rejectApplicationRequest:['应用管理','应用访问申请'],
-      submitAccountOpeningRequest:['应用中心','子系统账号开通申请'],completeMockAccountOpeningRequest:['应用管理','子系统账号开通申请'],
-      approveBindingReview:['身份与映射','身份与子系统映射'],rejectBindingReview:['身份与映射','身份与子系统映射'],unbind:['身份与映射','身份与子系统映射'],resolveMapping:['身份与映射','关联冲突处理'],
-      saveAnnouncement:['工作台','通知公告管理'],submitAnnouncement:['工作台','通知公告管理'],publish:['工作台','通知公告管理'],withdraw:['工作台','通知公告管理'],removeAnnouncement:['工作台','通知公告管理'],
-      resolveLogError:['日志审计','异常日志'],saveConfig:['系统管理','配置管理']
-     };
-     const [moduleName,pageName]=pageByAction[action]||['统一门户','系统操作'];
-     Object.assign(log,{moduleName,pageName,actionName:actionNames[action]||action,objectType:logAppId?'APPLICATION':'PORTAL',objectId:p.id||result?.id||result?.entityId||null});
+     const [moduleName,pageName]=auditActionPages[action]||['统一门户','系统操作'];
+     Object.assign(log,{moduleName,pageName,actionName:auditActionNames[action]||action,objectType:logAppId?'APPLICATION':'PORTAL',objectId:p.id||result?.id||result?.entityId||null});
     }
     d.logs.unshift(log);return result;
    });
