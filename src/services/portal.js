@@ -12,6 +12,14 @@ const accessUserEnabled=x=>['CITIZEN','GOV'].includes(x?.userType)&&x?.enabled!=
 const adminUserEnabled=x=>Boolean(x&&(x.adminAccess||x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)&&x.adminEnabled!==false&&(x.adminStatus||'NORMAL')!=='DISABLED'&&(x.authType!=='LOCAL'||(x.enabled!==false&&x.status!=='DISABLED')));
 const actorSessionEnabled=x=>x?.authType==='LOCAL'?adminUserEnabled(x):accessUserEnabled(x);
 const appEnabled=app=>app?.enabled!==false;
+const integrationState=(d,app,kind)=>{
+ const config=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind===kind);
+ const sample=(d.monitorSamples||[]).find(item=>item.appId===app.id&&item.kind===kind);
+ const sampleIsNewer=sample&&(Date.parse(sample.lastCheckedAt)||0)>(Date.parse(config?.updatedAt||config?.createdAt)||0);
+ const source=sampleIsNewer?sample:config;
+ const runtimeStatus=!appEnabled(app)||config?.enabled==='DISABLED'?'DISABLED':!config?'UNCONFIGURED':source?.runtimeStatus||source?.status||'UNCONFIGURED';
+ return {...config,runtimeStatus,statusSource:sampleIsNewer?'HISTORICAL_FIXTURE':config?.statusSource||'LEGACY_CONFIG',lastCheckedAt:sampleIsNewer?sample.lastCheckedAt:config?.lastCheckedAt||null,responseTimeMs:sampleIsNewer?sample.responseTimeMs:config?.responseTimeMs};
+};
 const announcementDisplayStatus=(x,now=Date.now())=>{
  if(x.status==='WITHDRAWN')return 'WITHDRAWN';
  if(x.status==='EXPIRED')return 'EXPIRED';
@@ -33,9 +41,9 @@ export function createPortalService(provider,getActor){
  const grantFor=(d,a,appId)=>(d.applicationGrants||[]).find(x=>x.userId===a.id&&x.appId===appId&&x.status==='ACTIVE')||null;
  const decorate=(d,a)=>d.apps.map(app=>{
   const applicable=['CITIZEN','GOV'].includes(a.userType)&&(app.userType==='BOTH'||app.userType===a.userType);
-  const appIntegrations=(d.integrations||[]).filter(item=>item.appId===app.id);
+  const appIntegrations=['SSO','TODO','MESSAGE'].map(kind=>integrationState(d,app,kind));
   const integrationStates=appIntegrations.map(item=>item.runtimeStatus||'UNCONFIGURED');
-  const ssoIntegration=appIntegrations.find(item=>item.kind==='SSO');
+  const ssoIntegration=appIntegrations[0];
   const ssoRuntimeStatus=!appEnabled(app)?'DISABLED':ssoIntegration?.runtimeStatus||'UNCONFIGURED';
   const aggregateRuntimeStatus=!appEnabled(app)?'DISABLED':integrationStates.includes('ABNORMAL')?'ABNORMAL':integrationStates.includes('NORMAL')?'NORMAL':integrationStates.length&&integrationStates.every(value=>value==='DISABLED')?'DISABLED':'UNCONFIGURED';
   const mapping=d.mappings.find(m=>m.appId===app.id&&own(m,a)&&m.status!=='UNBOUND')||null;
@@ -86,7 +94,7 @@ export function createPortalService(provider,getActor){
   }
   return d.apps.map(app=>{
    const kinds=groups.get(app.id)||{};
-   const measured=kind=>(d.monitorSamples||[]).find(x=>x.appId===app.id&&x.kind===kind)||kinds[kind]||null;
+  const measured=kind=>integrationState(d,app,kind);
    const detail=(kind,item)=>{
     const status=monitorStatus(app,item),checked=item?.lastCheckedAt||item?.updatedAt||item?.createdAt||null;
     const configStatus=item?.configStatus||'UNCONFIGURED';
@@ -110,8 +118,8 @@ export function createPortalService(provider,getActor){
   return d.apps.filter(app=>groups.has(app.id)).map(app=>{
    const kinds=groups.get(app.id),sso=kinds.SSO||null,todo=kinds.TODO||null,message=kinds.MESSAGE||null;
    const times=[sso?.updatedAt,todo?.updatedAt,message?.updatedAt,sso?.createdAt,todo?.createdAt,message?.createdAt].filter(Boolean).sort();
-   const normalized=item=>item?{...item,configStatus:item.configStatus||'UNCONFIGURED',runtimeStatus:item.runtimeStatus||'UNCONFIGURED',enabled:item.enabled||'DISABLED'}:null;
-   const SSO=normalized(sso),TODO=normalized(todo),MESSAGE=normalized(message);
+   const normalized=(item,kind)=>item?{...integrationState(d,app,kind),configStatus:item.configStatus||'UNCONFIGURED',enabled:item.enabled||'DISABLED'}:null;
+   const SSO=normalized(sso,'SSO'),TODO=normalized(todo,'TODO'),MESSAGE=normalized(message,'MESSAGE');
    return {id:app.id,appId:app.id,appName:app.name,appCode:app.code,updatedAt:times.at(-1)||app.updatedAt||app.createdAt,
     ssoStatus:SSO?.runtimeStatus||'UNCONFIGURED',ssoRemark:SSO?.remark||'未配置',todoStatus:TODO?.runtimeStatus||'UNCONFIGURED',todoRemark:TODO?.remark||'未配置',messageStatus:MESSAGE?.runtimeStatus||'UNCONFIGURED',messageRemark:MESSAGE?.remark||'未配置',
     integrations:{SSO,TODO,MESSAGE}};
@@ -148,7 +156,11 @@ export function createPortalService(provider,getActor){
     const mappings=d.mappings.filter(m=>m.userId===user.id).map(m=>({...m,appName:d.apps.find(app=>app.id===m.appId)?.name||m.appName,todoCount:d.todos.filter(t=>t.userId===user.id&&t.appId===m.appId).length,messageCount:d.messages.filter(t=>t.userId===user.id&&t.appId===m.appId).length}));
     return {...decorateUser(d,user),user:{...decorateUser(d,user),source:identitySourceName(user)},source:identitySourceName(user),mappings,boundCount:mappings.filter(m=>m.status==='BOUND').length,reviewCount:mappings.filter(m=>m.status==='REVIEWING').length,exceptionCount:mappings.filter(m=>['FAILED','CONFLICT'].includes(m.status)).length};
    });
-   if(resource==='identityMappings')return (d.users||actors).filter(x=>['CITIZEN','GOV'].includes(x.userType)).map(x=>({id:x.id,name:x.name,source:identitySourceName(x),status:'BOUND'}));
+   if(resource==='identityMappings')return (d.users||actors).filter(x=>['CITIZEN','GOV'].includes(x.userType)).map(x=>{
+    const statuses=d.mappings.filter(mapping=>mapping.userId===x.id).map(mapping=>mapping.status);
+    const status=['CONFLICT','FAILED','REVIEWING','VERIFYING','BOUND'].find(value=>statuses.includes(value))||'UNBOUND';
+    return {id:x.id,name:x.name,source:identitySourceName(x),status};
+   });
    if(resource==='exceptions')return d.mappings.filter(x=>x.status==='CONFLICT'||x.status==='FAILED');
    if(resource==='roles')return (d.roles||[]).map(role=>{const rolePermissions=role.permissions||permissionsFromScopes(role.scopes||[]),{scopes:_legacyScopes,...base}=role;return {...base,permissions:rolePermissions,userCount:(d.users||[]).filter(user=>adminSubject(user)&&(user.roleIds||[]).includes(role.id)).length,permissionLabels:rolePermissions.map(code=>permissions[code]||code).join('、')||'无门户管理权限'};});
    if(resource==='permissions')return Object.entries(permissions).map(([code,name])=>({id:code,code,name,description:'用于控制卫健统一门户内部页面与操作权限；不授予任何子系统业务权限。',status:'ENABLED'}));
@@ -442,7 +454,7 @@ export function createPortalService(provider,getActor){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
      const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)||x.deleted))fail('NOT_FOUND','消息不存在');for(const x of targets){x.deleted=true;x.deletedAt=now;stamp(x);}result={count:ids.length};
     }else if(action==='enterApp'){
-     const app=requireRow(d.apps,p.id);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||'UNCONFIGURED';if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
+     const app=requireRow(d.apps,p.id);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');if(integrationState(d,app,'SSO').runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
      const requiresBinding=appRequiresBinding(app);
@@ -450,7 +462,7 @@ export function createPortalService(provider,getActor){
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock访问校验已通过。当前未连接真实子系统，正式SSO将在联调阶段接入。'};
     }else if(action==='openTodo'){
      const todo=requireRow(d.todos,p.id);if(!own(todo,a))fail('NOT_FOUND','待办不存在');if(todo.status!=='PENDING')fail('INVALID_TRANSITION','该待办已终结');
-     const app=requireRow(d.apps,todo.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');const sso=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind==='SSO');const ssoStatus=sso?.runtimeStatus||'UNCONFIGURED';if(ssoStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
+     const app=requireRow(d.apps,todo.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');if(integrationState(d,app,'SSO').runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','当前用户尚未获得该应用入口资格');
      if(appRequiresBinding(app)&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock待办跳转校验已通过。真实子系统连接尚未开放。'};

@@ -37,7 +37,7 @@
         <template #enabled="{row}">
           <t-switch
             :value="adminEnabled(row)"
-            :disabled="adminAuthType(row)==='LOCAL'&&!canSuper"
+            :disabled="row.id==='MOCK_LOCAL_ADMIN'||adminAuthType(row)==='LOCAL'&&!canSuper"
             @change="toggleStatus(row,$event)"
           />
         </template>
@@ -79,8 +79,8 @@
           <div class="form-field"><label>姓名 <span class="portal-required">*</span></label><t-input v-model="form.name" placeholder="请输入姓名"/></div>
           <div class="form-field"><label>认证类型</label><t-input :value="authTypeLabel('LOCAL')" disabled/></div>
           <div class="form-field"><label>身份来源</label><t-input value="门户本地" disabled/></div>
-          <div class="form-field"><label>启用状态</label><t-switch v-model="form.enabled"/></div>
-          <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value">{{option.label}}</t-checkbox></t-checkbox-group></div>
+          <div class="form-field"><label>启用状态</label><t-switch v-model="form.enabled" :disabled="form.id==='MOCK_LOCAL_ADMIN'"/></div>
+          <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value" :disabled="form.id==='MOCK_LOCAL_ADMIN'&&option.value==='ROLE_SUPER'">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
         <t-alert theme="info" class="user-source-alert">
           当前仅模拟本地管理账号及门户角色关系；真实密码凭证、首次改密和锁定策略将在数据库与后端阶段接入。

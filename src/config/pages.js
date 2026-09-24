@@ -86,3 +86,8 @@ export const can=(actor,requirement)=>{
  const compatible=legacyScopePermissions[requirement]||[];
  return compatible.some(code=>granted.includes(code));
 };
+export const shouldLoadAppCatalog=(isAdmin,actor)=>!isAdmin||can(actor,'application:view');
+export const switchTarget=(route,actor)=>{
+ if(can(actor,'any'))return route.path?.startsWith('/admin')&&can(actor,route.meta.scope)?route.fullPath:'/admin/home';
+ return route.path?.startsWith('/portal')&&can(actor,route.meta.scope)?route.fullPath:'/portal/home';
+};

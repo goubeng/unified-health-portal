@@ -7,7 +7,9 @@ const actorFromSession=data=>{
  return {...base,kind:adminAccess?'ADMIN':'USER',adminSubject:adminAccess,adminAccess,permissions:data?.permissions||[],roleIds:(data?.roles||[]).map(role=>role.id),roleName:(data?.roles||[])[0]?.name||(adminAccess?'门户管理员':'普通用户'),userType:base.userType||access?.userType||null,orgName:base.orgName||access?.orgName||'',identitySource:data?.identitySource||base.identitySource||access?.identitySource||null,authType:data?.authType||base.authType||'EXTERNAL'};
 };
 const users=ref([]);
-export const availableUsers=computed(()=>users.value.filter(x=>x.status!=='DISABLED'&&x.enabled!==false&&['CITIZEN','GOV'].includes(x.userType)));
+export const canSwitchUser=user=>user?.authType==='LOCAL'?user.adminEnabled!==false&&user.adminStatus!=='DISABLED'&&user.enabled!==false&&user.status!=='DISABLED':['CITIZEN','GOV'].includes(user?.userType)&&user?.enabled!==false&&user?.status!=='DISABLED';
+export const switchUsers=computed(()=>users.value);
+export const availableUsers=computed(()=>users.value.filter(user=>['CITIZEN','GOV'].includes(user.userType)&&canSwitchUser(user)));
 async function request(path,body){
  try{const response=await fetch('/api/portal/'+path,{credentials:'same-origin',...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})});const result=await response.json();if(!result||typeof result.ok!=='boolean')throw Error();return result;}
  catch{return {ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'门户服务暂不可用，请确认本地接口服务已启动'}};}
@@ -15,7 +17,7 @@ async function request(path,body){
 function applySession(data={}){
  session.value={accessSubject:data.accessSubject||null,adminUser:data.adminUser||null,adminAccess:Boolean(data.adminAccess),roles:data.roles||[],permissions:data.permissions||[],authType:data.authType||null,identitySource:data.identitySource||null};
  actor.value=actorFromSession(data);
- if(Array.isArray(data.users))users.value=data.users.filter(user=>['CITIZEN','GOV'].includes(user.userType));
+ if(Array.isArray(data.users))users.value=data.users;
  startupError.value='';
 }
 export async function initializeRuntime(){

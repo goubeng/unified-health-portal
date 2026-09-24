@@ -41,8 +41,8 @@
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
-import {pages,can,labels} from './config/pages.js';
-import {actor,availableUsers,portal,revision,login,logout} from './services/runtime.js';
+import {pages,can,labels,switchTarget} from './config/pages.js';
+import {actor,switchUsers,canSwitchUser,portal,revision,login,logout} from './services/runtime.js';
 import PortalTooltip from './components/portal/PortalTooltip.vue';
 const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false),switching=ref(false);
 const admin=computed(()=>route.path.startsWith('/admin'));
@@ -61,7 +61,7 @@ function backToList(){
   router.push(admin.value?'/admin/announcements':'/portal/announcements');return;
  }
 }
-const userOptions=computed(()=>availableUsers.value.map(user=>({value:user.id,label:displayName(user)+'（'+typeLabel(user)+(can(user,'any')?' / 管理员':'')+'）'})));
+const userOptions=computed(()=>switchUsers.value.map(user=>({value:user.id,disabled:!canSwitchUser(user),label:displayName(user)+'（'+typeLabel(user)+(can(user,'any')?' / 管理员':'')+(!canSwitchUser(user)?' / 已停用':'')+'）'})));
 const menu=computed(()=>{
  const list=pages.filter(p=>!p.hidden&&p.path.startsWith('/admin')&&!p.path.includes(':')&&can(actor.value,p.scope));
  return [...new Set(list.map(x=>x.group))].map(name=>({name,pages:list.filter(x=>x.group===name)}));
@@ -110,9 +110,12 @@ const icons={
 const iconFor=resource=>icons[resource]||FileIcon;
 function toggleMenuGroup(name){const next=new Set(collapsedGroups.value);next.has(name)?next.delete(name):next.add(name);collapsedGroups.value=next;}
 async function switchUser(id){
- if(switching.value||id===actor.value?.id||!availableUsers.value.some(user=>user.id===id))return;
+ if(switching.value||id===actor.value?.id||!switchUsers.value.some(user=>user.id===id&&canSwitchUser(user)))return;
  switching.value=true;accountOpen.value=false;
- try{await login(id);await router.replace(can(actor.value,route.meta.scope)?route.fullPath:'/portal/home');}
+ try{
+  await login(id);
+  await router.replace(switchTarget(route,actor.value));
+ }
  catch(error){window.alert(error.message);}
  finally{switching.value=false;}
 }

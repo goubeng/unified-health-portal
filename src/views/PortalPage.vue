@@ -168,7 +168,7 @@ import {useRoute,useRouter} from 'vue-router';
 import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
 import {actor,portal,command,revision,availableUsers,downloadAccessContract} from '../services/runtime.js';
-import {pages,can} from '../config/pages.js';
+import {pages,can,shouldLoadAppCatalog} from '../config/pages.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
 import MessageCenter from '../components/portal/MessageCenter.vue';
 import TodoCenter from '../components/portal/TodoCenter.vue';
@@ -235,16 +235,25 @@ async function load(){
  const version=++loadVersion;loading.value=true;error.value='';
  try{
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
-  const tasks={apps:read(isAdmin?'adminApps':'apps')};
-  if(can(actor.value,'application:view')){tasks.categories=read('categories');if(isAdmin&&key==='apps')tasks.accessProfiles=read('access');}
+  const tasks={};
+  if(shouldLoadAppCatalog(isAdmin,actor.value))tasks.apps=read(isAdmin?'adminApps':'apps');
+  if(can(actor.value,'application:view'))tasks.categories=read('categories');
+  if(isAdmin&&key==='apps'&&can(actor.value,'integration:view'))tasks.accessProfiles=read('access');
   if(home){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'monitor:view'))tasks.monitor=read('monitor');
   }else if(center)tasks.mine=read('mine');
   else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}
-  else if(key==='users'){tasks.rows=read('users');tasks.systemRoles=read('roles');tasks.organizations=read('organizations');}
-  else if(key==='organizations'){tasks.rows=read('organizations');tasks.dictionaryData=read('dictionaries');}
+  else if(key==='users'){
+   tasks.rows=read('users');
+   if(can(actor.value,'role:view'))tasks.systemRoles=read('roles');
+   if(can(actor.value,'organization:view'))tasks.organizations=read('organizations');
+  }
+  else if(key==='organizations'){
+   tasks.rows=read('organizations');
+   if(can(actor.value,'dictionary:view'))tasks.dictionaryData=read('dictionaries');
+  }
   else if(key==='dictionaries'){tasks.dictionaryData=read('dictionaries');}
   else if(key==='announcements'&&isAdmin){tasks.rows=read('adminAnnouncements');if(can(actor.value,'dictionary:view'))tasks.dictionaryData=read('dictionaries');}
   else if(key==='announcementDetail'){
@@ -254,7 +263,7 @@ async function load(){
   else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcements'&&isAdmin?'adminAnnouncements':key);
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
   if(version!==loadVersion)return;
-  const data=Object.fromEntries(entries);allApps.value=data.apps;categories.value=data.categories||[];accessProfiles.value=data.accessProfiles||accessProfiles.value;systemRoles.value=data.systemRoles||(key==='roles'?data.rows:[])||[];organizations.value=data.organizations||organizations.value;dictTypes.value=data.dictionaryData?.types||[];dictItems.value=data.dictionaryData?.items||[];
+  const data=Object.fromEntries(entries);allApps.value=data.apps||[];categories.value=data.categories||[];accessProfiles.value=data.accessProfiles||accessProfiles.value;systemRoles.value=data.systemRoles||(key==='roles'?data.rows:[])||[];organizations.value=data.organizations||organizations.value;dictTypes.value=data.dictionaryData?.types||[];dictItems.value=data.dictionaryData?.items||[];
   if(home){
    overview.value=data.overview;
    homeApps.value=(data.mine||[]).slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
@@ -262,7 +271,7 @@ async function load(){
    homeMessages.value=latest((data.messages||[]).filter(item=>item.status==='UNREAD'),'receivedAt');homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
    const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.runtimeStatus==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
   }
-  mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps:(key==='dictionaries'?[]:data.rows||[]);
+  mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps||[]:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
    const article=rows.value.find(item=>item.id===route.params.id);
    if(!article){detail.value=null;error.value='公告不存在或不在当前用户的可见范围';}

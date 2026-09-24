@@ -1,5 +1,6 @@
 <template>
   <section class="portal-list monitor-management">
+    <p class="inline-note">运行状态为本地演示样本，尚未接入真实上下游系统；“正常”仅用于演示，不代表实际连通。</p>
     <t-form layout="inline" class="portal-query list-toolbar">
       <t-form-item class="portal-query-keyword query-width-keyword" label="应用">
         <t-input v-model="keyword" clearable placeholder="应用名称 / 应用编码"/>

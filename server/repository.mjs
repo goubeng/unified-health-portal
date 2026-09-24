@@ -85,8 +85,14 @@ export function mirrorSql(before,after){
  changed('integrations',x=>x.kind==='SSO'?upsert('sso_config',{...base({...x,id:'SSO_'+x.appId}),application_id:dbId(x.appId),enabled:x.enabled||'DISABLED',remark:x.remark||'',protocol:x.protocol||'UNCONFIGURED',client_id:x.clientId||null,secret_ref:x.credentialRef||null,endpoints:{authorizeUrl:x.authorizeUrl||'',tokenUrl:x.tokenUrl||'',callbackUrl:x.callbackUrl||''},status:x.status==='DISABLED'?'DISABLED':'UNCONFIGURED'}):upsert('push_integration_config',{...base({...x,id:'PUSH_'+x.appId+'_'+x.kind}),application_id:dbId(x.appId),kind:x.kind,enabled:x.enabled||'DISABLED',remark:x.remark||'',mode:'PUSH',credential_ref:x.credentialRef||null,field_mapping:x.fieldMapping||{},value_mapping:x.valueMapping||{},target_key_kind:'UNIFIED_USER_ID',status:x.status==='DISABLED'?'DISABLED':'UNCONFIGURED'}));
  const receiptKey=x=>[x.appId,x.kind|| (JSON.parse(x.payload).sourceTodoId?'TODO':'MESSAGE'),x.eventId].join('|');
  const previousReceipts=new Set((before.receipts||[]).map(receiptKey));
- for(const x of after.receipts||[])if(!previousReceipts.has(receiptKey(x))){const key=receiptKey(x);statements.push(upsert('ingest_receipt',{...base({id:'RECEIPT_'+createHash('sha256').update(key).digest('hex'),version:1}),application_id:dbId(x.appId),kind:x.kind||(JSON.parse(x.payload).sourceTodoId?'TODO':'MESSAGE'),event_id:x.eventId,payload_hash:createHash('sha256').update(x.payload).digest('hex'),status:'APPLIED',result:x.result,applied_at:new Date().toISOString()}));}
- statements.push(remainingMirrorSql(before,after));
+  for(const x of after.receipts||[])if(!previousReceipts.has(receiptKey(x))){const key=receiptKey(x);statements.push(upsert('ingest_receipt',{...base({id:'RECEIPT_'+createHash('sha256').update(key).digest('hex'),version:1}),application_id:dbId(x.appId),kind:x.kind||(JSON.parse(x.payload).sourceTodoId?'TODO':'MESSAGE'),event_id:x.eventId,payload_hash:createHash('sha256').update(x.payload).digest('hex'),status:'APPLIED',result:x.result,applied_at:new Date().toISOString()}));}
+  const previousLogs=new Map((before.logs||[]).map(row=>[row.id,row]));
+  for(const row of after.logs||[]){
+   const old=previousLogs.get(row.id);
+   if(!old||old.kind!=='error'||row.resolutionStatus===old.resolutionStatus)continue;
+   statements.push(`DO $$ BEGIN UPDATE ${table('audit_event')} SET resolution_status=${lit(row.resolutionStatus)},details=coalesce(details,'{}'::jsonb)||${lit({resolutionNote:row.resolutionNote||'',resolvedAt:row.resolvedAt||null,resolvedBy:row.resolvedBy||null})}::jsonb,version=${Number(row.version)},updated_at=now() WHERE id=${lit(row.id)} AND kind='ERROR' AND version=${Number(old.version)}; IF NOT FOUND THEN RAISE EXCEPTION 'LOG_VERSION_CONFLICT'; END IF; END $$;`);
+  }
+  statements.push(remainingMirrorSql(before,after));
  statements.push(applicationMirrorSql(before,after));
  statements.push(messageTodoMirrorSql(before,after));
  statements.push(requestMirrorSql(before,after));
@@ -126,7 +132,8 @@ export function createMemoryRepository(initialState=createSeed()){
    if(event&&beforeLogs===afterLogs){next.logs??=[];next.logs.unshift(eventLog(event));}
    current=ensureRules(next);version+=1;
   },
-  async logs(kind){return structuredClone((current.logs||[]).filter(x=>kind==='login'?['login','auth'].includes(String(x.kind||'').toLowerCase()):String(x.kind||'').toLowerCase()===String(kind||'').toLowerCase()).slice(0,1000));}
+   async logs(kind){return structuredClone((current.logs||[]).filter(x=>kind==='login'?['login','auth'].includes(String(x.kind||'').toLowerCase()):String(x.kind||'').toLowerCase()===String(kind||'').toLowerCase()).slice(0,1000));},
+   async openErrorCount(){return current.logs.filter(x=>x.kind==='error'&&x.resolutionStatus!=='RESOLVED').length;}
  };
 }
 
@@ -156,6 +163,7 @@ export function createRepository(query=sqlQuery){
    const insert=event?`INSERT INTO ${table('audit_event')}(id,created_at,updated_at,version,kind,event_code,request_id,actor_user_id,actor_kind,application_id,object_type,object_id,result,summary,details) VALUES (${lit(event.id)},${lit(event.at)},${lit(event.at)},1,${lit(event.kind)},${lit(event.action)},${lit(event.requestId)},${lit(dbId(event.actorId))},${lit(event.actorKind)},${lit(dbId(event.appId))},${lit(event.details.objectType||'portal')},${lit(event.objectId)},${lit(event.result)},${lit(event.summary)},${lit(event.details)});`:'';
    await query(`BEGIN; SET LOCAL lock_timeout='5s'; SELECT pg_advisory_xact_lock(38013800); DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM ${table('system_config')} WHERE id='P4RUN_STATE' AND version=${Number(version)} FOR UPDATE) THEN RAISE EXCEPTION 'STATE_VERSION_CONFLICT'; END IF; END $$; ${mirrorSql(before,after)} ${insert} UPDATE ${table('system_config')} SET value=${lit(after)},version=version+1,updated_at=now() WHERE id='P4RUN_STATE'; COMMIT;`);
   },
-  async logs(kind){const raw=await query(`SELECT coalesce(json_agg(r),'[]'::json) FROM (SELECT a.id,lower(a.kind) AS kind,a.event_code AS name,u.display_name AS actor,a.summary AS description,a.result AS status,a.created_at AS "createdAt",a.request_id AS "requestId",p.name AS "appName",a.application_id AS "appId",a.object_id AS "objectId",a.details::jsonb AS details FROM ${table('audit_event')} a LEFT JOIN ${table('unified_user')} u ON a.actor_user_id=u.id LEFT JOIN ${table('application')} p ON a.application_id=p.id WHERE ${kind==='login'?"a.kind IN ('LOGIN','AUTH')":`a.kind=${lit(kind.toUpperCase())}`} ORDER BY a.created_at DESC LIMIT 1000) r;`);return JSON.parse(raw);}
+   async logs(kind){const raw=await query(`SELECT coalesce(json_agg(r),'[]'::json) FROM (SELECT a.id,a.version,lower(a.kind) AS kind,a.event_code AS name,u.display_name AS actor,a.summary AS description,a.result AS status,a.created_at AS "createdAt",a.request_id AS "requestId",p.name AS "appName",a.application_id AS "appId",a.object_id AS "objectId",a.details::jsonb AS details,coalesce(a.resolution_status,'OPEN') AS "resolutionStatus",a.details->>'resolutionNote' AS "resolutionNote",a.details->>'resolvedAt' AS "resolvedAt",a.details->>'resolvedBy' AS "resolvedBy",a.details->>'errorCode' AS "errorCode",a.summary AS "errorMessage",coalesce(a.details->>'moduleName','统一门户') AS "moduleName" FROM ${table('audit_event')} a LEFT JOIN ${table('unified_user')} u ON a.actor_user_id=u.id LEFT JOIN ${table('application')} p ON a.application_id=p.id WHERE ${kind==='login'?"a.kind IN ('LOGIN','AUTH')":`a.kind=${lit(kind.toUpperCase())}`} ORDER BY a.created_at DESC LIMIT 1000) r;`);return JSON.parse(raw);},
+   async openErrorCount(){const raw=await query(`SELECT count(*) FROM ${table('audit_event')} WHERE kind='ERROR' AND coalesce(resolution_status,'OPEN')='OPEN';`);return Number(raw);}
  };
 }

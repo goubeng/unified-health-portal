@@ -49,7 +49,9 @@ export function createPortalApi({repository=null,env=process.env}={}){
    permissions:admin?.permissions||[],
    authType:admin?.authType||'EXTERNAL',
    identitySource:admin?.identitySource||access?.identitySource||null,
-   users:(state.users||[]).filter(x=>accessUserEnabled(x))
+   users:(state.users||[]).map(x=>({id:x.id,account:x.account,name:x.name,userType:x.userType||null,authType:x.authType||'EXTERNAL',identitySource:x.identitySource||null,
+    orgName:x.orgName||'',status:x.status||'NORMAL',enabled:x.enabled!==false,adminStatus:x.adminStatus||'NORMAL',adminEnabled:x.adminEnabled!==false,
+    adminAccess:adminUserEnabled(x),adminSubject:Boolean(x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length),roleIds:x.roleIds||[]}))
   };
  };
  const handle=async(req,res)=>{
@@ -108,11 +110,17 @@ export function createPortalApi({repository=null,env=process.env}={}){
     }
     if(path==='/api/portal/read'&&req.method==='GET'){
      const resource=url.searchParams.get('resource')||'';const result=await service.read(resource);
-     if(result.ok&&resource.startsWith('logs:'))result.data=await repository.logs(resource.slice(5));return send(res,statusFor(result),result);
+     if(result.ok&&resource.startsWith('logs:'))result.data=await repository.logs(resource.slice(5));
+     if(result.ok&&resource==='adminHome'&&repository.openErrorCount)result.data.openErrorCount=await repository.openErrorCount();
+     return send(res,statusFor(result),result);
     }
     if(path==='/api/portal/command'&&req.method==='POST'){
-     const action=String(payload.action||''),input=payload.payload||{},result=await service.command(action,input);
-     await repository.commit(state,provider.read(),version,makeEvent({actor,action,payload:input,state:provider.read(),result}));return send(res,statusFor(result),result);
+     const action=String(payload.action||''),input=payload.payload||{};
+     const operationState=action==='resolveLogError'&&repository.mode==='DATABASE'?{...state,logs:await repository.logs('error')}:state;
+     const operationProvider=operationState===state?provider:stateProvider(operationState);
+     const operationService=operationState===state?service:createPortalService(operationProvider,()=>actor);
+     const result=await operationService.command(action,input);
+     await repository.commit(operationState,operationProvider.read(),version,makeEvent({actor,action,payload:input,state:operationProvider.read(),result}));return send(res,statusFor(result),result);
     }
     send(res,404,resultError('NOT_FOUND','接口不存在'));
    });

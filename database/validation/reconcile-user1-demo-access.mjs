@@ -31,6 +31,9 @@ export const archiveTodoIds=todoIds;
 export const archiveMessageIds=messageIds;
 
 export const buildReadSql=()=>`SELECT json_build_object(
+ 'stateVersion',(SELECT version FROM ${s}."system_config" WHERE id='P4RUN_STATE'),
+ 'applications',(SELECT coalesce(json_agg(json_build_object('id',id,'hash',md5(to_jsonb(a)::text),'row',to_jsonb(a))),'[]'::json) FROM ${s}."application" a WHERE runtime_id IN ('MOCK_APP_3','MOCK_APP_24')),
+ 'snapshotApplications',(SELECT coalesce(json_agg(json_build_object('id',item->>'id','hash',md5(item::text),'payload',item)),'[]'::json) FROM ${s}."system_config" c CROSS JOIN LATERAL jsonb_array_elements(coalesce(c.value::jsonb->'apps','[]'::jsonb)) item WHERE c.id='P4RUN_STATE' AND item->>'id' IN ('MOCK_APP_3','MOCK_APP_24')),
  'runtimeMappings',(SELECT coalesce(json_agg(json_build_object('id',runtime_id,'hash',md5(payload::text),'payload',payload)),'[]'::json) FROM ${s}."portal_runtime_entity" WHERE resource='mappings' AND runtime_id IN (${list(targetNumbers.map(mapId))})),
  'physicalMappings',(SELECT coalesce(json_agg(json_build_object('id',id,'hash',md5(to_jsonb(m)::text),'row',to_jsonb(m))),'[]'::json) FROM ${s}."application_user_mapping" m WHERE user_id='P4FIX_USER_1' AND application_id IN (${list(targetNumbers.map(n=>physical(appId(n))))})),
  'snapshotMappings',(SELECT coalesce(json_agg(json_build_object('id',item->>'id','hash',md5(item::text),'payload',item)),'[]'::json) FROM ${s}."system_config" c CROSS JOIN LATERAL jsonb_array_elements(coalesce(c.value::jsonb->'mappings','[]'::jsonb)) item WHERE c.id='P4RUN_STATE' AND item->>'id' IN (${list(oldNumbers.map(mapId))})),
@@ -52,6 +55,12 @@ const serviceApps=async(state)=>{
 
 export async function buildPlan(dbState,seedState,physicalState){
  const issues=[],runtime=byId(physicalState.runtimeMappings),current=byId(physicalState.physicalMappings),snapshot=byId(physicalState.snapshotMappings),scopes=byId(physicalState.scopes),exceptions=byId(physicalState.exceptions);
+ const applications=byId(physicalState.applications||[]),snapshotApplications=byId(physicalState.snapshotApplications||[]);
+ if(!Number.isSafeInteger(Number(physicalState.stateVersion))||Number(physicalState.stateVersion)<1)issues.push('兼容快照版本缺失');
+ for(const n of [3,24]){
+  const id=appId(n),row=applications.get(physical(id)),saved=snapshotApplications.get(id),loaded=dbState.apps.find(app=>app.id===id);
+  if(!row||!saved||row.row.runtime_id!==id||row.row.user_type!=='GOV'||row.row.runtime_payload?.userType!=='GOV'||Number(row.row.version)!==2||Number(row.row.runtime_payload?.version)!==2||saved.payload.userType!=='GOV'||Number(saved.payload.version)!==2||loaded?.userType!=='GOV'||Number(loaded?.version)!==2)issues.push(`应用适用范围基线不一致: ${id}`);
+ }
  for(const n of oldNumbers){
   const id=mapId(n),r=runtime.get(id),p=current.get(physical(id)),h=snapshot.get(id),expected=oldStatuses[n];
   if(!r||!p||!h||r.hash!==h.hash||r.payload.status!==expected||Number(r.payload.version)!==1||p.row.status!==expected||Number(p.row.version)!==1||p.row.user_id!=='P4FIX_USER_1'||p.row.application_id!==physical(appId(n)))issues.push(`映射基线不一致: ${id}`);
@@ -61,6 +70,7 @@ export async function buildPlan(dbState,seedState,physicalState){
  }
  for(const n of addedNumbers)if(runtime.has(mapId(n))||current.has(physical(mapId(n)))||scopes.has(scopeId(n)))issues.push(`新增映射目标非空: ${mapId(n)}`);
  for(const n of downgradedNumbers)if(exceptions.has(exceptionId(n)))issues.push(`待建异常已存在: ${mapId(n)}`);
+ for(const n of removedNumbers)if(exceptions.has(exceptionId(n)))issues.push(`待删除映射仍被异常引用: ${mapId(n)}`);
  for(const n of upgradedNumbers)if(exceptions.get(exceptionId(n))?.row.resolution_status!=='OPEN')issues.push(`原异常不是 OPEN: ${mapId(n)}`);
  const pending=physicalState.todos.filter(row=>row.row.status==='PENDING'&&row.row.archived_at==null),visible=physicalState.messages.filter(row=>row.recipient.deleted_at==null);
  if(pending.length!==7||new Set(pending.map(row=>row.row.runtime_id)).size!==7||pending.some(row=>!todoIds.includes(row.row.runtime_id)))issues.push('待归档 PENDING 待办不等于精确 7 ID');
@@ -71,6 +81,7 @@ export async function buildPlan(dbState,seedState,physicalState){
   appId:id,before:[dbApps.get(id)?.accessState,dbApps.get(id)?.primaryAction],expected:[seedApps.get(id)?.accessState,seedApps.get(id)?.primaryAction]
  }));
  const simulated=structuredClone(dbState);
+ simulated.apps=simulated.apps.map(app=>[appId(3),appId(24)].includes(app.id)?{...app,userType:'BOTH'}:app);
  simulated.mappings=simulated.mappings.filter(row=>row.userId!=='MOCK_USER_1').concat(seedState.mappings.filter(row=>row.userId==='MOCK_USER_1'&&targetAppIds.includes(row.appId)),dbState.mappings.filter(row=>row.userId==='MOCK_USER_1'&&!targetAppIds.includes(row.appId)));
  const predicted=await serviceApps(simulated);
  for(const row of accessDiff)if(JSON.stringify([predicted.get(row.appId)?.accessState,predicted.get(row.appId)?.primaryAction])!==JSON.stringify(row.expected))issues.push(`预测访问状态不等于 seed: ${row.appId}`);
@@ -85,6 +96,12 @@ export function buildTransactionSql(plan,seedState=createSeed()){
  if(!plan.safe)throw new Error('预览存在阻碍，不生成写入 SQL: '+plan.issues.join('; '));
  const p=plan.physical,runtime=byId(p.runtimeMappings),mapping=byId(p.physicalMappings),snapshot=byId(p.snapshotMappings),scopes=byId(p.scopes),exceptions=byId(p.exceptions),todos=byId(p.todos),messages=byId(p.messages);
  const checks=[],changes=[];
+ checks.push(`IF NOT EXISTS(SELECT 1 FROM ${s}."system_config" WHERE id='P4RUN_STATE' AND version=${Number(p.stateVersion)}) THEN RAISE EXCEPTION 'Stale P4RUN_STATE'; END IF;`);
+ for(const n of [3,24]){
+  const id=appId(n),row=byId(p.applications).get(physical(id)),saved=byId(p.snapshotApplications).get(id);
+  checks.push(guard('application',physical(id),row.hash));
+  checks.push(`IF NOT EXISTS(SELECT 1 FROM ${s}."system_config" c CROSS JOIN LATERAL jsonb_array_elements(c.value::jsonb->'apps') item WHERE c.id='P4RUN_STATE' AND item->>'id'=${lit(id)} AND md5(item::text)=${lit(saved.hash)}) THEN RAISE EXCEPTION 'Stale snapshot application: ${id}'; END IF;`);
+ }
  for(const n of oldNumbers){const id=mapId(n),pid=physical(id);checks.push(guard('application_user_mapping',pid,mapping.get(pid).hash));checks.push(`IF NOT EXISTS(SELECT 1 FROM ${s}."portal_runtime_entity" WHERE resource='mappings' AND runtime_id=${lit(id)} AND md5(payload::text)=${lit(runtime.get(id).hash)}) THEN RAISE EXCEPTION 'Stale runtime mapping: ${id}'; END IF;`);checks.push(`IF NOT EXISTS(SELECT 1 FROM ${s}."system_config" c CROSS JOIN LATERAL jsonb_array_elements(c.value::jsonb->'mappings') item WHERE c.id='P4RUN_STATE' AND item->>'id'=${lit(id)} AND md5(item::text)=${lit(snapshot.get(id).hash)}) THEN RAISE EXCEPTION 'Stale snapshot mapping: ${id}'; END IF;`);}
  for(const n of [...removedNumbers,...downgradedNumbers])checks.push(guard('portal_user_application_scope',scopeId(n),scopes.get(scopeId(n)).hash));
  for(const n of upgradedNumbers)checks.push(guard('mapping_exception',exceptionId(n),exceptions.get(exceptionId(n)).hash));
@@ -93,25 +110,38 @@ export function buildTransactionSql(plan,seedState=createSeed()){
  checks.push(`IF EXISTS(SELECT 1 FROM ${s}."audit_event" a WHERE a.event_code IN ('bind','unbind','resolveMapping','startApplicationAccountBinding','verifyBindingOtp','verifyBindingBySubsystemCredential','verifyBindingByUpstreamReauth','approveBindingReview','rejectBindingReview') AND (a.object_id IN (${list(oldNumbers.map(mapId))}) OR (a.actor_user_id='P4FIX_USER_1' AND a.application_id IN (${list(targetNumbers.map(n=>physical(appId(n))))}))) ) THEN RAISE EXCEPTION 'Mapping audit changed'; END IF;`);
  checks.push(`IF EXISTS(SELECT 1 FROM ${s}."portal_demo_restore_archive" WHERE archive_key LIKE 'USER1_DEMO_RESTORE_%') THEN RAISE EXCEPTION 'Archive already exists'; END IF;`);
  for(const n of addedNumbers)checks.push(`IF EXISTS(SELECT 1 FROM ${s}."application_user_mapping" WHERE user_id='P4FIX_USER_1' AND application_id=${lit(physical(appId(n)))}) OR EXISTS(SELECT 1 FROM ${s}."portal_runtime_entity" WHERE resource='mappings' AND runtime_id=${lit(mapId(n))}) THEN RAISE EXCEPTION 'Added mapping already exists: ${n}'; END IF;`);
+ for(const n of [3,24]){
+  const id=appId(n);
+  changes.push(archive('application',id,`SELECT ${lit(archiveKey('application',id))},'application',${lit(id)},jsonb_build_object('application',to_jsonb(a),'snapshot',j.item),'Restore original dual-end demo scope' FROM ${s}."application" a CROSS JOIN ${s}."system_config" c CROSS JOIN LATERAL jsonb_array_elements(c.value::jsonb->'apps') j(item) WHERE a.id=${lit(physical(id))} AND c.id='P4RUN_STATE' AND j.item->>'id'=${lit(id)}`));
+  changes.push(`UPDATE ${s}."application" SET user_type='BOTH',runtime_payload=runtime_payload||jsonb_build_object('userType','BOTH','version',version+1,'updatedAt',${stamp}),version=version+1,updated_at=now() WHERE id=${lit(physical(id))};`);
+ }
  changes.push(...todoIds.map(id=>archive('todo',id,`SELECT ${lit(archiveKey('todo',id))},'todo',${lit(id)},jsonb_build_object('todo',to_jsonb(t)),'Restore original demo access' FROM ${s}."todo_item" t WHERE t.id=${lit(physical(id))}`)));
  changes.push(`UPDATE ${s}."todo_item" SET archived_at=now(),updated_at=now(),version=version+1 WHERE id IN (${list(todoIds.map(physical))});`);
  for(const id of messageIds){changes.push(archive('message',id,`SELECT ${lit(archiveKey('message',id))},'message',${lit(id)},jsonb_build_object('message',to_jsonb(m),'recipient',to_jsonb(r)),'Restore original demo access' FROM ${s}."message" m JOIN ${s}."message_recipient" r ON r.message_id=m.id WHERE m.id=${lit(physical(id))} AND r.user_id='P4FIX_USER_1'`));}
  changes.push(`UPDATE ${s}."message_recipient" SET deleted_at=now(),updated_at=now(),version=version+1 WHERE user_id='P4FIX_USER_1' AND message_id IN (${list(messageIds.map(physical))});`);
  for(const n of oldNumbers){const id=mapId(n);changes.push(archive('mapping',id,`SELECT ${lit(archiveKey('mapping',id))},'mapping',${lit(id)},jsonb_build_object('runtime',e.payload,'physical',to_jsonb(m)),'Restore original demo access' FROM ${s}."portal_runtime_entity" e JOIN ${s}."application_user_mapping" m ON m.id=${lit(physical(id))} WHERE e.resource='mappings' AND e.runtime_id=${lit(id)}`));}
  for(const n of [...removedNumbers,...downgradedNumbers]){const id=scopeId(n);changes.push(archive('scope',id,`SELECT ${lit(archiveKey('scope',id))},'scope',${lit(id)},jsonb_build_object('scope',to_jsonb(r)),'Restore original demo access' FROM ${s}."portal_user_application_scope" r WHERE r.id=${lit(id)}`));changes.push(`DELETE FROM ${s}."portal_user_application_scope" WHERE id=${lit(id)};`);}
- for(const n of removedNumbers){changes.push(`DELETE FROM ${s}."portal_runtime_entity" WHERE resource='mappings' AND runtime_id=${lit(mapId(n))};`);changes.push(`UPDATE ${s}."application_user_mapping" SET status='UNBOUND',active_account_key=NULL,unbound_at=now(),updated_at=now(),version=version+1 WHERE id=${lit(physical(mapId(n)))};`);}
+ for(const n of removedNumbers){changes.push(`DELETE FROM ${s}."portal_runtime_entity" WHERE resource='mappings' AND runtime_id=${lit(mapId(n))};`);changes.push(`DELETE FROM ${s}."application_user_mapping" WHERE id=${lit(physical(mapId(n)))};`);}
  for(const n of [...downgradedNumbers,...upgradedNumbers]){const target=seedState.mappings.find(row=>row.id===mapId(n));if(!target)throw new Error('Seed mapping missing: '+n);const bound=target.status==='BOUND';changes.push(`UPDATE ${s}."portal_runtime_entity" SET payload=payload||jsonb_build_object('status',${lit(target.status)},'externalAccountStatus',${lit(target.externalAccountStatus)},'conflictReason',${lit(target.conflictReason)},'boundAt',${lit(target.boundAt)},'version',2,'updatedAt',${stamp}),updated_at=now() WHERE resource='mappings' AND runtime_id=${lit(mapId(n))};`);changes.push(`UPDATE ${s}."application_user_mapping" SET status=${lit(target.status)},active_account_key=${bound?'jsonb_build_array(application_id,external_user_id)::text':'NULL'},bound_at=${lit(target.boundAt)},conflict_reason=${lit(target.conflictReason)},updated_at=now(),version=version+1 WHERE id=${lit(physical(mapId(n)))};`);}
  for(const n of addedNumbers){const row=seedState.mappings.find(item=>item.id===mapId(n));if(!row)throw new Error('Seed mapping missing: '+n);changes.push(`INSERT INTO ${s}."portal_runtime_entity"(resource,runtime_id,position,payload) SELECT 'mappings',${lit(row.id)},coalesce(max(position),-1)+1,${json(row)} FROM ${s}."portal_runtime_entity" WHERE resource='mappings';`);changes.push(`INSERT INTO ${s}."application_user_mapping"(id,created_at,updated_at,version,user_id,application_id,external_user_id,external_account,binding_method,status,active_account_key,bound_at) VALUES (${lit(physical(row.id))},${lit(row.createdAt)},${lit(row.updatedAt)},1,'P4FIX_USER_1',${lit(physical(row.appId))},${lit(physical(row.externalUserId))},${lit(row.externalAccount)},${lit(row.bindingMethod)},'BOUND',${lit(JSON.stringify([physical(row.appId),physical(row.externalUserId)]))},${lit(row.boundAt)});`);}
  for(const n of [...addedNumbers,...upgradedNumbers])changes.push(`INSERT INTO ${s}."portal_user_application_scope"(id,created_at,updated_at,version,user_id,application_id) VALUES (${lit(scopeId(n))},now(),now(),1,'P4FIX_USER_1',${lit(physical(appId(n)))});`);
  for(const n of upgradedNumbers){const id=exceptionId(n);changes.push(archive('exception',id,`SELECT ${lit(archiveKey('exception',id))},'exception',${lit(id)},jsonb_build_object('exception',to_jsonb(e)),'Restore original demo access' FROM ${s}."mapping_exception" e WHERE e.id=${lit(id)}`));changes.push(`UPDATE ${s}."mapping_exception" SET resolution_status='RESOLVED',resolved_by='P4FIX_ADMIN',resolved_at=now(),resolution_note='本地演示场景恢复，旧异常原文已归档',updated_at=now(),version=version+1 WHERE id=${lit(id)};`);}
  for(const n of downgradedNumbers){const row=seedState.mappings.find(item=>item.id===mapId(n));changes.push(`INSERT INTO ${s}."mapping_exception"(id,created_at,updated_at,version,mapping_id,exception_type,summary,resolution_status) VALUES (${lit(exceptionId(n))},now(),now(),1,${lit(physical(mapId(n)))},${lit(row.status)},${lit(row.conflictReason)},'OPEN');`);}
+ const mappingCases=[...downgradedNumbers,...upgradedNumbers].map(n=>{const row=seedState.mappings.find(item=>item.id===mapId(n));return `WHEN item->>'id'=${lit(mapId(n))} THEN item||jsonb_build_object('status',${lit(row.status)},'externalAccountStatus',${lit(row.externalAccountStatus)},'conflictReason',${lit(row.conflictReason)},'boundAt',${lit(row.boundAt)},'version',2,'updatedAt',${stamp})`;}).join(' ');
+ const addedMappings=addedNumbers.map(n=>json(seedState.mappings.find(item=>item.id===mapId(n)))).join(',');
+ changes.push(`WITH original AS (SELECT value::jsonb AS doc FROM ${s}."system_config" WHERE id='P4RUN_STATE'),
+ apps AS (SELECT coalesce(jsonb_agg(CASE WHEN item->>'id' IN ('MOCK_APP_3','MOCK_APP_24') THEN item||jsonb_build_object('userType','BOTH','version',3,'updatedAt',${stamp}) ELSE item END ORDER BY ord),'[]'::jsonb) AS items FROM original CROSS JOIN LATERAL jsonb_array_elements(doc->'apps') WITH ORDINALITY AS x(item,ord)),
+ mappings AS (SELECT coalesce(jsonb_agg(CASE ${mappingCases} ELSE item END ORDER BY ord),'[]'::jsonb)||jsonb_build_array(${addedMappings}) AS items FROM original CROSS JOIN LATERAL jsonb_array_elements(doc->'mappings') WITH ORDINALITY AS x(item,ord) WHERE item->>'id' NOT IN (${list(removedNumbers.map(mapId))})),
+ todos AS (SELECT coalesce(jsonb_agg(item ORDER BY ord),'[]'::jsonb) AS items FROM original CROSS JOIN LATERAL jsonb_array_elements(doc->'todos') WITH ORDINALITY AS x(item,ord) WHERE item->>'id' NOT IN (${list(todoIds)})),
+ messages AS (SELECT coalesce(jsonb_agg(CASE WHEN item->>'id' IN (${list(messageIds)}) THEN item||jsonb_build_object('deleted',true,'deletedAt',${stamp},'updatedAt',${stamp},'version',coalesce((item->>'version')::int,1)+1) ELSE item END ORDER BY ord),'[]'::jsonb) AS items FROM original CROSS JOIN LATERAL jsonb_array_elements(doc->'messages') WITH ORDINALITY AS x(item,ord))
+ UPDATE ${s}."system_config" c SET value=jsonb_set(jsonb_set(jsonb_set(jsonb_set(c.value::jsonb,'{apps}',apps.items),'{mappings}',mappings.items),'{todos}',todos.items),'{messages}',messages.items)::text,version=version+1,updated_at=now() FROM apps,mappings,todos,messages WHERE c.id='P4RUN_STATE';`);
  return `BEGIN; SET LOCAL lock_timeout='5s'; SELECT pg_advisory_xact_lock(38013800); DO $$ BEGIN ${checks.join('\n')} END $$; ${changes.join('\n')} COMMIT;`;
 }
 
 if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
  const db=(await createRepository().load()).state,seed=createSeed(),physicalState=JSON.parse(await sqlQuery(buildReadSql()));
  const plan=await buildPlan(db,seed,physicalState);
- console.log(JSON.stringify({mode:process.argv.includes('--apply')?'apply':'preview',safe:plan.safe,issues:plan.issues,accessDiff:plan.accessDiff,archiveTodos:plan.archiveTodos,archiveMessages:plan.archiveMessages}));
+ console.log(JSON.stringify({mode:process.argv.includes('--apply')?'apply':'preview',safe:plan.safe,stateVersion:physicalState.stateVersion,issues:plan.issues,accessDiff:plan.accessDiff,archiveTodos:plan.archiveTodos,archiveMessages:plan.archiveMessages}));
  if(process.argv.includes('--apply')){
   if(!plan.safe)throw new Error('业务基线不匹配，未执行写入');
   await sqlQuery(buildTransactionSql(plan,seed));

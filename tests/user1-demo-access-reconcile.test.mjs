@@ -7,6 +7,9 @@ const physical=id=>'P4FIX_'+id.replace(/^MOCK_/,'');
 const fixturePlan=()=>{
  const old=[2,3,4,5,6,11,12,26,28],bound=[2,3,4,5,6,11,12],exceptions=[26,28];
  return {safe:true,issues:[],physical:{
+  stateVersion:299,
+  applications:[3,24].map(n=>({id:physical(`MOCK_APP_${n}`),hash:'old-hash'})),
+  snapshotApplications:[3,24].map(n=>({id:`MOCK_APP_${n}`,hash:'old-hash'})),
   runtimeMappings:old.map(n=>({id:runtime(n),hash:'old-hash'})),
   physicalMappings:old.map(n=>({id:physical(runtime(n)),hash:'old-hash'})),
   snapshotMappings:old.map(n=>({id:runtime(n),hash:'old-hash'})),
@@ -32,6 +35,10 @@ test('事务先校验哈希再归档原始 JSON，仅逻辑归档消息待办',(
  const sql=buildTransactionSql(fixturePlan());
  assert.match(sql,/BEGIN; SET LOCAL lock_timeout='5s'; SELECT pg_advisory_xact_lock/);
  assert.match(sql,/Stale runtime mapping/);
+ assert.match(sql,/Stale P4RUN_STATE/);
+ assert.match(sql,/Stale snapshot application: MOCK_APP_3/);
+ assert.match(sql,/Stale snapshot application: MOCK_APP_24/);
+ assert.match(sql,/UPDATE "pb3gir75kkooyea"\."application" SET user_type='BOTH'/);
  assert.match(sql,/Stale snapshot mapping/);
  assert.match(sql,/Stale todo_item/);
  assert.match(sql,/Stale message/);
@@ -40,6 +47,8 @@ test('事务先校验哈希再归档原始 JSON，仅逻辑归档消息待办',(
  assert.match(sql,/UPDATE "pb3gir75kkooyea"\."todo_item" SET archived_at=now\(\)/);
  assert.match(sql,/UPDATE "pb3gir75kkooyea"\."message_recipient" SET deleted_at=now\(\)/);
  assert.doesNotMatch(sql,/DELETE FROM "pb3gir75kkooyea"\."todo_item"|DELETE FROM "pb3gir75kkooyea"\."message"|UPDATE "pb3gir75kkooyea"\."message" SET application_id/);
+ assert.match(sql,/DELETE FROM "pb3gir75kkooyea"\."application_user_mapping" WHERE id='P4FIX_MAP_MOCK_USER_1_2'/);
+ assert.match(sql,/UPDATE "pb3gir75kkooyea"\."system_config" c SET value=jsonb_set/);
  assert.equal((sql.match(/'USER1_DEMO_RESTORE_todo_/g)||[]).length,7);
  assert.equal((sql.match(/'USER1_DEMO_RESTORE_message_/g)||[]).length,7);
 });
