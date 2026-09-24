@@ -34,6 +34,7 @@ test('规范表重载保留待办和消息展示字段及删除状态',async()=>
   read_status:'READ',read_at:now,deleted_at:now}}]}),state);
  assert.equal(loaded.todos[0].id,todo.id);
  assert.equal(loaded.todos[0].sourceTodoId,todo.sourceTodoId);
+ assert.equal(loaded.todos[0].businessType,todo.businessType);
  assert.equal(loaded.messages[0].sourceMessageId,message.sourceMessageId);
  assert.equal(loaded.messages[0].deleted,true);
  assert.equal(loaded.messages[0].readAt,now);

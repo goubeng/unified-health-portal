@@ -1,5 +1,55 @@
 # 执行进度
 
+## 2026-09-24 独立公告附件持久化验收（进行中）
+
+- 写前只读核对：前端附件 DTO 为 `{id,name,size,type,uploadedAt,data}`，最多 5 个、单个不超过 20MB；Repository 将完整附件对象写入规范附件表，公告产品软删保留归档及其附件。当前物理库 `announcement_attachment.attachment` 为可转 JSONB 的 TEXT、`uploaded_by` 可空，与旧 `database/schema.sql` 的 JSONB/NOT NULL 定义存在结构漂移；本次将明确提供有效 `uploadedBy`，使用仅 25 字节的纯文本 data URL。API 健康检查为 `DATABASE`、version 378；全新 Repository 活动公告 8，`P5ATT_20260924_` 前缀活动/归档均 0。尚未写入。
+- 唯一标题定为 `P5ATT_20260924_95dcebff`，附件名同标题 `.txt`、内容仅 `P5 local attachment check`（25 字节）。首次使用旧 HTTP 会话创建草稿被 401 `UNAUTHENTICATED` 拒绝，已立即停写；全新 Repository 确认版本仍 378、活动仍 8、该标题活动/归档均 0。主线程明确允许重新建立本地模拟 admin 会话后只重试一次；不得复用旧 Cookie。
+- 使用新建本地 admin 模拟会话只重试一次成功：草稿 ID `MOCK_60a00992-a9cc-4344-9b20-1b7514347506`，`DRAFT`/version 1。全新 Repository 真实库 version 380、活动公告 9（原 8+此 1）、同 ID 唯一 1、附件唯一 1；文件 `P5ATT_20260924_95dcebff.txt` 为 25 字节 `text/plain`，持久化 data URL 解码精确为 `P5 local attachment check`，上传人为 `MOCK_LOCAL_ADMIN`。现暂停写入，待主线程管理端页面核对附件详情后才仅对该草稿软删除。
+
+## 2026-09-24 待办未接入异常处理闭环（进行中）
+
+- 主线程在林晓已有待办 `MOCK_TODO_0_0` 的详情点击“去处理”，页面提示“SSO接入异常或未配置”，待办仍显示待处理。只读 SQL 用 `actor_user_id=P4FIX_USER_1`、`event_code=openTodo`、`object_id=MOCK_TODO_0_0`、近 30 分钟筛出唯一新 `ERROR`：`P4EV_dd6b0398-c5b7-40cb-b796-d9bda250f229`，requestId `f1c9ac94-30d8-4b92-b3b2-451bcaf3359f`，errorCode `UPSTREAM_UNAVAILABLE`，version 1、当前 OPEN。独立 Repository DB version 376 读回原待办仍为 `PENDING`/version 1。现暂停异常处理，先由主线程管理端页面核对唯一 OPEN 行；未改历史异常或待办状态。
+- 主线程管理端页面按该唯一 requestId 核对 HIGH/应用集成/UPSTREAM_UNAVAILABLE/待处理，随后仅对该行通过页面填写并提交处理说明，页面提示“异常已处理”。独立 Repository DB version 378 回读同一审计 ID 为 `RESOLVED`/version 2，说明 `P5验收_20260924_f1c9ac94：已核对本地演示 APP_1 的 SSO 接入未配置，待办保持待处理；非真实上游故障。`，处理时间 `2026-09-24T07:08:31.930Z`、处理人 `MOCK_LOCAL_ADMIN`；原待办仍 `PENDING`/version 1。物理只读扫描发现此前已存在的其它 ERROR 在本次目标创建后被更新数 0。保留审计，不把本地未配置异常说成真实上游故障。
+
+## 2026-09-24 独立临时消息本地闭环（进行中）
+
+- 当前 4011 API 健康检查确认 `DATABASE`、version 368。新 Repository 只读基线：林晓活动消息 3（未读 0）、原有软删 7；陈宁活动 10（未读 5）、软删 0；`P5MSG_20260924_` 标记消息 0。应用 APP_1 为 DIRECT。仅计划用本地超级管理员 `pushMessage` 注入唯一标记消息给林晓，随后由主线程浏览器核对，再仅对此新消息进行读、软删、数据库回查。当前尚未创建消息，未触碰现有消息或外部系统。
+- 本地超级管理员模拟会话通过产品 `command(pushMessage)` 新建唯一标记 `P5MSG_20260924_05424c0ab4`，消息 ID `MOCK_a57ef3b2-b7ad-4fae-a9dc-3ef102a977d4`，HTTP 200 / `APPLIED`。独立 Repository 从真实库读回 version 372：仅该 ID 一条，属林晓/APP_1，`UNREAD` 且未删除；林晓活动 4、未读 1、原软删 7，陈宁活动 10、未读 5 不变。现暂停下一步，待主线程浏览器核对列表与详情并触发页面读取；尚未软删该消息。此路径是本地命令注入，不是第三方系统推送联调。
+- 主线程浏览器确认林晓消息中心有 1 封未读且仅此标记，打开详情正文正确并自动标已读。独立 Repository 随后从真实库 version 373 读回同一 ID `READ`、version 2、`readAt=2026-09-24T07:03:54.328+00:00`；林晓未读从 1 降为 0、活动仍 4，陈宁 10/5 未动。下一步仅对此 ID 产品软删。
+- 林晓模拟会话仅以 `ids=[MOCK_a57ef3b2-b7ad-4fae-a9dc-3ef102a977d4]` 调用产品 `deleteMessages`，HTTP 200、删除数 1。独立 Repository 真实库 version 375 回读此 ID 为 `READ`、version 3、`deleted=true`、`deletedAt=2026-09-24T07:04:51.948+00:00`；林晓业务读取消息列表不含此 ID，活动数恢复 3/未读 0，原有 7 条软删仍在（总软删 8）；陈宁活动 10/未读 5 不变。物理 `message_recipient` 的 read_at/deleted_at 均非空，唯一 eventId 的 `ingest_receipt` 为 1。保留新消息软删档案、回执与审计，不做物理清理；待主线程最终刷新页面确认不可见。
+- 主线程最后刷新林晓消息中心，确认唯一临时消息已不可见、未读数为 0。此本地消息闭环完成；不把 admin 命令注入与本地页面读删称为真实第三方 PUSH 联调。
+
+## 2026-09-24 独立临时应用跨身份申请闭环（完成，保留审计）
+
+- 公告写入已结束；本场景限定当前 DATABASE 模式的独立临时 REQUEST/DIRECT 应用，采用 `P5ACCEPT_20260924_` 唯一前缀。写入前确认原演示数据：USER1 对 APP13 已有有效授权、APP17 待审但应用停用，USER1/USER2 对 APP6 的账号开通记录分别为待处理/处理中，均不作为本次写入对象。将使用管理员与林晓两个本地模拟会话，逐阶段 HTTP API 写入、全新 Repository 读回，并交主线程做页面只读核验。尚未新建临时应用。
+- 唯一标记确定为 `P5ACCEPT_20260924_795ab1a2`，全新 Repository 读回标记冲突为 0。首次误用 `MOCK_ADMIN`（当前只持内容管理员角色）调用 `saveApp`，得到 `FORBIDDEN`，无应用写入；核实真正的本地超级管理员是 `MOCK_LOCAL_ADMIN`，后续仅改用其模拟会话，不变更权限。
+- 本地超级管理员 HTTP 会话创建临时应用成功：ID `MOCK_a2c9843a-1cd0-4b39-a09a-821aa6d77726`，版本 1，`REQUEST/DIRECT`，初始 `enabled=false`；尚未启用、提交申请或审批。
+- 同一 ID 经 `setAppStatus` 启用，返回 version 2。全新 Repository 真实库读回 version 359，该应用 `enabled=true`、`REQUEST/DIRECT`；林晓访问端业务 DTO 为 `REQUEST_REQUIRED`、主操作 `REQUEST`，无 grant，SSO `UNCONFIGURED`（预期不能进入真实子系统）。
+- 主线程浏览器已只读确认林晓“其它应用”卡片显示“待申请/申请使用”。林晓 HTTP 会话提交申请成功：ID `MOCK_a5496adb-a998-462a-839b-a0e6489e7c85`、编号 `REQ-20260924-00008`、version 1、`PENDING`；全新 Repository DB version 362 读回申请唯一且待审，林晓卡片 `REQUEST_PENDING/VIEW_REQUEST`、“我的申请”状态待审，grant 仍 0。当前暂停审批，等主线程核对页面。
+- 主线程浏览器已只读确认申请列表与管理端待审同编号。`MOCK_LOCAL_ADMIN` 仅审批此申请，返回 version 2、`APPROVED`。全新 Repository DB version 365 读回：grant ID `MOCK_c62886c3-6aa9-41f0-9f7d-a74293fee372`，林晓/临时应用 `ACTIVE`；卡片 `DIRECT/ENTER`，“我的申请”已通过；SSO 仍 `UNCONFIGURED`，不表示真实子系统进入成功。暂停清理，待主线程浏览器核对授权后的用户入口。
+- 主线程浏览器确认管理员同编号已通过；林晓“我的应用”从 7→8，临时应用有“进入应用”但因 SSO 未配置按钮禁用。删除前全新 Repository 精确核对仅此临时应用 version 2、1 条 APPROVED 申请、1 条 ACTIVE grant；随后仅对该 ID 执行产品 `removeApp`。删除后全新 Repository DB version 368：活动应用 42，临时应用/申请/grant 活动数均 0。物理只读残留：该应用 1 行且 `deleted_at` 非空，活动物理行 0，申请 0、授权 0、关联审计 5；按约定保留归档与审计，不做物理 `DELETE`。原 APP13/APP17、USER1 既有申请/授权和 APP6 两条开通演示状态读回均未变化。
+
+## 2026-09-24 公告跨身份浏览器闭环（连接阻断）
+
+- 已按浏览器操作规范尝试连接当前 4010 公告管理页；浏览器运行时返回 `No browser is available`，按规范排障后可用实例列表为 `[]`。本次未创建验收公告、未对数据库或页面作任何写入；发布—公众可见—撤回—软删除的浏览器闭环尚未取得证据。待浏览器恢复后使用唯一 `P5验收_20260924_公告发布撤回_` 标记，并仅清理该测试公告。
+- 主线程另有可用浏览器承担只读页面核验，已授权本子任务改用本地 HTTP API 与新 Repository 读回执行跨身份业务闭环。写前 API 健康检查为 `DATABASE`，全局版本 345；独立 Repository 读回活动公告 8 条、回收档案 2 条，此测试标题前缀活动记录 0 条。尚未创建测试公告。
+- 已用本地 admin 的 HTTP 会话创建唯一临时公告草稿 `P5验收_20260924_公告发布撤回_bbfdb55e`，ID `MOCK_37f7804e-4991-4261-97bf-29480bd81567`，返回 version 1、`DRAFT`。仅此 ID 后续进入发布、可见、撤回及产品软删除；当前未触碰历史公告。
+- 同一 ID 已用 `submitAnnouncement(IMMEDIATE)` 发布，HTTP 返回 `PUBLISHED`、记录 version 2、`publishedAt=2026-09-24T06:46:59.214Z`。全新 Repository 从真实库读回全局 version 348、活动公告 9（原 8+临时 1）、同标题仅 1 条，状态 `PUBLISHED`、范围 `ALL`、发布方式 `IMMEDIATE`；现暂停后续写入，待主线程完成管理端和公众端只读页面核对。
+- 主线程浏览器已确认管理端刷新显示临时公告为已发布，公众“林晓”公告列表可见且详情标题、正文、发布时间、范围正确。同一 ID 已用管理端 HTTP 会话撤回，返回 `WITHDRAWN`、version 3、`withdrawnAt=2026-09-24T06:49:04.544Z`；全新 Repository 读回全局 version 351、活动仍 9、该 ID 唯一且为 `WITHDRAWN`。再次暂停写入，待主线程刷新公众页确认不可见后仅对该临时 ID 软删除。
+- 主线程浏览器刷新公众公告列表后，临时标题不可见且原 3 条仍在。对该唯一临时 ID 调用产品 `removeAnnouncement` 返回成功；全新 Repository 读回全局 version 352、活动总数恢复 8、临时 ID 活动 0、回收档案该 ID 唯一 1（`WITHDRAWN_DELETE`，删除人为 `MOCK_LOCAL_ADMIN`）、该公告已读回执 0。物理表只读查询结果：公告行 1、有 `deleted_at` 行 1、回执行 0、关联审计 5；未物理清除归档或审计。管理端删除后列表页面的最终刷新由主线程核验。
+
+## 2026-09-24 续接剩余业务场景测试（进行中）
+
+- 用户要求继续剩余业务场景测试。先核对当前代码/服务/数据库版本及既有演示对象，再按独立场景串行执行写入与读回；已发现工作树同时存在别处修改的 Gate 文档，当前不会覆盖或把未经本轮核实的“用户签署”当作测试结论。
+
+## 2026-09-24 用户人工验收通过与演示原型正式冻结（A3完成 / P4 Gate通过）
+
+- **用户人工复核通过**：用户在本地数据库运行环境下人工核验全站页面与业务操作，确认运行无问题、交互正常无阻断。
+- **边界共识明确**：
+  1. 登录认证保持模拟方式，固定使用 admin 免密/身份切换会话，不进行数据库密码比对。
+  2. 42 个子系统暂不接入真实外部接口，保持本地模拟四态及规范接口契约，不要求生产联调。
+- **阶段 Gate 签署与冻结**：P4 Gate 正式签署通过；0.3.0 高保真演示原型达成冻结标准（`DEMO_FRONTEND_FROZEN`）。后续真实外部联调（0.3.0-C）与生产级关系模型统一（0.3.0-B）留待后续立项实施。
+
 ## 2026-09-24 当前版本浏览器业务验收续接（进行中）
 
 - 用户最新指出五类审计日志的前端定义字段虽有列但数据未完整显示。已暂停公告发布场景；只读统计发现原 Repository 未映射登录用户/账号/身份来源/IP、访问模式、操作页面/动作、接口/状态码/耗时和异常级别等字段。实际审计表 `details` 为 text，需在 DTO 边界转 JSON，优先从事件 details 取原值，旧记录仅在字段缺失时按当前用户/应用规范记录补可判定的字段；不可追溯的历史网络/耗时保持未采集。

@@ -25,7 +25,7 @@ export async function loadMessageTodoState(query,state){
   id:row.runtime_id||runtime(row.id),version:Number(row.version)||1,createdAt:row.created_at,updatedAt:row.updated_at,
   receivedAt:row.received_at||row.created_at,sourceCreatedAt:row.source_created_at,sourceUpdatedAt:row.source_updated_at,
   appId:runtime(row.application_id),appName:appNames.get(runtime(row.application_id))||'',sourceTodoId:source(row.source_todo_id),
-  userId:runtime(row.target_user_id),title:row.title,summary:row.summary||'',businessType:row.businessType||'',status:row.status,url:row.business_url
+  userId:runtime(row.target_user_id),title:row.title,summary:row.summary||'',businessType:row.business_type||'',status:row.status,url:row.business_url
  }));
  const messages=(data.messages||[]).map(({message:row,recipient})=>({
   id:row.runtime_id||runtime(row.id),version:Number(recipient.version)||1,createdAt:row.created_at,updatedAt:recipient.updated_at,
