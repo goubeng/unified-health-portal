@@ -564,7 +564,10 @@ test('角色编码打开只读查看弹窗且门户权限支持折叠展示',()=
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('@click="openDetail(row)"'));
   assert(source.includes('header="角色查看"'));
-  assert(source.includes('class="role-detail-descriptions"'));
+  assert(source.includes("import DetailGrid from './DetailGrid.vue';"));
+  assert(source.includes('<DetailGrid :items="detailItems" class="role-detail-grid">'));
+  assert(source.includes('<template #status>'));
+  assert(!source.includes('role-detail-descriptions'));
   assert(source.includes('class="role-detail-permission-tree"'));
   assert(source.includes('<details v-for="group in detailPermissionGroups"'));
   assert(source.includes('<summary>'));
