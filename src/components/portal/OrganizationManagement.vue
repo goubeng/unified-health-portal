@@ -221,7 +221,6 @@ const columns=[
   {colKey:'code',title:'组织编码',width:160,ellipsis:true},
   {colKey:'type',title:'组织类型',width:120},
   {colKey:'parentName',title:'上级组织',width:180,ellipsis:true},
-  {colKey:'path',title:'组织路径',minWidth:260,ellipsis:true},
   {colKey:'source',title:'数据来源',width:110},
   {colKey:'status',title:'启用状态',width:100},
   {colKey:'operation',title:'操作',width:130,fixed:'right'}

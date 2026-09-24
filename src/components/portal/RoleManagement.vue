@@ -20,7 +20,7 @@
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的角色"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openEdit(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
+        <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
         <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
         <template #builtIn="{row}"><t-tag v-if="row.builtIn" variant="light">内置</t-tag><span v-else>自定义</span></template>
         <template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>
@@ -32,6 +32,50 @@
       </t-table>
       <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
+
+    <t-dialog
+      v-model:visible="detailVisible"
+      placement="center"
+      header="角色查看"
+      width="980px"
+      :footer="false"
+    >
+      <template v-if="detail">
+        <t-descriptions bordered :column="2" class="role-detail-descriptions">
+          <t-descriptions-item label="角色名称">{{text(detail.roleName)||'-'}}</t-descriptions-item>
+          <t-descriptions-item label="角色编码">{{text(detail.roleCode)||'-'}}</t-descriptions-item>
+          <t-descriptions-item label="启用状态"><t-tag :theme="detail.status==='ENABLED'?'success':'default'" variant="light">{{label(detail.status)}}</t-tag></t-descriptions-item>
+          <t-descriptions-item label="角色类型">{{detail.builtIn?'内置角色':'自定义角色'}}</t-descriptions-item>
+          <t-descriptions-item label="关联用户数">{{detail.userCount??0}}</t-descriptions-item>
+          <t-descriptions-item label="更新时间">{{roleUpdatedAt(detail.updatedAt)}}</t-descriptions-item>
+          <t-descriptions-item label="数据范围">ALL_PORTAL</t-descriptions-item>
+          <t-descriptions-item label="角色说明">{{text(detail.description)||'-'}}</t-descriptions-item>
+        </t-descriptions>
+
+        <div class="role-detail-permission-title">
+          <div><h3>门户权限</h3><p>按菜单 → 页面 → 操作查看。仅展示当前角色已拥有的门户权限。</p></div>
+          <t-tag variant="light">{{detailPermissions.length}} 项操作权限</t-tag>
+        </div>
+
+        <div v-if="detailPermissionGroups.length" class="role-detail-permission-tree">
+          <details v-for="group in detailPermissionGroups" :key="group.key" class="role-detail-permission-group" open>
+            <summary>
+              <span class="role-detail-tree-toggle"><ChevronRightIcon/></span>
+              <strong>{{group.menu}}</strong>
+              <span>{{group.description}}</span>
+              <em>{{group.permissionCount}} 项权限</em>
+            </summary>
+            <div v-for="pageItem in group.pages" :key="pageItem.name" class="role-detail-permission-page">
+              <span>{{pageItem.name}}</span>
+              <div>
+                <t-tag v-for="action in pageItem.actions" :key="action.code" size="small" theme="primary" variant="light">{{action.label}}</t-tag>
+              </div>
+            </div>
+          </details>
+        </div>
+        <EmptyState v-else description="当前角色暂无门户操作权限"/>
+      </template>
+    </t-dialog>
 
     <t-dialog
       v-model:visible="formVisible"
@@ -96,6 +140,7 @@
 <script setup>
 import {computed,reactive,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
+import {ChevronRightIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {label,text} from './presentation.js';
@@ -106,7 +151,7 @@ const props=defineProps({rows:{type:Array,default:()=>[]}});
 const emit=defineEmits(['saved']);
 
 const keyword=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
-const formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false);
+const detailVisible=ref(false),detail=ref(null),formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false);
 const statusOptions=[{value:'ENABLED',label:'启用'},{value:'DISABLED',label:'停用'}];
 
 const permissionGroups=rolePermissionGroups;
@@ -120,6 +165,17 @@ const filtered=computed(()=>{
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const selectedPermissions=computed(()=>form.permissions||[]);
+const rolePermissions=row=>Array.isArray(row?.permissions)?row.permissions:permissionsFromScopes(row?.scopes||[]);
+const detailPermissions=computed(()=>detail.value?rolePermissions(detail.value):[]);
+const detailPermissionGroups=computed(()=>permissionGroups.map(group=>{
+  const pages=group.pages.map(pageItem=>({
+    name:pageItem.name,
+    actions:pageItem.actions
+      .filter(([code])=>detailPermissions.value.includes(code))
+      .map(([code,actionLabel])=>({code,label:actionLabel}))
+  })).filter(pageItem=>pageItem.actions.length);
+  return {...group,pages,permissionCount:pages.reduce((count,pageItem)=>count+pageItem.actions.length,0)};
+}).filter(group=>group.pages.length));
 
 const columns=[
   {colKey:'serial',title:'序号',width:64},
@@ -147,6 +203,7 @@ function assignForm(row){
   Object.assign(form,copy);
 }
 function openCreate(){assignForm({roleCode:'',roleName:'',description:'',status:'ENABLED',permissions:[],builtIn:false});formError.value='';formVisible.value=true;}
+function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function openEdit(row){assignForm(row);formError.value='';formVisible.value=true;}
 const groupCodes=group=>group.pages.flatMap(page=>page.actions.map(([code])=>code));
 const isGroupChecked=group=>groupCodes(group).every(code=>selectedPermissions.value.includes(code));

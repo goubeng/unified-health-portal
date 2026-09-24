@@ -559,6 +559,30 @@ test('系统提示框统一13px紧凑高度并覆盖用户详情来源提示',()
   assert(css.includes('.dictionary-lock-alert,'));
 });
 
+test('角色编码打开只读查看弹窗且门户权限支持折叠展示',()=>{
+  const source=fs.readFileSync('src/components/portal/RoleManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('@click="openDetail(row)"'));
+  assert(source.includes('header="角色查看"'));
+  assert(source.includes('class="role-detail-descriptions"'));
+  assert(source.includes('class="role-detail-permission-tree"'));
+  assert(source.includes('<details v-for="group in detailPermissionGroups"'));
+  assert(source.includes('<summary>'));
+  assert(source.includes('<ChevronRightIcon/>'));
+  assert(source.includes('仅展示当前角色已拥有的门户权限'));
+  assert(source.includes('@click="openEdit(row)">权限配置</t-button>'));
+  assert(css.includes('.role-detail-permission-group[open]>summary .role-detail-tree-toggle .t-icon{transform:rotate(90deg)'));
+});
+
+test('组织管理列表不显示组织路径但详情继续保留',()=>{
+  const source=fs.readFileSync('src/components/portal/OrganizationManagement.vue','utf8');
+  const columns=source.split('const columns=[')[1]?.split('];')[0]||'';
+  const detailItems=source.split('const detailItems=computed')[1]?.split('function reset')[0]||'';
+  assert(!columns.includes("colKey:'path'"));
+  assert(detailItems.includes("['path','组织路径',row.path]"));
+  assert(source.includes('[row.name,row.code,row.path]'));
+});
+
 test('角色超级管理员提示位于表单头部并使用13px紧凑提示',()=>{
   const source=fs.readFileSync('src/components/portal/RoleManagement.vue','utf8');
   const errorIndex=source.indexOf('class="error-note"');

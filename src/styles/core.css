@@ -861,3 +861,27 @@
 .organization-management .tree-toggle :is(.t-icon,svg){display:block;width:14px;height:14px;font-size:14px}
 .organization-management .tree-toggle:hover{color:#2454ff;background:#eef3ff}
 .organization-management .organization-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:20px}
+
+
+/* Role read-only detail follows office-house collapsible permission viewing pattern. */
+.role-detail-descriptions .t-descriptions__label{width:120px;white-space:nowrap}
+.role-detail-permission-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:18px 0 10px}
+.role-detail-permission-title h3,.role-detail-permission-title p{margin:0}
+.role-detail-permission-title h3{color:#1d2129;font-size:14px;font-weight:600;line-height:22px}
+.role-detail-permission-title p{margin-top:3px;color:#86909c;font-size:12px;line-height:20px}
+.role-detail-permission-tree{width:100%;border:1px solid #dcdfe6;background:#fff}
+.role-detail-permission-group+.role-detail-permission-group{border-top:1px solid #e5e8ef}
+.role-detail-permission-group>summary{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;background:#f7f9fc;cursor:pointer;list-style:none}
+.role-detail-permission-group>summary::-webkit-details-marker{display:none}
+.role-detail-permission-group>summary>strong{color:#344054;font-size:13px;font-weight:600}
+.role-detail-permission-group>summary>span:not(.role-detail-tree-toggle){min-width:0;overflow:hidden;color:#86909c;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.role-detail-permission-group>summary>em{margin-left:auto;color:#697386;font-size:12px;font-style:normal;font-weight:400;white-space:nowrap}
+.role-detail-tree-toggle{display:inline-flex;width:18px;height:18px;flex:none;align-items:center;justify-content:center;border-radius:2px;color:#697386}
+.role-detail-tree-toggle .t-icon{width:16px;height:16px;transition:transform .15s ease}
+.role-detail-permission-group[open]>summary .role-detail-tree-toggle .t-icon{transform:rotate(90deg)}
+.role-detail-permission-group>summary:hover .role-detail-tree-toggle{color:#2454ff;background:#eef3ff}
+.role-detail-permission-page{display:grid;grid-template-columns:190px minmax(0,1fr);align-items:center;gap:12px;min-height:42px;padding:5px 14px 5px 50px;border-top:1px solid #edf0f5}
+.role-detail-permission-page>span{color:#4e5969;font-size:13px}
+.role-detail-permission-page>div{display:flex;flex-wrap:wrap;gap:5px}
+.role-detail-permission-page .t-tag{font-size:13px}
+@media(max-width:720px){.role-detail-permission-page{grid-template-columns:1fr;padding-left:28px}}
