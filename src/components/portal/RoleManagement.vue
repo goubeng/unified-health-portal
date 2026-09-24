@@ -41,16 +41,11 @@
       :footer="false"
     >
       <template v-if="detail">
-        <t-descriptions bordered :column="2" class="role-detail-descriptions">
-          <t-descriptions-item label="角色名称">{{text(detail.roleName)||'-'}}</t-descriptions-item>
-          <t-descriptions-item label="角色编码">{{text(detail.roleCode)||'-'}}</t-descriptions-item>
-          <t-descriptions-item label="启用状态"><t-tag :theme="detail.status==='ENABLED'?'success':'default'" variant="light">{{label(detail.status)}}</t-tag></t-descriptions-item>
-          <t-descriptions-item label="角色类型">{{detail.builtIn?'内置角色':'自定义角色'}}</t-descriptions-item>
-          <t-descriptions-item label="关联用户数">{{detail.userCount??0}}</t-descriptions-item>
-          <t-descriptions-item label="更新时间">{{roleUpdatedAt(detail.updatedAt)}}</t-descriptions-item>
-          <t-descriptions-item label="数据范围">ALL_PORTAL</t-descriptions-item>
-          <t-descriptions-item label="角色说明">{{text(detail.description)||'-'}}</t-descriptions-item>
-        </t-descriptions>
+        <DetailGrid :items="detailItems" class="role-detail-grid">
+          <template #status>
+            <t-tag :theme="detail.status==='ENABLED'?'success':'default'" variant="light">{{label(detail.status)}}</t-tag>
+          </template>
+        </DetailGrid>
 
         <div class="role-detail-permission-title">
           <div><h3>门户权限</h3><p>按菜单 → 页面 → 操作查看。仅展示当前角色已拥有的门户权限。</p></div>
@@ -142,6 +137,7 @@ import {computed,reactive,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {ChevronRightIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
+import DetailGrid from './DetailGrid.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {label,text} from './presentation.js';
 import {command} from '../../services/runtime.js';
@@ -167,6 +163,19 @@ const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page
 const selectedPermissions=computed(()=>form.permissions||[]);
 const rolePermissions=row=>Array.isArray(row?.permissions)?row.permissions:permissionsFromScopes(row?.scopes||[]);
 const detailPermissions=computed(()=>detail.value?rolePermissions(detail.value):[]);
+const detailItems=computed(()=>{
+  const row=detail.value||{};
+  return [
+    {key:'roleName',label:'角色名称',value:text(row.roleName)||'-'},
+    {key:'roleCode',label:'角色编码',value:text(row.roleCode)||'-'},
+    {key:'status',label:'启用状态',value:label(row.status)},
+    {key:'builtIn',label:'角色类型',value:row.builtIn?'内置角色':'自定义角色'},
+    {key:'userCount',label:'关联用户数',value:row.userCount??0},
+    {key:'updatedAt',label:'更新时间',value:roleUpdatedAt(row.updatedAt)},
+    {key:'dataScope',label:'数据范围',value:'ALL_PORTAL'},
+    {key:'description',label:'角色说明',value:text(row.description)||'-'}
+  ];
+});
 const detailPermissionGroups=computed(()=>permissionGroups.map(group=>{
   const pages=group.pages.map(pageItem=>({
     name:pageItem.name,
