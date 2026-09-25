@@ -35,16 +35,28 @@
   </nav></aside>
    <main class="content"><div class="content-header"><div class="title-row"><PortalTooltip v-if="showBack" content="返回" placement="bottom"><button type="button" class="back-button" aria-label="返回" @click="backToList"><ArrowLeftIcon/></button></PortalTooltip><h1>{{currentPageTitle}}</h1><div id="page-header-extra" class="page-header-extra-host"></div><div id="page-header-actions" class="page-header-actions-host"></div></div></div><div class="content-body"><router-view :key="route.fullPath+'|'+actor?.id"/></div></main>
   </div>
+  <t-dialog v-model:visible="passwordVisible" placement="center" header="修改本地账号密码" width="520px" :confirm-btn="{content:'确认修改',loading:passwordSaving}" :close-on-overlay-click="false" @confirm="savePassword">
+   <div v-if="passwordError" class="error-note">{{passwordError}}</div>
+   <div class="form-grid">
+    <div class="form-field full"><label>当前密码 <span class="portal-required">*</span></label><t-input v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" placeholder="请输入当前密码"/></div>
+    <div class="form-field full"><label>新密码 <span class="portal-required">*</span></label><t-input v-model="passwordForm.newPassword" type="password" autocomplete="new-password" placeholder="请输入新密码"/></div>
+    <div class="form-field full"><label>确认新密码 <span class="portal-required">*</span></label><t-input v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" placeholder="请再次输入新密码"/></div>
+   </div>
+   <t-alert theme="warning" class="user-source-alert">当前为演示环境：当前密码只校验是否填写，不会核验真实凭证；新密码不会保存，登录仍为模拟。</t-alert>
+  </t-dialog>
  </div>
 </template>
 <script setup>
-import {computed,ref,watch} from 'vue';
+import {computed,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
 import {pages,can,labels,switchTarget} from './config/pages.js';
-import {actor,switchUsers,canSwitchUser,portal,revision,login,logout} from './services/runtime.js';
+import {actor,switchUsers,canSwitchUser,portal,revision,login,logout,command} from './services/runtime.js';
+import {validateLocalPassword} from './config/password-policy.js';
+import {MessagePlugin} from 'tdesign-vue-next';
 import PortalTooltip from './components/portal/PortalTooltip.vue';
 const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false),switching=ref(false);
+const passwordVisible=ref(false),passwordSaving=ref(false),passwordError=ref(''),passwordForm=reactive({currentPassword:'',newPassword:'',confirmPassword:''});
 const admin=computed(()=>route.path.startsWith('/admin'));
 const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim();
 const typeLabel=user=>labels[user?.authType==='LOCAL'?'LOCAL':user?.userType]||user?.userType||'用户';
@@ -120,7 +132,19 @@ async function switchUser(id){
  finally{switching.value=false;}
 }
 function openProfile(){accountOpen.value=false;router.push('/portal/profile');}
-function changePassword(){accountOpen.value=false;if(actor.value?.authType==='LOCAL'){window.alert('当前为前端Mock阶段，本地账号密码修改将在数据库改造阶段接入真实凭证服务。');return;}window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
+function changePassword(){accountOpen.value=false;if(actor.value?.authType==='LOCAL'){passwordVisible.value=true;return;}window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
+async function savePassword(){
+ if(passwordSaving.value)return;
+ const validation=validateLocalPassword({...passwordForm,requireCurrent:true});
+ if(validation){passwordError.value=validation;return;}
+ passwordSaving.value=true;passwordError.value='';
+ try{
+  const result=await command('changeLocalPassword',{id:actor.value.id,currentPassword:passwordForm.currentPassword,newPassword:passwordForm.newPassword,confirmPassword:passwordForm.confirmPassword});
+  if(!result.ok){passwordError.value=result.error.message;return;}
+  passwordVisible.value=false;MessagePlugin.success('已记录演示密码维护操作；真实登录凭证未更新');
+ }finally{passwordSaving.value=false;}
+}
+watch(passwordVisible,visible=>{if(!visible){passwordForm.currentPassword='';passwordForm.newPassword='';passwordForm.confirmPassword='';passwordError.value='';}});
 async function exitSystem(){accountOpen.value=false;try{await logout();router.replace('/login');}catch(error){window.alert(error.message);}}
 watch(()=>route.fullPath,()=>{accountOpen.value=false;});
 watch([actor,revision],async(_,__,onCleanup)=>{

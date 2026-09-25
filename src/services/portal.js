@@ -3,6 +3,7 @@ import {can,permissions,permissionsFromScopes} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
 import {rules} from '../config/rules.js';
 import {integrationFields,terminalStatuses} from '../config/integration-contract.js';
+import {validateLocalPassword} from '../config/password-policy.js';
 import {auditActionNames,auditActionPages} from '../config/audit-activity.js';
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
@@ -228,11 +229,12 @@ export function createPortalService(provider,getActor){
      Object.assign(x,{adminSubject:true,adminAccess:enabled,adminEnabled:enabled,authType:'EXTERNAL',kind:'ADMIN',roleIds,adminStatus:enabled?'NORMAL':'DISABLED'});
      syncUserRolePermissions(d,x);result=decorateAdminUser(d,stamp(x));
     }else if(action==='createLocalPortalUser'){
-     if(!p.account?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','管理账号与姓名为必填');
-     if((d.users||[]).some(user=>String(user.account).toLowerCase()===p.account.trim().toLowerCase()))fail('VALIDATION_ERROR','登录账号已存在');
+     if(typeof p.account!=='string'||!p.account.trim()||typeof p.name!=='string'||!p.name.trim())fail('VALIDATION_ERROR','管理账号与姓名为必填');
+     const account=p.account.trim();
+     if((d.users||[]).some(user=>String(user.account||'').toLowerCase()===account.toLowerCase()))fail('VALIDATION_ERROR','登录账号已存在');
      const roleIds=Array.isArray(p.roleIds)?[...new Set(p.roleIds)]:[];
      if(roleIds.some(roleId=>!(d.roles||[]).some(role=>role.id===roleId&&role.status==='ENABLED')))fail('VALIDATION_ERROR','请选择有效门户角色');
-     const x={id:id(),version:1,createdAt:now,updatedAt:now,account:p.account.trim(),name:p.name.trim(),kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'LOCAL',identitySource:'门户本地',
+     const x={id:id(),version:1,createdAt:now,updatedAt:now,account,name:p.name.trim(),kind:'ADMIN',adminSubject:true,adminAccess:true,adminEnabled:true,authType:'LOCAL',identitySource:'门户本地',
       orgName:'',orgKey:'',mobile:'未提供',email:'未提供',department:'',jobTitle:'',
       permissions:[],roleIds,enabled:true,status:'NORMAL',adminStatus:'NORMAL',firstLoginAt:null,lastLoginAt:null,lockedUntil:null,mustChangePassword:true,credentialStatus:'MOCK_PENDING'};
      syncUserRolePermissions(d,x);d.users.push(x);result=decorateAdminUser(d,x);
@@ -250,7 +252,13 @@ export function createPortalService(provider,getActor){
      x.adminEnabled=p.enabled;x.adminAccess=p.enabled;x.adminStatus=p.enabled?'NORMAL':'DISABLED';if(x.authType==='LOCAL'){x.enabled=p.enabled;x.status=x.adminStatus;}result=stamp(x);
     }else if(action==='resetLocalPassword'){
      const x=requireRow(d.users,p.id,p.version);if(x.authType!=='LOCAL')fail('INVALID_TRANSITION','外部身份用户密码由闽政通/闽政务管理');
+     const passwordError=validateLocalPassword(p);if(passwordError)fail('VALIDATION_ERROR',passwordError);
      x.mustChangePassword=true;x.passwordResetAt=now;x.credentialStatus='MOCK_RESET';result=stamp(x);
+    }else if(action==='changeLocalPassword'){
+     if(a.authType!=='LOCAL'||p.id&&p.id!==a.id)fail('FORBIDDEN','仅本地账号可修改自己的密码');
+     const x=requireRow(d.users,a.id,p.version),passwordError=validateLocalPassword({...p,requireCurrent:true});
+     if(passwordError)fail('VALIDATION_ERROR',passwordError);
+     x.passwordChangedAt=now;x.credentialStatus='MOCK_CHANGE_RECORDED';result=stamp(x);
     }else if(action==='unlockLocalUser'){
      const x=requireRow(d.users,p.id,p.version);if(x.authType!=='LOCAL')fail('INVALID_TRANSITION','仅门户本地账号支持门户解锁');
      x.lockedUntil=null;x.failedLoginCount=0;result=stamp(x);

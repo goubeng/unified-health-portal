@@ -1,17 +1,18 @@
 # 执行进度
 
-## 2026-09-24 独立公告附件持久化验收（进行中）
+## 2026-09-24 独立公告附件持久化验收（完成）
 
 - 写前只读核对：前端附件 DTO 为 `{id,name,size,type,uploadedAt,data}`，最多 5 个、单个不超过 20MB；Repository 将完整附件对象写入规范附件表，公告产品软删保留归档及其附件。当前物理库 `announcement_attachment.attachment` 为可转 JSONB 的 TEXT、`uploaded_by` 可空，与旧 `database/schema.sql` 的 JSONB/NOT NULL 定义存在结构漂移；本次将明确提供有效 `uploadedBy`，使用仅 25 字节的纯文本 data URL。API 健康检查为 `DATABASE`、version 378；全新 Repository 活动公告 8，`P5ATT_20260924_` 前缀活动/归档均 0。尚未写入。
 - 唯一标题定为 `P5ATT_20260924_95dcebff`，附件名同标题 `.txt`、内容仅 `P5 local attachment check`（25 字节）。首次使用旧 HTTP 会话创建草稿被 401 `UNAUTHENTICATED` 拒绝，已立即停写；全新 Repository 确认版本仍 378、活动仍 8、该标题活动/归档均 0。主线程明确允许重新建立本地模拟 admin 会话后只重试一次；不得复用旧 Cookie。
 - 使用新建本地 admin 模拟会话只重试一次成功：草稿 ID `MOCK_60a00992-a9cc-4344-9b20-1b7514347506`，`DRAFT`/version 1。全新 Repository 真实库 version 380、活动公告 9（原 8+此 1）、同 ID 唯一 1、附件唯一 1；文件 `P5ATT_20260924_95dcebff.txt` 为 25 字节 `text/plain`，持久化 data URL 解码精确为 `P5 local attachment check`，上传人为 `MOCK_LOCAL_ADMIN`。现暂停写入，待主线程管理端页面核对附件详情后才仅对该草稿软删除。
+- 主线程管理端详情已核对附件名称、`text/plain` 类型和 25 B 大小。随后仅对该 ID 执行产品软删除；活动列表恢复 8 条，标题不再出现在活动读取，物理公告行保留 `deleted_at`，附件/归档及审计按产品规则保留，未做物理清理。
 
-## 2026-09-24 待办未接入异常处理闭环（进行中）
+## 2026-09-24 待办未接入异常处理闭环（完成）
 
 - 主线程在林晓已有待办 `MOCK_TODO_0_0` 的详情点击“去处理”，页面提示“SSO接入异常或未配置”，待办仍显示待处理。只读 SQL 用 `actor_user_id=P4FIX_USER_1`、`event_code=openTodo`、`object_id=MOCK_TODO_0_0`、近 30 分钟筛出唯一新 `ERROR`：`P4EV_dd6b0398-c5b7-40cb-b796-d9bda250f229`，requestId `f1c9ac94-30d8-4b92-b3b2-451bcaf3359f`，errorCode `UPSTREAM_UNAVAILABLE`，version 1、当前 OPEN。独立 Repository DB version 376 读回原待办仍为 `PENDING`/version 1。现暂停异常处理，先由主线程管理端页面核对唯一 OPEN 行；未改历史异常或待办状态。
 - 主线程管理端页面按该唯一 requestId 核对 HIGH/应用集成/UPSTREAM_UNAVAILABLE/待处理，随后仅对该行通过页面填写并提交处理说明，页面提示“异常已处理”。独立 Repository DB version 378 回读同一审计 ID 为 `RESOLVED`/version 2，说明 `P5验收_20260924_f1c9ac94：已核对本地演示 APP_1 的 SSO 接入未配置，待办保持待处理；非真实上游故障。`，处理时间 `2026-09-24T07:08:31.930Z`、处理人 `MOCK_LOCAL_ADMIN`；原待办仍 `PENDING`/version 1。物理只读扫描发现此前已存在的其它 ERROR 在本次目标创建后被更新数 0。保留审计，不把本地未配置异常说成真实上游故障。
 
-## 2026-09-24 独立临时消息本地闭环（进行中）
+## 2026-09-24 独立临时消息本地闭环（完成）
 
 - 当前 4011 API 健康检查确认 `DATABASE`、version 368。新 Repository 只读基线：林晓活动消息 3（未读 0）、原有软删 7；陈宁活动 10（未读 5）、软删 0；`P5MSG_20260924_` 标记消息 0。应用 APP_1 为 DIRECT。仅计划用本地超级管理员 `pushMessage` 注入唯一标记消息给林晓，随后由主线程浏览器核对，再仅对此新消息进行读、软删、数据库回查。当前尚未创建消息，未触碰现有消息或外部系统。
 - 本地超级管理员模拟会话通过产品 `command(pushMessage)` 新建唯一标记 `P5MSG_20260924_05424c0ab4`，消息 ID `MOCK_a57ef3b2-b7ad-4fae-a9dc-3ef102a977d4`，HTTP 200 / `APPLIED`。独立 Repository 从真实库读回 version 372：仅该 ID 一条，属林晓/APP_1，`UNREAD` 且未删除；林晓活动 4、未读 1、原软删 7，陈宁活动 10、未读 5 不变。现暂停下一步，待主线程浏览器核对列表与详情并触发页面读取；尚未软删该消息。此路径是本地命令注入，不是第三方系统推送联调。
@@ -191,3 +192,14 @@
 - 精确清理完成后 `P4RUN_STATE.version=188`。按 runtime ID 与标题字面前缀复核，`announcement`、`announcement_attachment`、`announcement_read_receipt`、`audit_event`、JSON `announcements` 和 `announcementTrash` 中本次测试残留均为 0。
 - 清理后历史基线保持：公告共 9 条，其中活动 8、软删除 1；历史阅读回执 6 条。接续任务发现目标已被前序清理移除，因此未再次执行删除事务，避免重复修改。
 - 验收结论：通知公告第一阶段已取得真实 DATABASE 健康检查、模拟登录、HTTP 创建、列表读取、进程重启后读回、API 编辑+SQL 回读、API 删除+软删回读以及测试数据清理证据。其它业务模块已完成数据库迁移与初始化，但真实 API CRUD/重启读回仍为后续待办。
+# 2026-09-25 本地管理账号字段补齐
+
+- 已确认问题：新增本地管理用户的表单只暴露姓名，无法明确录入独立的登录账号。
+- 根因：新增模式实际值为 `createLocal`，账号输入框却按不存在的 `create` 模式判断可编辑，导致新增时始终禁用；姓名框不受影响。
+- 已修复账号框启用条件；服务端同时加强账号/姓名字符串必填校验、账号去空格及大小写不敏感去重，模拟登录策略保持不变。
+- 持久化边界：账号和姓名写入数据库 `portal_runtime_entity` 的 `users` 运行实体，同时同步 `unified_user` 基础记录；测试覆盖生成 SQL 与重新加载回读。当前真实凭证仍按既定范围不接入。
+- 验证：定向测试 8/8、全量测试 232/232、生产构建通过；浏览器 DATABASE 模式下弹窗显示两个独立可输入框，并成功分别输入 `local_acceptance` 与“本地账号验收”，随后取消，未产生测试账号。
+# 2026-09-25 本地账号密码弹窗
+
+- 已登记需求：管理端重置密码改为输入新密码；顶部修改密码增加弹窗功能。
+- 安全边界：继续使用 Mock 登录，不接入真实凭证认证；明文密码仅用于本次提交校验，不进入数据库、日志和接口响应。

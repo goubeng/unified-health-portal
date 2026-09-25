@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {createMockProvider} from '../src/providers/mock.js';
 import {createPortalService} from '../src/services/portal.js';
 import {actors} from '../src/mock/seed.js';
+import {loadRemainingState,remainingMirrorSql} from '../server/remaining-persistence.mjs';
+import {readFileSync} from 'node:fs';
 
 function setup(index=2){
   let actor=actors[index];
@@ -37,6 +39,8 @@ test('超级管理员可创建本地管理账号且不返回密码或密码Hash'
     account:'local02',name:'本地维护员',orgName:'门户运行保障中心',mobile:'13800000000',email:'local02@example.invalid',roleIds:['ROLE_ADMIN']
   });
   assert.equal(created.authType,'LOCAL');
+  assert.equal(created.account,'local02');
+  assert.equal(created.name,'本地维护员');
   assert.equal(created.adminSubject,true);
   assert.equal(created.identitySource,'门户本地');
   assert.equal(created.roleLabels,'门户管理员');
@@ -48,6 +52,24 @@ test('超级管理员可创建本地管理账号且不返回密码或密码Hash'
   const row=(await h.read('users')).find(x=>x.id===created.id);
   assert(row);
   assert.equal(row.kind,'ADMIN');
+  assert.equal(row.account,'local02');
+});
+
+test('本地账号与姓名独立输入，账号必填且不区分大小写唯一，运行实体可回读',async()=>{
+  const component=readFileSync(new URL('../src/components/portal/UserManagement.vue',import.meta.url),'utf8');
+  assert.match(component,/v-model="form\.account" :disabled="formMode!=='createLocal'"/);
+  const h=setup(2);
+  assert.equal((await h.service.command('createLocalPortalUser',{name:'测试姓名',roleIds:['ROLE_ADMIN']})).error.code,'VALIDATION_ERROR');
+  assert.equal((await h.service.command('createLocalPortalUser',{account:42,name:'测试姓名',roleIds:['ROLE_ADMIN']})).error.code,'VALIDATION_ERROR');
+  const created=await h.run('createLocalPortalUser',{account:'  demo.local  ',name:'测试姓名',roleIds:['ROLE_ADMIN']});
+  assert.equal(created.account,'demo.local');
+  assert.equal(created.name,'测试姓名');
+  assert.equal((await h.service.command('createLocalPortalUser',{account:'DEMO.LOCAL',name:'另一姓名',roleIds:['ROLE_ADMIN']})).error.code,'VALIDATION_ERROR');
+  const sql=remainingMirrorSql({users:[]},{users:[created]});
+  assert.match(sql,/demo\.local/);
+  const loaded=await loadRemainingState(async()=>JSON.stringify([{resource:'users',items:[created]}]),{users:[]});
+  assert.equal(loaded.users[0].account,'demo.local');
+  assert.equal(loaded.users[0].name,'测试姓名');
 });
 
 test('外部身份型管理用户编辑只改变门户管理授权，不修改上游身份主数据',async()=>{

@@ -75,7 +75,7 @@
       <div v-if="formError" class="error-note">{{formError}}</div>
       <template v-if="formMode==='createLocal'||formMode==='edit'&&adminAuthType(form)==='LOCAL'">
         <div class="form-grid">
-          <div class="form-field"><label>管理账号 <span class="portal-required">*</span></label><t-input v-model="form.account" :disabled="formMode!=='create'" placeholder="请输入管理账号"/></div>
+          <div class="form-field"><label>管理账号 <span class="portal-required">*</span></label><t-input v-model="form.account" :disabled="formMode!=='createLocal'" placeholder="请输入管理账号"/></div>
           <div class="form-field"><label>姓名 <span class="portal-required">*</span></label><t-input v-model="form.name" placeholder="请输入姓名"/></div>
           <div class="form-field"><label>认证类型</label><t-input :value="authTypeLabel('LOCAL')" disabled/></div>
           <div class="form-field"><label>身份来源</label><t-input value="门户本地" disabled/></div>
@@ -100,17 +100,27 @@
         </t-alert>
       </template>
     </t-dialog>
+
+    <t-dialog v-model:visible="resetVisible" placement="center" header="重置本地管理账号密码" width="520px" :confirm-btn="{content:'确认重置',loading:resetSaving}" :close-on-overlay-click="false" @confirm="saveResetPassword">
+      <div v-if="resetError" class="error-note">{{resetError}}</div>
+      <div class="form-grid">
+        <div class="form-field full"><label>新密码 <span class="portal-required">*</span></label><t-input v-model="resetForm.newPassword" type="password" autocomplete="new-password" placeholder="请输入新密码"/></div>
+        <div class="form-field full"><label>确认新密码 <span class="portal-required">*</span></label><t-input v-model="resetForm.confirmPassword" type="password" autocomplete="new-password" placeholder="请再次输入新密码"/></div>
+      </div>
+      <t-alert theme="warning" class="user-source-alert">当前为演示环境：密码仅用于本次格式校验，不会保存为登录凭证；确认后只记录重置状态和时间。</t-alert>
+    </t-dialog>
   </section>
 </template>
 
 <script setup>
 import {computed,reactive,ref,watch} from 'vue';
-import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
+import {MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {date,source,text,label} from './presentation.js';
 import {command} from '../../services/runtime.js';
+import {validateLocalPassword} from '../../config/password-policy.js';
 
 const props=defineProps({
   rows:{type:Array,default:()=>[]},
@@ -125,6 +135,7 @@ const keyword=ref(''),authType=ref(''),identitySource=ref(''),roleId=ref(''),sta
 const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null);
 const formVisible=ref(false),formMode=ref('edit'),form=reactive({}),formError=ref(''),saving=ref(false);
+const resetVisible=ref(false),resetTarget=ref(null),resetForm=reactive({newPassword:'',confirmPassword:''}),resetError=ref(''),resetSaving=ref(false);
 
 const adminAuthType=row=>row?.authType||'EXTERNAL';
 const adminEnabled=row=>row?.enabled!==false;
@@ -213,12 +224,20 @@ async function save(){
   formVisible.value=false;MessagePlugin.success(formMode.value==='createLocal'?'本地管理账号已创建':formMode.value==='createExternal'?'外部用户管理资格已授权':'管理用户信息已保存');emit('saved');
 }
 function resetPassword(row){
-  const dialog=DialogPlugin.confirm({placement:'center',header:'重置密码',body:'确认重置该门户本地管理账号密码？当前阶段只记录重置状态，不生成真实密码。',onConfirm:async()=>{
-    const result=await command('resetLocalPassword',{id:row.id,version:row.version});
-    if(!result.ok){MessagePlugin.error(result.error.message);return;}
-    dialog.hide();MessagePlugin.success('已记录密码重置，真实凭证接入后按首次改密策略生效');emit('saved');
-  }});
+  resetTarget.value=row;resetForm.newPassword='';resetForm.confirmPassword='';resetError.value='';resetVisible.value=true;
 }
+async function saveResetPassword(){
+  if(resetSaving.value||!resetTarget.value)return;
+  const validation=validateLocalPassword(resetForm);
+  if(validation){resetError.value=validation;return;}
+  resetSaving.value=true;resetError.value='';
+  try{
+    const result=await command('resetLocalPassword',{id:resetTarget.value.id,version:resetTarget.value.version,newPassword:resetForm.newPassword,confirmPassword:resetForm.confirmPassword});
+    if(!result.ok){resetError.value=result.error.message;return;}
+    resetVisible.value=false;MessagePlugin.success('已记录演示重置状态；真实登录凭证未更新');emit('saved');
+  }finally{resetSaving.value=false;}
+}
+watch(resetVisible,visible=>{if(!visible){resetForm.newPassword='';resetForm.confirmPassword='';resetTarget.value=null;resetError.value='';}});
 async function unlock(row){
   const result=await command('unlockLocalUser',{id:row.id,version:row.version});
   if(!result.ok){MessagePlugin.error(result.error.message);return;}

@@ -20,6 +20,11 @@ const isAllowedFrontendOrigin=origin=>{
  }catch{return false;}
 };
 const hash=v=>createHash('sha256').update(v).digest();
+export const redactAuditPayload=value=>{
+ if(Array.isArray(value))return value.map(redactAuditPayload);
+ if(!value||typeof value!=='object')return value;
+ return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,/password|passphrase|passwd|pwd|secret|token|otp|captcha|verification.?code|authorization/i.test(key)?'[REDACTED]':redactAuditPayload(item)]));
+};
 function stateProvider(state){let current=structuredClone(state);return {kind:'mock',read:()=>structuredClone(current),transact(fn){const next=structuredClone(current),out=fn(next);current=next;return structuredClone(out);}};}
 async function body(req){let data='';for await(const chunk of req){data+=chunk;if(data.length>12*1024*1024)throw Error('请求内容过大');}return data?JSON.parse(data):{};}
 export function createPortalApi({repository=null,env=process.env}={}){
@@ -56,7 +61,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
  };
  const handle=async(req,res)=>{
   try{
-   const startedAt=Date.now(),auditEvent=args=>makeEvent({...args,requestMeta:{ip:(req.socket?.remoteAddress||'').replace(/^::ffff:/,''),client:String(req.headers['user-agent']||'').slice(0,160),durationMs:Date.now()-startedAt}});
+   const startedAt=Date.now(),auditEvent=args=>makeEvent({...args,payload:redactAuditPayload(args.payload||{}),requestMeta:{ip:(req.socket?.remoteAddress||'').replace(/^::ffff:/,''),client:String(req.headers['user-agent']||'').slice(0,160),durationMs:Date.now()-startedAt}});
    if(!/^((127\.0\.0\.1|localhost)(:4011)?)$/.test(req.headers.host||''))return send(res,403,resultError('FORBIDDEN','仅允许本机API入口'));
    const url=new URL(req.url,'http://127.0.0.1:4011'),path=url.pathname;
    const external=path.startsWith('/api/portal/ingest/');
