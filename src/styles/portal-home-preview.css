@@ -33,11 +33,11 @@
 .public-portal-account-popover button:hover{background:#f5f8fc}
 .public-portal-account-popover button.danger{color:#d54941}
 
-.public-portal-hero{position:relative;height:260px;background-position:center 53%;background-size:cover;overflow:hidden}
-.public-portal-hero-mask{position:absolute;inset:0;background:linear-gradient(180deg,rgba(232,246,255,.23) 0%,rgba(226,243,255,.03) 55%,rgba(238,248,255,.16) 100%)}
-.public-portal-hero-content{position:relative;z-index:2;width:min(1040px,calc(100% - 48px));margin:0 auto;padding-top:42px;text-align:center}
-.public-portal-hero h1{margin:0;color:#0d4d99;font-size:34px;line-height:1.35;font-weight:700;letter-spacing:.08em;text-shadow:0 1px 0 rgba(255,255,255,.7)}
-.public-portal-hero p{margin:12px 0 0;color:#174f92;font-size:18px;letter-spacing:.08em}
+.public-portal-hero{position:relative;height:260px;background-position:center center;background-size:cover;overflow:hidden}
+.public-portal-hero-mask{position:absolute;inset:0;background:linear-gradient(90deg,rgba(247,251,255,.96) 0%,rgba(247,251,255,.84) 14%,rgba(247,251,255,.55) 30%,rgba(247,251,255,.22) 47%,rgba(247,251,255,.08) 64%,rgba(247,251,255,.04) 100%),radial-gradient(circle at 12% 50%,rgba(240,248,255,.90) 0%,rgba(240,248,255,.58) 25%,rgba(240,248,255,0) 55%),linear-gradient(180deg,rgba(232,246,255,.12) 0%,rgba(238,248,255,.08) 100%)}
+.public-portal-hero-content{position:relative;z-index:2;width:min(1440px,calc(100% - 56px));height:100%;margin:0 auto;padding:0 56px 0 0;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;text-align:right}
+.public-portal-hero h1{max-width:680px;margin:0;color:#0d4d99;font-size:34px;line-height:1.35;font-weight:700;letter-spacing:.08em;text-shadow:0 1px 0 rgba(255,255,255,.75)}
+.public-portal-hero p{max-width:680px;margin:12px 0 0;color:#174f92;font-size:18px;letter-spacing:.08em}
 
 .public-portal-main{width:min(1440px,calc(100% - 56px));margin:-24px auto 0;position:relative;z-index:5;padding-bottom:36px}
 .public-portal-card{background:rgba(255,255,255,.98);border:1px solid #e8eef6;border-radius:10px;box-shadow:0 8px 24px rgba(30,85,140,.07)}
@@ -100,12 +100,13 @@
   .public-portal-brand{min-width:0;flex:1}.public-portal-user-area{min-width:0}
   .public-portal-nav{order:3;width:100%;height:42px;justify-content:flex-start;overflow:auto}
   .public-portal-nav button{height:42px}
-  .public-portal-hero{height:235px}.public-portal-hero h1{font-size:30px}.public-portal-hero p{font-size:17px}
+  .public-portal-hero{height:235px}.public-portal-hero-content{width:calc(100% - 28px);padding-right:24px}.public-portal-hero h1{font-size:30px}.public-portal-hero p{font-size:17px}
   .public-portal-main{width:calc(100% - 28px)}
-  .public-portal-feed-grid{grid-template-columns:1fr}\n  .public-portal-app-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .public-portal-feed-grid{grid-template-columns:1fr}
+  .public-portal-app-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:620px){
   .public-portal-brand-copy strong{font-size:18px}.public-portal-account>span:not(.public-portal-avatar){display:none}
-  .public-portal-hero-content{width:calc(100% - 28px);padding-top:36px}.public-portal-hero h1{font-size:25px}.public-portal-hero p{font-size:15px}
+  .public-portal-hero-content{width:calc(100% - 28px);padding:0;align-items:center;text-align:center}.public-portal-hero h1{font-size:25px;text-align:center}.public-portal-hero p{font-size:15px;text-align:center}
   .public-portal-apps,.public-portal-feed-card{padding:16px}.public-portal-app-grid{grid-template-columns:1fr}.public-portal-app-item{min-height:64px;padding:10px 12px}
 }
