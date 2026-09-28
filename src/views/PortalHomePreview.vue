@@ -19,7 +19,7 @@
         </nav>
 
         <div class="public-portal-user-area">
-          <t-badge :count="overview.unreadCount || 0" :max-count="99" :show-zero="false">
+          <t-badge size="small" :count="overview.unreadCount || 0" :max-count="99" :show-zero="false">
             <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="router.push('/portal/messages')">
               <NotificationIcon />
             </button>
