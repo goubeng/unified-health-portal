@@ -1627,3 +1627,10 @@ test('首页来源系统去掉来自文字前缀',()=>{
   assert(source.includes('<span><Icon name="app"/>{{ text(item.appName) }}</span>'));
   assert(!source.includes('<em>来自：</em>'));
 });
+
+
+test('顶部消息徽标靠近铃铛并收紧用户区间距',()=>{
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(css.includes('.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:8px}'));
+  assert(css.includes('top:2px!important;right:2px!important;transform:translate(35%,-35%)!important'));
+});
