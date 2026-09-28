@@ -33,7 +33,10 @@
             <template #content>
               <div class="public-portal-account-popover">
                 <strong>{{ displayName }}</strong>
-                <span>{{ actor?.orgName || '未提供所属单位' }}</span>
+                <div class="public-portal-account-meta">
+                  <span>{{ actor?.orgName || '未提供所属单位' }}</span>
+                  <t-tag class="public-portal-user-type-tag" size="small" variant="light" theme="primary">{{ label(actor?.userType) }}</t-tag>
+                </div>
                 <button type="button" @click="go('/profile')">个人中心</button>
                 <button v-if="can(actor,'any')" type="button" @click="router.push('/admin/home')">平台管理端</button>
                 <button class="danger" type="button" @click="exitSystem">退出系统</button>
@@ -89,6 +92,7 @@ import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,NotificationIcon,UserIcon
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
+import {label} from '../components/portal/presentation.js';
 import '../styles/portal-home-preview.css';
 import '../styles/portal-preview-pages.css';
 import todoBanner from '../assets/banner-todos.png';
