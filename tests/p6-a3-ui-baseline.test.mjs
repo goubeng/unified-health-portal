@@ -1051,7 +1051,8 @@ test('正式公众门户内页启用轻量列表且我的申请使用表格展�
   assert(todo.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
   assert(message.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
   assert(todo.includes('class="public-record-list public-todo-list"'));
-  assert(message.includes('class="public-message-list"'));
+  assert(message.includes('class="message-content-toolbar"'));
+  assert(message.includes('<t-table row-key="id" :data="pagedMessages" :columns="columns"'));
   assert(applications.includes('class="my-applications-table"'));
   assert(!applications.includes('class="public-application-list"'));
 });
@@ -1152,4 +1153,19 @@ test('我的申请增加顶部留白与独立分页',()=>{
   assert(css.includes('.public-portal-secondary-shell .my-applications{'));
   assert(css.includes('padding:16px 20px 18px!important;'));
   assert(css.includes('.public-portal-secondary-shell .my-applications .t-pagination{'));
+});
+
+
+test('消息中心使用标准表格并把批量操作放在内容区',()=>{
+  const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(!source.includes('to="#page-header-actions"'));
+  assert(source.includes('class="message-content-toolbar"'));
+  assert(source.includes('class="message-content-actions"'));
+  assert(source.includes('删除</t-button>'));
+  assert(source.includes('标记为已读</t-button>'));
+  assert(source.includes('全部标为已读</t-button>'));
+  assert(source.includes('<t-table row-key="id" :data="pagedMessages" :columns="columns"'));
+  assert(!source.includes('class="public-message-list"'));
+  assert(css.includes('.public-portal-secondary-shell .message-content-toolbar{'));
 });
