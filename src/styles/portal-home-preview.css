@@ -281,3 +281,28 @@
   line-height:18px;
   white-space:nowrap;
 }
+
+/* Home feed metadata icons */
+.public-portal-row-meta{
+  display:flex!important;
+  align-items:center;
+  gap:0!important;
+}
+.public-portal-row-meta>span{
+  display:inline-flex;
+  min-width:0;
+  align-items:center;
+  gap:4px;
+}
+.public-portal-row-meta>span>.t-icon{
+  width:13px!important;
+  height:13px!important;
+  flex:none;
+  color:#8a9ab0;
+  font-size:13px!important;
+}
+.public-portal-row-meta>span>em{
+  flex:none;
+  font-style:normal;
+  color:#8a9ab0;
+}
