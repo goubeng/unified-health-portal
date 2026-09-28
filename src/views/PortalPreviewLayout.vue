@@ -10,7 +10,7 @@
         </button>
 
         <nav class="public-portal-nav" aria-label="公众门户导航">
-          <button type="button" :class="{active:isActive('home')}" @click="router.push('/portal-preview/home')">首页</button>
+          <button type="button" :class="{active:isActive('home')}" @click="go('/home')">首页</button>
           <button type="button" :class="{active:isActive('todos')}" @click="go('/todos')">待办任务</button>
           <button type="button" :class="{active:isActive('messages')}" @click="go('/messages')">消息中心</button>
           <button type="button" :class="{active:isActive('announcements')}" @click="go('/announcements')">通知公告</button>
@@ -20,7 +20,7 @@
 
         <div class="public-portal-user-area">
           <t-badge size="small" :count="unread" :max-count="99" :show-zero="false">
-            <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="router.push('/portal-preview/messages')">
+            <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="go('/messages')">
               <NotificationIcon />
             </button>
           </t-badge>
