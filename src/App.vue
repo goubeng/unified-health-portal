@@ -1,5 +1,5 @@
 <template>
- <router-view v-if="route.meta.group==='登录'||route.meta.layout==='portal-preview'" />
+ <router-view v-if="route.meta.group==='登录'||['portal-preview','public-portal'].includes(route.meta.layout)" />
  <div v-else class="app-shell" :class="{collapsed}">
   <header class="topbar">
    <PortalTooltip :content="collapsed?'展开菜单':'收起菜单'" placement="bottom"><t-button class="collapse-button" shape="square" variant="text" aria-label="展开或收起菜单" @click="collapsed=!collapsed"><template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template></t-button></PortalTooltip>
