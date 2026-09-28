@@ -56,6 +56,10 @@
           <div id="page-header-extra" class="page-header-extra-host"></div>
         </div>
         <div class="public-portal-subpage-actions">
+          <button v-if="showBack" type="button" class="public-portal-breadcrumb-back" @click="backToList">
+            <ArrowLeftIcon size="14px" />
+            <span>返回</span>
+          </button>
           <div id="page-header-actions" class="page-header-actions-host"></div>
         </div>
       </div>
@@ -81,7 +85,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ChevronDownIcon,ChevronRightIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
