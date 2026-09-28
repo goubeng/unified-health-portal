@@ -67,6 +67,7 @@ watch(()=>openingRows.value.length,()=>{openingPage.value=Math.min(openingPage.v
 const statusCell=row=>h(Tag,{theme:theme(row.status),variant:'light'},()=>label(row.status));
 
 const accessColumns=[
+ {colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(accessPage.value-1)*accessPageSize.value+ctx.rowIndex+1},
  {colKey:'requestNo',title:'申请编号',width:190,ellipsis:true},
  {colKey:'appName',title:'应用名称',minWidth:240,ellipsis:true},
  {colKey:'submittedAt',title:'申请时间',width:180,cell:(_,ctx)=>date(ctx.row.submittedAt)},
@@ -75,6 +76,7 @@ const accessColumns=[
  {colKey:'operation',title:'操作',width:150,fixed:'right'}
 ];
 const openingColumns=[
+ {colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(openingPage.value-1)*openingPageSize.value+ctx.rowIndex+1},
  {colKey:'requestNo',title:'申请编号',width:190,ellipsis:true},
  {colKey:'appName',title:'应用名称',minWidth:240,ellipsis:true},
  {colKey:'submittedAt',title:'申请时间',width:180,cell:(_,ctx)=>date(ctx.row.submittedAt)},
