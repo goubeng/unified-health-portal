@@ -1243,3 +1243,16 @@ test('消息中心未读筛选空态显示暂无未读的消息',()=>{
   const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
   assert(source.includes(`:description="statusFilter==='UNREAD'?'暂无未读的消息':'暂无符合条件的消息'"`));
 });
+
+
+test('待办任务类型和状态使用标签并将状态放到标题旁',()=>{
+  const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(source.includes('class="public-todo-title-line"'));
+  assert(source.includes('class="public-todo-status-tag"'));
+  assert(source.includes('class="public-todo-type-tag"'));
+  assert(source.includes("{colKey:'businessType',title:'任务类型'"));
+  assert(source.includes('<template #businessType="{row}">'));
+  assert(!source.includes('<span class="public-record-status">{{ label(row.status) }}</span>'));
+  assert(css.includes('.public-portal-secondary-shell .public-todo-title-line{'));
+});
