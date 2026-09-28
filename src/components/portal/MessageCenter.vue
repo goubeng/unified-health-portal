@@ -3,12 +3,6 @@
     <Teleport v-if="!activeMessage" to="#page-header-extra">
       <span class="portal-title-count">（共<span class="portal-title-count-number">{{ unreadCount }}</span>封未读）</span>
     </Teleport>
-    <Teleport v-if="!activeMessage" to="#page-header-actions">
-      <t-button variant="outline" size="medium" :disabled="!selectedIds.length" @click="confirmDelete(selectedIds)">删除</t-button>
-      <t-button variant="outline" size="medium" :disabled="!selectedUnreadIds.length" @click="markSelectedRead">标记为已读</t-button>
-      <t-button variant="outline" size="medium" :disabled="!unreadCount" @click="markAllRead">全部标为已读</t-button>
-    </Teleport>
-
     <template v-if="!activeMessage">
       <t-form layout="inline" class="portal-query list-toolbar message-filters">
         <t-form-item class="portal-query-keyword query-width-keyword" label="关键词"><t-input v-model="keyword" placeholder="消息标题" clearable/></t-form-item>
@@ -18,30 +12,20 @@
         <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetFilters">重置</t-button></t-form-item>
       </t-form>
 
-      <section class="panel portal-table-panel message-list-panel">
-        <div v-if="preview" class="public-message-list">
-          <div class="public-message-select-all">
-            <t-checkbox :checked="allFilteredSelected" :indeterminate="partialFilteredSelected" @change="toggleAllFiltered">选择当前筛选结果</t-checkbox>
-            <span>共 {{ filteredMessages.length }} 条</span>
-          </div>
-          <article v-for="row in pagedMessages" :key="row.id" class="public-message-item">
-            <t-checkbox :checked="selectedIds.includes(row.id)" @change="checked=>toggleRow(row.id,checked)"/>
-            <span class="public-record-dot" :class="{muted:row.status!=='UNREAD'}"></span>
-            <button class="public-record-main" type="button" @click="open(row)">
-              <strong>{{ text(row.title)||'-' }}</strong>
-              <small>
-                <span>来自：{{ text(row.appName)||'统一门户' }}</span>
-                <i></i>
-                <span>{{ date(row.receivedAt) }}</span>
-                <i></i>
-                <span>{{ label(row.messageType||'BUSINESS') }}</span>
-              </small>
-            </button>
-            <span class="public-message-read-state">{{ label(row.status) }}</span>
-          </article>
-          <EmptyState v-if="!pagedMessages.length" description="暂无符合条件的消息"/>
+      <div class="message-content-toolbar">
+        <div class="message-content-summary">
+          <span>共 {{ filteredMessages.length }} 条</span>
+          <span v-if="selectedIds.length">已选择 {{ selectedIds.length }} 条</span>
         </div>
-        <t-table v-else row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
+        <div class="message-content-actions">
+          <t-button variant="outline" size="medium" :disabled="!selectedIds.length" @click="confirmDelete(selectedIds)">删除</t-button>
+          <t-button variant="outline" size="medium" :disabled="!selectedUnreadIds.length" @click="markSelectedRead">标记为已读</t-button>
+          <t-button variant="outline" size="medium" :disabled="!unreadCount" @click="markAllRead">全部标为已读</t-button>
+        </div>
+      </div>
+
+      <section class="panel portal-table-panel message-list-panel">
+        <t-table row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="暂无符合条件的消息"/></template>
         </t-table>
         <t-pagination v-if="filteredMessages.length" v-model="page" v-model:page-size="pageSize" :total="filteredMessages.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -87,7 +71,6 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},receiver:{type:String,default:''}});
 const route=useRoute(),router=useRouter();
-const preview=computed(()=>route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/'));
 const statusFilter=ref('UNREAD'),sourceFilter=ref(''),typeFilter=ref(''),keyword=ref(''),page=ref(1),pageSize=ref(10),selectedIds=ref([]);
 const TCheckbox=resolveComponent('t-checkbox');
 const statusOptions=[{label:'未读',value:'UNREAD'},{label:'已读',value:'READ'}];
