@@ -163,3 +163,64 @@
   height:16px!important;
   flex:none;
 }
+
+/* Home announcement date-card layout */
+.public-portal-notice-row{
+  min-height:72px!important;
+  height:auto!important;
+  display:grid!important;
+  grid-template-columns:50px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:12px!important;
+  padding:9px 0!important;
+}
+.public-portal-notice-date{
+  display:flex;
+  width:50px;
+  height:54px;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border-radius:5px;
+  background:linear-gradient(145deg,#315fdb,#2454ff);
+  color:#fff;
+  box-shadow:0 3px 10px rgba(36,84,255,.12);
+}
+.public-portal-notice-date>strong{
+  color:#fff!important;
+  font-size:20px!important;
+  line-height:22px!important;
+  font-weight:600!important;
+}
+.public-portal-notice-date>small{
+  margin-top:2px;
+  color:rgba(255,255,255,.9);
+  font-size:12px;
+  line-height:16px;
+}
+.public-portal-notice-copy{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  gap:6px;
+}
+.public-portal-notice-copy>strong{
+  overflow:hidden;
+  color:#1a2e4b;
+  font-size:14px!important;
+  line-height:20px;
+  font-weight:500!important;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.public-portal-notice-copy>small{
+  overflow:hidden;
+  color:#8a9ab0;
+  font-size:12px;
+  line-height:18px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.public-portal-notice-row:hover .public-portal-notice-copy>strong{
+  color:var(--portal-primary);
+}
