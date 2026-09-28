@@ -45,10 +45,14 @@
     </header>
 
     <main class="public-portal-subpage-wrap">
-      <div v-if="showSubpageHead" class="public-portal-subpage-head">
+      <div v-if="showSubpageHead" class="public-portal-subpage-head" :class="{'is-breadcrumb':showBack}">
         <div class="public-portal-subpage-title-row">
-          <button v-if="showBack" type="button" class="public-portal-subpage-back" aria-label="返回" @click="backToList"><ArrowLeftIcon size="18px" /></button>
-          <h1>{{ pageTitle }}</h1>
+          <nav v-if="showBack" class="public-portal-breadcrumb" aria-label="面包屑">
+            <button type="button" @click="backToList">{{ breadcrumbParent }}</button>
+            <ChevronRightIcon size="14px" />
+            <span id="page-header-current-title" class="public-portal-breadcrumb-current"></span>
+          </nav>
+          <h1 v-else>{{ pageTitle }}</h1>
           <div id="page-header-extra" class="page-header-extra-host"></div>
         </div>
         <div class="public-portal-subpage-actions">
@@ -77,7 +81,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ArrowLeftIcon,ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {ChevronDownIcon,ChevronRightIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
@@ -98,6 +102,7 @@ const portalBase=computed(()=>isPreviewRoute.value?'/portal-preview':'/portal');
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
 const pageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':route.meta.resource==='announcementDetail'?'公告详情':route.meta.title||'');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
+const breadcrumbParent=computed(()=>route.meta.resource==='announcementDetail'?'通知公告':route.meta.resource==='messages'?'消息中心':'');
 const isAppCenterPage=computed(()=>['apps','mine'].includes(route.meta.resource));
 const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements');
 const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId);
