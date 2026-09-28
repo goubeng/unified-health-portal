@@ -54,7 +54,7 @@
         <div id="page-header-actions" class="page-header-actions-host"></div>
       </div>
       <div class="public-portal-subpage-content">
-        <router-view :key="route.fullPath+'|'+actor?.id" />
+        <router-view :key="route.path+'|'+actor?.id" />
       </div>
     </main>
   </div>
