@@ -22,18 +22,20 @@
         <article v-for="row in paged" :key="row.id" class="public-record-item">
           <span class="public-record-dot"></span>
           <button class="public-record-main" type="button" @click="openDetail(row)">
-            <strong>{{ text(row.title)||'-' }}</strong>
+            <span class="public-todo-title-line">
+              <strong>{{ text(row.title)||'-' }}</strong>
+              <t-tag class="public-todo-status-tag" size="small" variant="light" :theme="statusTheme(row.status)">{{ label(row.status) }}</t-tag>
+            </span>
             <small>
               <span>来自：{{ text(row.appName)||'-' }}</span>
               <i></i>
-              <span>{{ text(row.businessType)||'-' }}</span>
+              <t-tag class="public-todo-type-tag" size="small" variant="light" theme="primary">{{ text(row.businessType)||'-' }}</t-tag>
               <i></i>
               <span>{{ date(row.receivedAt) }}</span>
             </small>
           </button>
           <div class="public-record-side">
-            <span class="public-record-status">{{ label(row.status) }}</span>
-            <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="primary" @click="process(row)">去处理</t-button>
+            <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="primary" @click.stop="process(row)">去处理</t-button>
           </div>
         </article>
         <EmptyState v-if="!paged.length" description="暂无符合条件的待办"/>
@@ -43,6 +45,9 @@
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}">
           <TableCellTooltip :text="text(row.title)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.title)||'-'}}</button></TableCellTooltip>
+        </template>
+        <template #businessType="{row}">
+          <t-tag size="small" variant="light" theme="primary">{{text(row.businessType)||'-'}}</t-tag>
         </template>
         <template #status="{row}">
           <t-tag size="small" variant="light" :theme="statusTheme(row.status)">{{label(row.status)}}</t-tag>
@@ -115,7 +120,7 @@ const columns=[
   {colKey:'serial',title:'序号',width:64},
   {colKey:'title',title:'待办标题',width:200,ellipsis:true},
   {colKey:'appName',title:'来源应用',width:320,ellipsis:true},
-  {colKey:'businessType',title:'业务类型',width:120},
+  {colKey:'businessType',title:'任务类型',width:120},
   {colKey:'status',title:'状态',width:120},
   {colKey:'receivedAt',title:'接收时间',width:170,cell:(_,context)=>date(context.row.receivedAt)},
   {colKey:'operation',title:'操作',width:100,fixed:'right'}
