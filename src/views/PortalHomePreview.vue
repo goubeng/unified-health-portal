@@ -90,10 +90,15 @@
               <h2><span class="feed-title-icon notice"><NotificationIcon /></span> 通知公告 <span class="feed-count">（<b>{{ overview.unreadAnnouncementCount ?? 0 }}</b>）</span></h2>
               <button type="button" @click="go('announcements')">查看全部 <ChevronRightIcon size="16px" /></button>
             </div>
-            <button v-for="(item,index) in homeAnnouncements.slice(0,5)" :key="item.id" class="public-portal-notice-row" type="button" @click="openAnnouncement(item)">
-              <span class="notice-dot" :class="'dot-'+(index%5)"></span>
-              <strong>{{ text(item.title) }}</strong>
-              <time>{{ shortDate(item.publishedAt) }}</time>
+            <button v-for="item in homeAnnouncements.slice(0,5)" :key="item.id" class="public-portal-notice-row" type="button" @click="openAnnouncement(item)">
+              <span class="public-portal-notice-date">
+                <strong>{{ noticeDay(item.publishedAt) }}</strong>
+                <small>{{ noticeMonth(item.publishedAt) }}</small>
+              </span>
+              <span class="public-portal-notice-copy">
+                <strong>{{ text(item.title) }}</strong>
+                <small>发布时间：{{ date(item.publishedAt) }}</small>
+              </span>
             </button>
             <div v-if="!homeAnnouncements.length && !loading" class="public-portal-empty">暂无公告</div>
           </article>
@@ -217,7 +222,16 @@ function categoryTone(category){
   for(const char of value)hash=(hash+char.codePointAt(0))%5;
   return 'category-tone-'+(hash+1);
 }
-function shortDate(value){const output=date(value);return output==='-'?output:String(output).slice(0,10);}
+function noticeDateParts(value){
+  if(!value||!Number.isFinite(Date.parse(value)))return {day:'--',month:'--月'};
+  const current=new Date(value);
+  return {
+    day:String(current.getDate()).padStart(2,'0'),
+    month:String(current.getMonth()+1).padStart(2,'0')+'月'
+  };
+}
+function noticeDay(value){return noticeDateParts(value).day;}
+function noticeMonth(value){return noticeDateParts(value).month;}
 async function exitSystem(){
   accountOpen.value=false;
   try{
