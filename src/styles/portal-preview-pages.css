@@ -1093,3 +1093,62 @@
     max-width:60vw;
   }
 }
+
+/* Right-aligned back action on detail breadcrumb row */
+.public-portal-subpage-head.is-breadcrumb{
+  flex-direction:row!important;
+  align-items:center!important;
+}
+.public-portal-subpage-head.is-breadcrumb .public-portal-subpage-title-row{
+  flex:1 1 auto;
+  min-width:0;
+}
+.public-portal-subpage-head.is-breadcrumb .public-portal-subpage-actions{
+  display:flex;
+  flex:0 0 auto;
+  margin-left:auto;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.public-portal-breadcrumb-back{
+  box-sizing:border-box;
+  display:inline-flex;
+  height:30px;
+  min-width:64px;
+  padding:0 12px;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border:1px solid #d5d9e0;
+  border-radius:3px;
+  background:#fff;
+  color:#4e5969;
+  font-size:13px;
+  line-height:1;
+  cursor:pointer;
+}
+.public-portal-breadcrumb-back:hover{
+  border-color:#b9c5d5;
+  background:#f8fafc;
+  color:var(--portal-primary);
+}
+.public-portal-breadcrumb-back .t-icon{
+  display:block;
+  flex:none;
+}
+@media(max-width:760px){
+  .public-portal-subpage-head.is-breadcrumb{
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:10px!important;
+  }
+  .public-portal-subpage-head.is-breadcrumb .public-portal-subpage-actions{
+    width:auto!important;
+    margin-left:auto;
+  }
+  .public-portal-breadcrumb-back{
+    min-width:58px;
+    padding:0 10px;
+  }
+}
