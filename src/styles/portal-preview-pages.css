@@ -956,8 +956,13 @@
   width:100%!important;
 }
 @media(min-width:761px){
-  .public-portal-secondary-shell .todo-center .query-width-source{
-    width:300px!important;
+  .public-portal-secondary-shell .todo-center .portal-query.list-toolbar .query-width-source{
+    width:360px!important;
+    flex:0 0 360px!important;
+  }
+  .public-portal-secondary-shell .todo-center .portal-query.list-toolbar .query-width-source :is(.t-form__controls,.t-form__controls-content,.t-select__wrap){
+    width:100%!important;
+    min-width:0!important;
   }
   .public-portal-secondary-shell .portal-message-center .query-width-source{
     width:250px!important;
