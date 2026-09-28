@@ -1531,3 +1531,12 @@ test('公众公告和消息详情使用紧凑面包屑头部',()=>{
   assert(css.includes('min-height:34px!important;'));
   assert(css.includes('.public-portal-breadcrumb-current{'));
 });
+
+
+test('消息中心来源应用查询项加宽',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(css.includes('.public-portal-secondary-shell .portal-message-center .portal-query.list-toolbar .query-width-source{'));
+  assert(css.includes('width:320px!important;'));
+  assert(css.includes('flex:0 0 320px!important;'));
+  assert(css.includes('.public-portal-secondary-shell .portal-message-center .portal-query.list-toolbar .query-width-source :is(.t-form__controls,.t-form__controls-content,.t-select__wrap){'));
+});
