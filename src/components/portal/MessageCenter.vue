@@ -1,5 +1,8 @@
 <template>
   <section class="portal-message-center">
+    <Teleport v-if="publicPortal&&activeMessage" to="#page-header-current-title">
+      <span>{{ text(activeMessage.title)||'消息详情' }}</span>
+    </Teleport>
     <Teleport v-if="!activeMessage" to="#page-header-extra">
       <span class="portal-title-count">（共<span class="portal-title-count-number">{{ unreadCount }}</span>封未读）</span>
     </Teleport>
@@ -69,6 +72,7 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},receiver:{type:String,default:''}});
 const route=useRoute(),router=useRouter();
+const publicPortal=computed(()=>route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/'));
 const statusFilter=ref('UNREAD'),sourceFilter=ref(''),typeFilter=ref(''),keyword=ref(''),page=ref(1),pageSize=ref(10),selectedIds=ref([]);
 const TCheckbox=resolveComponent('t-checkbox');
 const statusOptions=[{label:'未读',value:'UNREAD'},{label:'已读',value:'READ'}];
