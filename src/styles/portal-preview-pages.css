@@ -941,3 +941,15 @@
 .public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-action-row .portal-app-enter{
   margin-left:0!important;
 }
+
+/* Widen source-application filters in todo and message centers */
+.public-portal-secondary-shell .todo-center .query-width-source .t-select__wrap,
+.public-portal-secondary-shell .portal-message-center .query-width-source .t-select__wrap{
+  width:100%!important;
+}
+@media(min-width:761px){
+  .public-portal-secondary-shell .todo-center .query-width-source,
+  .public-portal-secondary-shell .portal-message-center .query-width-source{
+    width:250px!important;
+  }
+}
