@@ -114,6 +114,24 @@
     <template v-if="isAppCenter">
      <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="group.pageSize" :total="group.total" :page-size-options="[10,20,50]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="setAppPageSize(group.key,$event)"/></section>
     </template>
+    <section v-else-if="preview&&resource==='announcements'" class="panel public-announcement-list">
+     <article v-for="row in paged" :key="row.id" class="public-announcement-item">
+      <span class="public-record-dot" :class="{muted:row.readStatus!=='UNREAD'}"></span>
+      <button type="button" class="public-record-main" @click="showDetail(row,'announcements')">
+       <strong>{{text(row.title)||'-'}}</strong>
+       <small>
+        <span>{{label(row.type)||'-'}}</span>
+        <i></i>
+        <span>{{label(row.scope)||'-'}}</span>
+        <i></i>
+        <span>{{date(row.publishedAt)}}</span>
+       </small>
+      </button>
+      <span class="public-announcement-read-state">{{row.readStatus==='UNREAD'?'未读':'已读'}}</span>
+     </article>
+     <EmptyState v-if="!paged.length" description="暂无符合条件的公告"/>
+     <t-pagination v-if="filtered.length" v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
+    </section>
     <section v-else class="panel portal-table-panel">
      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleTableSortChange">
       <template #empty><EmptyState description="暂无符合条件的记录"/></template>
