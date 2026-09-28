@@ -1196,3 +1196,14 @@ test('首页我的应用保留深色图标并对齐应用中心卡片标签',()=
   assert(css.includes('.public-portal-app-category.category-tone-1'));
   assert(css.includes('.public-portal-app-category.category-tone-5'));
 });
+
+
+test('服务端只读请求绕过写事务串行队列',()=>{
+  const source=fs.readFileSync('server/api.mjs','utf8');
+  assert(source.includes('let queue=Promise.resolve(),snapshot=null,snapshotLoad=null;'));
+  assert(source.includes('if(snapshotLoad)return snapshotLoad;'));
+  assert(source.includes("const readOnly=req.method==='GET'&&['/api/portal/health','/api/portal/session','/api/portal/read'].includes(path);"));
+  assert(source.includes('if(readOnly)await processRequest();'));
+  assert(source.includes('else await serial(processRequest);'));
+  assert(!source.includes('await serial(async()=>{\n    const readOnly='));
+});
