@@ -961,3 +961,37 @@
 .public-portal-secondary-shell .public-todo-list .public-record-item:last-child{
   border-bottom:1px solid #edf1f6!important;
 }
+
+/* Public announcement detail header alignment and attachment order */
+.public-portal-secondary-shell .portal-announcement-header{
+  text-align:center;
+}
+.public-portal-secondary-shell .portal-announcement-header h2{
+  text-align:center!important;
+}
+.public-portal-secondary-shell .portal-announcement-meta-inline{
+  justify-content:center!important;
+  text-align:center;
+}
+.public-portal-secondary-shell .portal-announcement-divider{
+  width:100%;
+}
+.public-portal-secondary-shell .portal-announcement-file-text{
+  display:flex!important;
+  min-width:0;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:6px!important;
+}
+.public-portal-secondary-shell .portal-announcement-file-name-line{
+  display:contents;
+}
+.public-portal-secondary-shell .portal-announcement-file-name-line strong{
+  order:1;
+}
+.public-portal-secondary-shell .portal-announcement-file-text>span{
+  order:2;
+}
+.public-portal-secondary-shell .portal-announcement-download{
+  order:3;
+}
