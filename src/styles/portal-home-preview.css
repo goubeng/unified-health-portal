@@ -74,11 +74,11 @@
 .feed-title-icon.todo-title{background:#eef1ff;color:var(--portal-primary)}
 .feed-title-icon.notice{background:#fff3e5;color:#f57c00}
 .feed-title-icon.message{background:#eaf7ff;color:#1496d4}
-.feed-count{margin-left:2px;color:#142744;font-size:13px;font-weight:400}.feed-count b{color:#f32931;font-size:13px;font-weight:500}.feed-count.todo-count,.feed-count.todo-count b{font-size:12px}
+.feed-count{margin-left:2px;color:#142744;font-size:13px;font-weight:400}.feed-count b{color:#f32931;font-size:13px;font-weight:500}
 .public-portal-todo-row,.public-portal-notice-row,.public-portal-message-row{width:100%;border:0;border-bottom:1px solid #edf1f6;background:transparent;color:inherit;cursor:pointer;text-align:left}
 .public-portal-todo-row:last-of-type,.public-portal-notice-row:last-of-type,.public-portal-message-row:last-of-type{border-bottom:0}
-.public-portal-todo-row{min-height:76px;display:grid;grid-template-columns:10px minmax(0,1fr);align-items:center;gap:8px}
-.todo-dot{width:7px;height:7px;border-radius:50%;background:var(--portal-primary)}
+.public-portal-todo-row{min-height:76px;display:grid;grid-template-columns:10px minmax(0,1fr);align-items:start;gap:8px;padding:16px 0}
+.todo-dot{width:7px;height:7px;margin-top:5px;border-radius:50%;background:var(--portal-primary)}
 .public-portal-row-main{min-width:0;display:flex;flex-direction:column;gap:6px}
 .public-portal-row-main strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1a2e4b;font-size:14px;font-weight:500}
 .public-portal-row-main small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a9ab0;font-size:12px}
@@ -88,7 +88,7 @@
 .public-portal-notice-row time{text-align:right;color:#92a0b3;font-size:12px}
 .notice-dot{width:7px;height:7px;border-radius:50%;background:#1d82f1}
 .notice-dot.dot-0{background:#ff3c43}.notice-dot.dot-1{background:#ff8500}.notice-dot.dot-2{background:#2384ed}.notice-dot.dot-3{background:#31be73}.notice-dot.dot-4{background:#16a2df}
-.public-portal-message-row{min-height:58px;display:grid;grid-template-columns:minmax(0,1fr);align-items:center;gap:10px}
+.public-portal-message-row{min-height:58px;display:grid;grid-template-columns:10px minmax(0,1fr);align-items:start;gap:8px;padding:12px 0}
 .public-portal-empty{height:220px;display:grid;place-items:center;color:#a2adbc}
 .public-portal-error{margin-top:18px;padding:12px 16px;border:1px solid #f4c4c1;border-radius:8px;background:#fff5f4;color:#c84843}
 .public-portal-error button{margin-left:10px;border:0;background:transparent;color:var(--portal-primary);cursor:pointer}
