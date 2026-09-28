@@ -97,7 +97,10 @@
               </span>
               <span class="public-portal-notice-copy">
                 <strong>{{ text(item.title) }}</strong>
-                <small><span>发布类型：{{ text(item.type)||'通知' }}</span><i></i><span>发布对象：{{ label(item.scope||'ALL') }}</span></small>
+                <small class="public-portal-notice-meta-tags">
+                  <span class="public-portal-notice-meta-tag">{{ text(item.type)||'通知' }}</span>
+                  <span class="public-portal-notice-meta-tag">{{ label(item.scope||'ALL') }}</span>
+                </small>
               </span>
             </button>
             <EmptyState v-if="!homeAnnouncements.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无公告"/>
