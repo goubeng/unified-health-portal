@@ -45,13 +45,16 @@
     </header>
 
     <main class="public-portal-subpage-wrap">
-      <div class="public-portal-subpage-head">
+      <div class="public-portal-subpage-head" :class="{'is-app-center':isAppCenterPage}">
         <div class="public-portal-subpage-title-row">
           <button v-if="showBack" type="button" class="public-portal-subpage-back" aria-label="返回" @click="backToList">‹</button>
           <h1>{{ pageTitle }}</h1>
           <div id="page-header-extra" class="page-header-extra-host"></div>
         </div>
-        <div id="page-header-actions" class="page-header-actions-host"></div>
+        <div class="public-portal-subpage-actions">
+          <div id="page-header-actions" class="page-header-actions-host"></div>
+          <span v-if="isAppCenterPage" class="public-portal-app-banner-icon"><AppIcon /></span>
+        </div>
       </div>
       <div class="public-portal-subpage-content">
         <router-view :key="route.path+'|'+actor?.id" />
@@ -63,7 +66,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
@@ -79,6 +82,7 @@ const portalBase=computed(()=>isPreviewRoute.value?'/portal-preview':'/portal');
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
 const pageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':route.meta.resource==='announcementDetail'?'公告详情':route.meta.title||'');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
+const isAppCenterPage=computed(()=>['apps','mine'].includes(route.meta.resource));
 
 function go(path){
   const target=isPreviewRoute.value&&path==='/apps/all'?'/apps':path;
