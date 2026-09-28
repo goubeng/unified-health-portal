@@ -1465,3 +1465,18 @@ test('我的申请两个Tab增加分页连续序号列',()=>{
   assert(source.includes("{colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(accessPage.value-1)*accessPageSize.value+ctx.rowIndex+1}"));
   assert(source.includes("{colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(openingPage.value-1)*openingPageSize.value+ctx.rowIndex+1}"));
 });
+
+
+test('公众待办任务使用标准表格列表并加宽来源应用查询',()=>{
+  const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(source.includes('class="public-todo-table"'));
+  assert(source.includes("{colKey:'serial',title:'序号',width:64}"));
+  assert(source.includes("{colKey:'title',title:'待办标题',width:200,ellipsis:true}"));
+  assert(source.includes("{colKey:'appName',title:'来源应用',width:320,ellipsis:true}"));
+  assert(source.includes("{colKey:'businessType',title:'任务类型',width:120}"));
+  assert(source.includes("{colKey:'status',title:'状态',width:120}"));
+  assert(!source.includes('class="public-record-list public-todo-list"'));
+  assert(css.includes('.public-portal-secondary-shell .todo-center .query-width-source{'));
+  assert(css.includes('width:300px!important;'));
+});
