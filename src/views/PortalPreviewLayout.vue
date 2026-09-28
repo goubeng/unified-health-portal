@@ -55,22 +55,16 @@
           <div id="page-header-actions" class="page-header-actions-host"></div>
         </div>
       </div>
-      <section v-if="isAppCenterPage" class="public-announcement-banner public-app-center-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
-        <div class="public-announcement-banner-copy">
-          <strong>应用中心</strong>
-          <span>汇聚卫生健康服务应用 · 便捷访问常用业务系统</span>
-        </div>
-      </section>
-      <section v-if="isAnnouncementListPage" class="public-announcement-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
-        <div class="public-announcement-banner-copy">
-          <strong>通知公告</strong>
-          <span>及时了解平台通知与重要信息</span>
-        </div>
-      </section>
-      <section v-if="isMessageListPage" class="public-announcement-banner public-message-center-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
-        <div class="public-announcement-banner-copy">
-          <strong>消息中心</strong>
-          <span>集中查看业务消息与系统通知</span>
+      <section v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
+        <div class="public-portal-banner-inner">
+          <div class="public-announcement-banner-copy">
+            <div class="public-portal-banner-title">
+              <strong>{{ bannerInfo.title }}</strong>
+              <div id="page-header-extra" class="page-header-extra-host"></div>
+            </div>
+            <span>{{ bannerInfo.subtitle }}</span>
+          </div>
+          <div id="page-header-actions" class="page-header-actions-host public-portal-banner-actions"></div>
         </div>
       </section>
       <div class="public-portal-subpage-content">
@@ -103,7 +97,17 @@ const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.m
 const isAppCenterPage=computed(()=>['apps','mine'].includes(route.meta.resource));
 const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements');
 const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId);
-const showSubpageHead=computed(()=>!isAppCenterPage.value&&!isAnnouncementListPage.value&&!isMessageListPage.value);
+const bannerInfo=computed(()=>{
+  const resource=route.meta.resource;
+  if(resource==='todos')return {title:'待办任务',subtitle:'集中处理来自各业务系统的待办事项'};
+  if(resource==='messages'&&!route.query.messageId)return {title:'消息中心',subtitle:'集中查看业务消息与系统通知'};
+  if(resource==='announcements')return {title:'通知公告',subtitle:'及时了解平台通知与重要信息'};
+  if(['apps','mine'].includes(resource))return {title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统'};
+  if(resource==='myApplicationRequests')return {title:'我的申请',subtitle:'查看应用访问与账号开通申请进度'};
+  if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料'};
+  return null;
+});
+const showSubpageHead=computed(()=>!bannerInfo.value);
 
 function go(path){
   const target=isPreviewRoute.value&&path==='/apps/all'?'/apps':path;
