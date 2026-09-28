@@ -45,7 +45,7 @@
     </header>
 
     <main class="public-portal-subpage-wrap">
-      <div class="public-portal-subpage-head" :class="{'is-app-center':isAppCenterPage}">
+      <div v-if="!isAppCenterPage" class="public-portal-subpage-head">
         <div class="public-portal-subpage-title-row">
           <button v-if="showBack" type="button" class="public-portal-subpage-back" aria-label="返回" @click="backToList">‹</button>
           <h1>{{ pageTitle }}</h1>
@@ -53,9 +53,13 @@
         </div>
         <div class="public-portal-subpage-actions">
           <div id="page-header-actions" class="page-header-actions-host"></div>
-          <span v-if="isAppCenterPage" class="public-portal-app-banner-icon"><AppIcon /></span>
         </div>
       </div>
+      <section v-if="isAppCenterPage" class="public-announcement-banner public-app-center-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
+        <div class="public-announcement-banner-copy">
+          <span>汇聚卫生健康服务应用 · 便捷访问常用业务系统</span>
+        </div>
+      </section>
       <section v-if="isAnnouncementListPage" class="public-announcement-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
         <div class="public-announcement-banner-copy">
           <span>及时了解平台通知与重要信息</span>
@@ -71,7 +75,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {AppIcon,ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
