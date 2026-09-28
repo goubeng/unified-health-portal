@@ -1458,3 +1458,10 @@ test('首页公告元信息改为发布类型和发布对象',()=>{
   assert(!source.includes('发布时间：{{ date(item.publishedAt) }}'));
   assert(css.includes('.public-portal-notice-copy>small i{'));
 });
+
+
+test('我的申请两个Tab增加分页连续序号列',()=>{
+  const source=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
+  assert(source.includes("{colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(accessPage.value-1)*accessPageSize.value+ctx.rowIndex+1}"));
+  assert(source.includes("{colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(openingPage.value-1)*openingPageSize.value+ctx.rowIndex+1}"));
+});
