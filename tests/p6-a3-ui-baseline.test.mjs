@@ -1605,3 +1605,18 @@ test('首页待办消息来源与时间增加小图标',()=>{
   assert(css.includes('width:13px!important;'));
   assert(css.includes('font-size:13px!important;'));
 });
+
+
+test('公众门户用户浮层显示当前用户类型标签',()=>{
+  const home=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  for(const source of [home,layout]){
+    assert(source.includes('class="public-portal-account-meta"'));
+    assert(source.includes('class="public-portal-user-type-tag"'));
+    assert(source.includes('{{ label(actor?.userType) }}'));
+  }
+  assert(layout.includes("import {label} from '../components/portal/presentation.js';"));
+  assert(css.includes('.public-portal-account-meta{'));
+  assert(css.includes('.public-portal-user-type-tag{'));
+});
