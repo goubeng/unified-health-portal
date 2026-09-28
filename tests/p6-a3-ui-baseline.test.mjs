@@ -1408,3 +1408,13 @@ test('首页待办消息公告空态使用统一空态图',()=>{
   assert(css.includes('.public-portal-home-empty img{'));
   assert(css.includes('opacity:.75;'));
 });
+
+
+test('首页我的应用最多显示8条并移除更多应用卡片',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  assert(source.includes("const visibleApps=computed(()=>homeApps.value.slice(0,8));"));
+  assert(source.includes("homeApps.value=(mine||[]).slice().sort"));
+  assert(source.includes('查看更多 <ChevronRightIcon size="16px" />'));
+  assert(!source.includes('class="public-portal-app-name">更多应用</strong>'));
+  assert(!source.includes('查看全部应用'));
+});
