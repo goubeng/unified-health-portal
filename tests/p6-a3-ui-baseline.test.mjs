@@ -1392,7 +1392,9 @@ test('首页通知公告使用日期块和发布时间布局',()=>{
   assert(source.includes('发布时间：{{ date(item.publishedAt) }}'));
   assert(source.includes("function noticeDateParts(value)"));
   assert(css.includes('.public-portal-notice-date{'));
-  assert(css.includes('background:linear-gradient(145deg,#315fdb,#2454ff);'));
+  assert(css.includes('background:linear-gradient(180deg,#f3f7ff 0%,#e7f0ff 100%);'));
+  assert(css.includes('color:#2148b8!important;'));
+  assert(css.includes('color:#315fbd;'));
   assert(css.includes('.public-portal-notice-copy>small{'));
 });
 
