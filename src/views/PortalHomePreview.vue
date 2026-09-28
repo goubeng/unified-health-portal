@@ -20,7 +20,7 @@
 
         <div class="public-portal-user-area">
           <t-badge size="small" :count="overview.unreadCount || 0" :max-count="99" :show-zero="false">
-            <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="router.push('/portal/messages')">
+            <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="router.push('/portal-preview/messages')">
               <NotificationIcon />
             </button>
           </t-badge>
@@ -58,7 +58,7 @@
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
               <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
-              <button type="button" @click="router.push('/portal/todos')">查看全部 <span>›</span></button>
+              <button type="button" @click="router.push('/portal-preview/todos')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeTodos.slice(0,4)" :key="item.id" class="public-portal-todo-row" type="button" @click="openTodo(item)">
               <span class="todo-dot"></span>
@@ -73,7 +73,7 @@
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
               <h2><span class="feed-title-icon message"><MailIcon /></span> 消息中心 <span class="feed-count">（<b>{{ overview.unreadCount ?? homeMessages.length }}</b>）</span></h2>
-              <button type="button" @click="router.push('/portal/messages')">查看全部 <span>›</span></button>
+              <button type="button" @click="router.push('/portal-preview/messages')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
               <span class="todo-dot"></span>
@@ -88,7 +88,7 @@
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
               <h2><span class="feed-title-icon notice"><NotificationIcon /></span> 通知公告 <span class="feed-count">（<b>{{ overview.unreadAnnouncementCount ?? 0 }}</b>）</span></h2>
-              <button type="button" @click="router.push('/portal/announcements')">查看全部 <span>›</span></button>
+              <button type="button" @click="router.push('/portal-preview/announcements')">查看全部 <span>›</span></button>
             </div>
             <button v-for="(item,index) in homeAnnouncements.slice(0,5)" :key="item.id" class="public-portal-notice-row" type="button" @click="openAnnouncement(item)">
               <span class="notice-dot" :class="'dot-'+(index%5)"></span>
@@ -102,7 +102,7 @@
         <section class="public-portal-card public-portal-apps">
           <div class="public-portal-section-head">
             <h2>我的应用 <b>（{{ homeApps.length }}）</b></h2>
-            <button type="button" @click="router.push('/portal/apps/all')">查看更多 <span>›</span></button>
+            <button type="button" @click="router.push('/portal-preview/apps')">查看更多 <span>›</span></button>
           </div>
 
           <div v-if="visibleApps.length" class="public-portal-app-grid">
@@ -113,7 +113,7 @@
                 <small>{{ app.category || '业务应用' }}</small>
               </span>
             </button>
-            <button type="button" class="public-portal-app-item" @click="router.push('/portal/apps/all')">
+            <button type="button" class="public-portal-app-item" @click="router.push('/portal-preview/apps')">
               <span class="public-portal-app-icon tone-more"><span class="public-portal-grid-glyph">••<br/>••</span></span>
               <span class="public-portal-app-copy">
                 <strong class="public-portal-app-name">更多应用</strong>
@@ -200,7 +200,7 @@ async function enterApp(app){
 }
 
 function openTodo(){router.push('/portal-preview/todos');}
-function openAnnouncement(item){router.push('/portal/announcements/'+encodeURIComponent(item.id));}
+function openAnnouncement(item){router.push('/portal-preview/announcements/'+encodeURIComponent(item.id));}
 function openMessage(item){router.push({path:'/portal-preview/messages',query:{messageId:item.id}});}
 function shortDate(value){const output=date(value);return output==='-'?output:String(output).slice(0,10);}
 async function exitSystem(){
