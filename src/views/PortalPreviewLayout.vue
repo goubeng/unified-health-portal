@@ -56,6 +56,12 @@
           <span v-if="isAppCenterPage" class="public-portal-app-banner-icon"><AppIcon /></span>
         </div>
       </div>
+      <section v-if="isAnnouncementListPage" class="public-announcement-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
+        <div class="public-announcement-banner-copy">
+          <strong>通知公告</strong>
+          <span>及时了解平台通知与重要信息</span>
+        </div>
+      </section>
       <div class="public-portal-subpage-content">
         <router-view :key="route.path+'|'+actor?.id" />
       </div>
@@ -72,6 +78,7 @@ import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
 import '../styles/portal-home-preview.css';
 import '../styles/portal-preview-pages.css';
+import announcementBanner from '../assets/login-health3-bg-3840x2160.png';
 
 const route=useRoute();
 const router=useRouter();
@@ -83,6 +90,7 @@ const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*�
 const pageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':route.meta.resource==='announcementDetail'?'公告详情':route.meta.title||'');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
 const isAppCenterPage=computed(()=>['apps','mine'].includes(route.meta.resource));
+const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements');
 
 function go(path){
   const target=isPreviewRoute.value&&path==='/apps/all'?'/apps':path;
