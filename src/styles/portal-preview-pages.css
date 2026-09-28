@@ -535,12 +535,14 @@
 
 /* Application card background and category labels */
 .public-portal-secondary-shell .portal-app-center .portal-app-card{
-  background:#f3f6fa!important;
-  border-color:#e5eaf1!important;
+  border-radius:0!important;
+  background:#f8fafc!important;
+  border-color:#edf1f5!important;
 }
 .public-portal-secondary-shell .portal-app-center .portal-app-card:hover{
-  background:#edf2f8!important;
-  border-color:#d5deea!important;
+  border-radius:0!important;
+  background:#f4f7fb!important;
+  border-color:#e1e7ef!important;
 }
 .public-portal-secondary-shell .portal-app-center .portal-app-category{
   display:inline-flex!important;
