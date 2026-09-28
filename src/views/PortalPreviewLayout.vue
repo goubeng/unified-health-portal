@@ -47,7 +47,7 @@
     <main class="public-portal-subpage-wrap">
       <div v-if="showSubpageHead" class="public-portal-subpage-head">
         <div class="public-portal-subpage-title-row">
-          <button v-if="showBack" type="button" class="public-portal-subpage-back" aria-label="返回" @click="backToList">‹</button>
+          <button v-if="showBack" type="button" class="public-portal-subpage-back" aria-label="返回" @click="backToList"><ArrowLeftIcon size="18px" /></button>
           <h1>{{ pageTitle }}</h1>
           <div id="page-header-extra" class="page-header-extra-host"></div>
         </div>
@@ -77,7 +77,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {ArrowLeftIcon,ChevronDownIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
