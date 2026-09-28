@@ -706,3 +706,23 @@
     width:100%!important;
   }
 }
+
+/* My applications spacing and pagination */
+.public-portal-secondary-shell .my-applications{
+  padding:16px 20px 18px!important;
+}
+.public-portal-secondary-shell .my-applications>.t-tabs>.t-tabs__nav{
+  margin-top:0;
+}
+.public-portal-secondary-shell .my-applications .t-pagination{
+  justify-content:flex-end!important;
+  margin-top:14px!important;
+}
+@media(max-width:760px){
+  .public-portal-secondary-shell .my-applications{
+    padding:14px 14px 16px!important;
+  }
+  .public-portal-secondary-shell .my-applications .t-pagination{
+    justify-content:flex-start!important;
+  }
+}
