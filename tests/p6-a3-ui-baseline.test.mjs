@@ -1041,7 +1041,7 @@ test('正式公众门户头部导航不会跳回预览地址',()=>{
   assert(!layout.includes('@click="router.push(\'/portal-preview/messages\')"'));
 });
 
-test('正式公众门户内页启用轻量列表和卡片展示',()=>{
+test('正式公众门户内页启用轻量列表且我的申请使用表格展示',()=>{
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const todo=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   const message=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
@@ -1050,8 +1050,21 @@ test('正式公众门户内页启用轻量列表和卡片展示',()=>{
   assert(page.includes("v-else-if=\"preview&&resource==='announcements'\""));
   assert(todo.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
   assert(message.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
-  assert(applications.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
   assert(todo.includes('class="public-record-list public-todo-list"'));
   assert(message.includes('class="public-message-list"'));
-  assert(applications.includes('class="public-application-list"'));
+  assert(applications.includes('class="my-applications-table"'));
+  assert(!applications.includes('class="public-application-list"'));
+});
+
+
+test('公众二级页按需加载且头部未读数使用轻量接口',()=>{
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const service=fs.readFileSync('src/services/portal.js','utf8');
+  assert(page.includes("const needsAppCatalog=isAdmin?shouldLoadAppCatalog(true,actor.value):(center||key==='myApplicationRequests');"));
+  assert(page.includes("watch(()=>preview.value?route.path:route.fullPath"));
+  assert(layout.includes("<router-view :key=\"route.path+'|'+actor?.id\" />"));
+  assert(layout.includes("portal.read('header')"));
+  assert(service.includes("if(resource==='header')return {unreadCount:"));
+  assert(service.includes("const allApps=()=>decorate(d,a),userApps=()=>accountApps(d,a);"));
 });
