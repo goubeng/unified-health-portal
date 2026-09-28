@@ -1540,3 +1540,16 @@ test('消息中心来源应用查询项加宽',()=>{
   assert(css.includes('flex:0 0 320px!important;'));
   assert(css.includes('.public-portal-secondary-shell .portal-message-center .portal-query.list-toolbar .query-width-source :is(.t-form__controls,.t-form__controls-content,.t-select__wrap){'));
 });
+
+
+test('公众详情面包屑右侧增加返回按钮',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(layout.includes('class="public-portal-breadcrumb-back"'));
+  assert(layout.includes('<ArrowLeftIcon size="14px" />'));
+  assert(layout.includes('<span>返回</span>'));
+  assert(layout.includes('@click="backToList"'));
+  assert(css.includes('.public-portal-subpage-head.is-breadcrumb .public-portal-subpage-actions{'));
+  assert(css.includes('margin-left:auto;'));
+  assert(css.includes('.public-portal-breadcrumb-back{'));
+});
