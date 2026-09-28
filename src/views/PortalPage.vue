@@ -105,7 +105,7 @@
     />
    </template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
-   <section v-else class="portal-list" :class="{'portal-app-center':isAppCenter}">
+   <section v-else class="portal-list" :class="{'portal-app-center':isAppCenter,'portal-announcement-center':preview&&resource==='announcements'}">
     <t-form layout="inline" class="portal-query list-toolbar">
      <t-form-item class="portal-query-keyword query-width-keyword" :label="querySpec.keywordLabel||'关键词'"><t-input v-model="search" :placeholder="querySpec.keywordPlaceholder" clearable/></t-form-item>
      <t-form-item v-for="filter in queryFilters" :key="filter.key" class="portal-query-select" :class="queryWidthClass(filter.widthKey||filter.key)" :label="filter.label"><t-select v-model="filterValues[filter.key]" clearable :filterable="filter.searchable===true" :placeholder="filter.placeholder" :options="filter.options"/></t-form-item>
@@ -119,12 +119,10 @@
       <span class="public-record-dot" :class="{muted:row.readStatus!=='UNREAD'}"></span>
       <button type="button" class="public-record-main" @click="showDetail(row,'announcements')">
        <strong>{{text(row.title)||'-'}}</strong>
-       <small>
-        <span>{{label(row.type)||'-'}}</span>
-        <i></i>
-        <span>{{label(row.scope)||'-'}}</span>
-        <i></i>
-        <span>{{date(row.publishedAt)}}</span>
+       <small class="public-announcement-meta">
+        <t-tag class="public-announcement-meta-tag" size="small" variant="light" theme="primary">{{label(row.type)||'-'}}</t-tag>
+        <t-tag class="public-announcement-meta-tag scope" size="small" variant="light" theme="default">{{label(row.scope)||'-'}}</t-tag>
+        <span class="public-announcement-date">{{date(row.publishedAt)}}</span>
        </small>
       </button>
       <span class="public-announcement-read-state">{{row.readStatus==='UNREAD'?'未读':'已读'}}</span>
