@@ -956,7 +956,9 @@
   width:100%!important;
 }
 @media(min-width:761px){
-  .public-portal-secondary-shell .todo-center .query-width-source,
+  .public-portal-secondary-shell .todo-center .query-width-source{
+    width:300px!important;
+  }
   .public-portal-secondary-shell .portal-message-center .query-width-source{
     width:250px!important;
   }
