@@ -1492,3 +1492,10 @@ test('首页单条待办打开详情弹窗而查看全部进入二级页',()=>{
   assert(source.includes("homeTodoDetailVisible.value=true;"));
   assert(!source.includes("function openTodo(){go('todos');}"));
 });
+
+
+test('待办任务列表内容顶部间距与消息中心一致',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(css.includes('.public-portal-secondary-shell .todo-center .portal-table-panel{'));
+  assert(css.includes('padding:16px 20px 18px!important;'));
+});
