@@ -1580,3 +1580,15 @@ test('个人中心使用独立Banner图片',()=>{
   assert(source.includes("if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:profileBanner};"));
   assert(!source.includes("if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner};"));
 });
+
+
+test('首页公告发布类型和发布对象使用淡灰标签',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(source.includes('class="public-portal-notice-meta-tags"'));
+  assert(source.includes('class="public-portal-notice-meta-tag">{{ text(item.type)||\'通知\' }}</span>'));
+  assert(source.includes('class="public-portal-notice-meta-tag">{{ label(item.scope||\'ALL\') }}</span>'));
+  assert(css.includes('.public-portal-notice-meta-tag{'));
+  assert(css.includes('background:#f4f6f8;'));
+  assert(css.includes('color:#667085;'));
+});
