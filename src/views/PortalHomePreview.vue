@@ -57,7 +57,7 @@
         <section class="public-portal-feed-grid">
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <b class="danger-count">（{{ overview.todoCount ?? homeTodos.length }}）</b></h2>
+              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
               <button type="button" @click="router.push('/portal/todos')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeTodos.slice(0,4)" :key="item.id" class="public-portal-todo-row" type="button" @click="openTodo(item)">
@@ -71,7 +71,21 @@
 
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><span class="feed-title-icon notice"><NotificationIcon /></span> 通知公告 <b class="danger-count">（{{ overview.unreadAnnouncementCount ?? 0 }}）</b></h2>
+              <h2><span class="feed-title-icon message"><MailIcon /></span> 消息中心 <span class="feed-count">（<b>{{ overview.unreadCount ?? homeMessages.length }}</b>）</span></h2>
+              <button type="button" @click="router.push('/portal/messages')">查看全部 <span>›</span></button>
+            </div>
+            <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
+              <span class="public-portal-row-main">
+                <strong>{{ text(item.title) }}</strong>
+                <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
+              </span>
+            </button>
+            <div v-if="!homeMessages.length && !loading" class="public-portal-empty">暂无未读消息</div>
+          </article>
+
+          <article class="public-portal-card public-portal-feed-card">
+            <div class="public-portal-section-head">
+              <h2><span class="feed-title-icon notice"><NotificationIcon /></span> 通知公告 <span class="feed-count">（<b>{{ overview.unreadAnnouncementCount ?? 0 }}</b>）</span></h2>
               <button type="button" @click="router.push('/portal/announcements')">查看全部 <span>›</span></button>
             </div>
             <button v-for="(item,index) in homeAnnouncements.slice(0,5)" :key="item.id" class="public-portal-notice-row" type="button" @click="openAnnouncement(item)">
@@ -80,21 +94,6 @@
               <time>{{ shortDate(item.publishedAt) }}</time>
             </button>
             <div v-if="!homeAnnouncements.length && !loading" class="public-portal-empty">暂无公告</div>
-          </article>
-
-          <article class="public-portal-card public-portal-feed-card">
-            <div class="public-portal-section-head">
-              <h2><span class="feed-title-icon message"><MailIcon /></span> 消息中心 <b class="danger-count">（{{ overview.unreadCount ?? homeMessages.length }}）</b></h2>
-              <button type="button" @click="router.push('/portal/messages')">查看全部 <span>›</span></button>
-            </div>
-            <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
-              <span class="public-portal-row-main">
-                <strong>{{ text(item.title) }}</strong>
-                <small>{{ text(item.appName) || text(item.content) }}</small>
-              </span>
-              <time>{{ messageTime(item.receivedAt) }}</time>
-            </button>
-            <div v-if="!homeMessages.length && !loading" class="public-portal-empty">暂无未读消息</div>
           </article>
         </section>
 
@@ -202,16 +201,6 @@ function openTodo(){router.push('/portal/todos');}
 function openAnnouncement(item){router.push('/portal/announcements/'+encodeURIComponent(item.id));}
 function openMessage(item){router.push({path:'/portal/messages',query:{messageId:item.id}});}
 function shortDate(value){const output=date(value);return output==='-'?output:String(output).slice(0,10);}
-function messageTime(value){
-  if(!value)return '-';
-  const d=new Date(value);
-  if(!Number.isFinite(d.getTime()))return date(value);
-  const today=new Date();
-  const sameDay=d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
-  if(sameDay)return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-  return (d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
-}
-
 async function exitSystem(){
   accountOpen.value=false;
   try{
