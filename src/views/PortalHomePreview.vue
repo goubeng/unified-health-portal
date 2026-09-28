@@ -68,7 +68,7 @@
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
                 <small class="public-portal-row-meta">
-                  <span><Icon name="app"/><em>来自：</em>{{ text(item.appName) }}</span>
+                  <span><Icon name="app"/>{{ text(item.appName) }}</span>
                   <i></i>
                   <span><Icon name="time"/>{{ date(item.receivedAt) }}</span>
                 </small>
@@ -87,7 +87,7 @@
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
                 <small class="public-portal-row-meta">
-                  <span><Icon name="app"/><em>来自：</em>{{ text(item.appName) }}</span>
+                  <span><Icon name="app"/>{{ text(item.appName) }}</span>
                   <i></i>
                   <span><Icon name="time"/>{{ date(item.receivedAt) }}</span>
                 </small>
