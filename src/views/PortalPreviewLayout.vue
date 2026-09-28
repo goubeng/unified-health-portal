@@ -58,7 +58,6 @@
       </div>
       <section v-if="isAnnouncementListPage" class="public-announcement-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
         <div class="public-announcement-banner-copy">
-          <strong>通知公告</strong>
           <span>及时了解平台通知与重要信息</span>
         </div>
       </section>
