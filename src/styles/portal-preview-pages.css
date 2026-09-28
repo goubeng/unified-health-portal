@@ -811,3 +811,26 @@
 .public-portal-secondary-shell .message-content-shell .message-content-actions{
   justify-content:flex-start!important;
 }
+
+/* Align secondary-page back button with page title */
+.public-portal-subpage-title-row{
+  align-items:center!important;
+}
+.public-portal-subpage-back{
+  box-sizing:border-box;
+  display:inline-flex!important;
+  width:32px!important;
+  height:32px!important;
+  min-width:32px;
+  padding:0!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+  flex:none;
+}
+.public-portal-subpage-back .t-icon{
+  display:block;
+  width:18px!important;
+  height:18px!important;
+  flex:none;
+}
