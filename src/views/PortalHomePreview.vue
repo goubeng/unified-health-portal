@@ -54,26 +54,6 @@
       </section>
 
       <div class="public-portal-main">
-        <section class="public-portal-card public-portal-apps">
-          <div class="public-portal-section-head">
-            <h2>我的应用 <b>（{{ homeApps.length }}）</b></h2>
-            <button type="button" @click="router.push('/portal/apps/all')">查看更多 <span>›</span></button>
-          </div>
-
-          <div v-if="visibleApps.length" class="public-portal-app-grid">
-            <button v-for="(app,index) in visibleApps" :key="app.id" type="button" class="public-portal-app-item" @click="enterApp(app)">
-              <span class="public-portal-app-icon" :class="'tone-'+(index%7)"><AppIcon /></span>
-              <span class="public-portal-app-name">{{ text(app.name) }}</span>
-            </button>
-            <button type="button" class="public-portal-app-item" @click="router.push('/portal/apps/all')">
-              <span class="public-portal-app-icon tone-more"><span class="public-portal-grid-glyph">••<br/>••</span></span>
-              <span class="public-portal-app-name">更多应用</span>
-            </button>
-          </div>
-          <div v-else-if="!loading" class="public-portal-inline-empty">暂无符合条件的应用</div>
-          <div v-else class="public-portal-inline-empty">正在加载应用...</div>
-        </section>
-
         <section class="public-portal-feed-grid">
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
@@ -119,6 +99,32 @@
             </button>
             <div v-if="!homeMessages.length && !loading" class="public-portal-empty">暂无未读消息</div>
           </article>
+        </section>
+
+        <section class="public-portal-card public-portal-apps">
+          <div class="public-portal-section-head">
+            <h2>我的应用 <b>（{{ homeApps.length }}）</b></h2>
+            <button type="button" @click="router.push('/portal/apps/all')">查看更多 <span>›</span></button>
+          </div>
+
+          <div v-if="visibleApps.length" class="public-portal-app-grid">
+            <button v-for="(app,index) in visibleApps" :key="app.id" type="button" class="public-portal-app-item" @click="enterApp(app)">
+              <span class="public-portal-app-icon" :class="'tone-'+(index%7)"><AppIcon /></span>
+              <span class="public-portal-app-copy">
+                <strong class="public-portal-app-name">{{ text(app.name) }}</strong>
+                <small>{{ app.category || '业务应用' }}</small>
+              </span>
+            </button>
+            <button type="button" class="public-portal-app-item" @click="router.push('/portal/apps/all')">
+              <span class="public-portal-app-icon tone-more"><span class="public-portal-grid-glyph">••<br/>••</span></span>
+              <span class="public-portal-app-copy">
+                <strong class="public-portal-app-name">更多应用</strong>
+                <small>查看全部应用</small>
+              </span>
+            </button>
+          </div>
+          <div v-else-if="!loading" class="public-portal-inline-empty">暂无应用</div>
+          <div v-else class="public-portal-inline-empty">正在加载应用...</div>
         </section>
 
         <div v-if="error" class="public-portal-error">
