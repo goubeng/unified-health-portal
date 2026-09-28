@@ -1182,3 +1182,17 @@ test('消息中心列表与操作使用统一白色内容容器',()=>{
   assert(css.includes('background:#fff!important;'));
   assert(css.includes('padding:16px 20px 18px!important;'));
 });
+
+
+test('首页我的应用保留深色图标并对齐应用中心卡片标签',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(source.includes('class="public-portal-app-category" :class="categoryTone(app.category)"'));
+  assert(source.includes("return 'category-tone-'+(hash+1);"));
+  assert(css.includes('.public-portal-home .public-portal-app-item{'));
+  assert(css.includes('background:#f8fafc;'));
+  assert(css.includes('border-radius:0;'));
+  assert(css.includes('.public-portal-app-icon.tone-0{background:linear-gradient'));
+  assert(css.includes('.public-portal-app-category.category-tone-1'));
+  assert(css.includes('.public-portal-app-category.category-tone-5'));
+});
