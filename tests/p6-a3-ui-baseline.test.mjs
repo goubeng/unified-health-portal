@@ -1016,3 +1016,42 @@ test('应用列表操作列加宽且三个操作不换行',()=>{
   assert(css.includes('.portal-table-panel .app-list-row-actions{flex-wrap:nowrap!important;white-space:nowrap!important;gap:8px!important}'));
   assert(css.includes('.portal-table-panel .app-list-row-actions .t-button{flex:none!important;white-space:nowrap!important}'));
 });
+
+
+test('正式公众门户使用新版独立布局且管理端保持原布局',()=>{
+  const router=fs.readFileSync('src/router.js','utf8');
+  const app=fs.readFileSync('src/App.vue','utf8');
+  assert(router.includes("{path:'/portal/home',name:'PG-101',component:PortalHomePreview,meta:portalMeta('home')}"));
+  assert(router.includes("{path:'/portal',component:PortalPreviewLayout,meta:{group:'个人事务',layout:'public-portal'}"));
+  assert(router.includes("{path:'todos',name:'PG-104',component:PortalPage,meta:portalMeta('todos')}"));
+  assert(router.includes("{path:'messages',name:'PG-105',component:PortalPage,meta:portalMeta('messages')}"));
+  assert(router.includes("{path:'announcements',name:'PG-106',component:PortalPage,meta:portalMeta('announcements')}"));
+  assert(router.includes("{path:'apps/all',name:'PG-103',component:PortalPage,meta:portalMeta('apps')}"));
+  assert(router.includes("{path:'applications',name:'PG-109',component:PortalPage,meta:portalMeta('myApplicationRequests')}"));
+  assert(app.includes("['portal-preview','public-portal'].includes(route.meta.layout)"));
+  assert(app.includes("const admin=computed(()=>route.path.startsWith('/admin'))"));
+});
+
+test('正式公众门户头部导航不会跳回预览地址',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(layout.includes('@click="go(\'/home\')"'));
+  assert(layout.includes('@click="go(\'/messages\')"'));
+  assert(layout.includes("const portalBase=computed(()=>isPreviewRoute.value?'/portal-preview':'/portal')"));
+  assert(!layout.includes('@click="router.push(\'/portal-preview/home\')"'));
+  assert(!layout.includes('@click="router.push(\'/portal-preview/messages\')"'));
+});
+
+test('正式公众门户内页启用轻量列表和卡片展示',()=>{
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const todo=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  const message=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const applications=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
+  assert(page.includes("const preview=computed(()=>previewRoute.value||route.path.startsWith('/portal/'))"));
+  assert(page.includes("v-else-if=\"preview&&resource==='announcements'\""));
+  assert(todo.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
+  assert(message.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
+  assert(applications.includes("route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/')"));
+  assert(todo.includes('class="public-record-list public-todo-list"'));
+  assert(message.includes('class="public-message-list"'));
+  assert(applications.includes('class="public-application-list"'));
+});
