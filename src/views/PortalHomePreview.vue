@@ -5,7 +5,7 @@
         <button class="public-portal-brand" type="button" @click="router.push('/portal-preview/home')">
           <span class="public-portal-brand-copy">
             <strong>卫健XC统一门户</strong>
-            <small>便民 · 惠民 · 协同 · 服务</small>
+            <small>便民 · 协同 · 服务</small>
           </span>
         </button>
 
@@ -57,10 +57,11 @@
         <section class="public-portal-feed-grid">
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
+              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count todo-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
               <button type="button" @click="router.push('/portal/todos')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeTodos.slice(0,4)" :key="item.id" class="public-portal-todo-row" type="button" @click="openTodo(item)">
+              <span class="todo-dot"></span>
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
                 <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
