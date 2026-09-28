@@ -14,10 +14,6 @@
 
       <section class="panel message-content-shell">
         <div class="message-content-toolbar">
-          <div class="message-content-summary">
-            <span>共 {{ filteredMessages.length }} 条</span>
-            <span v-if="selectedIds.length">已选择 {{ selectedIds.length }} 条</span>
-          </div>
           <div class="message-content-actions">
             <t-button variant="outline" size="medium" :disabled="!selectedIds.length" @click="confirmDelete(selectedIds)">删除</t-button>
             <t-button variant="outline" size="medium" :disabled="!selectedUnreadIds.length" @click="markSelectedRead">标记为已读</t-button>
