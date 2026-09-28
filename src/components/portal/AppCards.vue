@@ -1,19 +1,26 @@
 <template>
   <div class="portal-app-grid">
-    <article v-for="(app,index) in apps" :key="app.id" class="portal-app-card" :class="[`tone-${index%4+1}`,compact?'is-compact':'']">
-      <span class="portal-app-logo" :class="'icon-tone-'+(index%7)"><Icon name="application"/></span>
+    <article v-for="(app,index) in apps" :key="app.id" class="portal-app-card" :class="[`tone-${index%4+1}`,compact?'is-compact':'',actionRow?'has-action-row':'']">
+      <span class="portal-app-logo" :class="'icon-tone-'+(index%7)"><AppIcon /></span>
       <div class="portal-app-info">
         <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
         <div class="portal-app-meta">
           <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category" :class="categoryTone(app.category)">{{text(app.category)||'未分类'}}</span></PortalTooltip>
         </div>
-        <div class="portal-app-result">
+        <div v-if="!actionRow" class="portal-app-result">
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
           <template v-else>
             <t-tag v-if="showState(app)" class="portal-app-status-tag" size="small" variant="light" :theme="stateTheme(app.accessState)">{{stateText(app)}}</t-tag>
             <t-button v-if="buttonText(app)" class="portal-app-enter" variant="text" size="small" :disabled="buttonDisabled(app)" @click="trigger(app)">{{buttonText(app)}}</t-button>
           </template>
         </div>
+      </div>
+      <div v-if="actionRow" class="portal-app-result portal-app-action-row">
+        <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
+        <template v-else>
+          <t-tag v-if="showState(app)" class="portal-app-status-tag" size="small" variant="light" :theme="stateTheme(app.accessState)">{{stateText(app)}}</t-tag>
+          <t-button v-if="buttonText(app)" class="portal-app-enter" variant="text" size="small" :disabled="buttonDisabled(app)" @click="trigger(app)">{{buttonText(app)}}</t-button>
+        </template>
       </div>
     </article>
   </div>
@@ -22,10 +29,10 @@
 <script setup>
 import EmptyState from './EmptyState.vue';
 import PortalTooltip from './PortalTooltip.vue';
-import {Icon} from 'tdesign-icons-vue-next';
+import {AppIcon} from 'tdesign-icons-vue-next';
 import {text,label} from './presentation.js';
 
-const props=defineProps({apps:{type:Array,default:()=>[]},compact:Boolean,hideNormalState:Boolean});
+const props=defineProps({apps:{type:Array,default:()=>[]},compact:Boolean,hideNormalState:Boolean,actionRow:Boolean});
 const emit=defineEmits(['detail','enter','bind','request','view-request','view-binding','view-conflict']);
 
 function categoryTone(category){
