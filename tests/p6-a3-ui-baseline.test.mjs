@@ -1144,6 +1144,25 @@ test('公众端全部二级列表页统一Banner和查询布局',()=>{
   assert(css.includes('min-width:64px!important;'));
 });
 
+test('公众端二级Banner等比铺满居中且窄屏内容可撑高',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  const banner=css.match(/\.public-announcement-banner\s*\{([^}]*)\}/)?.[1];
+  const section=css.match(/\.public-portal-section-banner\s*\{([^}]*)\}/)?.[1];
+  const inner=css.match(/\.public-portal-banner-inner\s*\{([^}]*)\}/)?.[1];
+  assert(banner,'缺少公众端二级Banner样式');
+  assert(section,'缺少公众端二级Banner适配样式');
+  assert(inner,'缺少公众端二级Banner内容布局');
+  assert.match(banner,/background-size\s*:\s*cover\s*;/);
+  assert.match(section,/aspect-ratio\s*:\s*10\s*\/\s*1\s*;/);
+  assert.match(section,/background-position\s*:\s*center center\s*;/);
+  assert.match(banner,/min-height\s*:\s*132px\s*;/);
+  assert.match(inner,/min-height\s*:\s*132px\s*;/);
+  assert.doesNotMatch(inner,/(?:^|;)\s*(?:height|max-height)\s*:/);
+  assert.match(css,/@media\s*\(max-width\s*:\s*760px\)\s*\{[\s\S]*?\.public-announcement-banner\s*\{\s*min-height\s*:\s*110px\s*\}/);
+  assert.match(css,/\.public-portal-banner-inner\s*\{\s*min-height\s*:\s*110px\s*;[\s\S]*?padding\s*:\s*16px 20px\s*;/);
+  assert.match(css,/\.public-portal-section-banner \.public-announcement-banner-copy\s*\{\s*height\s*:\s*auto\s*;/);
+});
+
 
 test('我的申请增加顶部留白与独立分页',()=>{
   const source=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
