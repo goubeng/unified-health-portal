@@ -21,11 +21,11 @@
 .public-portal-nav button{position:relative;height:100%;padding:0 22px;border:0;background:transparent;color:#1b2b45;font-size:15px;cursor:pointer;white-space:nowrap}
 .public-portal-nav button:hover,.public-portal-nav button.active{color:var(--portal-primary);font-weight:500}
 .public-portal-nav button.active::after{content:"";position:absolute;left:22px;right:22px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--portal-primary)}
-.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:14px}
 .public-portal-icon-button{width:32px;height:32px;display:grid;place-items:center;border:0;background:transparent;color:#1b2b45;font-size:17px;cursor:pointer;border-radius:50%}
 .public-portal-icon-button:hover{background:#f3f5ff;color:var(--portal-primary)}
-.public-portal-user-area .t-badge{line-height:1}
-.public-portal-user-area .t-badge__content{min-width:15px;height:15px;padding:0 4px;font-size:9px;line-height:15px;border-width:1px;top:2px!important;right:2px!important;transform:translate(35%,-35%)!important}
+.public-portal-user-area .t-badge{position:relative;display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;line-height:1}
+.public-portal-user-area .t-badge__content{min-width:15px;height:15px;padding:0 4px;font-size:9px;line-height:15px;border-width:1px;top:-3px!important;right:-3px!important;transform:none!important}
 .public-portal-account{display:flex;align-items:center;gap:8px;padding:4px 6px;border:0;background:transparent;color:#263651;font-size:14px;cursor:pointer}
 .public-portal-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#eef1ff;color:var(--portal-primary);font-size:19px}
 .public-portal-account-popover{width:230px;padding:12px;display:flex;flex-direction:column;gap:6px}
