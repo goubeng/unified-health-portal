@@ -1592,3 +1592,16 @@ test('首页公告发布类型和发布对象使用淡灰标签',()=>{
   assert(css.includes('background:#f4f6f8;'));
   assert(css.includes('color:#667085;'));
 });
+
+
+test('首页待办消息来源与时间增加小图标',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(source.includes('class="public-portal-row-meta"'));
+  assert(source.includes('<Icon name="app"/>'));
+  assert(source.includes('<Icon name="time"/>'));
+  assert(source.includes("Icon,MailIcon"));
+  assert(css.includes('.public-portal-row-meta>span>.t-icon{'));
+  assert(css.includes('width:13px!important;'));
+  assert(css.includes('font-size:13px!important;'));
+});
