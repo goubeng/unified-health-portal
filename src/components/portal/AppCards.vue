@@ -1,7 +1,7 @@
 <template>
   <div class="portal-app-grid">
     <article v-for="(app,index) in apps" :key="app.id" class="portal-app-card" :class="[`tone-${index%4+1}`,compact?'is-compact':'']">
-      <span class="portal-app-logo"><Icon name="application"/></span>
+      <span class="portal-app-logo" :class="'icon-tone-'+(index%7)"><Icon name="application"/></span>
       <div class="portal-app-info">
         <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
         <div class="portal-app-meta">
