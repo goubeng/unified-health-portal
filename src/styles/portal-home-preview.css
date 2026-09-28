@@ -261,3 +261,23 @@
   background:#ccd5e0;
   vertical-align:-2px;
 }
+
+/* Home announcement metadata tags */
+.public-portal-notice-meta-tags{
+  display:flex!important;
+  align-items:center;
+  gap:6px!important;
+}
+.public-portal-notice-meta-tag{
+  display:inline-flex;
+  align-items:center;
+  min-height:20px;
+  padding:1px 7px;
+  border:1px solid #e5e8ef;
+  border-radius:3px;
+  background:#f4f6f8;
+  color:#667085;
+  font-size:12px;
+  line-height:18px;
+  white-space:nowrap;
+}
