@@ -11,11 +11,11 @@
 
         <nav class="public-portal-nav" aria-label="公众门户导航">
           <button class="active" type="button">首页</button>
-          <button type="button" @click="router.push('/portal/todos')">待办任务</button>
-          <button type="button" @click="router.push('/portal/messages')">消息中心</button>
-          <button type="button" @click="router.push('/portal/announcements')">通知公告</button>
-          <button type="button" @click="router.push('/portal/apps/all')">应用中心</button>
-          <button type="button" @click="router.push('/portal/applications')">我的申请</button>
+          <button type="button" @click="router.push('/portal-preview/todos')">待办任务</button>
+          <button type="button" @click="router.push('/portal-preview/messages')">消息中心</button>
+          <button type="button" @click="router.push('/portal-preview/announcements')">通知公告</button>
+          <button type="button" @click="router.push('/portal-preview/apps')">应用中心</button>
+          <button type="button" @click="router.push('/portal-preview/applications')">我的申请</button>
         </nav>
 
         <div class="public-portal-user-area">
@@ -57,7 +57,7 @@
         <section class="public-portal-feed-grid">
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count todo-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
+              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
               <button type="button" @click="router.push('/portal/todos')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeTodos.slice(0,4)" :key="item.id" class="public-portal-todo-row" type="button" @click="openTodo(item)">
@@ -76,6 +76,7 @@
               <button type="button" @click="router.push('/portal/messages')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
+              <span class="todo-dot"></span>
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
                 <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
@@ -198,9 +199,9 @@ async function enterApp(app){
   }
 }
 
-function openTodo(){router.push('/portal/todos');}
+function openTodo(){router.push('/portal-preview/todos');}
 function openAnnouncement(item){router.push('/portal/announcements/'+encodeURIComponent(item.id));}
-function openMessage(item){router.push({path:'/portal/messages',query:{messageId:item.id}});}
+function openMessage(item){router.push({path:'/portal-preview/messages',query:{messageId:item.id}});}
 function shortDate(value){const output=date(value);return output==='-'?output:String(output).slice(0,10);}
 async function exitSystem(){
   accountOpen.value=false;
