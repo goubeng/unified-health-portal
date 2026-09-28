@@ -1083,3 +1083,22 @@ test('通知公告使用标签元信息和单行Banner',()=>{
   assert(css.includes('.public-announcement-item .public-record-main strong{'));
   assert(css.includes('font-size:16px;'));
 });
+
+
+test('应用中心卡片使用浅色背景并给应用类型增加标签色',()=>{
+  const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(cards.includes(':class="categoryTone(app.category)"'));
+  assert(cards.includes("return 'category-tone-'+(hash+1);"));
+  assert(css.includes('.portal-app-center .portal-app-card{'));
+  assert(css.includes('background:#f3f6fa!important;'));
+  assert(css.includes('.portal-app-category.category-tone-1'));
+  assert(css.includes('.portal-app-category.category-tone-5'));
+});
+
+test('通知公告Banner去掉重复的通知公告标题',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const banner=layout.split('class="public-announcement-banner-copy"')[1]?.split('</div>')[0]||'';
+  assert(!banner.includes('<strong>通知公告</strong>'));
+  assert(banner.includes('及时了解平台通知与重要信息'));
+});
