@@ -36,7 +36,8 @@ const routes=[
   {path:'announcements',name:'PG-PREVIEW-ANNOUNCEMENTS',component:PortalPage,meta:portalMeta('announcements',true)},
   {path:'announcements/:id',name:'PG-PREVIEW-ANNOUNCEMENT-DETAIL',component:PortalPage,meta:portalMeta('announcementDetail',true)},
   {path:'apps',name:'PG-PREVIEW-APPS',component:PortalPage,meta:portalMeta('apps',true)},
-  {path:'applications',name:'PG-PREVIEW-APPLICATIONS',component:PortalPage,meta:portalMeta('myApplicationRequests',true)}
+  {path:'applications',name:'PG-PREVIEW-APPLICATIONS',component:PortalPage,meta:portalMeta('myApplicationRequests',true)},
+  {path:'profile',name:'PG-PREVIEW-PROFILE',component:PortalPage,meta:portalMeta('profile',true)}
  ]},
  {path:'/',redirect:'/portal/home'},
  ...compatibilityRedirects,
