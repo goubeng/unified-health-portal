@@ -547,7 +547,7 @@ function enterAppByRequest(row){
 }
 function confirm(action,row,body){const dialog=DialogPlugin.confirm({placement:'center',header:'操作确认',body,onConfirm:async()=>{if(await run(action,{...row}))dialog.hide();}});}
 async function showDetail(row,kind=listResource.value){
- if(kind==='announcements'){await router.push(`${admin.value?'/admin':(preview.value?'/portal-preview':'/portal')}/announcements/${encodeURIComponent(row.id)}`);return;}
+ if(kind==='announcements'){await router.push(`${admin.value?'/admin':(previewRoute.value?'/portal-preview':'/portal')}/announcements/${encodeURIComponent(row.id)}`);return;}
  if(kind==='messages'){await router.push({path:portalPath('/messages'),query:{messageId:row.id}});return;}
  detail.value=JSON.parse(JSON.stringify(row));detailKind.value=kind;
  detailAccessProfile.value=kind==='apps'&&admin.value?JSON.parse(JSON.stringify(accessProfiles.value.find(item=>item.appId===row.id)||null)):null;
