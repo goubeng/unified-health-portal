@@ -1346,7 +1346,15 @@ test('公众端二级页按业务主题使用独立PNG Banner',()=>{
   assert(layout.includes("title:'消息中心',subtitle:'集中查看业务消息与系统通知',image:messageBanner"));
   assert(layout.includes("title:'通知公告',subtitle:'及时了解平台通知与重要信息',image:announcementBanner"));
   assert(layout.includes("title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner"));
-  assert(layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:todoBanner"));
+  assert(layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:applicationsBanner"));
   assert(layout.includes("title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner"));
   assert(!layout.includes("login-health3-bg-3840x2160.png"));
+});
+
+
+test('我的申请使用独立Banner图片',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(layout.includes("import applicationsBanner from '../assets/banner-applications.png';"));
+  assert(layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:applicationsBanner"));
+  assert(!layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:todoBanner"));
 });
