@@ -1068,3 +1068,18 @@ test('公众二级页按需加载且头部未读数使用轻量接口',()=>{
   assert(service.includes("if(resource==='header')return {unreadCount:"));
   assert(service.includes("const allApps=()=>decorate(d,a),userApps=()=>accountApps(d,a);"));
 });
+
+
+test('通知公告使用标签元信息和单行Banner',()=>{
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(page.includes("'portal-announcement-center':preview&&resource==='announcements'"));
+  assert(page.includes('class="public-announcement-meta-tag"'));
+  assert(page.includes('class="public-announcement-meta-tag scope"'));
+  assert(layout.includes("import announcementBanner from '../assets/login-health3-bg-3840x2160.png';"));
+  assert(layout.includes('v-if="isAnnouncementListPage" class="public-announcement-banner"'));
+  assert(css.includes('.portal-announcement-center>.portal-query{'));
+  assert(css.includes('.public-announcement-item .public-record-main strong{'));
+  assert(css.includes('font-size:16px;'));
+});
