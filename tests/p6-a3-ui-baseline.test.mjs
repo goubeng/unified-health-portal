@@ -1381,3 +1381,17 @@ test('公众首页Banner底部使用向上渐变过渡',()=>{
   assert(css.includes('linear-gradient(to top,#f3f8fd 0%'));
   assert(css.includes('rgba(243,248,253,0) 65%'));
 });
+
+
+test('首页通知公告使用日期块和发布时间布局',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(source.includes('class="public-portal-notice-date"'));
+  assert(source.includes('{{ noticeDay(item.publishedAt) }}'));
+  assert(source.includes('{{ noticeMonth(item.publishedAt) }}'));
+  assert(source.includes('发布时间：{{ date(item.publishedAt) }}'));
+  assert(source.includes("function noticeDateParts(value)"));
+  assert(css.includes('.public-portal-notice-date{'));
+  assert(css.includes('background:linear-gradient(145deg,#315fdb,#2454ff);'));
+  assert(css.includes('.public-portal-notice-copy>small{'));
+});
