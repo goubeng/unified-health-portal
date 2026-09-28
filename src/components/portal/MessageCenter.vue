@@ -19,7 +19,29 @@
       </t-form>
 
       <section class="panel portal-table-panel message-list-panel">
-        <t-table row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
+        <div v-if="preview" class="public-message-list">
+          <div class="public-message-select-all">
+            <t-checkbox :checked="allFilteredSelected" :indeterminate="partialFilteredSelected" @change="toggleAllFiltered">选择当前筛选结果</t-checkbox>
+            <span>共 {{ filteredMessages.length }} 条</span>
+          </div>
+          <article v-for="row in pagedMessages" :key="row.id" class="public-message-item">
+            <t-checkbox :checked="selectedIds.includes(row.id)" @change="checked=>toggleRow(row.id,checked)"/>
+            <span class="public-record-dot" :class="{muted:row.status!=='UNREAD'}"></span>
+            <button class="public-record-main" type="button" @click="open(row)">
+              <strong>{{ text(row.title)||'-' }}</strong>
+              <small>
+                <span>来自：{{ text(row.appName)||'统一门户' }}</span>
+                <i></i>
+                <span>{{ date(row.receivedAt) }}</span>
+                <i></i>
+                <span>{{ label(row.messageType||'BUSINESS') }}</span>
+              </small>
+            </button>
+            <span class="public-message-read-state">{{ label(row.status) }}</span>
+          </article>
+          <EmptyState v-if="!pagedMessages.length" description="暂无符合条件的消息"/>
+        </div>
+        <t-table v-else row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="暂无符合条件的消息"/></template>
         </t-table>
         <t-pagination v-if="filteredMessages.length" v-model="page" v-model:page-size="pageSize" :total="filteredMessages.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -65,6 +87,7 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},receiver:{type:String,default:''}});
 const route=useRoute(),router=useRouter();
+const preview=computed(()=>route.path.startsWith('/portal-preview'));
 const statusFilter=ref('UNREAD'),sourceFilter=ref(''),typeFilter=ref(''),keyword=ref(''),page=ref(1),pageSize=ref(10),selectedIds=ref([]);
 const TCheckbox=resolveComponent('t-checkbox');
 const statusOptions=[{label:'未读',value:'UNREAD'},{label:'已读',value:'READ'}];
