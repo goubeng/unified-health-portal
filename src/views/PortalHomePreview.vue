@@ -58,7 +58,7 @@
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
               <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <span class="feed-count">（<b>{{ overview.todoCount ?? homeTodos.length }}</b>）</span></h2>
-              <button type="button" @click="go('todos')">查看全部 <span>›</span></button>
+              <button type="button" @click="go('todos')">查看全部 <ChevronRightIcon size="16px" /></button>
             </div>
             <button v-for="item in homeTodos.slice(0,4)" :key="item.id" class="public-portal-todo-row" type="button" @click="openTodo(item)">
               <span class="todo-dot"></span>
@@ -73,7 +73,7 @@
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
               <h2><span class="feed-title-icon message"><MailIcon /></span> 消息中心 <span class="feed-count">（<b>{{ overview.unreadCount ?? homeMessages.length }}</b>）</span></h2>
-              <button type="button" @click="go('messages')">查看全部 <span>›</span></button>
+              <button type="button" @click="go('messages')">查看全部 <ChevronRightIcon size="16px" /></button>
             </div>
             <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
               <span class="todo-dot"></span>
@@ -88,7 +88,7 @@
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
               <h2><span class="feed-title-icon notice"><NotificationIcon /></span> 通知公告 <span class="feed-count">（<b>{{ overview.unreadAnnouncementCount ?? 0 }}</b>）</span></h2>
-              <button type="button" @click="go('announcements')">查看全部 <span>›</span></button>
+              <button type="button" @click="go('announcements')">查看全部 <ChevronRightIcon size="16px" /></button>
             </div>
             <button v-for="(item,index) in homeAnnouncements.slice(0,5)" :key="item.id" class="public-portal-notice-row" type="button" @click="openAnnouncement(item)">
               <span class="notice-dot" :class="'dot-'+(index%5)"></span>
@@ -137,7 +137,7 @@
 <script setup>
 import {computed,onMounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {AppIcon,ChevronDownIcon,MailIcon,NotificationIcon,TaskIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,ChevronDownIcon,ChevronRightIcon,MailIcon,NotificationIcon,TaskIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import {actor,command,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
