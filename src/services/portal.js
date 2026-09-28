@@ -130,10 +130,11 @@ export function createPortalService(provider,getActor){
  return {
   read:wrap((a,resource)=>{
    if(provider.kind!=='mock')fail('CAPABILITY_UNAVAILABLE','真实服务尚未配置');
-   const d=provider.read(),allApps=decorate(d,a),userApps=accountApps(d,a);
-   if(resource==='apps')return allApps.filter(x=>x.applicable&&x.enabled);
-   if(resource==='adminApps'){auth(a,'application:view');return allApps;}
-   if(resource==='mine')return userApps.filter(x=>['DIRECT','BOUND'].includes(x.accessState));
+   const d=provider.read();
+   const allApps=()=>decorate(d,a),userApps=()=>accountApps(d,a);
+   if(resource==='apps')return allApps().filter(x=>x.applicable&&x.enabled);
+   if(resource==='adminApps'){auth(a,'application:view');return allApps();}
+   if(resource==='mine')return userApps().filter(x=>['DIRECT','BOUND'].includes(x.accessState));
    if(resource==='todos')return d.todos.filter(x=>own(x,a));
    if(resource==='messages')return d.messages.filter(x=>own(x,a)&&!x.deleted);
    if(resource==='announcements')return d.announcements.filter(x=>visible(x,a)).map(x=>({...decorateAnnouncement(x),readStatus:(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))?'READ':'UNREAD'}));
@@ -144,7 +145,7 @@ export function createPortalService(provider,getActor){
     const opening=(d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName}));
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
-   if(resource==='home')return {appCount:userApps.length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
+   if(resource==='home')return {appCount:userApps().length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
    const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',adminHome:'any',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
