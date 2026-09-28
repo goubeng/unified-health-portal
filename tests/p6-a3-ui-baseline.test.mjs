@@ -1096,19 +1096,30 @@ test('应用中心卡片使用浅色背景并给应用类型增加标签色',()=
   assert(css.includes('.portal-app-category.category-tone-5'));
 });
 
-test('通知公告Banner去掉重复的通知公告标题',()=>{
+test('通知公告标题显示在Banner内且列表页隐藏外部标题',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
-  const banner=layout.split('class="public-announcement-banner-copy"')[1]?.split('</div>')[0]||'';
-  assert(!banner.includes('<strong>通知公告</strong>'));
-  assert(banner.includes('及时了解平台通知与重要信息'));
+  assert(layout.includes('<strong>通知公告</strong>'));
+  assert(layout.includes('及时了解平台通知与重要信息'));
+  assert(layout.includes("const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements')"));
+  assert(layout.includes('v-if="showSubpageHead" class="public-portal-subpage-head"'));
 });
 
 
-test('应用中心使用Banner并去掉独立页标题和图标',()=>{
+test('应用中心标题显示在Banner内且去掉独立页标题图标',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
-  assert(layout.includes('v-if="!isAppCenterPage" class="public-portal-subpage-head"'));
   assert(layout.includes('v-if="isAppCenterPage" class="public-announcement-banner public-app-center-banner"'));
+  assert(layout.includes('<strong>应用中心</strong>'));
   assert(layout.includes('汇聚卫生健康服务应用 · 便捷访问常用业务系统'));
-  assert(!layout.includes('<span v-if="isAppCenterPage" class="public-portal-app-banner-icon">'));
+  assert(!layout.includes('public-portal-app-banner-icon'));
   assert(!layout.includes('AppIcon'));
+});
+
+
+test('消息中心列表页使用Banner且详情页保留外部标题',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(layout.includes("const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId)"));
+  assert(layout.includes('v-if="isMessageListPage" class="public-announcement-banner public-message-center-banner"'));
+  assert(layout.includes('<strong>消息中心</strong>'));
+  assert(layout.includes('集中查看业务消息与系统通知'));
+  assert(layout.includes("const showSubpageHead=computed(()=>!isAppCenterPage.value&&!isAnnouncementListPage.value&&!isMessageListPage.value)"));
 });
