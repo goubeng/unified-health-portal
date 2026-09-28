@@ -1395,3 +1395,16 @@ test('首页通知公告使用日期块和发布时间布局',()=>{
   assert(css.includes('background:linear-gradient(145deg,#315fdb,#2454ff);'));
   assert(css.includes('.public-portal-notice-copy>small{'));
 });
+
+
+test('首页待办消息公告空态使用统一空态图',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(source.includes("import EmptyState from '../components/portal/EmptyState.vue';"));
+  assert(source.includes('description="暂无待办"'));
+  assert(source.includes('description="暂无未读消息"'));
+  assert(source.includes('description="暂无公告"'));
+  assert(source.includes('class="public-portal-empty public-portal-home-empty"'));
+  assert(css.includes('.public-portal-home-empty img{'));
+  assert(css.includes('opacity:.75;'));
+});
