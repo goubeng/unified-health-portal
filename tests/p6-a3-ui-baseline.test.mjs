@@ -1631,8 +1631,9 @@ test('首页来源系统去掉来自文字前缀',()=>{
 
 test('顶部消息徽标靠近铃铛并收紧用户区间距',()=>{
   const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
-  assert(css.includes('.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:8px}'));
-  assert(css.includes('top:2px!important;right:2px!important;transform:translate(35%,-35%)!important'));
+  assert(css.includes('.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:14px}'));
+  assert(css.includes('.public-portal-user-area .t-badge{position:relative;display:inline-flex;width:32px;height:32px;'));
+  assert(css.includes('top:-3px!important;right:-3px!important;transform:none!important'));
 });
 
 
@@ -1643,4 +1644,11 @@ test('公众门户头部去掉系统名称下方副文案',()=>{
   assert(!layout.includes('便民 · 协同 · 服务'));
   assert(home.includes('<strong>卫健XC统一门户</strong>'));
   assert(layout.includes('<strong>卫健XC统一门户</strong>'));
+});
+
+
+test('顶部消息徽标固定在铃铛右上角',()=>{
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(css.includes('.public-portal-user-area .t-badge{position:relative;display:inline-flex;width:32px;height:32px;'));
+  assert(css.includes('top:-3px!important;right:-3px!important;transform:none!important'));
 });
