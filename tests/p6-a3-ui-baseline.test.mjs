@@ -1633,7 +1633,7 @@ test('顶部消息徽标靠近铃铛并收紧用户区间距',()=>{
   const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
   assert(css.includes('.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:14px}'));
   assert(css.includes('.public-portal-user-area .t-badge{position:relative;display:inline-flex;width:32px;height:32px;'));
-  assert(css.includes('top:-3px!important;right:-3px!important;transform:none!important'));
+  assert(css.includes('top:2px!important;right:1px!important;transform:none!important'));
 });
 
 
@@ -1650,5 +1650,11 @@ test('公众门户头部去掉系统名称下方副文案',()=>{
 test('顶部消息徽标固定在铃铛右上角',()=>{
   const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
   assert(css.includes('.public-portal-user-area .t-badge{position:relative;display:inline-flex;width:32px;height:32px;'));
-  assert(css.includes('top:-3px!important;right:-3px!important;transform:none!important'));
+  assert(css.includes('top:2px!important;right:1px!important;transform:none!important'));
+});
+
+
+test('顶部消息徽标进一步收紧至铃铛右上角',()=>{
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(css.includes('top:2px!important;right:1px!important;transform:none!important'));
 });
