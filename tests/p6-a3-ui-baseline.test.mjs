@@ -1480,3 +1480,15 @@ test('公众待办任务使用标准表格列表并加宽来源应用查询',()=
   assert(css.includes('.public-portal-secondary-shell .todo-center .query-width-source{'));
   assert(css.includes('width:300px!important;'));
 });
+
+
+test('首页单条待办打开详情弹窗而查看全部进入二级页',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  assert(source.includes('@click="go(\'todos\')">查看全部'));
+  assert(source.includes('@click="openTodo(item)"'));
+  assert(source.includes('v-model:visible="homeTodoDetailVisible"'));
+  assert(source.includes('<TodoDetailContent :record="homeTodoActive"/>'));
+  assert(source.includes("function openTodo(item){"));
+  assert(source.includes("homeTodoDetailVisible.value=true;"));
+  assert(!source.includes("function openTodo(){go('todos');}"));
+});
