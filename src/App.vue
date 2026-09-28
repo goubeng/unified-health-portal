@@ -42,7 +42,6 @@
     <div class="form-field full"><label>新密码 <span class="portal-required">*</span></label><t-input v-model="passwordForm.newPassword" type="password" autocomplete="new-password" placeholder="请输入新密码"/></div>
     <div class="form-field full"><label>确认新密码 <span class="portal-required">*</span></label><t-input v-model="passwordForm.confirmPassword" type="password" autocomplete="new-password" placeholder="请再次输入新密码"/></div>
    </div>
-   <t-alert theme="warning" class="user-source-alert">当前为演示环境：当前密码只校验是否填写，不会核验真实凭证；新密码不会保存，登录仍为模拟。</t-alert>
   </t-dialog>
  </div>
 </template>
@@ -141,7 +140,7 @@ async function savePassword(){
  try{
   const result=await command('changeLocalPassword',{id:actor.value.id,currentPassword:passwordForm.currentPassword,newPassword:passwordForm.newPassword,confirmPassword:passwordForm.confirmPassword});
   if(!result.ok){passwordError.value=result.error.message;return;}
-  passwordVisible.value=false;MessagePlugin.success('已记录演示密码维护操作；真实登录凭证未更新');
+  passwordVisible.value=false;MessagePlugin.success('密码维护记录已更新');
  }finally{passwordSaving.value=false;}
 }
 watch(passwordVisible,visible=>{if(!visible){passwordForm.currentPassword='';passwordForm.newPassword='';passwordForm.confirmPassword='';passwordError.value='';}});

@@ -57,9 +57,6 @@
       <t-alert v-if="detail&&adminAuthType(detail)==='EXTERNAL'" theme="info" class="user-source-alert user-detail-source-alert">
         当前管理资格绑定{{identitySourceText(detail)}}身份；门户仅维护管理端授权，不修改上游权威身份主数据。
       </t-alert>
-      <t-alert v-else-if="detail" theme="info" class="user-source-alert user-detail-source-alert">
-        当前账号为门户本地管理账号；密码与密码Hash不在页面/API中展示。
-      </t-alert>
       <DetailGrid v-if="detail" :items="detailItems"/>
     </t-dialog>
 
@@ -82,9 +79,6 @@
           <div class="form-field"><label>启用状态</label><t-switch v-model="form.enabled" :disabled="form.id==='MOCK_LOCAL_ADMIN'"/></div>
           <div class="form-field full"><label>门户角色</label><t-checkbox-group v-model="form.roleIds" class="user-role-options"><t-checkbox v-for="option in roleOptions" :key="option.value" :value="option.value" :disabled="form.id==='MOCK_LOCAL_ADMIN'&&option.value==='ROLE_SUPER'">{{option.label}}</t-checkbox></t-checkbox-group></div>
         </div>
-        <t-alert theme="info" class="user-source-alert">
-          当前仅模拟本地管理账号及门户角色关系；真实密码凭证、首次改密和锁定策略将在数据库与后端阶段接入。
-        </t-alert>
       </template>
       <template v-else>
         <div v-if="formMode==='createExternal'" class="form-grid">
@@ -107,7 +101,6 @@
         <div class="form-field full"><label>新密码 <span class="portal-required">*</span></label><t-input v-model="resetForm.newPassword" type="password" autocomplete="new-password" placeholder="请输入新密码"/></div>
         <div class="form-field full"><label>确认新密码 <span class="portal-required">*</span></label><t-input v-model="resetForm.confirmPassword" type="password" autocomplete="new-password" placeholder="请再次输入新密码"/></div>
       </div>
-      <t-alert theme="warning" class="user-source-alert">当前为演示环境：密码仅用于本次格式校验，不会保存为登录凭证；确认后只记录重置状态和时间。</t-alert>
     </t-dialog>
   </section>
 </template>
@@ -234,7 +227,7 @@ async function saveResetPassword(){
   try{
     const result=await command('resetLocalPassword',{id:resetTarget.value.id,version:resetTarget.value.version,newPassword:resetForm.newPassword,confirmPassword:resetForm.confirmPassword});
     if(!result.ok){resetError.value=result.error.message;return;}
-    resetVisible.value=false;MessagePlugin.success('已记录演示重置状态；真实登录凭证未更新');emit('saved');
+    resetVisible.value=false;MessagePlugin.success('密码重置记录已更新');emit('saved');
   }finally{resetSaving.value=false;}
 }
 watch(resetVisible,visible=>{if(!visible){resetForm.newPassword='';resetForm.confirmPassword='';resetTarget.value=null;resetError.value='';}});

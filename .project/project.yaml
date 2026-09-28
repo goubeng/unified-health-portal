@@ -2,7 +2,7 @@ project:
   name: "卫健XC统一门户系统"
   code: ""
   type: "new"
-  stage: "P4"
+  stage: "P5"
   version: "0.2.0"
   baseline: "V20260921-01"
 
@@ -30,17 +30,18 @@ stage_review:
   p1: "PASS_DESIGN"
   p2: "PASS_DESIGN"
   p3: "PASS_STAGE_GATE"
-  p4: "A3_IN_PROGRESS_TEST_RERUN_PENDING"
+  p4: "PASS_STAGE_GATE"
+  p5: "PASS_DEMO_SCOPE_NEXT_STAGE_DEFINITION_READY"
   p3_native_tables: 32
   p3_business_fields: 356
   p3_seed_rows: 12
   p3_constraints: "199_CONSTRAINTS_VERIFIED_PG14_20"
-  baseline_status: "A2 manual acceptance passed on prior baseline / A3 latest-HEAD regression and demo freeze pending"
-  report: "docs/02-开发/02-评审/P0-P2阶段审查.md"
+  baseline_status: "2026-09-24 database demo manual acceptance passed; 2026-09-28 235 tests passed, latest password dialog browser recheck pending"
+  report: "docs/02-开发/02-评审/当前P4-P5阶段Gate复核.md"
 
 prototype:
   mode: "demo_first"
-  data_mode: "mock_first"
+  data_mode: "database_demo_with_mock_login"
   integration_mode:
     todo: "push"
     message: "push"

@@ -258,7 +258,7 @@ export function createPortalService(provider,getActor){
      if(a.authType!=='LOCAL'||p.id&&p.id!==a.id)fail('FORBIDDEN','仅本地账号可修改自己的密码');
      const x=requireRow(d.users,a.id,p.version),passwordError=validateLocalPassword({...p,requireCurrent:true});
      if(passwordError)fail('VALIDATION_ERROR',passwordError);
-     x.passwordChangedAt=now;x.credentialStatus='MOCK_CHANGE_RECORDED';result=stamp(x);
+     x.mustChangePassword=false;x.passwordChangedAt=now;x.credentialStatus='MOCK_CHANGE_RECORDED';result=stamp(x);
     }else if(action==='unlockLocalUser'){
      const x=requireRow(d.users,p.id,p.version);if(x.authType!=='LOCAL')fail('INVALID_TRANSITION','仅门户本地账号支持门户解锁');
      x.lockedUntil=null;x.failedLoginCount=0;result=stamp(x);

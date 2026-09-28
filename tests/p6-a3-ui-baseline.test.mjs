@@ -544,7 +544,7 @@ test('门户管理用户按认证类型区分标签且不把LOCAL作为普通用
 test('系统提示框统一13px紧凑高度并覆盖用户详情来源提示',()=>{
   const user=fs.readFileSync('src/components/portal/UserManagement.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(user.includes('class="user-source-alert"'));
+  assert(user.includes('class="user-source-alert user-detail-source-alert"'));
   assert(user.includes('门户仅维护管理端授权，不修改上游权威身份主数据'));
   assert(css.includes('/* 2026-09-21 unified compact prompt/alert baseline. */'));
   assert(css.includes('.portal-page .t-alert,'));

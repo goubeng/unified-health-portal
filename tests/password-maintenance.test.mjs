@@ -42,15 +42,18 @@ test('模拟 API 重置和自行修改只持久化安全状态，失败请求也
  const reset=await request('command',{action:'resetLocalPassword',payload:{id:'MOCK_LOCAL_ADMIN',newPassword:'ResetA1!demo',confirmPassword:'ResetA1!demo'}});
  assert.equal(reset.status,200);
  assert.equal(reset.result.data.credentialStatus,'MOCK_RESET');
+ assert.equal(reset.result.data.mustChangePassword,true);
  const mismatch=await request('command',{action:'changeLocalPassword',payload:{id:'MOCK_LOCAL_ADMIN',currentPassword:'OldA1!demo',newPassword:'ChangeB2@demo',confirmPassword:'MismatchC3#demo'}});
  assert.equal(mismatch.status,400);
  assert.equal(mismatch.result.error.code,'VALIDATION_ERROR');
  const changed=await request('command',{action:'changeLocalPassword',payload:{id:'MOCK_LOCAL_ADMIN',currentPassword:'OldA1!demo',newPassword:'ChangeB2@demo',confirmPassword:'ChangeB2@demo'}});
  assert.equal(changed.status,200);
  assert.equal(changed.result.data.credentialStatus,'MOCK_CHANGE_RECORDED');
+ assert.equal(changed.result.data.mustChangePassword,false);
  const stored=(await repository.load()).state.users.find(user=>user.id==='MOCK_LOCAL_ADMIN');
  assert(stored.passwordResetAt);
  assert(stored.passwordChangedAt);
+ assert.equal(stored.mustChangePassword,false);
  for(const secret of ['ResetA1!demo','OldA1!demo','ChangeB2@demo','MismatchC3#demo']){
   assert(!JSON.stringify(events).includes(secret));
   assert(!JSON.stringify((await repository.load()).state).includes(secret));

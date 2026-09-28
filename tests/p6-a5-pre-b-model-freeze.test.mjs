@@ -89,9 +89,9 @@ test('demo closeout documents use V20260921-01 and do not claim production integ
   assert(plan.includes('MANUAL_PASS'));
   assert(plan.includes('DEMO_FRONTEND_FROZEN'));
   assert(plan.includes('OUT_OF_CURRENT_DEMO_SCOPE'));
-  assert(baseline.includes('A3_IN_PROGRESS / TEST_RERUN_PENDING'));
+  assert(baseline.includes('P4_GATE_PASS / P5_DEMO_SCOPE_PASS'));
   assert(baseline.includes('MANUAL_PASS'));
-  assert(baseline.includes('MEMORY_A'));
+  assert(baseline.includes('npm run dev:mock'));
   assert(baseline.includes('生产级数据库改造和真实联调不属于当前原型验收范围'));
   assert(!baseline.includes('生产级数据库改造和真实联调已完成'));
 });
