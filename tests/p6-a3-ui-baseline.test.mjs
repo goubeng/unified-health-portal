@@ -1304,3 +1304,10 @@ test('待办任务和消息中心加宽来源应用查询项',()=>{
   assert(css.includes('.portal-message-center .query-width-source .t-select__wrap'));
   assert(css.includes('width:250px!important;'));
 });
+
+
+test('待办任务最后一行保留下边框',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(css.includes('.public-portal-secondary-shell .public-todo-list .public-record-item:last-child{'));
+  assert(css.includes('border-bottom:1px solid #edf1f6!important;'));
+});
