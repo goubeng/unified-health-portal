@@ -1620,3 +1620,10 @@ test('公众门户用户浮层显示当前用户类型标签',()=>{
   assert(css.includes('.public-portal-account-meta{'));
   assert(css.includes('.public-portal-user-type-tag{'));
 });
+
+
+test('首页来源系统去掉来自文字前缀',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  assert(source.includes('<span><Icon name="app"/>{{ text(item.appName) }}</span>'));
+  assert(!source.includes('<em>来自：</em>'));
+});
