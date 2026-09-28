@@ -257,7 +257,8 @@ async function load(){
  try{
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
   const tasks={};
-  if(shouldLoadAppCatalog(isAdmin,actor.value))tasks.apps=read(isAdmin?'adminApps':'apps');
+  const needsAppCatalog=isAdmin?shouldLoadAppCatalog(true,actor.value):(center||key==='myApplicationRequests');
+  if(needsAppCatalog)tasks.apps=read(isAdmin?'adminApps':'apps');
   if(can(actor.value,'application:view'))tasks.categories=read('categories');
   if(isAdmin&&key==='apps'&&can(actor.value,'integration:view'))tasks.accessProfiles=read('access');
   if(home){
@@ -308,7 +309,7 @@ function resetQuery(){
  tableSort.value=listResource.value==='applicationRequests'?{sortBy:'submittedAt',descending:true}:null;
  page.value=1;appPages.mine=1;appPages.other=1;
 }
-watch(()=>route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
+watch(()=>preview.value?route.path:route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
 watch(revision,load);
 const queryWidthClass=key=>({
  category:'query-width-category',
