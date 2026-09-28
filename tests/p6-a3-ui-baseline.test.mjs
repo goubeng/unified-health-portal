@@ -1264,3 +1264,16 @@ test('首页我的应用样式作用域命中实际首页结构',()=>{
   assert(css.includes('.public-portal-shell .public-portal-apps .public-portal-app-category{'));
   assert(!css.includes('.public-portal-home .public-portal-app-item{'));
 });
+
+
+test('应用中心图标背景配色与首页保持一致',()=>{
+  const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  const homeCss=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(cards.includes(`:class="'icon-tone-'+(index%7)"`));
+  for(let i=0;i<7;i++)assert(css.includes('.portal-app-logo.icon-tone-'+i));
+  assert(css.includes('linear-gradient(145deg,#4bbcff,#1382ee)'));
+  assert(css.includes('linear-gradient(145deg,#62df9a,#21bd72)'));
+  assert(homeCss.includes('.public-portal-app-icon.tone-0{background:linear-gradient(145deg,#4bbcff,#1382ee)'));
+  assert(homeCss.includes('.public-portal-app-icon.tone-1{background:linear-gradient(145deg,#62df9a,#21bd72)'));
+});
