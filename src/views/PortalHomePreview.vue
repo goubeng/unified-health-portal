@@ -64,7 +64,11 @@
               <span class="todo-dot"></span>
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
-                <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
+                <small class="public-portal-row-meta">
+                  <span><Icon name="app"/><em>来自：</em>{{ text(item.appName) }}</span>
+                  <i></i>
+                  <span><Icon name="time"/>{{ date(item.receivedAt) }}</span>
+                </small>
               </span>
             </button>
             <EmptyState v-if="!homeTodos.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无待办"/>
@@ -79,7 +83,11 @@
               <span class="todo-dot"></span>
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
-                <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
+                <small class="public-portal-row-meta">
+                  <span><Icon name="app"/><em>来自：</em>{{ text(item.appName) }}</span>
+                  <i></i>
+                  <span><Icon name="time"/>{{ date(item.receivedAt) }}</span>
+                </small>
               </span>
             </button>
             <EmptyState v-if="!homeMessages.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无未读消息"/>
@@ -148,7 +156,7 @@
 <script setup>
 import {computed,onMounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {AppIcon,ChevronDownIcon,ChevronRightIcon,MailIcon,NotificationIcon,TaskIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,ChevronDownIcon,ChevronRightIcon,Icon,MailIcon,NotificationIcon,TaskIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import {actor,command,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
