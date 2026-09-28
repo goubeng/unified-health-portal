@@ -97,7 +97,7 @@
               </span>
               <span class="public-portal-notice-copy">
                 <strong>{{ text(item.title) }}</strong>
-                <small>发布时间：{{ date(item.publishedAt) }}</small>
+                <small><span>发布类型：{{ text(item.type)||'通知' }}</span><i></i><span>发布对象：{{ label(item.scope||'ALL') }}</span></small>
               </span>
             </button>
             <EmptyState v-if="!homeAnnouncements.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无公告"/>
@@ -139,7 +139,7 @@ import {AppIcon,ChevronDownIcon,ChevronRightIcon,MailIcon,NotificationIcon,TaskI
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import {actor,command,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
-import {date,latest,text} from '../components/portal/presentation.js';
+import {date,label,latest,text} from '../components/portal/presentation.js';
 import EmptyState from '../components/portal/EmptyState.vue';
 import heroImage from '../assets/login-health3-bg-3840x2160.png';
 import '../styles/portal-home-preview.css';
