@@ -4,6 +4,7 @@ import {actor} from './services/runtime.js';
 import Login from './views/Login.vue';
 import AuthResult from './views/AuthResult.vue';
 import PortalPage from './views/PortalPage.vue';
+import PortalHomePreview from './views/PortalHomePreview.vue';
 
 const compatibilityRedirects=[
  {path:'/admin/app-categories',redirect:'/admin/dictionaries'},
@@ -11,6 +12,7 @@ const compatibilityRedirects=[
 ];
 
 const routes=[
+ {path:'/portal-preview/home',name:'PG-PREVIEW-HOME',component:PortalHomePreview,meta:{title:'门户首页预览',group:'门户预览',resource:'portalHomePreview',layout:'portal-preview'}},
  {path:'/',redirect:'/portal/home'},
  ...compatibilityRedirects,
  ...pages.filter(page=>!page.hidden).map(page=>({
