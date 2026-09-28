@@ -408,29 +408,6 @@
 .public-portal-secondary-shell .portal-app-center .portal-app-section{
   border-radius:0!important;
 }
-.public-portal-secondary-shell .public-portal-subpage-head.is-app-center{
-  min-height:68px;
-}
-.public-portal-subpage-actions{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-.public-portal-app-banner-icon{
-  width:52px;
-  height:52px;
-  flex:none;
-  display:grid;
-  place-items:center;
-  border-radius:12px;
-  background:#eef1ff;
-  color:var(--portal-primary);
-  font-size:26px;
-}
-.public-portal-app-banner-icon .t-icon{
-  width:26px!important;
-  height:26px!important;
-}
 @media(max-width:760px){
   .public-portal-secondary-shell .portal-app-center>.portal-query .portal-query-keyword,
   .public-portal-secondary-shell .portal-app-center>.portal-query .portal-query-select{
@@ -438,16 +415,6 @@
   }
   .public-portal-secondary-shell .portal-app-center>.portal-query .portal-query-action{
     width:auto!important;
-  }
-  .public-portal-app-banner-icon{
-    width:44px;
-    height:44px;
-    border-radius:10px;
-    font-size:22px;
-  }
-  .public-portal-app-banner-icon .t-icon{
-    width:22px!important;
-    height:22px!important;
   }
 }
 
@@ -599,4 +566,8 @@
   font-size:15px;
   font-weight:500;
   letter-spacing:.02em;
+}
+
+.public-app-center-banner{
+  margin-bottom:18px;
 }
