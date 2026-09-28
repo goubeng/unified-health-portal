@@ -5,7 +5,6 @@
         <button class="public-portal-brand" type="button" @click="go('/home')">
           <span class="public-portal-brand-copy">
             <strong>卫健XC统一门户</strong>
-            <small>便民 · 协同 · 服务</small>
           </span>
         </button>
 
