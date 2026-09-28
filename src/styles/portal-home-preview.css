@@ -146,3 +146,20 @@
 .public-portal-home .public-portal-app-category.category-tone-3{background:#f1edff;color:#6b4fd8}
 .public-portal-home .public-portal-app-category.category-tone-4{background:#fff3e8;color:#c86b16}
 .public-portal-home .public-portal-app-category.category-tone-5{background:#edf7ee;color:#2f7d4a}
+
+/* Align home "view all" text and arrow */
+.public-portal-section-head button{
+  display:inline-flex;
+  min-height:32px;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:0;
+  line-height:1;
+}
+.public-portal-section-head button .t-icon{
+  display:block;
+  width:16px!important;
+  height:16px!important;
+  flex:none;
+}
