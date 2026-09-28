@@ -110,7 +110,7 @@
               <span class="public-portal-app-icon" :class="'tone-'+(index%7)"><AppIcon /></span>
               <span class="public-portal-app-copy">
                 <strong class="public-portal-app-name">{{ text(app.name) }}</strong>
-                <small>{{ app.category || '业务应用' }}</small>
+                <small class="public-portal-app-category" :class="categoryTone(app.category)">{{ app.category || '业务应用' }}</small>
               </span>
             </button>
             <button type="button" class="public-portal-app-item" @click="go('apps')">
@@ -211,6 +211,12 @@ async function enterApp(app){
 function openTodo(){go('todos');}
 function openAnnouncement(item){router.push(portalBase.value+'/announcements/'+encodeURIComponent(item.id));}
 function openMessage(item){router.push({path:portalBase.value+'/messages',query:{messageId:item.id}});}
+function categoryTone(category){
+  const value=text(category)||'业务应用';
+  let hash=0;
+  for(const char of value)hash=(hash+char.codePointAt(0))%5;
+  return 'category-tone-'+(hash+1);
+}
 function shortDate(value){const output=date(value);return output==='-'?output:String(output).slice(0,10);}
 async function exitSystem(){
   accountOpen.value=false;
