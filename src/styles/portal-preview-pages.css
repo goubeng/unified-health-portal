@@ -1,0 +1,31 @@
+.public-portal-secondary-shell{background:#f5f8fc}
+.public-portal-secondary-shell .public-portal-header{position:sticky;top:0}
+.public-portal-subpage-wrap{width:min(1440px,calc(100% - 56px));margin:0 auto;padding:24px 0 36px}
+.public-portal-subpage-head{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+.public-portal-subpage-title-row{min-width:0;display:flex;align-items:center;gap:8px}
+.public-portal-subpage-head h1{margin:0;color:#172b4d;font-size:20px;font-weight:600}
+.public-portal-subpage-back{width:30px;height:30px;border:0;border-radius:50%;background:#fff;color:#45536a;font-size:25px;line-height:1;cursor:pointer}
+.public-portal-subpage-back:hover{background:#eef1ff;color:var(--portal-primary)}
+.public-portal-subpage-head .page-header-extra-host{display:flex;align-items:center;color:#667085;font-size:12px}
+.public-portal-subpage-head .page-header-actions-host{display:flex;align-items:center;gap:8px}
+.public-portal-subpage-content{min-width:0}
+.public-portal-secondary-shell .portal-page{min-width:0}
+.public-portal-secondary-shell .portal-query{margin:0 0 16px;padding:14px 16px;border:1px solid #e7edf5;border-radius:8px;background:#fff;min-height:auto}
+.public-portal-secondary-shell .portal-table-panel,
+.public-portal-secondary-shell .panel{border:1px solid #e7edf5;border-radius:8px;box-shadow:0 5px 18px rgba(28,73,120,.045)}
+.public-portal-secondary-shell .portal-table-panel{padding:16px 18px}
+.public-portal-secondary-shell .portal-list{min-width:0}
+.public-portal-secondary-shell .portal-field-link{color:var(--portal-primary)!important}
+.public-portal-secondary-shell .portal-field-link:hover{color:var(--portal-primary-dark)!important}
+.public-portal-secondary-shell .portal-app-section+.portal-app-section{margin-top:16px}
+.public-portal-secondary-shell .portal-app-card{border-radius:8px}
+.public-portal-secondary-shell .portal-app-card:hover{border-color:#c8d2ff;background:#fbfcff}
+.public-portal-secondary-shell .portal-app-logo{background:#eef1ff;color:var(--portal-primary)}
+.public-portal-secondary-shell .t-pagination{margin-top:16px}
+.public-portal-secondary-shell .t-button--theme-primary.t-button--variant-text{color:var(--portal-primary)}
+.public-portal-secondary-shell .portal-title-count{font-size:12px;color:#667085}
+.public-portal-secondary-shell .portal-title-count-number{color:#e34d59}
+@media(max-width:900px){
+  .public-portal-subpage-wrap{width:calc(100% - 28px);padding-top:18px}
+  .public-portal-subpage-head{min-height:46px}
+}
