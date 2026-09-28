@@ -85,7 +85,6 @@
 .notice-dot{width:7px;height:7px;border-radius:50%;background:#1d82f1}
 .notice-dot.dot-0{background:#ff3c43}.notice-dot.dot-1{background:#ff8500}.notice-dot.dot-2{background:#2384ed}.notice-dot.dot-3{background:#31be73}.notice-dot.dot-4{background:#16a2df}
 .public-portal-message-row{min-height:58px;display:grid;grid-template-columns:minmax(0,1fr);align-items:center;gap:10px}
-.public-portal-message-row time{text-align:right;color:#96a2b4;font-size:12px}
 .public-portal-empty{height:220px;display:grid;place-items:center;color:#a2adbc}
 .public-portal-error{margin-top:18px;padding:12px 16px;border:1px solid #f4c4c1;border-radius:8px;background:#fff5f4;color:#c84843}
 .public-portal-error button{margin-left:10px;border:0;background:transparent;color:#1677e9;cursor:pointer}
