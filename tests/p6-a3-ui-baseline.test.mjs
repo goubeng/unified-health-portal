@@ -1389,12 +1389,13 @@ test('首页通知公告使用日期块和发布时间布局',()=>{
   assert(source.includes('class="public-portal-notice-date"'));
   assert(source.includes('{{ noticeDay(item.publishedAt) }}'));
   assert(source.includes('{{ noticeMonth(item.publishedAt) }}'));
-  assert(source.includes('发布时间：{{ date(item.publishedAt) }}'));
+  assert(source.includes("发布类型：{{ text(item.type)||'通知' }}"));
+  assert(source.includes("发布对象：{{ label(item.scope||'ALL') }}"));
   assert(source.includes("function noticeDateParts(value)"));
   assert(css.includes('.public-portal-notice-date{'));
-  assert(css.includes('background:linear-gradient(180deg,#f3f7ff 0%,#e7f0ff 100%);'));
-  assert(css.includes('color:#2148b8!important;'));
-  assert(css.includes('color:#315fbd;'));
+  assert(css.includes('background:linear-gradient(145deg,#315fdb,#2454ff);'));
+  assert(css.includes('color:#fff!important;'));
+  assert(css.includes('color:rgba(255,255,255,.9);'));
   assert(css.includes('.public-portal-notice-copy>small{'));
 });
 
@@ -1445,4 +1446,15 @@ test('公众端Banner统一使用cover居中裁切适配',()=>{
   assert(pagesCss.includes('height:132px;'));
   assert(!pagesCss.includes('aspect-ratio:10 / 1;'));
   assert(pagesCss.includes('.public-announcement-banner{height:110px;min-height:110px}'));
+});
+
+
+test('首页公告元信息改为发布类型和发布对象',()=>{
+  const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(source.includes("import {date,label,latest,text} from '../components/portal/presentation.js';"));
+  assert(source.includes("发布类型：{{ text(item.type)||'通知' }}"));
+  assert(source.includes("发布对象：{{ label(item.scope||'ALL') }}"));
+  assert(!source.includes('发布时间：{{ date(item.publishedAt) }}'));
+  assert(css.includes('.public-portal-notice-copy>small i{'));
 });
