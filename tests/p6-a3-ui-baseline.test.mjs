@@ -1277,3 +1277,18 @@ test('应用中心图标背景配色与首页保持一致',()=>{
   assert(homeCss.includes('.public-portal-app-icon.tone-0{background:linear-gradient(145deg,#4bbcff,#1382ee)'));
   assert(homeCss.includes('.public-portal-app-icon.tone-1{background:linear-gradient(145deg,#62df9a,#21bd72)'));
 });
+
+
+test('应用中心卡片使用首页同款图标并采用两行布局',()=>{
+  const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(cards.includes('<AppIcon />'));
+  assert(cards.includes('actionRow:Boolean'));
+  assert(cards.includes("actionRow?'has-action-row':''"));
+  assert(cards.includes('v-if="actionRow" class="portal-app-result portal-app-action-row"'));
+  assert(page.includes('<AppCards :apps="group.rows" action-row'));
+  assert(css.includes('.portal-app-card.has-action-row{'));
+  assert(css.includes('grid-template-columns:38px minmax(0,1fr)!important;'));
+  assert(css.includes('.portal-app-action-row{'));
+});
