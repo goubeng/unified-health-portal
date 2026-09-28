@@ -834,3 +834,29 @@
   height:18px!important;
   flex:none;
 }
+
+/* Todo task type and status tags */
+.public-portal-secondary-shell .public-todo-title-line{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  gap:8px;
+}
+.public-portal-secondary-shell .public-todo-title-line>strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.public-portal-secondary-shell .public-todo-status-tag,
+.public-portal-secondary-shell .public-todo-type-tag{
+  flex:none;
+  margin:0;
+  font-size:12px!important;
+}
+.public-portal-secondary-shell .public-todo-type-tag{
+  max-width:160px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
