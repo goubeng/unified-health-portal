@@ -67,7 +67,7 @@
                 <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
               </span>
             </button>
-            <div v-if="!homeTodos.length && !loading" class="public-portal-empty">暂无待办</div>
+            <EmptyState v-if="!homeTodos.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无待办"/>
           </article>
 
           <article class="public-portal-card public-portal-feed-card">
@@ -82,7 +82,7 @@
                 <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
               </span>
             </button>
-            <div v-if="!homeMessages.length && !loading" class="public-portal-empty">暂无未读消息</div>
+            <EmptyState v-if="!homeMessages.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无未读消息"/>
           </article>
 
           <article class="public-portal-card public-portal-feed-card">
@@ -100,7 +100,7 @@
                 <small>发布时间：{{ date(item.publishedAt) }}</small>
               </span>
             </button>
-            <div v-if="!homeAnnouncements.length && !loading" class="public-portal-empty">暂无公告</div>
+            <EmptyState v-if="!homeAnnouncements.length && !loading" class="public-portal-empty public-portal-home-empty" description="暂无公告"/>
           </article>
         </section>
 
@@ -147,6 +147,7 @@ import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import {actor,command,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
 import {date,latest,text} from '../components/portal/presentation.js';
+import EmptyState from '../components/portal/EmptyState.vue';
 import heroImage from '../assets/login-health3-bg-3840x2160.png';
 import '../styles/portal-home-preview.css';
 
