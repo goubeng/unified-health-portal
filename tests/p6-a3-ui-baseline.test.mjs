@@ -1292,3 +1292,15 @@ test('应用中心卡片使用首页同款图标并采用两行布局',()=>{
   assert(css.includes('grid-template-columns:38px minmax(0,1fr)!important;'));
   assert(css.includes('.portal-app-action-row{'));
 });
+
+
+test('待办任务和消息中心加宽来源应用查询项',()=>{
+  const todo=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
+  const message=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(todo.includes('class="portal-query-select query-width-source"'));
+  assert(message.includes('class="portal-query-select query-width-source"'));
+  assert(css.includes('.todo-center .query-width-source .t-select__wrap'));
+  assert(css.includes('.portal-message-center .query-width-source .t-select__wrap'));
+  assert(css.includes('width:250px!important;'));
+});
