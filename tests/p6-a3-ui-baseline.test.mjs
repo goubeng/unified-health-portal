@@ -1078,7 +1078,7 @@ test('通知公告使用标签元信息和单行Banner',()=>{
   assert(page.includes('class="public-announcement-meta-tag"'));
   assert(page.includes('class="public-announcement-meta-tag scope"'));
   assert(layout.includes("import announcementBanner from '../assets/login-health3-bg-3840x2160.png';"));
-  assert(layout.includes('v-if="isAnnouncementListPage" class="public-announcement-banner"'));
+  assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
   assert(css.includes('.portal-announcement-center>.portal-query{'));
   assert(css.includes('.public-announcement-item .public-record-main strong{'));
   assert(css.includes('font-size:16px;'));
@@ -1107,7 +1107,7 @@ test('通知公告标题显示在Banner内且列表页隐藏外部标题',()=>{
 
 test('应用中心标题显示在Banner内且去掉独立页标题图标',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
-  assert(layout.includes('v-if="isAppCenterPage" class="public-announcement-banner public-app-center-banner"'));
+  assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
   assert(layout.includes('<strong>应用中心</strong>'));
   assert(layout.includes('汇聚卫生健康服务应用 · 便捷访问常用业务系统'));
   assert(!layout.includes('public-portal-app-banner-icon'));
@@ -1118,8 +1118,24 @@ test('应用中心标题显示在Banner内且去掉独立页标题图标',()=>{
 test('消息中心列表页使用Banner且详情页保留外部标题',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
   assert(layout.includes("const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId)"));
-  assert(layout.includes('v-if="isMessageListPage" class="public-announcement-banner public-message-center-banner"'));
+  assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
   assert(layout.includes('<strong>消息中心</strong>'));
   assert(layout.includes('集中查看业务消息与系统通知'));
   assert(layout.includes("const showSubpageHead=computed(()=>!isAppCenterPage.value&&!isAnnouncementListPage.value&&!isMessageListPage.value)"));
+});
+
+
+test('公众端全部二级列表页统一Banner和查询布局',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  for(const title of ['待办任务','消息中心','通知公告','应用中心','我的申请','个人中心']){
+    assert(layout.includes("title:'"+title+"'"),title+' 未接入统一Banner');
+  }
+  assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
+  assert(layout.includes('id="page-header-extra" class="page-header-extra-host"'));
+  assert(layout.includes('id="page-header-actions" class="page-header-actions-host public-portal-banner-actions"'));
+  assert(css.includes('.public-portal-secondary-shell .portal-query.list-toolbar{'));
+  assert(css.includes('background:transparent!important;'));
+  assert(css.includes('.portal-query.list-toolbar .query-reset-button{'));
+  assert(css.includes('min-width:64px!important;'));
 });
