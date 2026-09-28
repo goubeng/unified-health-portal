@@ -94,6 +94,9 @@
    <LogManagement v-else-if="resource.startsWith('logs:')" :rows="rows" :kind="resource.split(':')[1]" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest" @enter="enterAppByRequest" @detail="showDetail($event,'myApplicationRequests')"/>
    <template v-else-if="resource==='announcementDetail'">
+    <Teleport v-if="preview&&detail" to="#page-header-current-title">
+      <span>{{ text(detail.title)||'公告详情' }}</span>
+    </Teleport>
     <AnnouncementDetail v-if="detail" :record="detail" @download="download"/>
     <section v-else class="panel"><EmptyState description="公告不存在或暂无查看权限"/></section>
     <AnnouncementEditPage
