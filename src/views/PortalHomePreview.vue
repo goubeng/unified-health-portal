@@ -129,6 +129,16 @@
         </div>
       </div>
     </main>
+
+    <t-dialog v-model:visible="homeTodoDetailVisible" placement="center" header="待办详情" width="900px">
+      <TodoDetailContent :record="homeTodoActive"/>
+      <template #footer>
+        <div class="todo-detail-footer">
+          <t-button variant="outline" @click="homeTodoDetailVisible=false">关闭</t-button>
+          <t-button v-if="homeTodoActive?.status==='PENDING'" theme="primary" @click="processHomeTodo(homeTodoActive)">去处理</t-button>
+        </div>
+      </template>
+    </t-dialog>
   </div>
 </template>
 
@@ -141,6 +151,7 @@ import {actor,command,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
 import {date,label,latest,text} from '../components/portal/presentation.js';
 import EmptyState from '../components/portal/EmptyState.vue';
+import TodoDetailContent from '../components/portal/TodoDetailContent.vue';
 import heroImage from '../assets/login-health3-bg-3840x2160.png';
 import '../styles/portal-home-preview.css';
 
@@ -155,6 +166,8 @@ const homeApps=ref([]);
 const homeTodos=ref([]);
 const homeMessages=ref([]);
 const homeAnnouncements=ref([]);
+const homeTodoDetailVisible=ref(false);
+const homeTodoActive=ref(null);
 const accountOpen=ref(false);
 const heroBackground=computed(()=>`url("${heroImage}")`);
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
@@ -207,7 +220,28 @@ async function enterApp(app){
   }
 }
 
-function openTodo(){go('todos');}
+function openTodo(item){
+  if(!item)return;
+  homeTodoActive.value=JSON.parse(JSON.stringify(item));
+  homeTodoDetailVisible.value=true;
+}
+async function processHomeTodo(item){
+  if(!item?.id)return;
+  try{
+    const result=await command('openTodo',{id:item.id});
+    if(!result.ok){MessagePlugin.error(text(result.error.message));return;}
+    homeTodoDetailVisible.value=false;
+    const dialog=DialogPlugin.alert({
+      placement:'center',
+      header:'待办处理',
+      body:text(result.data.message),
+      confirmBtn:'知道了',
+      onConfirm:()=>dialog.hide()
+    });
+  }catch(cause){
+    MessagePlugin.error(text(cause?.message||'待办处理失败'));
+  }
+}
 function openAnnouncement(item){router.push(portalBase.value+'/announcements/'+encodeURIComponent(item.id));}
 function openMessage(item){router.push({path:portalBase.value+'/messages',query:{messageId:item.id}});}
 function categoryTone(category){
