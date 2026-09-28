@@ -182,19 +182,20 @@
   align-items:center;
   justify-content:center;
   border-radius:5px;
-  background:linear-gradient(145deg,#315fdb,#2454ff);
-  color:#fff;
-  box-shadow:0 3px 10px rgba(36,84,255,.12);
+  border:1px solid #dbe7ff;
+  background:linear-gradient(180deg,#f3f7ff 0%,#e7f0ff 100%);
+  color:#2148b8;
+  box-shadow:0 2px 8px rgba(36,84,255,.06);
 }
 .public-portal-notice-date>strong{
-  color:#fff!important;
+  color:#2148b8!important;
   font-size:20px!important;
   line-height:22px!important;
   font-weight:600!important;
 }
 .public-portal-notice-date>small{
   margin-top:2px;
-  color:rgba(255,255,255,.9);
+  color:#315fbd;
   font-size:12px;
   line-height:16px;
 }
