@@ -1634,3 +1634,13 @@ test('顶部消息徽标靠近铃铛并收紧用户区间距',()=>{
   assert(css.includes('.public-portal-user-area{min-width:215px;display:flex;align-items:center;justify-content:flex-end;gap:8px}'));
   assert(css.includes('top:2px!important;right:2px!important;transform:translate(35%,-35%)!important'));
 });
+
+
+test('公众门户头部去掉系统名称下方副文案',()=>{
+  const home=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(!home.includes('便民 · 协同 · 服务'));
+  assert(!layout.includes('便民 · 协同 · 服务'));
+  assert(home.includes('<strong>卫健XC统一门户</strong>'));
+  assert(layout.includes('<strong>卫健XC统一门户</strong>'));
+});
