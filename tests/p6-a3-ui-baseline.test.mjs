@@ -1418,3 +1418,16 @@ test('首页我的应用最多显示8条并移除更多应用卡片',()=>{
   assert(!source.includes('class="public-portal-app-name">更多应用</strong>'));
   assert(!source.includes('查看全部应用'));
 });
+
+
+test('公众二级页内容区统一为应用中心方角卡片',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(css.includes('.public-portal-secondary-shell .portal-table-panel,'));
+  assert(css.includes('.public-portal-secondary-shell .message-content-shell,'));
+  assert(css.includes('.public-portal-secondary-shell .my-applications,'));
+  assert(css.includes('.public-portal-secondary-shell .public-announcement-list,'));
+  assert(css.includes('.public-portal-secondary-shell .portal-profile{'));
+  assert(css.includes('border-radius:0!important;'));
+  assert(css.includes('border:1px solid #e7edf5!important;'));
+  assert(css.includes('background:#fff!important;'));
+});
