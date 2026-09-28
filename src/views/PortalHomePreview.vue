@@ -107,7 +107,7 @@
         <section class="public-portal-card public-portal-apps">
           <div class="public-portal-section-head">
             <h2>我的应用 <b>（{{ homeApps.length }}）</b></h2>
-            <button type="button" @click="go('apps')">查看更多 <span>›</span></button>
+            <button type="button" @click="go('apps')">查看更多 <ChevronRightIcon size="16px" /></button>
           </div>
 
           <div v-if="visibleApps.length" class="public-portal-app-grid">
@@ -116,13 +116,6 @@
               <span class="public-portal-app-copy">
                 <strong class="public-portal-app-name">{{ text(app.name) }}</strong>
                 <small class="public-portal-app-category" :class="categoryTone(app.category)">{{ app.category || '业务应用' }}</small>
-              </span>
-            </button>
-            <button type="button" class="public-portal-app-item" @click="go('apps')">
-              <span class="public-portal-app-icon tone-more"><span class="public-portal-grid-glyph">••<br/>••</span></span>
-              <span class="public-portal-app-copy">
-                <strong class="public-portal-app-name">更多应用</strong>
-                <small>查看全部应用</small>
               </span>
             </button>
           </div>
@@ -165,7 +158,7 @@ const homeAnnouncements=ref([]);
 const accountOpen=ref(false);
 const heroBackground=computed(()=>`url("${heroImage}")`);
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
-const visibleApps=computed(()=>homeApps.value.slice(0,7));
+const visibleApps=computed(()=>homeApps.value.slice(0,8));
 function go(target){
   const map=isPreviewRoute.value
     ? {home:'/home',todos:'/todos',messages:'/messages',announcements:'/announcements',apps:'/apps',applications:'/applications',profile:'/profile'}
