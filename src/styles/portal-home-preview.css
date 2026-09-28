@@ -30,7 +30,9 @@
 .public-portal-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#eef1ff;color:var(--portal-primary);font-size:19px}
 .public-portal-account-popover{width:230px;padding:12px;display:flex;flex-direction:column;gap:6px}
 .public-portal-account-popover>strong{font-size:15px;color:#1c2d49;padding:4px 8px 0}
-.public-portal-account-popover>span{font-size:12px;color:#8795aa;padding:0 8px 10px;border-bottom:1px solid #edf1f6}
+.public-portal-account-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 10px;border-bottom:1px solid #edf1f6}
+.public-portal-account-meta>span{min-width:0;overflow:hidden;color:#8795aa;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.public-portal-user-type-tag{flex:none!important;font-size:12px!important;font-weight:400!important}
 .public-portal-account-popover button{padding:9px 8px;border:0;border-radius:5px;background:transparent;color:#344054;text-align:left;cursor:pointer}
 .public-portal-account-popover button:hover{background:#f5f8fc}
 .public-portal-account-popover button.danger{color:#d54941}
