@@ -995,3 +995,16 @@
 .public-portal-secondary-shell .portal-announcement-download{
   order:3;
 }
+
+/* Unify public secondary-page content cards with application center */
+.public-portal-secondary-shell .portal-table-panel,
+.public-portal-secondary-shell .portal-app-section,
+.public-portal-secondary-shell .message-content-shell,
+.public-portal-secondary-shell .my-applications,
+.public-portal-secondary-shell .public-announcement-list,
+.public-portal-secondary-shell .portal-profile{
+  border:1px solid #e7edf5!important;
+  border-radius:0!important;
+  background:#fff!important;
+  box-shadow:0 5px 18px rgba(28,73,120,.04)!important;
+}
