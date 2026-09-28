@@ -2,7 +2,7 @@
  <div class="portal-page">
   <Teleport v-if="admin&&resource==='apps'&&canCreate" to="#page-header-actions"><t-button variant="outline" theme="primary" @click="downloadAccessSpec"><template #icon><Icon name="download"/></template>下载接口文件</t-button><t-button theme="primary" @click="openForm('saveApp')"><template #icon><Icon name="add"/></template>新增应用</t-button></Teleport>
   <Teleport v-if="admin&&resource==='categories'&&canCreate" to="#page-header-actions"><t-button theme="primary" @click="openForm('saveCategory')"><template #icon><Icon name="add"/></template>新增分类</t-button></Teleport>
-  <Teleport v-if="resource==='todos'" to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
+  <Teleport v-if="resource==='todos'" defer to="#page-header-extra"><span class="portal-title-count">（共<span class="portal-title-count-number">{{rows.length}}</span>条待办任务）</span></Teleport>
   <Teleport v-if="admin&&resource==='announcementDetail'&&detail" to="#page-header-actions">
    <t-button v-if="['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN'].includes(announcementViewStatus(detail))" theme="primary" @click="openAdminAnnouncementEdit(detail)">编辑</t-button>
    <t-button v-if="['DRAFT','WITHDRAWN','EXPIRED'].includes(announcementViewStatus(detail))" variant="outline" theme="danger" @click="removeAdminAnnouncementDetail(detail)">删除</t-button>
