@@ -35,7 +35,7 @@
 .public-portal-account-popover button:hover{background:#f5f8fc}
 .public-portal-account-popover button.danger{color:#d54941}
 
-.public-portal-hero{position:relative;height:260px;background-position:center center;background-size:cover;overflow:hidden}
+.public-portal-hero{position:relative;height:260px;background-position:center center;background-size:cover;background-repeat:no-repeat;overflow:hidden}
 .public-portal-hero-mask{position:absolute;inset:0;background:linear-gradient(to top,#f3f8fd 0%,rgba(243,248,253,.90) 12%,rgba(243,248,253,.58) 28%,rgba(243,248,253,.18) 46%,rgba(243,248,253,0) 65%);pointer-events:none}
 .public-portal-hero-content{position:relative;z-index:2;width:min(1440px,calc(100% - 56px));height:100%;margin:0 auto;padding:0 56px 0 0;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;text-align:right}
 .public-portal-hero h1{max-width:680px;margin:0;color:#0d4d99;font-size:30px;line-height:1.35;font-weight:700;letter-spacing:.08em;text-shadow:0 1px 0 rgba(255,255,255,.75)}
