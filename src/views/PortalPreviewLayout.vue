@@ -2,7 +2,7 @@
   <div class="public-portal-shell public-portal-secondary-shell">
     <header class="public-portal-header">
       <div class="public-portal-header-inner">
-        <button class="public-portal-brand" type="button" @click="router.push('/portal-preview/home')">
+        <button class="public-portal-brand" type="button" @click="go('/home')">
           <span class="public-portal-brand-copy">
             <strong>卫健XC统一门户</strong>
             <small>便民 · 协同 · 服务</small>
@@ -11,11 +11,11 @@
 
         <nav class="public-portal-nav" aria-label="公众门户导航">
           <button type="button" :class="{active:isActive('home')}" @click="router.push('/portal-preview/home')">首页</button>
-          <button type="button" :class="{active:isActive('todos')}" @click="router.push('/portal-preview/todos')">待办任务</button>
-          <button type="button" :class="{active:isActive('messages')}" @click="router.push('/portal-preview/messages')">消息中心</button>
-          <button type="button" :class="{active:isActive('announcements')}" @click="router.push('/portal-preview/announcements')">通知公告</button>
-          <button type="button" :class="{active:isActive('apps')}" @click="router.push('/portal-preview/apps')">应用中心</button>
-          <button type="button" :class="{active:isActive('applications')}" @click="router.push('/portal-preview/applications')">我的申请</button>
+          <button type="button" :class="{active:isActive('todos')}" @click="go('/todos')">待办任务</button>
+          <button type="button" :class="{active:isActive('messages')}" @click="go('/messages')">消息中心</button>
+          <button type="button" :class="{active:isActive('announcements')}" @click="go('/announcements')">通知公告</button>
+          <button type="button" :class="{active:isActive('apps')}" @click="go('/apps/all')">应用中心</button>
+          <button type="button" :class="{active:isActive('applications')}" @click="go('/applications')">我的申请</button>
         </nav>
 
         <div class="public-portal-user-area">
@@ -34,7 +34,7 @@
               <div class="public-portal-account-popover">
                 <strong>{{ displayName }}</strong>
                 <span>{{ actor?.orgName || '未提供所属单位' }}</span>
-                <button type="button" @click="router.push('/portal/profile')">个人中心</button>
+                <button type="button" @click="go('/profile')">个人中心</button>
                 <button v-if="can(actor,'any')" type="button" @click="router.push('/admin/home')">平台管理端</button>
                 <button class="danger" type="button" @click="exitSystem">退出系统</button>
               </div>
@@ -74,18 +74,27 @@ const route=useRoute();
 const router=useRouter();
 const accountOpen=ref(false);
 const unread=ref(0);
+const isPreviewRoute=computed(()=>route.path.startsWith('/portal-preview'));
+const portalBase=computed(()=>isPreviewRoute.value?'/portal-preview':'/portal');
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
 const pageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':route.meta.resource==='announcementDetail'?'公告详情':route.meta.title||'');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
 
+function go(path){
+  const target=isPreviewRoute.value&&path==='/apps/all'?'/apps':path;
+  router.push(portalBase.value+target);
+}
 function isActive(resource){
-  if(resource==='home')return route.path==='/portal-preview/home';
-  if(resource==='announcements')return route.path.startsWith('/portal-preview/announcements');
-  return route.path.startsWith('/portal-preview/'+resource);
+  const current=route.meta.resource;
+  if(resource==='home')return current==='home'||current==='portalHomePreview';
+  if(resource==='announcements')return ['announcements','announcementDetail'].includes(current);
+  if(resource==='apps')return ['apps','mine'].includes(current);
+  if(resource==='applications')return current==='myApplicationRequests';
+  return current===resource;
 }
 function backToList(){
-  if(route.meta.resource==='messages'){router.replace('/portal-preview/messages');return;}
-  if(route.meta.resource==='announcementDetail')router.push('/portal-preview/announcements');
+  if(route.meta.resource==='messages'){router.replace(portalBase.value+'/messages');return;}
+  if(route.meta.resource==='announcementDetail')router.push(portalBase.value+'/announcements');
 }
 async function exitSystem(){
   accountOpen.value=false;
