@@ -1025,3 +1025,66 @@
 .public-portal-secondary-shell .todo-center .portal-table-panel{
   padding:16px 20px 18px!important;
 }
+
+/* Compact breadcrumb header for public detail pages */
+.public-portal-subpage-head.is-breadcrumb{
+  min-height:34px!important;
+  margin-bottom:10px!important;
+}
+.public-portal-subpage-head.is-breadcrumb .public-portal-subpage-title-row{
+  width:100%;
+  min-width:0;
+}
+.public-portal-breadcrumb{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  gap:6px;
+  color:#86909c;
+  font-size:13px;
+  line-height:20px;
+}
+.public-portal-breadcrumb>button{
+  flex:none;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--portal-primary);
+  font:inherit;
+  cursor:pointer;
+}
+.public-portal-breadcrumb>button:hover{
+  color:var(--portal-primary-dark);
+}
+.public-portal-breadcrumb>.t-icon{
+  flex:none;
+  color:#a8b1bf;
+}
+.public-portal-breadcrumb-current{
+  display:block;
+  min-width:0;
+  max-width:min(760px,70vw);
+  overflow:hidden;
+  color:#4e5969;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.public-portal-breadcrumb-current>span{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.public-portal-subpage-head.is-breadcrumb .page-header-extra-host:empty,
+.public-portal-subpage-head.is-breadcrumb .page-header-actions-host:empty{
+  display:none;
+}
+@media(max-width:760px){
+  .public-portal-subpage-head.is-breadcrumb{
+    min-height:30px!important;
+    margin-bottom:8px!important;
+  }
+  .public-portal-breadcrumb-current{
+    max-width:60vw;
+  }
+}
