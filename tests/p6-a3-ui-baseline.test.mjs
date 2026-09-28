@@ -1553,3 +1553,22 @@ test('公众详情面包屑右侧增加返回按钮',()=>{
   assert(css.includes('margin-left:auto;'));
   assert(css.includes('.public-portal-breadcrumb-back{'));
 });
+
+
+test('公众消息详情保持原有信件式布局',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  assert(source.includes('class="message-detail-toolbar list-toolbar"'));
+  assert(source.includes('class="message-letter-wrap"'));
+  assert(source.includes('class="message-letter-panel"'));
+  assert(source.includes('class="message-letter"'));
+  assert(source.includes('class="message-letter-meta"'));
+  assert(source.includes('class="message-business-detail"'));
+  assert(css.includes('.public-portal-secondary-shell .portal-message-center .message-letter-panel{'));
+  assert(css.includes('width:min(960px,100%)!important;'));
+  assert(css.includes('padding:24px!important;'));
+  assert(css.includes('background:#f6f8fb!important;'));
+  assert(css.includes('.public-portal-secondary-shell .portal-message-center .message-letter{'));
+  assert(css.includes('border-top:4px solid var(--portal-primary)!important;'));
+  assert(css.includes('background:#fff!important;'));
+});
