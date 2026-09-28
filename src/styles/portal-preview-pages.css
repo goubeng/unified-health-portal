@@ -890,3 +890,54 @@
   background:linear-gradient(145deg,#a889ff,#7960ef)!important;
   color:#fff!important;
 }
+
+/* Application center two-row card layout */
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+  align-items:start!important;
+  column-gap:12px!important;
+  row-gap:10px!important;
+  min-height:98px;
+  padding:14px!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-logo{
+  grid-column:1;
+  grid-row:1;
+  width:38px!important;
+  height:38px!important;
+  margin:0!important;
+  border-radius:9px!important;
+  font-size:19px!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-logo .t-icon{
+  width:19px!important;
+  height:19px!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-info{
+  grid-column:2;
+  grid-row:1;
+  align-self:start;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-meta{
+  height:auto;
+  min-height:22px;
+  margin-top:5px;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-action-row{
+  grid-column:1/-1;
+  grid-row:2;
+  display:flex;
+  min-height:26px;
+  height:auto;
+  margin:0!important;
+  padding-top:2px;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-card.has-action-row .portal-app-action-row .portal-app-enter{
+  margin-left:0!important;
+}
