@@ -1572,3 +1572,11 @@ test('公众消息详情保持原有信件式布局',()=>{
   assert(css.includes('border-top:4px solid var(--portal-primary)!important;'));
   assert(css.includes('background:#fff!important;'));
 });
+
+
+test('个人中心使用独立Banner图片',()=>{
+  const source=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(source.includes("import profileBanner from '../assets/banner-profile.png.png';"));
+  assert(source.includes("if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:profileBanner};"));
+  assert(!source.includes("if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner};"));
+});
