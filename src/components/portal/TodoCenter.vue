@@ -86,7 +86,7 @@ import {date,label,text} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
 const route=useRoute();
-const preview=computed(()=>route.path.startsWith('/portal-preview'));
+const preview=computed(()=>route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/'));
 const keyword=ref(''),appName=ref(''),status=ref('');
 const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),active=ref(null);
