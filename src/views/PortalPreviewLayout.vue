@@ -108,7 +108,7 @@ watch([actor,revision],async(_,__,onCleanup)=>{
   onCleanup(()=>{active=false;});
   unread.value=0;
   if(!actor.value)return;
-  const result=await portal.read('home');
+  const result=await portal.read('header');
   if(active&&result.ok)unread.value=result.data.unreadCount||0;
 },{immediate:true});
 </script>
