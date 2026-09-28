@@ -1358,3 +1358,26 @@ test('我的申请使用独立Banner图片',()=>{
   assert(layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:applicationsBanner"));
   assert(!layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:todoBanner"));
 });
+
+
+test('公众公告详情头部居中且附件下载图标显示在文件大小后',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(css.includes('.public-portal-secondary-shell .portal-announcement-header{'));
+  assert(css.includes('text-align:center;'));
+  assert(css.includes('.public-portal-secondary-shell .portal-announcement-meta-inline{'));
+  assert(css.includes('justify-content:center!important;'));
+  assert(css.includes('.public-portal-secondary-shell .portal-announcement-file-name-line{'));
+  assert(css.includes('display:contents;'));
+  assert(css.includes('.public-portal-secondary-shell .portal-announcement-file-text>span{'));
+  assert(css.includes('order:2;'));
+  assert(css.includes('.public-portal-secondary-shell .portal-announcement-download{'));
+  assert(css.includes('order:3;'));
+});
+
+
+test('公众首页Banner底部使用向上渐变过渡',()=>{
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(css.includes('.public-portal-hero-mask{'));
+  assert(css.includes('linear-gradient(to top,#f3f8fd 0%'));
+  assert(css.includes('rgba(243,248,253,0) 65%'));
+});
