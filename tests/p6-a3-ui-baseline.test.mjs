@@ -1169,3 +1169,16 @@ test('消息中心使用标准表格并把批量操作放在内容区',()=>{
   assert(!source.includes('class="public-message-list"'));
   assert(css.includes('.public-portal-secondary-shell .message-content-toolbar{'));
 });
+
+
+test('消息中心列表与操作使用统一白色内容容器',()=>{
+  const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(source.includes('class="panel message-content-shell"'));
+  assert(source.includes('class="message-content-toolbar"'));
+  assert(source.includes('class="message-list-panel"'));
+  assert(!source.includes('class="panel portal-table-panel message-list-panel"'));
+  assert(css.includes('.public-portal-secondary-shell .message-content-shell{'));
+  assert(css.includes('background:#fff!important;'));
+  assert(css.includes('padding:16px 20px 18px!important;'));
+});
