@@ -1207,3 +1207,18 @@ test('服务端只读请求绕过写事务串行队列',()=>{
   assert(source.includes('else await serial(processRequest);'));
   assert(!source.includes('await serial(async()=>{\n    const readOnly='));
 });
+
+
+test('消息中心去掉列表统计并将操作按钮左对齐',()=>{
+  const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  const toolbar=source.split('class="message-content-toolbar"')[1]?.split('</div>\n\n        <section')[0]||'';
+  assert(!toolbar.includes('message-content-summary'));
+  assert(!toolbar.includes('共 {{ filteredMessages.length }} 条'));
+  assert(toolbar.includes('class="message-content-actions"'));
+  assert(toolbar.includes('删除</t-button>'));
+  assert(toolbar.includes('标记为已读</t-button>'));
+  assert(toolbar.includes('全部标为已读</t-button>'));
+  assert(css.includes('.message-content-shell .message-content-toolbar{'));
+  assert(css.includes('justify-content:flex-start!important;'));
+});
