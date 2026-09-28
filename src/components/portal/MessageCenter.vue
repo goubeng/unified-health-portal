@@ -23,7 +23,7 @@
 
         <section class="message-list-panel">
           <t-table row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
-            <template #empty><EmptyState description="暂无符合条件的消息"/></template>
+            <template #empty><EmptyState :description="statusFilter==='UNREAD'?'暂无未读的消息':'暂无符合条件的消息'"/></template>
           </t-table>
           <t-pagination v-if="filteredMessages.length" v-model="page" v-model:page-size="pageSize" :total="filteredMessages.length" :page-size-options="[10,20,50]" show-jumper/>
         </section>
