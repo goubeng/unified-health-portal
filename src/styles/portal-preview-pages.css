@@ -1015,3 +1015,8 @@
   background:#fff!important;
   box-shadow:0 5px 18px rgba(28,73,120,.04)!important;
 }
+
+/* Match todo list content spacing with message center */
+.public-portal-secondary-shell .todo-center .portal-table-panel{
+  padding:16px 20px 18px!important;
+}
