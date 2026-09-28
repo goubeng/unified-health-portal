@@ -81,7 +81,7 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
 const route=useRoute();
-const preview=computed(()=>route.path.startsWith('/portal-preview'));
+const preview=computed(()=>route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/'));
 const emit=defineEmits(['withdraw','reapply','bind','enter','detail']);
 const active=ref('APPLICATION_ACCESS');
 const accessRows=computed(()=>props.rows.filter(row=>row.requestType==='APPLICATION_ACCESS'));
