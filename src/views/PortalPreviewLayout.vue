@@ -55,7 +55,7 @@
           <div id="page-header-actions" class="page-header-actions-host"></div>
         </div>
       </div>
-      <section v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
+      <section v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner" :style="{backgroundImage:`url('${bannerInfo.image}')`}">
         <div class="public-portal-banner-inner">
           <div class="public-announcement-banner-copy">
             <div class="public-portal-banner-title">
@@ -83,7 +83,10 @@ import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
 import '../styles/portal-home-preview.css';
 import '../styles/portal-preview-pages.css';
-import announcementBanner from '../assets/login-health3-bg-3840x2160.png';
+import todoBanner from '../assets/banner-todos.png';
+import messageBanner from '../assets/banner-messages.png';
+import announcementBanner from '../assets/banner-announcements.png';
+import appsBanner from '../assets/banner-apps.png';
 
 const route=useRoute();
 const router=useRouter();
@@ -99,12 +102,12 @@ const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements')
 const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId);
 const bannerInfo=computed(()=>{
   const resource=route.meta.resource;
-  if(resource==='todos')return {title:'待办任务',subtitle:'集中处理来自各业务系统的待办事项'};
-  if(resource==='messages'&&!route.query.messageId)return {title:'消息中心',subtitle:'集中查看业务消息与系统通知'};
-  if(resource==='announcements')return {title:'通知公告',subtitle:'及时了解平台通知与重要信息'};
-  if(['apps','mine'].includes(resource))return {title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统'};
-  if(resource==='myApplicationRequests')return {title:'我的申请',subtitle:'查看应用访问与账号开通申请进度'};
-  if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料'};
+  if(resource==='todos')return {title:'待办任务',subtitle:'集中处理来自各业务系统的待办事项',image:todoBanner};
+  if(resource==='messages'&&!route.query.messageId)return {title:'消息中心',subtitle:'集中查看业务消息与系统通知',image:messageBanner};
+  if(resource==='announcements')return {title:'通知公告',subtitle:'及时了解平台通知与重要信息',image:announcementBanner};
+  if(['apps','mine'].includes(resource))return {title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner};
+  if(resource==='myApplicationRequests')return {title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:todoBanner};
+  if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner};
   return null;
 });
 const showSubpageHead=computed(()=>!bannerInfo.value);
