@@ -5,7 +5,7 @@
       <div class="portal-app-info">
         <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
         <div class="portal-app-meta">
-          <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category">{{text(app.category)||'未分类'}}</span></PortalTooltip>
+          <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category" :class="categoryTone(app.category)">{{text(app.category)||'未分类'}}</span></PortalTooltip>
         </div>
         <div class="portal-app-result">
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
@@ -28,6 +28,12 @@ import {text,label} from './presentation.js';
 const props=defineProps({apps:{type:Array,default:()=>[]},compact:Boolean,hideNormalState:Boolean});
 const emit=defineEmits(['detail','enter','bind','request','view-request','view-binding','view-conflict']);
 
+function categoryTone(category){
+ const value=text(category)||'未分类';
+ let hash=0;
+ for(const char of value)hash=(hash+char.codePointAt(0))%5;
+ return 'category-tone-'+(hash+1);
+}
 function showState(app){if(!app.accessState||app.accessState==='DIRECT')return false;if(props.hideNormalState&&app.accessState==='BOUND')return false;return true;}
 function stateText(app){
  if(app.accessState==='BOUND')return '已关联';
