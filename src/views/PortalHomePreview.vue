@@ -57,23 +57,21 @@
         <section class="public-portal-feed-grid">
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><TaskIcon class="feed-title-icon" /> 我的待办 <b class="danger-count">（{{ overview.todoCount ?? homeTodos.length }}）</b></h2>
+              <h2><span class="feed-title-icon todo-title"><TaskIcon /></span> 我的待办 <b class="danger-count">（{{ overview.todoCount ?? homeTodos.length }}）</b></h2>
               <button type="button" @click="router.push('/portal/todos')">查看全部 <span>›</span></button>
             </div>
             <button v-for="item in homeTodos.slice(0,4)" :key="item.id" class="public-portal-todo-row" type="button" @click="openTodo(item)">
-              <span class="public-portal-row-icon todo"><TaskIcon /></span>
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
                 <small>来自：{{ text(item.appName) }} <i></i> {{ date(item.receivedAt) }}</small>
               </span>
-              <span class="public-portal-status">待处理</span>
             </button>
             <div v-if="!homeTodos.length && !loading" class="public-portal-empty">暂无待办</div>
           </article>
 
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><NotificationIcon class="feed-title-icon notice" /> 通知公告 <b class="danger-count">（{{ overview.unreadAnnouncementCount ?? 0 }}）</b></h2>
+              <h2><span class="feed-title-icon notice"><NotificationIcon /></span> 通知公告 <b class="danger-count">（{{ overview.unreadAnnouncementCount ?? 0 }}）</b></h2>
               <button type="button" @click="router.push('/portal/announcements')">查看全部 <span>›</span></button>
             </div>
             <button v-for="(item,index) in homeAnnouncements.slice(0,5)" :key="item.id" class="public-portal-notice-row" type="button" @click="openAnnouncement(item)">
@@ -86,11 +84,10 @@
 
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><MailIcon class="feed-title-icon message" /> 消息中心 <b class="danger-count">（{{ overview.unreadCount ?? homeMessages.length }}）</b></h2>
+              <h2><span class="feed-title-icon message"><MailIcon /></span> 消息中心 <b class="danger-count">（{{ overview.unreadCount ?? homeMessages.length }}）</b></h2>
               <button type="button" @click="router.push('/portal/messages')">查看全部 <span>›</span></button>
             </div>
-            <button v-for="(item,index) in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
-              <span class="public-portal-message-icon" :class="'message-tone-'+(index%5)"><MailIcon /></span>
+            <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
               <span class="public-portal-row-main">
                 <strong>{{ text(item.title) }}</strong>
                 <small>{{ text(item.appName) || text(item.content) }}</small>
