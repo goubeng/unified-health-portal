@@ -211,8 +211,10 @@ import AnnouncementDetail from '../components/portal/AnnouncementDetail.vue';
 import {text,label,date,source,theme,latest,titles,display} from '../components/portal/presentation.js';
 
 const route=useRoute(),router=useRouter();
-const resource=computed(()=>route.meta.resource||''),admin=computed(()=>route.path.startsWith('/admin')),preview=computed(()=>route.path.startsWith('/portal-preview'));
-const portalPath=path=>(preview.value?'/portal-preview':'/portal')+path;
+const resource=computed(()=>route.meta.resource||''),admin=computed(()=>route.path.startsWith('/admin'));
+const previewRoute=computed(()=>route.path.startsWith('/portal-preview'));
+const preview=computed(()=>previewRoute.value||route.path.startsWith('/portal/'));
+const portalPath=path=>(previewRoute.value?'/portal-preview':'/portal')+path;
 const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
