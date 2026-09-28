@@ -470,8 +470,9 @@
   margin:0 0 18px;
   overflow:hidden;
   border-radius:0;
-  background-position:center 48%;
+  background-position:center center;
   background-size:cover;
+  background-repeat:no-repeat;
 }
 .public-announcement-banner::after{
   content:"";
@@ -527,7 +528,7 @@
   .public-portal-secondary-shell .portal-announcement-center>.portal-query .portal-query-select{
     width:100%!important;
   }
-  .public-announcement-banner{min-height:110px}
+  .public-announcement-banner{height:110px;min-height:110px}
   .public-announcement-banner-copy{height:110px;padding:0 20px}
   .public-announcement-banner-copy strong{font-size:19px}
   .public-announcement-meta{flex-wrap:wrap!important;white-space:normal!important}
@@ -577,9 +578,13 @@
 /* Unified public secondary-page banners and query bars */
 .public-portal-section-banner{
   display:grid;
-  aspect-ratio:10 / 1;
+  width:100%;
+  height:132px;
+  min-height:132px;
   margin-bottom:18px;
   background-position:center center;
+  background-size:cover;
+  background-repeat:no-repeat;
 }
 .public-portal-banner-inner{
   position:relative;
