@@ -45,7 +45,7 @@
     </header>
 
     <main class="public-portal-subpage-wrap">
-      <div v-if="!isAppCenterPage" class="public-portal-subpage-head">
+      <div v-if="showSubpageHead" class="public-portal-subpage-head">
         <div class="public-portal-subpage-title-row">
           <button v-if="showBack" type="button" class="public-portal-subpage-back" aria-label="返回" @click="backToList">‹</button>
           <h1>{{ pageTitle }}</h1>
@@ -57,12 +57,20 @@
       </div>
       <section v-if="isAppCenterPage" class="public-announcement-banner public-app-center-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
         <div class="public-announcement-banner-copy">
+          <strong>应用中心</strong>
           <span>汇聚卫生健康服务应用 · 便捷访问常用业务系统</span>
         </div>
       </section>
       <section v-if="isAnnouncementListPage" class="public-announcement-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
         <div class="public-announcement-banner-copy">
+          <strong>通知公告</strong>
           <span>及时了解平台通知与重要信息</span>
+        </div>
+      </section>
+      <section v-if="isMessageListPage" class="public-announcement-banner public-message-center-banner" :style="{backgroundImage:`url('${announcementBanner}')`}">
+        <div class="public-announcement-banner-copy">
+          <strong>消息中心</strong>
+          <span>集中查看业务消息与系统通知</span>
         </div>
       </section>
       <div class="public-portal-subpage-content">
@@ -94,6 +102,8 @@ const pageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messa
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
 const isAppCenterPage=computed(()=>['apps','mine'].includes(route.meta.resource));
 const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements');
+const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId);
+const showSubpageHead=computed(()=>!isAppCenterPage.value&&!isAnnouncementListPage.value&&!isMessageListPage.value);
 
 function go(path){
   const target=isPreviewRoute.value&&path==='/apps/all'?'/apps':path;
