@@ -1511,3 +1511,23 @@ test('待办来源应用宽度覆盖通用查询项限制',()=>{
   assert(css.includes('width:360px!important;'));
   assert(css.includes('flex:0 0 360px!important;'));
 });
+
+
+test('公众公告和消息详情使用紧凑面包屑头部',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const message=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(layout.includes('class="public-portal-breadcrumb"'));
+  assert(layout.includes('{{ breadcrumbParent }}'));
+  assert(layout.includes('id="page-header-current-title"'));
+  assert(layout.includes("route.meta.resource==='announcementDetail'?'通知公告':route.meta.resource==='messages'?'消息中心':''"));
+  assert(!layout.includes('class="public-portal-subpage-back" aria-label="返回"'));
+  assert(page.includes('<Teleport v-if="preview&&detail" to="#page-header-current-title">'));
+  assert(page.includes("{{ text(detail.title)||'公告详情' }}"));
+  assert(message.includes('<Teleport v-if="publicPortal&&activeMessage" to="#page-header-current-title">'));
+  assert(message.includes("{{ text(activeMessage.title)||'消息详情' }}"));
+  assert(css.includes('.public-portal-subpage-head.is-breadcrumb{'));
+  assert(css.includes('min-height:34px!important;'));
+  assert(css.includes('.public-portal-breadcrumb-current{'));
+});
