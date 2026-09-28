@@ -1433,3 +1433,16 @@ test('公众二级页内容区统一为应用中心方角卡片',()=>{
   assert(css.includes('border:1px solid #e7edf5!important;'));
   assert(css.includes('background:#fff!important;'));
 });
+
+
+test('公众端Banner统一使用cover居中裁切适配',()=>{
+  const homeCss=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  const pagesCss=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(homeCss.includes('background-position:center center;background-size:cover;background-repeat:no-repeat;'));
+  assert(pagesCss.includes('background-position:center center;'));
+  assert(pagesCss.includes('background-size:cover;'));
+  assert(pagesCss.includes('background-repeat:no-repeat;'));
+  assert(pagesCss.includes('height:132px;'));
+  assert(!pagesCss.includes('aspect-ratio:10 / 1;'));
+  assert(pagesCss.includes('.public-announcement-banner{height:110px;min-height:110px}'));
+});
