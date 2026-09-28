@@ -12,24 +12,35 @@ const compatibilityRedirects=[
  {path:'/admin/permissions',redirect:'/admin/roles'}
 ];
 
-const previewMeta=resource=>{
+const portalMeta=(resource,preview=false)=>{
  const source=pages.find(page=>page.path.startsWith('/portal/')&&page.resource===resource);
- return {...source,group:'门户预览',layout:'portal-preview'};
+ return {...source,group:preview?'门户预览':source?.group,layout:preview?'portal-preview':'public-portal'};
 };
 
 const routes=[
- {path:'/portal-preview/home',name:'PG-PREVIEW-HOME',component:PortalHomePreview,meta:{title:'门户首页预览',group:'门户预览',resource:'portalHomePreview',layout:'portal-preview'}},
+ {path:'/portal/home',name:'PG-101',component:PortalHomePreview,meta:portalMeta('home')},
+ {path:'/portal',component:PortalPreviewLayout,meta:{group:'个人事务',layout:'public-portal'},children:[
+  {path:'todos',name:'PG-104',component:PortalPage,meta:portalMeta('todos')},
+  {path:'messages',name:'PG-105',component:PortalPage,meta:portalMeta('messages')},
+  {path:'announcements',name:'PG-106',component:PortalPage,meta:portalMeta('announcements')},
+  {path:'announcements/:id',name:'PG-107',component:PortalPage,meta:portalMeta('announcementDetail')},
+  {path:'apps/all',name:'PG-103',component:PortalPage,meta:portalMeta('apps')},
+  {path:'applications',name:'PG-109',component:PortalPage,meta:portalMeta('myApplicationRequests')},
+  {path:'profile',name:'PG-108',component:PortalPage,meta:portalMeta('profile')}
+ ]},
+ {path:'/portal/apps/mine',redirect:'/portal/apps/all'},
+ {path:'/portal-preview/home',name:'PG-PREVIEW-HOME',component:PortalHomePreview,meta:{...portalMeta('home',true),title:'门户首页预览',resource:'portalHomePreview'}},
  {path:'/portal-preview',component:PortalPreviewLayout,meta:{group:'门户预览',layout:'portal-preview'},children:[
-  {path:'todos',name:'PG-PREVIEW-TODOS',component:PortalPage,meta:previewMeta('todos')},
-  {path:'messages',name:'PG-PREVIEW-MESSAGES',component:PortalPage,meta:previewMeta('messages')},
-  {path:'announcements',name:'PG-PREVIEW-ANNOUNCEMENTS',component:PortalPage,meta:previewMeta('announcements')},
-  {path:'announcements/:id',name:'PG-PREVIEW-ANNOUNCEMENT-DETAIL',component:PortalPage,meta:previewMeta('announcementDetail')},
-  {path:'apps',name:'PG-PREVIEW-APPS',component:PortalPage,meta:previewMeta('apps')},
-  {path:'applications',name:'PG-PREVIEW-APPLICATIONS',component:PortalPage,meta:previewMeta('myApplicationRequests')}
+  {path:'todos',name:'PG-PREVIEW-TODOS',component:PortalPage,meta:portalMeta('todos',true)},
+  {path:'messages',name:'PG-PREVIEW-MESSAGES',component:PortalPage,meta:portalMeta('messages',true)},
+  {path:'announcements',name:'PG-PREVIEW-ANNOUNCEMENTS',component:PortalPage,meta:portalMeta('announcements',true)},
+  {path:'announcements/:id',name:'PG-PREVIEW-ANNOUNCEMENT-DETAIL',component:PortalPage,meta:portalMeta('announcementDetail',true)},
+  {path:'apps',name:'PG-PREVIEW-APPS',component:PortalPage,meta:portalMeta('apps',true)},
+  {path:'applications',name:'PG-PREVIEW-APPLICATIONS',component:PortalPage,meta:portalMeta('myApplicationRequests',true)}
  ]},
  {path:'/',redirect:'/portal/home'},
  ...compatibilityRedirects,
- ...pages.filter(page=>!page.hidden).map(page=>({
+ ...pages.filter(page=>!page.hidden&&!page.path.startsWith('/portal')).map(page=>({
    path:page.path,
    name:page.id,
    component:page.group==='登录'?(page.path==='/login'?Login:AuthResult):PortalPage,
