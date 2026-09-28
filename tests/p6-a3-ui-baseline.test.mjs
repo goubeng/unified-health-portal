@@ -1237,3 +1237,9 @@ test('首页查看全部与二级页返回按钮使用图标组件保持垂直�
   assert(secondaryCss.includes('.public-portal-subpage-back .t-icon{'));
   assert(secondaryCss.includes('align-items:center!important;'));
 });
+
+
+test('消息中心未读筛选空态显示暂无未读的消息',()=>{
+  const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
+  assert(source.includes(`:description="statusFilter==='UNREAD'?'暂无未读的消息':'暂无符合条件的消息'"`));
+});
