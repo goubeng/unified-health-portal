@@ -3,7 +3,6 @@
     <header class="public-portal-header">
       <div class="public-portal-header-inner">
         <button class="public-portal-brand" type="button" @click="router.push('/portal-preview/home')">
-          <span class="public-portal-logo"><span>+</span></span>
           <span class="public-portal-brand-copy">
             <strong>卫健XC统一门户</strong>
             <small>便民 · 惠民 · 协同 · 服务</small>
@@ -51,11 +50,6 @@
         <div class="public-portal-hero-content">
           <h1>统一入口 · 集约服务 · 协同共享</h1>
           <p>打造高效、便捷、安全的卫生健康服务平台</p>
-          <form class="public-portal-search" @submit.prevent="submitSearch">
-            <SearchIcon />
-            <input v-model.trim="search" type="search" placeholder="请输入应用名称、服务事项或关键词" aria-label="搜索应用" />
-            <button type="submit">搜索</button>
-          </form>
         </div>
       </section>
 
@@ -139,7 +133,7 @@
 <script setup>
 import {computed,onMounted,ref,watch} from 'vue';
 import {useRouter} from 'vue-router';
-import {AppIcon,ChevronDownIcon,MailIcon,NotificationIcon,SearchIcon,TaskIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,ChevronDownIcon,MailIcon,NotificationIcon,TaskIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import {actor,command,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
@@ -155,16 +149,10 @@ const homeApps=ref([]);
 const homeTodos=ref([]);
 const homeMessages=ref([]);
 const homeAnnouncements=ref([]);
-const search=ref('');
 const accountOpen=ref(false);
 const heroBackground=computed(()=>`url("${heroImage}")`);
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
-const filteredApps=computed(()=>{
-  const keyword=search.value.toLowerCase();
-  if(!keyword)return homeApps.value;
-  return homeApps.value.filter(app=>[app.name,app.code,app.category,app.description].some(value=>String(value||'').toLowerCase().includes(keyword)));
-});
-const visibleApps=computed(()=>filteredApps.value.slice(0,7));
+const visibleApps=computed(()=>homeApps.value.slice(0,7));
 
 async function read(key){
   const result=await portal.read(key);
@@ -189,12 +177,6 @@ async function load(){
   }finally{
     loading.value=false;
   }
-}
-
-function submitSearch(){
-  if(search.value && filteredApps.value.length)return;
-  if(search.value)MessagePlugin.info('当前“我的应用”中暂无匹配结果，可进入应用中心继续查找');
-  else router.push('/portal/apps/all');
 }
 
 async function enterApp(app){
