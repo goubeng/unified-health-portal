@@ -1102,3 +1102,13 @@ test('通知公告Banner去掉重复的通知公告标题',()=>{
   assert(!banner.includes('<strong>通知公告</strong>'));
   assert(banner.includes('及时了解平台通知与重要信息'));
 });
+
+
+test('应用中心使用Banner并去掉独立页标题和图标',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(layout.includes('v-if="!isAppCenterPage" class="public-portal-subpage-head"'));
+  assert(layout.includes('v-if="isAppCenterPage" class="public-announcement-banner public-app-center-banner"'));
+  assert(layout.includes('汇聚卫生健康服务应用 · 便捷访问常用业务系统'));
+  assert(!layout.includes('<span v-if="isAppCenterPage" class="public-portal-app-banner-icon">'));
+  assert(!layout.includes('AppIcon'));
+});
