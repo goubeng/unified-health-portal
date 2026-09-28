@@ -803,3 +803,11 @@
     padding:14px 14px 16px!important;
   }
 }
+
+/* Message center action toolbar aligned left */
+.public-portal-secondary-shell .message-content-shell .message-content-toolbar{
+  justify-content:flex-start!important;
+}
+.public-portal-secondary-shell .message-content-shell .message-content-actions{
+  justify-content:flex-start!important;
+}
