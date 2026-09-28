@@ -1477,8 +1477,10 @@ test('公众待办任务使用标准表格列表并加宽来源应用查询',()=
   assert(source.includes("{colKey:'businessType',title:'任务类型',width:120}"));
   assert(source.includes("{colKey:'status',title:'状态',width:120}"));
   assert(!source.includes('class="public-record-list public-todo-list"'));
-  assert(css.includes('.public-portal-secondary-shell .todo-center .query-width-source{'));
-  assert(css.includes('width:300px!important;'));
+  assert(css.includes('.public-portal-secondary-shell .todo-center .portal-query.list-toolbar .query-width-source{'));
+  assert(css.includes('width:360px!important;'));
+  assert(css.includes('flex:0 0 360px!important;'));
+  assert(css.includes('.public-portal-secondary-shell .todo-center .portal-query.list-toolbar .query-width-source :is(.t-form__controls,.t-form__controls-content,.t-select__wrap){'));
 });
 
 
@@ -1498,4 +1500,14 @@ test('待办任务列表内容顶部间距与消息中心一致',()=>{
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(css.includes('.public-portal-secondary-shell .todo-center .portal-table-panel{'));
   assert(css.includes('padding:16px 20px 18px!important;'));
+});
+
+
+test('待办来源应用宽度覆盖通用查询项限制',()=>{
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(css.includes('.public-portal-secondary-shell .portal-query.list-toolbar .portal-query-select{'));
+  assert(css.includes('width:190px!important;'));
+  assert(css.includes('.public-portal-secondary-shell .todo-center .portal-query.list-toolbar .query-width-source{'));
+  assert(css.includes('width:360px!important;'));
+  assert(css.includes('flex:0 0 360px!important;'));
 });
