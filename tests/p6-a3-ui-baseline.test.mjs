@@ -1139,3 +1139,17 @@ test('公众端全部二级列表页统一Banner和查询布局',()=>{
   assert(css.includes('.portal-query.list-toolbar .query-reset-button{'));
   assert(css.includes('min-width:64px!important;'));
 });
+
+
+test('我的申请增加顶部留白与独立分页',()=>{
+  const source=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
+  const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(source.includes('const accessPage=ref(1),accessPageSize=ref(10);'));
+  assert(source.includes('const openingPage=ref(1),openingPageSize=ref(10);'));
+  assert(source.includes(':data="pagedAccessRows"'));
+  assert(source.includes(':data="pagedOpeningRows"'));
+  assert.equal((source.match(/<t-pagination/g)||[]).length,2);
+  assert(css.includes('.public-portal-secondary-shell .my-applications{'));
+  assert(css.includes('padding:16px 20px 18px!important;'));
+  assert(css.includes('.public-portal-secondary-shell .my-applications .t-pagination{'));
+});
