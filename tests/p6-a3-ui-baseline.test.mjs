@@ -1222,3 +1222,18 @@ test('消息中心去掉列表统计并将操作按钮左对齐',()=>{
   assert(css.includes('.message-content-shell .message-content-toolbar{'));
   assert(css.includes('justify-content:flex-start!important;'));
 });
+
+
+test('首页查看全部与二级页返回按钮使用图标组件保持垂直居中',()=>{
+  const home=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const homeCss=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  const secondaryCss=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(home.includes('查看全部 <ChevronRightIcon size="16px" />'));
+  assert(home.includes('ChevronRightIcon'));
+  assert(layout.includes('<ArrowLeftIcon size="18px" />'));
+  assert(layout.includes('ArrowLeftIcon'));
+  assert(homeCss.includes('.public-portal-section-head button .t-icon{'));
+  assert(secondaryCss.includes('.public-portal-subpage-back .t-icon{'));
+  assert(secondaryCss.includes('align-items:center!important;'));
+});
