@@ -12,23 +12,25 @@
         <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetFilters">重置</t-button></t-form-item>
       </t-form>
 
-      <div class="message-content-toolbar">
-        <div class="message-content-summary">
-          <span>共 {{ filteredMessages.length }} 条</span>
-          <span v-if="selectedIds.length">已选择 {{ selectedIds.length }} 条</span>
+      <section class="panel message-content-shell">
+        <div class="message-content-toolbar">
+          <div class="message-content-summary">
+            <span>共 {{ filteredMessages.length }} 条</span>
+            <span v-if="selectedIds.length">已选择 {{ selectedIds.length }} 条</span>
+          </div>
+          <div class="message-content-actions">
+            <t-button variant="outline" size="medium" :disabled="!selectedIds.length" @click="confirmDelete(selectedIds)">删除</t-button>
+            <t-button variant="outline" size="medium" :disabled="!selectedUnreadIds.length" @click="markSelectedRead">标记为已读</t-button>
+            <t-button variant="outline" size="medium" :disabled="!unreadCount" @click="markAllRead">全部标为已读</t-button>
+          </div>
         </div>
-        <div class="message-content-actions">
-          <t-button variant="outline" size="medium" :disabled="!selectedIds.length" @click="confirmDelete(selectedIds)">删除</t-button>
-          <t-button variant="outline" size="medium" :disabled="!selectedUnreadIds.length" @click="markSelectedRead">标记为已读</t-button>
-          <t-button variant="outline" size="medium" :disabled="!unreadCount" @click="markAllRead">全部标为已读</t-button>
-        </div>
-      </div>
 
-      <section class="panel portal-table-panel message-list-panel">
-        <t-table row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
-          <template #empty><EmptyState description="暂无符合条件的消息"/></template>
-        </t-table>
-        <t-pagination v-if="filteredMessages.length" v-model="page" v-model:page-size="pageSize" :total="filteredMessages.length" :page-size-options="[10,20,50]" show-jumper/>
+        <section class="message-list-panel">
+          <t-table row-key="id" :data="pagedMessages" :columns="columns" hover table-layout="fixed" size="medium">
+            <template #empty><EmptyState description="暂无符合条件的消息"/></template>
+          </t-table>
+          <t-pagination v-if="filteredMessages.length" v-model="page" v-model:page-size="pageSize" :total="filteredMessages.length" :page-size-options="[10,20,50]" show-jumper/>
+        </section>
       </section>
     </template>
 
