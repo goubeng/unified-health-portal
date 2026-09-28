@@ -87,7 +87,7 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},receiver:{type:String,default:''}});
 const route=useRoute(),router=useRouter();
-const preview=computed(()=>route.path.startsWith('/portal-preview'));
+const preview=computed(()=>route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/'));
 const statusFilter=ref('UNREAD'),sourceFilter=ref(''),typeFilter=ref(''),keyword=ref(''),page=ref(1),pageSize=ref(10),selectedIds=ref([]);
 const TCheckbox=resolveComponent('t-checkbox');
 const statusOptions=[{label:'未读',value:'UNREAD'},{label:'已读',value:'READ'}];
