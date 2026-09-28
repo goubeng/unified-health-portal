@@ -860,3 +860,33 @@
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+
+/* Application center icon colors aligned with home */
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-0{
+  background:linear-gradient(145deg,#4bbcff,#1382ee)!important;
+  color:#fff!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-1{
+  background:linear-gradient(145deg,#62df9a,#21bd72)!important;
+  color:#fff!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-2{
+  background:linear-gradient(145deg,#ffba62,#ff8c2f)!important;
+  color:#fff!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-3{
+  background:linear-gradient(145deg,#a887ff,#7557ed)!important;
+  color:#fff!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-4{
+  background:linear-gradient(145deg,#45baff,#2387ea)!important;
+  color:#fff!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-5{
+  background:linear-gradient(145deg,#25d9d0,#00aeb6)!important;
+  color:#fff!important;
+}
+.public-portal-secondary-shell .portal-app-center .portal-app-logo.icon-tone-6{
+  background:linear-gradient(145deg,#a889ff,#7960ef)!important;
+  color:#fff!important;
+}
