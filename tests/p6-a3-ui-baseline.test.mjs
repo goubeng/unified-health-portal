@@ -1256,3 +1256,11 @@ test('待办任务类型和状态使用标签并将状态放到标题旁',()=>{
   assert(!source.includes('<span class="public-record-status">{{ label(row.status) }}</span>'));
   assert(css.includes('.public-portal-secondary-shell .public-todo-title-line{'));
 });
+
+
+test('首页我的应用样式作用域命中实际首页结构',()=>{
+  const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  assert(css.includes('.public-portal-shell .public-portal-apps .public-portal-app-item{'));
+  assert(css.includes('.public-portal-shell .public-portal-apps .public-portal-app-category{'));
+  assert(!css.includes('.public-portal-home .public-portal-app-item{'));
+});
