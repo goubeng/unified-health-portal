@@ -29,13 +29,16 @@ function stateProvider(state){let current=structuredClone(state);return {kind:'m
 async function body(req){let data='';for await(const chunk of req){data+=chunk;if(data.length>12*1024*1024)throw Error('请求内容过大');}return data?JSON.parse(data):{};}
 export function createPortalApi({repository=null,env=process.env}={}){
  repository??=String(env.PORTAL_REPOSITORY||'memory').toLowerCase()==='db'?createRepository():createMemoryRepository();
- const sessions=new Map();let queue=Promise.resolve(),snapshot=null;
+ const sessions=new Map();let queue=Promise.resolve(),snapshot=null,snapshotLoad=null;
  const serial=fn=>{const next=queue.then(fn,fn);queue=next.catch(()=>{});return next;};
  const readSnapshot=async()=>{
   if(snapshot&&snapshot.expiresAt>Date.now())return snapshot.record;
-  const record=await repository.load();
-  snapshot={record,expiresAt:Date.now()+1000};
-  return record;
+  if(snapshotLoad)return snapshotLoad;
+  snapshotLoad=repository.load().then(record=>{
+   snapshot={record,expiresAt:Date.now()+1000};
+   return record;
+  }).finally(()=>{snapshotLoad=null;});
+  return snapshotLoad;
  };
  const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({...data,requestId:data.requestId||randomUUID()}));};
  const accessUserEnabled=x=>x&&['CITIZEN','GOV'].includes(x.userType)&&x.enabled!==false&&x.status!=='DISABLED';
@@ -67,9 +70,9 @@ export function createPortalApi({repository=null,env=process.env}={}){
    const external=path.startsWith('/api/portal/ingest/');
    if(req.method!=='GET'&&!external&&!isAllowedFrontendOrigin(req.headers.origin||''))return send(res,403,resultError('FORBIDDEN','请求来源不允许'));
    const payload=req.method==='POST'?await body(req):{};
-   await serial(async()=>{
-    const readOnly=req.method==='GET'&&['/api/portal/health','/api/portal/session','/api/portal/read'].includes(path);
-    if(!readOnly)snapshot=null;
+   const readOnly=req.method==='GET'&&['/api/portal/health','/api/portal/session','/api/portal/read'].includes(path);
+   const processRequest=async()=>{
+    if(!readOnly){snapshot=null;snapshotLoad=null;}
     const {state,version}=readOnly?await readSnapshot():await repository.load();const actor=resolveActor(req,state);
     if(path==='/api/portal/health')return send(res,200,{ok:true,data:{repository:repository.mode||'UNKNOWN',database:repository.database||null,schema:repository.schema||null,phase:repository.mode==='DATABASE'?'0.3.0-B/C':'0.3.0-A',version}});
     if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:sessionView(state,actor)});
@@ -132,7 +135,9 @@ export function createPortalApi({repository=null,env=process.env}={}){
      await repository.commit(operationState,after,version,auditEvent({actor,action,payload:input,state:after,result,sourceLog}));return send(res,statusFor(result),result);
     }
     send(res,404,resultError('NOT_FOUND','接口不存在'));
-   });
+   };
+   if(readOnly)await processRequest();
+   else await serial(processRequest);
   }catch(error){console.error('[portal-api]',error.message);if(!res.headersSent)send(res,503,resultError('SERVICE_UNAVAILABLE','服务或数据库暂不可用，请联系管理员'));else res.end();}
  };
  const cleanup=()=>serial(async()=>{snapshot=null;const {state,version}=await repository.load(),next=structuredClone(state),removed=archiveExpired(next);if(!removed.length)return 0;const event=makeEvent({action:'ANNOUNCEMENT_RETENTION',state,result:{ok:true}});event.details.ids=removed.map(x=>x.id);event.summary=`过期公告清理 ${removed.length} 条（已保留回收档案）`;await repository.commit(state,next,version,event);return removed.length;});
