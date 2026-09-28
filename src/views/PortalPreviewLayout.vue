@@ -87,6 +87,7 @@ import todoBanner from '../assets/banner-todos.png';
 import messageBanner from '../assets/banner-messages.png';
 import announcementBanner from '../assets/banner-announcements.png';
 import appsBanner from '../assets/banner-apps.png';
+import applicationsBanner from '../assets/banner-applications.png';
 
 const route=useRoute();
 const router=useRouter();
@@ -106,7 +107,7 @@ const bannerInfo=computed(()=>{
   if(resource==='messages'&&!route.query.messageId)return {title:'消息中心',subtitle:'集中查看业务消息与系统通知',image:messageBanner};
   if(resource==='announcements')return {title:'通知公告',subtitle:'及时了解平台通知与重要信息',image:announcementBanner};
   if(['apps','mine'].includes(resource))return {title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner};
-  if(resource==='myApplicationRequests')return {title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:todoBanner};
+  if(resource==='myApplicationRequests')return {title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:applicationsBanner};
   if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner};
   return null;
 });
