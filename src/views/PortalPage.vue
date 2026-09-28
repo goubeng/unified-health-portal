@@ -193,7 +193,8 @@ import AnnouncementDetail from '../components/portal/AnnouncementDetail.vue';
 import {text,label,date,source,theme,latest,titles,display} from '../components/portal/presentation.js';
 
 const route=useRoute(),router=useRouter();
-const resource=computed(()=>route.meta.resource||''),admin=computed(()=>route.path.startsWith('/admin'));
+const resource=computed(()=>route.meta.resource||''),admin=computed(()=>route.path.startsWith('/admin')),preview=computed(()=>route.path.startsWith('/portal-preview'));
+const portalPath=path=>(preview.value?'/portal-preview':'/portal')+path;
 const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
@@ -506,11 +507,11 @@ const enterApp=app=>run('enterApp',{id:app.id},true);
 function openBinding(app){bindingApp.value=JSON.parse(JSON.stringify(app));bindingVisible.value=true;}
 const bindApp=app=>openBinding(app);
 const requestApp=app=>openForm('submitApplicationRequest',{appId:app.id,appName:app.name});
-const viewApplicationRequest=()=>router.push('/portal/applications');
+const viewApplicationRequest=()=>router.push(portalPath('/applications'));
 const viewBinding=app=>openBinding(app);
 const viewConflict=app=>openBinding(app);
 function handleBindingCompleted(){load();}
-function viewBindingRequests(){router.push('/portal/applications');}
+function viewBindingRequests(){router.push(portalPath('/applications'));}
 function requestAppRecord(row){
  const app=allApps.value.find(item=>item.id===row.appId);
  if(!app)MessagePlugin.error('应用信息不存在，请刷新后重试');
@@ -526,14 +527,14 @@ function enterAppByRequest(row){
 }
 function confirm(action,row,body){const dialog=DialogPlugin.confirm({placement:'center',header:'操作确认',body,onConfirm:async()=>{if(await run(action,{...row}))dialog.hide();}});}
 async function showDetail(row,kind=listResource.value){
- if(kind==='announcements'){await router.push(`${admin.value?'/admin':'/portal'}/announcements/${encodeURIComponent(row.id)}`);return;}
- if(kind==='messages'){await router.push({path:'/portal/messages',query:{messageId:row.id}});return;}
+ if(kind==='announcements'){await router.push(`${admin.value?'/admin':(preview.value?'/portal-preview':'/portal')}/announcements/${encodeURIComponent(row.id)}`);return;}
+ if(kind==='messages'){await router.push({path:portalPath('/messages'),query:{messageId:row.id}});return;}
  detail.value=JSON.parse(JSON.stringify(row));detailKind.value=kind;
  detailAccessProfile.value=kind==='apps'&&admin.value?JSON.parse(JSON.stringify(accessProfiles.value.find(item=>item.appId===row.id)||null)):null;
  detailVisible.value=true;
 }
 function closeDetail(visible){detailVisible.value=visible;if(!visible)detailAccessProfile.value=null;}
-function backToAnnouncements(){router.push(admin.value?'/admin/announcements':'/portal/announcements');}
+function backToAnnouncements(){router.push(admin.value?'/admin/announcements':portalPath('/announcements'));}
 function openAdminAnnouncementDetail(row){router.push('/admin/announcements/'+encodeURIComponent(row.id));}
 function openAdminAnnouncementEdit(row){detail.value=JSON.parse(JSON.stringify(row));announcementEditVisible.value=true;}
 function removeAdminAnnouncementDetail(row){
