@@ -18,7 +18,27 @@
     </section>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <div v-if="preview" class="public-record-list public-todo-list">
+        <article v-for="row in paged" :key="row.id" class="public-record-item">
+          <span class="public-record-dot"></span>
+          <button class="public-record-main" type="button" @click="openDetail(row)">
+            <strong>{{ text(row.title)||'-' }}</strong>
+            <small>
+              <span>来自：{{ text(row.appName)||'-' }}</span>
+              <i></i>
+              <span>{{ text(row.businessType)||'-' }}</span>
+              <i></i>
+              <span>{{ date(row.receivedAt) }}</span>
+            </small>
+          </button>
+          <div class="public-record-side">
+            <span class="public-record-status">{{ label(row.status) }}</span>
+            <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="primary" @click="process(row)">去处理</t-button>
+          </div>
+        </article>
+        <EmptyState v-if="!paged.length" description="暂无符合条件的待办"/>
+      </div>
+      <t-table v-else row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的待办"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}">
@@ -33,6 +53,7 @@
         </template>
       </t-table>
       <t-pagination
+        v-if="filtered.length"
         v-model="page"
         v-model:page-size="pageSize"
         :total="filtered.length"
@@ -55,6 +76,7 @@
 
 <script setup>
 import {computed,ref,watch} from 'vue';
+import {useRoute} from 'vue-router';
 import {DialogPlugin,MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import TodoDetailContent from './TodoDetailContent.vue';
@@ -63,6 +85,8 @@ import {command} from '../../services/runtime.js';
 import {date,label,text} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
+const route=useRoute();
+const preview=computed(()=>route.path.startsWith('/portal-preview'));
 const keyword=ref(''),appName=ref(''),status=ref('');
 const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),active=ref(null);
