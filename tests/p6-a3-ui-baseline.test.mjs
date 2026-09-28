@@ -1078,7 +1078,7 @@ test('通知公告使用标签元信息和单行Banner',()=>{
   assert(page.includes("'portal-announcement-center':preview&&resource==='announcements'"));
   assert(page.includes('class="public-announcement-meta-tag"'));
   assert(page.includes('class="public-announcement-meta-tag scope"'));
-  assert(layout.includes("import announcementBanner from '../assets/login-health3-bg-3840x2160.png';"));
+  assert(layout.includes("import announcementBanner from '../assets/banner-announcements.png';"));
   assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
   assert(css.includes('.portal-announcement-center>.portal-query{'));
   assert(css.includes('.public-announcement-item .public-record-main strong{'));
@@ -1092,14 +1092,15 @@ test('应用中心卡片使用浅色背景并给应用类型增加标签色',()=
   assert(cards.includes(':class="categoryTone(app.category)"'));
   assert(cards.includes("return 'category-tone-'+(hash+1);"));
   assert(css.includes('.portal-app-center .portal-app-card{'));
-  assert(css.includes('background:#f3f6fa!important;'));
+  assert(css.includes('background:#f8fafc!important;'));
   assert(css.includes('.portal-app-category.category-tone-1'));
   assert(css.includes('.portal-app-category.category-tone-5'));
 });
 
 test('通知公告标题显示在Banner内且列表页隐藏外部标题',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
-  assert(layout.includes('<strong>通知公告</strong>'));
+  assert(layout.includes('<strong>{{ bannerInfo.title }}</strong>'));
+  assert(layout.includes("title:'通知公告'"));
   assert(layout.includes('及时了解平台通知与重要信息'));
   assert(layout.includes("const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements')"));
   assert(layout.includes('v-if="showSubpageHead" class="public-portal-subpage-head"'));
@@ -1109,7 +1110,8 @@ test('通知公告标题显示在Banner内且列表页隐藏外部标题',()=>{
 test('应用中心标题显示在Banner内且去掉独立页标题图标',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
   assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
-  assert(layout.includes('<strong>应用中心</strong>'));
+  assert(layout.includes('<strong>{{ bannerInfo.title }}</strong>'));
+  assert(layout.includes("title:'应用中心'"));
   assert(layout.includes('汇聚卫生健康服务应用 · 便捷访问常用业务系统'));
   assert(!layout.includes('public-portal-app-banner-icon'));
   assert(!layout.includes('AppIcon'));
@@ -1120,9 +1122,10 @@ test('消息中心列表页使用Banner且详情页保留外部标题',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
   assert(layout.includes("const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId)"));
   assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
-  assert(layout.includes('<strong>消息中心</strong>'));
+  assert(layout.includes('<strong>{{ bannerInfo.title }}</strong>'));
+  assert(layout.includes("title:'消息中心'"));
   assert(layout.includes('集中查看业务消息与系统通知'));
-  assert(layout.includes("const showSubpageHead=computed(()=>!isAppCenterPage.value&&!isAnnouncementListPage.value&&!isMessageListPage.value)"));
+  assert(layout.includes("const showSubpageHead=computed(()=>!bannerInfo.value);"));
 });
 
 
@@ -1310,4 +1313,21 @@ test('待办任务最后一行保留下边框',()=>{
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(css.includes('.public-portal-secondary-shell .public-todo-list .public-record-item:last-child{'));
   assert(css.includes('border-bottom:1px solid #edf1f6!important;'));
+});
+
+
+test('公众端二级页按业务主题使用独立PNG Banner',()=>{
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(layout.includes("import todoBanner from '../assets/banner-todos.png';"));
+  assert(layout.includes("import messageBanner from '../assets/banner-messages.png';"));
+  assert(layout.includes("import announcementBanner from '../assets/banner-announcements.png';"));
+  assert(layout.includes("import appsBanner from '../assets/banner-apps.png';"));
+  assert(layout.includes(":style=\"{backgroundImage:\`url('\${bannerInfo.image}')\`}\""));
+  assert(layout.includes("title:'待办任务',subtitle:'集中处理来自各业务系统的待办事项',image:todoBanner"));
+  assert(layout.includes("title:'消息中心',subtitle:'集中查看业务消息与系统通知',image:messageBanner"));
+  assert(layout.includes("title:'通知公告',subtitle:'及时了解平台通知与重要信息',image:announcementBanner"));
+  assert(layout.includes("title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner"));
+  assert(layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:todoBanner"));
+  assert(layout.includes("title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner"));
+  assert(!layout.includes("login-health3-bg-3840x2160.png"));
 });
