@@ -113,5 +113,5 @@
 @media(max-width:620px){
   .public-portal-brand-copy strong{font-size:18px}.public-portal-account>span:not(.public-portal-avatar){display:none}
   .public-portal-hero-content{width:calc(100% - 28px);padding-top:36px}.public-portal-hero h1{font-size:25px}.public-portal-hero p{font-size:15px}
-  .public-portal-search{height:52px}  .public-portal-apps,.public-portal-feed-card{padding:16px}.public-portal-app-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .public-portal-apps,.public-portal-feed-card{padding:16px}.public-portal-app-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
