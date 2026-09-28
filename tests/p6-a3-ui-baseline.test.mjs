@@ -284,7 +284,7 @@ test('公告详情保持通知公告菜单选中且返回直接回列表',()=>{
   assert(app.includes("route.meta.resource==='announcementDetail'&&page.resource==='announcements'"));
   assert(app.includes(":class=\"{active:isMenuActive(p)}\""));
   assert(!app.includes('route.query.mode'));
-  assert(app.includes("router.push(admin.value?'/admin/announcements':'/portal/announcements')"));
+  assert(app.includes("router.push(admin.value?'/admin/announcements':portalPath('/announcements'))"));
 });
 
 test('管理端公告详情保留右侧内容区而编辑统一使用弹窗',()=>{
