@@ -69,9 +69,9 @@
        </div>
 
        <div class="admin-runtime-exception-head">
-        <h3>接入异常 <span class="portal-count">{{homeExceptions.length}}</span></h3>
-        <router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看全部</router-link>
-       </div>
+         <h3>接入异常 <span class="admin-runtime-exception-count">（<strong>{{homeExceptions.length}}</strong>）</span></h3>
+         <router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看全部</router-link>
+        </div>
        <div class="admin-runtime-exception-list">
         <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row">
          <div>
