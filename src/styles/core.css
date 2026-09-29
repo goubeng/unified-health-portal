@@ -1235,15 +1235,22 @@
 }
 .monitor-health-stats{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
+  grid-template-columns:max-content max-content max-content;
+  align-items:center;
+  column-gap:0;
 }
 .monitor-health-stat{
   display:flex;
   min-width:0;
   align-items:center;
-  gap:5px;
+  gap:4px;
+  padding:0 10px;
   white-space:nowrap;
+}
+.monitor-health-stat:first-child{padding-left:0}
+.monitor-health-stat:last-child{padding-right:0}
+.monitor-health-stat + .monitor-health-stat{
+  border-left:1px solid #e5e8ef;
 }
 .monitor-health-stat-icon{
   width:14px!important;
@@ -1252,11 +1259,11 @@
   font-size:14px!important;
 }
 .monitor-health-stat em{
-  overflow:hidden;
+  overflow:visible;
   font-size:12px;
   font-style:normal;
   line-height:18px;
-  text-overflow:ellipsis;
+  text-overflow:clip;
 }
 .monitor-health-stat b{
   flex:none;
