@@ -5,7 +5,7 @@
         <h2>{{ text(record.title) }}</h2>
         <div class="portal-announcement-meta-inline">
           <span><Icon name="notification"/><em>公告类型</em><strong>{{ text(record.type || '通知') }}</strong></span>
-          <span><Icon name="user"/><em>发布范围</em><strong>{{ label(record.scope || 'ALL') }}</strong></span>
+          <span><Icon name="user"/><em>发布范围</em><strong>{{ label(record.scope || 'ALL','announcement_scope') }}</strong></span>
           <span><Icon name="time"/><em>发布时间</em><strong>{{ date(record.publishedAt || record.createdAt) }}</strong></span>
         </div>
         <div class="portal-announcement-divider"></div>

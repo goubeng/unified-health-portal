@@ -2,7 +2,7 @@ import {createUUID} from '../utils/uuid.js';
 import {can,permissions,permissionsFromScopes} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
 import {rules} from '../config/rules.js';
-import {integrationFields,terminalStatuses} from '../config/integration-contract.js';
+import {integrationFields,integrationOptionalFields,terminalStatuses} from '../config/integration-contract.js';
 import {validateLocalPassword} from '../config/password-policy.js';
 import {auditActionNames,auditActionPages} from '../config/audit-activity.js';
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
@@ -146,6 +146,7 @@ export function createPortalService(provider,getActor){
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
    if(resource==='header')return {unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length};
+   if(resource==='lookupDictionaries')return {types:(d.dictTypes||[]).map(({code,name,status,sortOrder})=>({code,name,status,sortOrder})),items:(d.dictItems||[]).map(({typeCode,value,label,status,sortOrder})=>({typeCode,value,label,status,sortOrder}))};
    if(resource==='home')return {appCount:userApps().length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
    const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',adminHome:'any',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
@@ -307,7 +308,10 @@ export function createPortalService(provider,getActor){
      if((d.dictItems||[]).some(item=>item.typeCode===p.typeCode&&item.value===p.value.trim()&&item.id!==p.id))fail('VALIDATION_ERROR','同一字典类型下值不能重复');
      const current=p.id?requireRow(d.dictItems,p.id,p.version):null;
      if(type.systemLocked&&!current)fail('INVALID_TRANSITION','系统受控字典不能新增代码未支持的值');
+     if(current&&current.typeCode!==p.typeCode&&(current.systemLocked||type.systemLocked))fail('INVALID_TRANSITION','系统受控字典项不允许转移分类');
      if(current?.systemLocked&&p.value!==current.value)fail('INVALID_TRANSITION','系统受控字典值不可修改');
+     if(current?.typeCode==='todo_task_type'&&p.value!==current.value&&(d.todos||[]).some(todo=>todo.businessType===current.value))fail('INVALID_TRANSITION','该待办任务类型仍被待办引用，不能修改编码');
+     if(current?.typeCode==='todo_task_type'&&p.typeCode!==current.typeCode&&(d.todos||[]).some(todo=>todo.businessType===current.value))fail('INVALID_TRANSITION','该待办任务类型仍被待办引用，不能转移分类');
      const x=current||{id:id(),version:0,createdAt:now,systemLocked:Boolean(type.systemLocked)};
      Object.assign(x,{typeCode:p.typeCode,label:p.label.trim(),value:p.value.trim(),sortOrder:Number(p.sortOrder)||0,status:p.status||'ENABLED',remark:p.remark?.trim()||''});
      stamp(x);if(!current)d.dictItems.push(x);
@@ -322,6 +326,7 @@ export function createPortalService(provider,getActor){
      const x=requireRow(d.dictItems||[],p.id,p.version);
      const type=(d.dictTypes||[]).find(item=>item.code===x.typeCode);
      if(type?.systemLocked||x.systemLocked)fail('INVALID_TRANSITION','系统受控字典项不允许删除');
+     if(x.typeCode==='todo_task_type'&&(d.todos||[]).some(todo=>todo.businessType===x.value))fail('INVALID_TRANSITION','该待办任务类型仍被待办引用，不能删除');
      if(x.typeCode==='application_category'){
       const category=(d.categories||[]).find(item=>item.code===x.value||item.name===x.label);
       if((d.apps||[]).some(app=>app.category===x.label||app.categoryId===category?.id))fail('INVALID_TRANSITION','该字典项仍被应用使用，不能删除');
@@ -538,8 +543,8 @@ export function createPortalService(provider,getActor){
      if(p.credentialRef&&!/^PORTAL_[A-Z0-9_]{1,80}$/.test(p.credentialRef))fail('VALIDATION_ERROR','凭据引用须为PORTAL_开头的服务端环境变量名，不能填写密钥');
      if(p.enabled==='ENABLED'&&x.kind!=='SSO'&&!p.credentialRef)fail('VALIDATION_ERROR','启用接入需配置服务端凭据引用');
      let mapping;try{mapping=typeof p.fieldMapping==='string'?JSON.parse(p.fieldMapping||'{}'):p.fieldMapping||{};}catch{fail('VALIDATION_ERROR','字段映射必须为JSON对象');}
-     if(!mapping||Array.isArray(mapping)||typeof mapping!=='object'||Object.entries(mapping).some(([k,v])=>!['userId','title','content','sourceTodoId','sourceMessageId','eventId','status'].includes(k)||typeof v!=='string'||!/^\w+$/.test(v)||['__proto__','constructor','prototype'].includes(v)))fail('VALIDATION_ERROR','字段映射只支持协议字段到来源字段名称');
-     const allowed=integrationFields[x.kind]||[];
+     if(!mapping||Array.isArray(mapping)||typeof mapping!=='object'||Object.entries(mapping).some(([k,v])=>!['userId','title','content','sourceTodoId','sourceMessageId','eventId','status','businessType'].includes(k)||typeof v!=='string'||!/^\w+$/.test(v)||['__proto__','constructor','prototype'].includes(v)))fail('VALIDATION_ERROR','字段映射只支持协议字段到来源字段名称');
+     const allowed=[...(integrationFields[x.kind]||[]),...(integrationOptionalFields[x.kind]||[])];
      if(x.kind!=='SSO'&&Object.keys(mapping).some(key=>!allowed.includes(key)))fail('VALIDATION_ERROR','字段不属于当前接入类型');
      if(new Set(allowed.map(key=>mapping[key]||key)).size!==allowed.length)fail('VALIDATION_ERROR','不同标准字段不能映射到同一来源字段');
      let valueMapping;try{valueMapping=typeof p.valueMapping==='string'?JSON.parse(p.valueMapping||'{}'):p.valueMapping||{};}catch{fail('VALIDATION_ERROR','状态映射必须为JSON对象');}
@@ -550,9 +555,14 @@ export function createPortalService(provider,getActor){
      Object.assign(x,selected,{runtimeStatus,configStatus:'CONFIGURED'});result=stamp(x);
     }else if(action==='pushTodo'){
      const targetApp=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');if(!p.sourceTodoId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!terminalStatuses.includes(p.status))fail('VALIDATION_ERROR','事件ID、源事项ID、标题及有效状态必填');
-     const payload=canonical(Object.fromEntries(['appId',...integrationFields.TODO].map(key=>[key,p[key]]))),receipt=d.receipts.find(x=>x.appId===p.appId&&x.eventId===p.eventId&&(x.kind||'TODO')==='TODO');if(receipt){if(canonical(JSON.parse(receipt.payload))!==canonical(JSON.parse(payload)))fail('IDEMPOTENCY_CONFLICT','相同事件ID载荷不同');return receipt.result;}
+     if(p.businessType!==undefined&&(typeof p.businessType!=='string'||!p.businessType.trim()))fail('VALIDATION_ERROR','待办任务类型无效');
+     const businessType=p.businessType?.trim()||'服务事项';
+     const payload=canonical({...Object.fromEntries(['appId',...integrationFields.TODO].map(key=>[key,p[key]])),businessType});
+     const receipt=d.receipts.find(x=>x.appId===p.appId&&x.eventId===p.eventId&&(x.kind||'TODO')==='TODO');
+     if(receipt){const original=JSON.parse(receipt.payload);if(canonical({...original,businessType:original.businessType||'服务事项'})!==payload)fail('IDEMPOTENCY_CONFLICT','相同事件ID载荷不同');return receipt.result;}
+     if(!(d.dictItems||[]).some(item=>item.typeCode==='todo_task_type'&&item.value===businessType&&item.status==='ENABLED'))fail('VALIDATION_ERROR','请选择已启用的待办任务类型');
      if(appRequiresBinding(targetApp)&&!d.mappings.some(m=>m.appId===p.appId&&m.userId===p.userId&&m.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
-     let x=d.todos.find(x=>x.appId===p.appId&&x.sourceTodoId===p.sourceTodoId);if(x){if(x.userId!==p.userId)fail('INVALID_TRANSITION','不能变更接收人');if(x.status!=='PENDING')fail('INVALID_TRANSITION','已终结待办不允许回退或重复变更');Object.assign(x,{status:p.status,title:p.title});stamp(x);}else{if(p.status!=='PENDING')fail('INVALID_TRANSITION','首次推送须为待处理');const app=requireRow(d.apps,p.appId);x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,sourceCreatedAt:now,sourceUpdatedAt:now,...p,appName:app.name,summary:'来源系统推送',businessType:'服务事项',url:app.url};d.todos.push(x);}result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({kind:'TODO',appId:p.appId,eventId:p.eventId,payload,result});
+     let x=d.todos.find(x=>x.appId===p.appId&&x.sourceTodoId===p.sourceTodoId);if(x){if(x.userId!==p.userId)fail('INVALID_TRANSITION','不能变更接收人');if((x.businessType||'服务事项')!==businessType)fail('INVALID_TRANSITION','同一来源待办不能变更任务类型');if(x.status!=='PENDING')fail('INVALID_TRANSITION','已终结待办不允许回退或重复变更');Object.assign(x,{status:p.status,title:p.title});stamp(x);}else{if(p.status!=='PENDING')fail('INVALID_TRANSITION','首次推送须为待处理');const app=requireRow(d.apps,p.appId);x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,sourceCreatedAt:now,sourceUpdatedAt:now,...p,appName:app.name,summary:'来源系统推送',businessType,url:app.url};d.todos.push(x);}result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({kind:'TODO',appId:p.appId,eventId:p.eventId,payload,result});
     }else if(action==='pushMessage'){
      const app=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');
      if(!p.sourceMessageId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!p.content?.trim())fail('VALIDATION_ERROR','源消息ID、事件ID、消息标题及内容必填');

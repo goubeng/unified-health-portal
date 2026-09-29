@@ -7,10 +7,10 @@
             <div class="portal-message-meta">
               <div><Icon name="user"/><span>接收对象</span><strong>{{text(receiver)||'当前登录用户'}}</strong></div>
               <div><Icon name="time"/><span>接收时间</span><strong>{{date(record.receivedAt)}}</strong></div>
-              <div><Icon name="mail"/><span>消息类型</span><strong>{{label(record.messageType||'BUSINESS')}}</strong></div>
+              <div><Icon name="mail"/><span>消息类型</span><strong>{{label(record.messageType||'BUSINESS','message_type')}}</strong></div>
               <div><Icon name="tag"/><span>消息来源</span><strong>{{text(record.appName||'统一门户')}}</strong></div>
               <div><Icon name="user-talk"/><span>发送方</span><strong>{{text(record.appName||'统一门户')}}</strong></div>
-              <div><Icon name="check-circle"/><span>读取状态</span><strong><t-tag :theme="record.status==='UNREAD'?'warning':'success'" variant="light">{{record.status==='UNREAD'?'未读':'已读'}}</t-tag></strong></div>
+              <div><Icon name="check-circle"/><span>读取状态</span><strong><t-tag :theme="record.status==='UNREAD'?'warning':'success'" variant="light">{{label(record.status,'message_read_status')}}</t-tag></strong></div>
             </div>
             <p>您好！</p>
             <p class="portal-message-body">{{text(record.content)||'暂无正文'}}</p>
@@ -83,10 +83,10 @@ const detailTitle=(key)=>{
  if(key==='receivedAt'&&['todos','messages'].includes(props.kind))return '接收时间';
  return titles[key]||key;
 };
-const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>titles[key]&&(key==='permissions'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value),wide:['content','description','summary','remark','reason','reviewNote','handleNote','permissions','roleIds'].includes(key)})));
+const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>titles[key]&&(key==='permissions'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value,props.kind==='myApplicationRequests'&&props.record?.requestType==='ACCOUNT_OPENING'?'accountOpeningRequests':props.kind),wide:['content','description','summary','remark','reason','reviewNote','handleNote','permissions','roleIds'].includes(key)})));
 const appDetails=computed(()=>{
   const row=props.record||{};
-  const item=(key,labelText,wide=false)=>({key,label:labelText,value:display(key,row[key]),wide});
+  const item=(key,labelText,wide=false)=>({key,label:labelText,value:display(key,row[key],'apps'),wide});
   return [
     item('name','应用名称'),
     item('code','应用编码'),
@@ -94,7 +94,7 @@ const appDetails=computed(()=>{
     item('enabled','启用状态'),
     item('userType','用户类别'),
     item('createdAt','创建时间'),
-    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus),wide:true},
+    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus,'apps'),wide:true},
     item('url','入口地址',true),
     item('description','说明',true)
   ];

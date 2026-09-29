@@ -20,7 +20,7 @@
         <div class="public-portal-user-area">
           <t-badge size="small" :count="overview.unreadCount || 0" :max-count="99" :show-zero="false">
             <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="go('messages')">
-              <NotificationIcon />
+              <MailIcon size="16px" />
             </button>
           </t-badge>
           <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">

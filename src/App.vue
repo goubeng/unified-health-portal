@@ -5,7 +5,6 @@
    <PortalTooltip :content="collapsed?'展开菜单':'收起菜单'" placement="bottom"><t-button class="collapse-button" shape="square" variant="text" aria-label="展开或收起菜单" @click="collapsed=!collapsed"><template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template></t-button></PortalTooltip>
    <span class="brand">卫健XC统一门户</span><span class="portal-caption" :class="{admin}">{{admin?'平台管理端':'用户端门户'}}</span>
    <div class="topbar-actions">
-    <t-select class="user-switch-select" :value="actor?.id" :options="userOptions" :disabled="switching" filterable aria-label="切换用户" placeholder="切换用户" @change="switchUser"/>
     <PortalTooltip v-if="can(actor,'any')" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><component :is="admin?UserIcon:SettingIcon" size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
     <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="消息中心" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
     <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
@@ -49,12 +48,12 @@
 import {computed,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
-import {pages,can,labels,switchTarget} from './config/pages.js';
-import {actor,switchUsers,canSwitchUser,portal,revision,login,logout,command} from './services/runtime.js';
+import {pages,can,labels} from './config/pages.js';
+import {actor,portal,revision,logout,command} from './services/runtime.js';
 import {validateLocalPassword} from './config/password-policy.js';
 import {MessagePlugin} from 'tdesign-vue-next';
 import PortalTooltip from './components/portal/PortalTooltip.vue';
-const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false),switching=ref(false);
+const route=useRoute(),router=useRouter(),collapsed=ref(false),collapsedGroups=ref(new Set()),unread=ref(0),accountOpen=ref(false);
 const passwordVisible=ref(false),passwordSaving=ref(false),passwordError=ref(''),passwordForm=reactive({currentPassword:'',newPassword:'',confirmPassword:''});
 const admin=computed(()=>route.path.startsWith('/admin'));
 const displayName=user=>(user?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim();
@@ -72,7 +71,6 @@ function backToList(){
   router.push(admin.value?'/admin/announcements':'/portal/announcements');return;
  }
 }
-const userOptions=computed(()=>switchUsers.value.map(user=>({value:user.id,disabled:!canSwitchUser(user),label:displayName(user)+'（'+typeLabel(user)+(can(user,'any')?' / 管理员':'')+(!canSwitchUser(user)?' / 已停用':'')+'）'})));
 const menu=computed(()=>{
  const list=pages.filter(p=>!p.hidden&&p.path.startsWith('/admin')&&!p.path.includes(':')&&can(actor.value,p.scope));
  return [...new Set(list.map(x=>x.group))].map(name=>({name,pages:list.filter(x=>x.group===name)}));
@@ -120,17 +118,7 @@ const icons={
 };
 const iconFor=resource=>icons[resource]||FileIcon;
 function toggleMenuGroup(name){const next=new Set(collapsedGroups.value);next.has(name)?next.delete(name):next.add(name);collapsedGroups.value=next;}
-async function switchUser(id){
- if(switching.value||id===actor.value?.id||!switchUsers.value.some(user=>user.id===id&&canSwitchUser(user)))return;
- switching.value=true;accountOpen.value=false;
- try{
-  await login(id);
-  await router.replace(switchTarget(route,actor.value));
- }
- catch(error){window.alert(error.message);}
- finally{switching.value=false;}
-}
-function openProfile(){accountOpen.value=false;router.push('/portal/profile');}
+function openProfile(){accountOpen.value=false;router.push(admin.value?'/admin/profile':'/portal/profile');}
 function changePassword(){accountOpen.value=false;if(actor.value?.authType==='LOCAL'){passwordVisible.value=true;return;}window.open(actor.value?.userType==='GOV'?'https://zwfw.fujian.gov.cn':'https://mztapp.fujian.gov.cn','_blank','noopener');}
 async function savePassword(){
  if(passwordSaving.value)return;

@@ -1,10 +1,12 @@
 export const integrationFields={TODO:['eventId','sourceTodoId','userId','status','title'],MESSAGE:['eventId','sourceMessageId','userId','title','content']};
+export const integrationOptionalFields={TODO:['businessType'],MESSAGE:[]};
 export const terminalStatuses=['PENDING','COMPLETED','WITHDRAWN'];
 export function publicContract(){
  const schemas={Result:{type:'object',required:['ok','requestId'],properties:{ok:{type:'boolean'},requestId:{type:'string'},data:{type:'object',properties:{entityId:{type:'string'},disposition:{type:'string',enum:['APPLIED']}}},error:{type:'object',properties:{code:{type:'string'},message:{type:'string'},retryable:{type:'boolean'}}}}}};
  const paths={};
  for(const kind of ['TODO','MESSAGE']){
-  schemas[kind]={type:'object',required:integrationFields[kind],additionalProperties:false,properties:Object.fromEntries(integrationFields[kind].map(key=>[key,key==='status'?{type:'string',enum:terminalStatuses}:{type:'string',minLength:1}]))};
+  schemas[kind]={type:'object',required:integrationFields[kind],additionalProperties:false,properties:Object.fromEntries([...integrationFields[kind],...integrationOptionalFields[kind]].map(key=>[key,key==='status'?{type:'string',enum:terminalStatuses}:{type:'string',minLength:1}]))};
+  if(kind==='TODO')schemas[kind].properties.businessType.description='可选；须为启用的 todo_task_type 字典值。缺省为“服务事项”，同一来源待办后续不可变更。';
   const example=kind==='TODO'?{eventId:'task-event-001',sourceTodoId:'task-001',userId:'MOCK_USER_1',status:'PENDING',title:'材料核对'}:{eventId:'message-event-001',sourceMessageId:'message-001',userId:'MOCK_USER_1',title:'办理通知',content:'事项已受理'};
   paths[`/api/portal/ingest/{appId}/${kind==='TODO'?'todos':'messages'}`]={post:{operationId:kind==='TODO'?'pushTodo':'pushMessage',summary:kind==='TODO'?'推送待办':'推送消息',parameters:[{in:'path',name:'appId',required:true,schema:{type:'string'},description:'门户应用ID（不是应用名称，也不是NocoDB行号）'}],security:[{bearerAuth:[]}],requestBody:{required:true,content:{'application/json':{schema:{$ref:`#/components/schemas/${kind}`},example}}},responses:Object.fromEntries(Object.entries({'200':'已受理；同事件相同载荷返回原结果','400':'字段或关联身份不满足要求','401':'接入凭据不存在或不匹配','403':'接入或应用未启用','409':'状态/幂等冲突','503':'本地数据库服务不可用'}).map(([code,description])=>[code,{description,content:{'application/json':{schema:{$ref:'#/components/schemas/Result'}}}}]))}};
  }

@@ -8,7 +8,7 @@ import {createRepository,createMemoryRepository,makeEvent} from './repository.mj
 
 const resultError=(code,message)=>({ok:false,error:{code,message,retryable:false}});
 export {appContract as contract} from '../src/config/integration-contract.js';
-import {appContract as contract,publicContract,integrationFields} from '../src/config/integration-contract.js';
+import {appContract as contract,publicContract,integrationFields,integrationOptionalFields} from '../src/config/integration-contract.js';
 const statusFor=r=>r.ok?200:({UNAUTHENTICATED:401,FORBIDDEN:403,NOT_FOUND:404,IDEMPOTENCY_CONFLICT:409,STALE_EVENT:409,INVALID_TRANSITION:409,VERSION_CONFLICT:409})[r.error?.code]||400;
 const isAllowedFrontendOrigin=origin=>{
  if(!origin)return true;
@@ -99,8 +99,9 @@ export function createPortalApi({repository=null,env=process.env}={}){
      if(!key||!supplied||!timingSafeEqual(hash(key),hash(supplied)))return rejectPush('UNAUTHENTICATED','接入凭据不匹配',401);
      const fields=integrationFields[kind];
      const input=Object.fromEntries(fields.map(k=>[k,payload[config.fieldMapping?.[k]||k]]));input.appId=appId;
+     for(const field of integrationOptionalFields[kind]){const source=config.fieldMapping?.[field]||field;if(Object.hasOwn(payload,source))input[field]=payload[source];}
      if(kind==='TODO')input.status=config.valueMapping?.status?.[input.status]||input.status;
-     if(fields.some(key=>typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');const event=auditEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'});event.actorKind='APPLICATION';Object.assign(event.details,{interfaceName:`/api/portal/ingest/${kind==='TODO'?'todos':'messages'}`,httpMethod:'POST',statusCode:400});await repository.commit(state,state,version,event);return send(res,400,result);}
+     if([...fields,...integrationOptionalFields[kind].filter(field=>Object.hasOwn(input,field))].some(key=>typeof input[key]!=='string'||!input[key].trim())){const result=resultError('VALIDATION_ERROR','请求字段缺失或类型不符合接口规范');const event=auditEvent({action:'PUSH_REJECTED',payload:{appId},state,result,kind:'API'});event.actorKind='APPLICATION';Object.assign(event.details,{interfaceName:`/api/portal/ingest/${kind==='TODO'?'todos':'messages'}`,httpMethod:'POST',statusCode:400});await repository.commit(state,state,version,event);return send(res,400,result);}
      const principal=state.users.find(x=>adminUserEnabled(x)&&can(x,'system:super'));const machineService=createPortalService(provider,()=>principal);
      const action=kind==='TODO'?'pushTodo':'pushMessage',result=await machineService.command(action,input);
      const after=provider.read(),sourceLog=(after.logs||[]).find(row=>!(state.logs||[]).some(old=>old.id===row.id));

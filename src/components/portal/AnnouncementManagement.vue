@@ -27,8 +27,8 @@
         <template #empty><EmptyState description="暂无符合条件的公告"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}"><TableCellTooltip :text="text(row.title)"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></TableCellTooltip></template>
-        <template #scope="{row}">{{label(row.scope)}}</template>
-        <template #status="{row}"><t-tag :theme="statusTheme(displayStatus(row))" variant="light">{{label(displayStatus(row))}}</t-tag></template>
+        <template #scope="{row}">{{label(row.scope,'announcement_scope')}}</template>
+        <template #status="{row}"><t-tag :theme="statusTheme(displayStatus(row))" variant="light">{{label(displayStatus(row),'announcement_status')}}</t-tag></template>
         <template #publishAt="{row}">
           <span v-if="displayStatus(row)==='SCHEDULED'">{{date(row.scheduledPublishAt)}}</span>
           <span v-else>{{date(row.publishedAt)}}</span>
@@ -71,8 +71,7 @@
           <div class="form-field announcement-publish-mode-field">
             <label>发布方式 <span class="portal-required">*</span></label>
             <t-radio-group v-model="form.publishMode">
-              <t-radio value="IMMEDIATE">立即发布</t-radio>
-              <t-radio value="SCHEDULED">定时发布</t-radio>
+              <t-radio v-for="option in publishModeOptions" :key="option.value" :value="option.value">{{option.label}}</t-radio>
             </t-radio-group>
           </div>
           <div v-if="form.publishMode==='SCHEDULED'" class="form-field announcement-schedule-field">
@@ -108,8 +107,7 @@
       <p class="inline-note">公告：{{text(submitRow?.title)}}</p>
       <div class="announcement-submit-options">
         <t-radio-group v-model="publishMode">
-          <t-radio value="IMMEDIATE">立即发布</t-radio>
-          <t-radio value="SCHEDULED">定时发布</t-radio>
+          <t-radio v-for="option in publishModeOptions" :key="option.value" :value="option.value">{{option.label}}</t-radio>
         </t-radio-group>
         <div v-if="publishMode==='SCHEDULED'" class="form-field">
           <label>定时发布时间 <span class="portal-required">*</span></label>
@@ -142,7 +140,7 @@ import TableCellTooltip from './TableCellTooltip.vue';
 import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
 import AnnouncementEditPage from './AnnouncementEditPage.vue';
-import {date,dateOnly,label,text} from './presentation.js';
+import {date,dateOnly,label,text,dictionaryOptions} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,default:()=>[]}});
@@ -159,8 +157,9 @@ const typeOptions=computed(()=>{
   const items=props.typeItems.filter(item=>item.typeCode==='announcement_type'&&item.status==='ENABLED');
   return items.length?items.map(item=>({value:item.label,label:item.label})):[{value:'通知',label:'通知'},{value:'提示',label:'提示'}];
 });
-const scopeOptions=['ALL','CITIZEN','GOV'].map(value=>({value,label:label(value)}));
-const statusOptions=['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'].map(value=>({value,label:label(value)}));
+const scopeOptions=computed(()=>dictionaryOptions('announcement_scope',['ALL','CITIZEN','GOV']));
+const statusOptions=computed(()=>dictionaryOptions('announcement_status',['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'],{includeDisabled:true}));
+const publishModeOptions=computed(()=>dictionaryOptions('publish_mode',['IMMEDIATE','SCHEDULED']));
 const displayStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const statusTheme=value=>value==='PUBLISHED'?'success':value==='SCHEDULED'?'warning':['WITHDRAWN','EXPIRED'].includes(value)?'default':'primary';
 

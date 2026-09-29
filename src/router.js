@@ -41,6 +41,7 @@ const routes=[
  ]},
  {path:'/',redirect:'/portal/home'},
  ...compatibilityRedirects,
+ {path:'/admin/profile',name:'PG-ADMIN-PROFILE',component:PortalPage,meta:{group:'系统管理',title:'个人信息',resource:'profile',scope:'any'}},
  ...pages.filter(page=>!page.hidden&&!page.path.startsWith('/portal')).map(page=>({
    path:page.path,
    name:page.id,

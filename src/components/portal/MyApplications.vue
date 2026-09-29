@@ -5,7 +5,7 @@
         <t-table class="my-applications-table" row-key="id" :data="pagedAccessRows" :columns="accessColumns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="暂无应用访问申请"/></template>
           <template #requestNo="{row}"><TableCellTooltip :text="text(row.requestNo)||'-'"><button class="portal-field-link" @click="emit('detail',row)">{{text(row.requestNo)||'-'}}</button></TableCellTooltip></template>
-          <template #status="{row}"><t-tag :theme="theme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
+          <template #status="{row}"><t-tag :theme="theme(row.status)" variant="light">{{label(row.status,'application_request_status')}}</t-tag></template>
           <template #operation="{row}"><div class="row-actions">
             <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="danger" @click="emit('withdraw',row)">撤回</t-button>
             <t-button v-if="row.status==='REJECTED'" size="small" variant="text" theme="primary" @click="emit('reapply',row)">重新申请</t-button>
@@ -26,7 +26,7 @@
         <t-table class="my-applications-table" row-key="id" :data="pagedOpeningRows" :columns="openingColumns" hover table-layout="fixed" size="medium">
           <template #empty><EmptyState description="暂无子系统账号开通申请"/></template>
           <template #requestNo="{row}"><TableCellTooltip :text="text(row.requestNo)||'-'"><button class="portal-field-link" @click="emit('detail',row)">{{text(row.requestNo)||'-'}}</button></TableCellTooltip></template>
-          <template #status="{row}"><t-tag :theme="theme(row.status)" variant="light">{{label(row.status)}}</t-tag></template>
+          <template #status="{row}"><t-tag :theme="theme(row.status)" variant="light">{{label(row.status,'account_opening_status')}}</t-tag></template>
           <template #operation="{row}"><div class="row-actions">
             <t-button v-if="row.status==='COMPLETED'" size="small" variant="text" theme="primary" @click="emit('bind',row)">去关联</t-button>
           </div></template>
@@ -46,7 +46,6 @@
 
 <script setup>
 import {computed,ref,h,watch} from 'vue';
-import {Tag} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {text,label,date,theme} from './presentation.js';
@@ -64,7 +63,6 @@ watch(accessPageSize,()=>{accessPage.value=1;});
 watch(openingPageSize,()=>{openingPage.value=1;});
 watch(()=>accessRows.value.length,()=>{accessPage.value=Math.min(accessPage.value,Math.max(1,Math.ceil(accessRows.value.length/accessPageSize.value)));});
 watch(()=>openingRows.value.length,()=>{openingPage.value=Math.min(openingPage.value,Math.max(1,Math.ceil(openingRows.value.length/openingPageSize.value)));});
-const statusCell=row=>h(Tag,{theme:theme(row.status),variant:'light'},()=>label(row.status));
 
 const accessColumns=[
  {colKey:'serial',title:'序号',width:64,cell:(_,ctx)=>(accessPage.value-1)*accessPageSize.value+ctx.rowIndex+1},

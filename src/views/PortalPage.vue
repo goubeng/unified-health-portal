@@ -124,11 +124,11 @@
        <strong>{{text(row.title)||'-'}}</strong>
        <small class="public-announcement-meta">
         <t-tag class="public-announcement-meta-tag" size="small" variant="light" theme="primary">{{label(row.type)||'-'}}</t-tag>
-        <t-tag class="public-announcement-meta-tag scope" size="small" variant="light" theme="default">{{label(row.scope)||'-'}}</t-tag>
+        <t-tag class="public-announcement-meta-tag scope" size="small" variant="light" theme="default">{{label(row.scope,'announcement_scope')}}</t-tag>
         <span class="public-announcement-date">{{date(row.publishedAt)}}</span>
        </small>
       </button>
-      <span class="public-announcement-read-state">{{row.readStatus==='UNREAD'?'未读':'已读'}}</span>
+      <span class="public-announcement-read-state">{{label(row.readStatus,'message_read_status')}}</span>
      </article>
      <EmptyState v-if="!paged.length" description="暂无符合条件的公告"/>
      <t-pagination v-if="filtered.length" v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
@@ -186,7 +186,7 @@ import {computed,h,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
-import {actor,portal,command,revision,availableUsers,downloadAccessContract} from '../services/runtime.js';
+import {actor,portal,command,revision,availableUsers,downloadAccessContract,loadDictionaryLookups,dictionaryLookups} from '../services/runtime.js';
 import {pages,can,shouldLoadAppCatalog} from '../config/pages.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
 import MessageCenter from '../components/portal/MessageCenter.vue';
@@ -209,7 +209,7 @@ import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
 import AnnouncementEditor from '../components/portal/AnnouncementEditor.vue';
 import AnnouncementDetail from '../components/portal/AnnouncementDetail.vue';
-import {text,label,date,source,theme,latest,titles,display} from '../components/portal/presentation.js';
+import {text,label,date,source,theme,latest,titles,display,dictionaryOptions,dictionaryTypeFor} from '../components/portal/presentation.js';
 
 const route=useRoute(),router=useRouter();
 const resource=computed(()=>route.meta.resource||''),admin=computed(()=>route.path.startsWith('/admin'));
@@ -258,6 +258,7 @@ async function load(){
  try{
   const key=resource.value,home=isHome.value,center=isAppCenter.value,isAdmin=admin.value;
   const tasks={};
+  loadDictionaryLookups();
   const needsAppCatalog=isAdmin?shouldLoadAppCatalog(true,actor.value):(center||key==='myApplicationRequests');
   if(needsAppCatalog)tasks.apps=read(isAdmin?'adminApps':'apps');
   if(can(actor.value,'application:view'))tasks.categories=read('categories');
@@ -316,6 +317,7 @@ const queryWidthClass=key=>({
  category:'query-width-category',
  userType:'query-width-user-type',
  messageType:'query-width-message-type',
+ businessType:'query-width-kind',
  scope:'query-width-scope',
  appName:'query-width-source',
  actor:'query-width-actor',
@@ -331,7 +333,11 @@ const queryWidthClass=key=>({
  todoStatus:'query-width-todo-status',
  messageStatus:'query-width-message-status'
 }[key]||'query-width-default');
-const fixedOptions=values=>values.map(value=>({value,label:label(value)}));
+const fixedOptions=(values,typeCode)=>typeCode?dictionaryOptions(typeCode,values):values.map(value=>({value,label:label(value)}));
+const myRequestStatusOptions=()=>[...new Map([
+ ...dictionaryOptions('application_request_status',['PENDING','APPROVED','REJECTED','WITHDRAWN']),
+ ...dictionaryOptions('account_opening_status',['PROCESSING','COMPLETED'])
+].map(item=>[item.value,item])).values()];
 const rowOptions=(field,useLabel=false)=>[...new Set(rows.value.map(row=>row[field]).filter(value=>value!==null&&value!==undefined&&String(value)!==''))].map(value=>({value,label:useLabel?label(value):text(value)}));
 const filterDef=(key,labelText,placeholder,options,widthKey=key)=>({key,label:labelText,placeholder:'全部',options,widthKey,searchable:key==='appName'});
 const querySpec=computed(()=>{
@@ -339,21 +345,21 @@ const querySpec=computed(()=>{
  const logKind=resource.value.startsWith('logs:')?resource.value.split(':')[1]:'';
  if(key==='apps'||key==='mine')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['name','code'],filters:[
   filterDef('category','系统分类','请选择系统分类',rowOptions('category'),'category'),
-  filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']),'aggregateRuntimeStatus'),
-  ...(admin.value?[filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]:[]),
+  filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED'],'runtime_status'),'aggregateRuntimeStatus'),
+  ...(admin.value?[filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status')]:[]),
   filterDef('userType','适用用户','请选择适用用户',fixedOptions(['BOTH','CITIZEN','GOV']),'userType')
  ]};
- if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')]};
- if(key==='myApplicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED','PROCESSING','COMPLETED']),'status')]};
- if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 来源应用 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED']),'status')]};
- if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 来源应用 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED']),'status')]};
+ if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status')]};
+ if(key==='myApplicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',myRequestStatusOptions(),'status')]};
+ if(key==='applicationRequests')return {keywordPlaceholder:'申请编号 / 来源应用 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN'],'application_request_status'),'status')]};
+ if(key==='accountOpeningRequests')return {keywordPlaceholder:'申请编号 / 来源应用 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',fixedOptions(['PENDING','PROCESSING','COMPLETED'],'account_opening_status'),'status')]};
  if(key==='permissions')return {keywordPlaceholder:'权限名称 / 权限编码',keywordFields:['name','code'],filters:[]};
- if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择待办状态',fixedOptions(['PENDING','COMPLETED','WITHDRAWN']),'status')]};
+ if(key==='todos')return {keywordPlaceholder:'待办标题',keywordFields:['title'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('businessType','任务类型','请选择任务类型',dictionaryOptions('todo_task_type',[...new Set(rows.value.map(row=>row.businessType).filter(Boolean))],{includeDisabled:true}),'businessType'),filterDef('status','状态','请选择待办状态',dictionaryOptions('todo_status',['PENDING','COMPLETED','WITHDRAWN',...(rows.value.some(row=>row.status==='EXPIRED')?['EXPIRED']:[])],{includeDisabled:true}),'status')]};
  if(key==='announcements')return admin.value
-  ?{keywordPlaceholder:'公告标题',keywordFields:['title'],filters:[filterDef('type','公告类型','请选择公告类型',rowOptions('type'),'type'),filterDef('scope','发布范围','请选择发布范围',fixedOptions(['ALL','CITIZEN','GOV','ORG']),'scope'),filterDef('status','状态','请选择公告状态',fixedOptions(['DRAFT','PUBLISHED','WITHDRAWN']),'status')]}
-  :{keywordPlaceholder:'公告标题',keywordFields:['title'],filters:[filterDef('type','公告类型','请选择公告类型',rowOptions('type'),'type'),filterDef('scope','发布范围','请选择发布范围',fixedOptions(['ALL','CITIZEN','GOV']),'scope'),filterDef('readStatus','阅读状态','请选择阅读状态',fixedOptions(['UNREAD','READ']),'status')]};
- if(key==='monitor')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['appName','appCode'],filters:[filterDef('ssoStatus','SSO状态','请选择SSO状态',fixedOptions(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL']),'ssoStatus'),filterDef('todoStatus','TODO状态','请选择TODO状态',fixedOptions(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL']),'todoStatus'),filterDef('messageStatus','MESSAGE状态','请选择MESSAGE状态',fixedOptions(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL']),'messageStatus')]};
- if(key==='mappings'||key==='exceptions')return {keywordPlaceholder:'来源应用 / 子系统账号 / 统一身份标识',keywordFields:['appName','externalAccount','userId'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择映射状态',fixedOptions(['BOUND','FAILED','CONFLICT','UNBOUND']),'status')]};
+  ?{keywordPlaceholder:'公告标题',keywordFields:['title'],filters:[filterDef('type','公告类型','请选择公告类型',rowOptions('type'),'type'),filterDef('scope','发布范围','请选择发布范围',fixedOptions(['ALL','CITIZEN','GOV'],'announcement_scope'),'scope'),filterDef('status','状态','请选择公告状态',fixedOptions(['DRAFT','PUBLISHED','WITHDRAWN'],'announcement_status'),'status')]}
+  :{keywordPlaceholder:'公告标题',keywordFields:['title'],filters:[filterDef('type','公告类型','请选择公告类型',rowOptions('type'),'type'),filterDef('scope','发布范围','请选择发布范围',fixedOptions(['ALL','CITIZEN','GOV'],'announcement_scope'),'scope'),filterDef('readStatus','阅读状态','请选择阅读状态',fixedOptions(['UNREAD','READ'],'message_read_status'),'status')]};
+ if(key==='monitor')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['appName','appCode'],filters:[filterDef('ssoStatus','SSO状态','请选择SSO状态',fixedOptions(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL'],'runtime_status'),'ssoStatus'),filterDef('todoStatus','TODO状态','请选择TODO状态',fixedOptions(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL'],'runtime_status'),'todoStatus'),filterDef('messageStatus','MESSAGE状态','请选择MESSAGE状态',fixedOptions(['UNCONFIGURED','DISABLED','NORMAL','ABNORMAL'],'runtime_status'),'messageStatus')]};
+ if(key==='mappings'||key==='exceptions')return {keywordPlaceholder:'来源应用 / 子系统账号 / 统一身份标识',keywordFields:['appName','externalAccount','userId'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择映射状态',fixedOptions(['BOUND','FAILED','CONFLICT','UNBOUND'],'mapping_status'),'status')]};
  if(logKind)return {keywordPlaceholder:'请求ID / 说明',keywordFields:['requestId','description','name'],filters:[filterDef('appName','来源应用','请选择来源应用',rowOptions('appName'),'appName'),filterDef('actor','操作人','请选择操作人',rowOptions('actor'),'actor'),filterDef('status','结果状态','请选择结果状态',fixedOptions(['SUCCESS','FAILURE','DENIED']),'status')]};
  return {keywordPlaceholder:'关键词',keywordFields:Object.keys(titles),filters:[]};
 });
@@ -370,7 +376,8 @@ const filtered=computed(()=>{
  const keywordFields=querySpec.value.keywordFields||[];
  const result=rows.value.filter(row=>{
   const matchesFilters=queryFilters.value.every(filter=>{const selected=filterValues[filter.key];if(selected===undefined||selected===null||selected==='')return true;if(filter.key==='enabled')return (row.enabled===false?'DISABLED':'ENABLED')===String(selected);const actual=String(row[filter.key]??'');return actual===String(selected);});
-  const matchesKeyword=!term||keywordFields.some(key=>display(key,row[key]).toLowerCase().includes(term));
+  const domain=listResource.value==='myApplicationRequests'&&row.requestType==='ACCOUNT_OPENING'?'accountOpeningRequests':listResource.value;
+  const matchesKeyword=!term||keywordFields.some(key=>display(key,row[key],domain).toLowerCase().includes(term));
   return matchesFilters&&matchesKeyword;
  });
  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
@@ -397,7 +404,7 @@ const appGroups=computed(()=>['mine','other'].map(key=>{
 }));
 function setAppPage(key,value){appPages[key]=value;}
 function setAppPageSize(key,value){appPageSizes[key]=Number(value)||20;appPages[key]=1;}
-const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],todos:['title','appName','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt','handleNote'],categories:['name','code','status'],todos:['title','appName','businessType','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
 const hasOperations=computed(()=>['apps','categories','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
@@ -441,7 +448,12 @@ const sortableFields={
 const isSortableField=key=>sortableFields[listResource.value]?.has(key)===true;
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
- ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,sorter:isSortableField(key),sortType:'all',cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key])):h(TableCellTooltip,{text:display(key,context.row[key])},()=>display(key,context.row[key]))})),
+ ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,sorter:isSortableField(key),sortType:'all',cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>{
+  const domain=resource.value==='myApplicationRequests'&&context.row.requestType==='ACCOUNT_OPENING'?'accountOpeningRequests':resource.value;
+  return ['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)
+   ?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key],dictionaryTypeFor(domain,key)))
+   :h(TableCellTooltip,{text:display(key,context.row[key],domain)},()=>display(key,context.row[key],domain));
+ }})),
  ...(hasOperations.value?[{colKey:'operation',title:'操作',width:resource.value==='apps'&&admin.value?240:200,fixed:'right'}]:[])
 ]);
 const createAction=computed(()=>({apps:'saveApp',categories:'saveCategory',announcements:'saveAnnouncement'})[resource.value]);
@@ -449,7 +461,8 @@ const createScope={apps:'application:edit',categories:'application:edit',announc
 const canCreate=computed(()=>admin.value&&!!createAction.value&&can(actor.value,createScope[resource.value]));
 const createLabel=computed(()=>({apps:'新增应用',categories:'新增分类',announcements:'新增公告'})[resource.value]);
 const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编辑公告':'新增公告'):({saveApp:'应用信息',saveCategory:'系统分类',bind:'关联已有账号',saveConfig:'参数配置',saveIntegration:'接入配置',resolveMapping:'处理账号关联冲突',submitApplicationRequest:'申请使用应用',rejectApplicationRequest:'驳回应用访问申请',rejectBindingReview:'驳回账号关联审核',pushTodo:'录入来源待办',pushMessage:'录入来源消息'})[formAction.value]);
-const opt=values=>values.map(value=>({value,label:label(value)}));
+const opt=(values,typeCode)=>typeCode?dictionaryOptions(typeCode,values):values.map(value=>({value,label:label(value)}));
+const taskTypeOptions=computed(()=>dictionaryOptions('todo_task_type',dictionaryLookups.value.items.filter(item=>item.typeCode==='todo_task_type').map(item=>item.value).concat('服务事项')));
 const formFields=computed(()=>{
  const f=(key,labelText,type='text',required=false,options=null,full=false)=>({key,label:labelText,type,required,options,full});
  const appOpts=allApps.value.map(item=>({value:item.id,label:text(item.name)}));
@@ -461,22 +474,23 @@ const formFields=computed(()=>{
    ...((form.accessMode==='BIND'||(form.accessMode==='REQUEST'&&form.postGrantMode==='BIND'))?[f('accountBindingMode','账号关联方式','text',true,opt(['AUTO','SELF','REVIEW','ADMIN'])),f('accountOpeningMode','未找到账号时','text',true,[{value:'NONE',label:'仅提示联系管理员'},{value:'REQUEST',label:'允许提交开通申请'}])]:[]),
    f('url','入口地址','text',true,null,true),...(form.id?[]:[f('sortOrder','显示排序','number')]),f('description','说明','textarea',false,null,true)],
   saveCategory:[f('name','分类名称','text',true),f('code','分类编码','text',true),f('sortOrder','排序','number')],
-  saveAnnouncement:[f('title','公告标题','text',true,null,true),f('type','公告类型'),f('scope','发布范围','text',true,opt(['ALL','CITIZEN','GOV'])),f('effectiveStart','生效时间','date'),f('effectiveEnd','失效时间','date')],
+  saveAnnouncement:[f('title','公告标题','text',true,null,true),f('type','公告类型'),f('scope','发布范围','text',true,opt(['ALL','CITIZEN','GOV'],'announcement_scope')),f('effectiveStart','生效时间','date'),f('effectiveEnd','失效时间','date')],
   bind:[f('externalAccount','已有子系统账号','text',true,null,true)],
   submitApplicationRequest:[f('reason','申请原因','textarea',true,null,true),f('contact','联系方式','text',false),f('remark','备注','textarea',false,null,true)],
   rejectApplicationRequest:[f('reviewNote','驳回原因','textarea',true,null,true)],
   rejectBindingReview:[f('reviewNote','驳回原因','textarea',true,null,true)],
   saveConfig:[f('value','配置值（使用当前参数标注单位）','number',true,null,true)],
   saveIntegration:[f('enabled','启用接入','text',true,opt(['ENABLED','DISABLED'])),...(form.kind==='SSO'?[f('protocol','协议','text',true,opt(['OIDC','SAML2','CUSTOM'])),f('clientId','Client ID'),f('authorizeUrl','授权地址'),f('tokenUrl','令牌地址'),f('callbackUrl','回调地址')]:[f('mode','接入方式','text',true,opt(['PUSH'])),f('fieldMapping','字段映射（JSON：标准字段→来源字段）','textarea',false,null,true)]),f('credentialRef','服务端凭据引用'),f('remark','接入说明','textarea',false,null,true)],resolveMapping:[f('reason','核验证据说明','textarea',true,null,true)],
-  pushTodo:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceTodoId','源事项ID','text',true),f('eventId','事件ID','text',true),f('status','源状态','text',true,opt(['PENDING','COMPLETED','WITHDRAWN'])),f('title','待办标题','text',true,null,true)],
+  pushTodo:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceTodoId','源事项ID','text',true),f('eventId','事件ID','text',true),f('businessType','待办任务类型','text',true,taskTypeOptions.value),f('status','源状态','text',true,opt(['PENDING','COMPLETED','WITHDRAWN'],'todo_status')),f('title','待办标题','text',true,null,true)],
   pushMessage:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceMessageId','源消息ID','text',true),f('eventId','事件ID','text',true),f('title','消息标题','text',true,null,true),f('content','消息内容','textarea',true,null,true)]
  })[formAction.value]||[];
 });
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function openForm(action,row={}){
  Object.keys(form).forEach(key=>delete form[key]);
- const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
+ const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',businessType:'服务事项',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
  Object.assign(form,defaults,JSON.parse(JSON.stringify(row)));
+ if(action==='pushTodo'&&!taskTypeOptions.value.some(item=>item.value===form.businessType))form.businessType=taskTypeOptions.value[0]?.value||'';
  if(action==='saveIntegration'){form.enabled=row.enabled||'DISABLED';form.protocol=['OIDC','SAML2','CUSTOM'].includes(row.protocol)?row.protocol:'OIDC';form.mode='PUSH';form.fieldMapping=JSON.stringify(row.fieldMapping||{},null,2);}
  for(const key of ['effectiveStart','effectiveEnd'])if(form[key])form[key]=toDateTimeValue(form[key]);
  formAction.value=action;formError.value='';bindFeedback.value=null;

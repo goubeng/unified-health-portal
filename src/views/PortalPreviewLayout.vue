@@ -20,7 +20,7 @@
         <div class="public-portal-user-area">
           <t-badge size="small" :count="unread" :max-count="99" :show-zero="false">
             <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="go('/messages')">
-              <NotificationIcon />
+              <MailIcon size="16px" />
             </button>
           </t-badge>
           <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
@@ -87,7 +87,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,MailIcon,UserIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';

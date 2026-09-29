@@ -70,13 +70,13 @@ import {computed,defineComponent,h,ref,watch} from 'vue';
 import {Tag} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
-import {date,label,text,theme} from './presentation.js';
+import {date,label,text,theme,dictionaryOptions} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
 const keyword=ref(''),ssoStatus=ref(''),todoStatus=ref(''),messageStatus=ref(''),page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null),kinds=['SSO','TODO','MESSAGE'];
-const statusOptions=['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED'].map(value=>({value,label:label(value)}));
-const StatusTag=defineComponent({props:{value:{type:String,default:'UNCONFIGURED'}},setup(p){return()=>h(Tag,{theme:theme(p.value),variant:'light'},()=>label(p.value));}});
+const statusOptions=computed(()=>dictionaryOptions('runtime_status',['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']));
+const StatusTag=defineComponent({props:{value:{type:String,default:'UNCONFIGURED'}},setup(p){return()=>h(Tag,{theme:theme(p.value),variant:'light'},()=>label(p.value,'runtime_status'));}});
 
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();

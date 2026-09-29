@@ -7,6 +7,29 @@ const actorFromSession=data=>{
  return {...base,kind:adminAccess?'ADMIN':'USER',adminSubject:adminAccess,adminAccess,permissions:data?.permissions||[],roleIds:(data?.roles||[]).map(role=>role.id),roleName:(data?.roles||[])[0]?.name||(adminAccess?'门户管理员':'普通用户'),userType:base.userType||access?.userType||null,orgName:base.orgName||access?.orgName||'',identitySource:data?.identitySource||base.identitySource||access?.identitySource||null,authType:data?.authType||base.authType||'EXTERNAL'};
 };
 const users=ref([]);
+export const dictionaryLookups=ref({types:[],items:[]});
+let lookupRequest=null;
+let lookupLoaded=false;
+let lookupGeneration=0;
+export function invalidateDictionaryLookups(){
+ lookupGeneration++;
+ lookupLoaded=false;
+ lookupRequest=null;
+ dictionaryLookups.value={types:[],items:[]};
+}
+export function loadDictionaryLookups(){
+ if(lookupLoaded)return Promise.resolve(dictionaryLookups.value);
+ if(lookupRequest)return lookupRequest;
+ const generation=lookupGeneration;
+ lookupRequest=request('read?resource=lookupDictionaries').then(result=>{
+  if(generation===lookupGeneration&&result.ok){
+   dictionaryLookups.value={types:result.data?.types||[],items:result.data?.items||[]};
+   lookupLoaded=true;
+  }
+  return dictionaryLookups.value;
+ }).finally(()=>{if(generation===lookupGeneration)lookupRequest=null;});
+ return lookupRequest;
+}
 export const canSwitchUser=user=>user?.authType==='LOCAL'?user.adminEnabled!==false&&user.adminStatus!=='DISABLED'&&user.enabled!==false&&user.status!=='DISABLED':['CITIZEN','GOV'].includes(user?.userType)&&user?.enabled!==false&&user?.status!=='DISABLED';
 export const switchUsers=computed(()=>users.value);
 export const availableUsers=computed(()=>users.value.filter(user=>['CITIZEN','GOV'].includes(user.userType)&&canSwitchUser(user)));
@@ -26,9 +49,9 @@ export async function initializeRuntime(){
  else startupError.value=result.error.message;
 }
 export const portal={read:resource=>request('read?resource='+encodeURIComponent(resource))};
-export async function login(id,loginMethod){const result=await request('session',{userId:id,loginMethod});if(!result.ok)throw new Error(result.error.message);applySession(result.data||{});revision.value++;}
-export async function logout(){const result=await request('logout',{});if(!result.ok)throw new Error(result.error.message);actor.value=null;session.value={accessSubject:null,adminUser:null,adminAccess:false,roles:[],permissions:[],authType:null,identitySource:null};revision.value++;}
-export async function command(action,payload={}){const result=await request('command',{action,payload});if(result.ok){await initializeRuntime();revision.value++;}return result;}
+export async function login(id,loginMethod){const result=await request('session',{userId:id,loginMethod});if(!result.ok)throw new Error(result.error.message);invalidateDictionaryLookups();applySession(result.data||{});revision.value++;}
+export async function logout(){const result=await request('logout',{});if(!result.ok)throw new Error(result.error.message);invalidateDictionaryLookups();actor.value=null;session.value={accessSubject:null,adminUser:null,adminAccess:false,roles:[],permissions:[],authType:null,identitySource:null};revision.value++;}
+export async function command(action,payload={}){const result=await request('command',{action,payload});if(result.ok){if(['saveDictionaryType','saveDictionaryItem','deleteDictionaryType','removeDictionaryItem'].includes(action))invalidateDictionaryLookups();await initializeRuntime();revision.value++;}return result;}
 export async function downloadContract(kind,appId){const result=await request(`contracts/${kind}/${encodeURIComponent(appId)}`);if(!result.ok)throw Error(result.error.message);const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`${kind.toLowerCase()}-${appId}-openapi.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
 export async function downloadAccessContract(){

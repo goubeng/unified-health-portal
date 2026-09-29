@@ -1,4 +1,5 @@
 import { applicationCatalog, platforms } from './catalog.js';
+import {businessDictionarySeed} from '../config/dictionary-catalog.js';
 
 // P4 fixtures only: NORMAL/BOUND and audit outcomes exercise local UI states.
 // These are not evidence of live verification, service access or delivery.
@@ -48,7 +49,8 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   row('MOCK_DICT_TYPE_ORG_TYPE',{code:'organization_type',name:'组织类型',description:'门户组织索引类型',status:'ENABLED',sortOrder:3,systemLocked:false}),
   row('MOCK_DICT_TYPE_ENABLE',{code:'enable_status',name:'启用状态',description:'系统受控状态字典',status:'ENABLED',sortOrder:90,systemLocked:true}),
   row('MOCK_DICT_TYPE_RUNTIME',{code:'runtime_status',name:'运行状态',description:'系统受控运行状态',status:'ENABLED',sortOrder:91,systemLocked:true}),
-  row('MOCK_DICT_TYPE_PROTOCOL',{code:'integration_protocol',name:'接入协议',description:'代码已支持的接入协议',status:'ENABLED',sortOrder:92,systemLocked:true})
+  row('MOCK_DICT_TYPE_PROTOCOL',{code:'integration_protocol',name:'接入协议',description:'代码已支持的接入协议',status:'ENABLED',sortOrder:92,systemLocked:true}),
+  ...businessDictionarySeed(row).types
  ];
  const dictItems=[
   ...categories.map((item,index)=>row('MOCK_DICT_APP_'+item.code,{typeCode:'application_category',label:item.name,value:item.code,sortOrder:index+1,status:item.status,remark:'应用分类',systemLocked:false})),
@@ -56,7 +58,8 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   ...[['PORTAL_UNIT','门户单位'],['GOV_DEPARTMENT','政务部门'],['OTHER','其他组织']].map(([value,label],index)=>row('MOCK_DICT_ORG_'+index,{typeCode:'organization_type',label,value,sortOrder:index+1,status:'ENABLED',remark:'',systemLocked:false})),
   ...[['ENABLED','启用'],['DISABLED','停用']].map(([value,label],index)=>row('MOCK_DICT_ENABLE_'+index,{typeCode:'enable_status',label,value,sortOrder:index+1,status:'ENABLED',remark:'系统受控',systemLocked:true})),
   ...[['NORMAL','正常'],['ABNORMAL','异常'],['UNCONFIGURED','未配置'],['DISABLED','停用']].map(([value,label],index)=>row('MOCK_DICT_RUNTIME_'+index,{typeCode:'runtime_status',label,value,sortOrder:index+1,status:'ENABLED',remark:'系统受控',systemLocked:true})),
-  ...[['OIDC','OIDC'],['SAML2','SAML2'],['CUSTOM','CUSTOM'],['PUSH','PUSH']].map(([value,label],index)=>row('MOCK_DICT_PROTOCOL_'+index,{typeCode:'integration_protocol',label,value,sortOrder:index+1,status:'ENABLED',remark:'仅展示代码已支持协议',systemLocked:true}))
+  ...[['OIDC','OIDC'],['SAML2','SAML2'],['CUSTOM','CUSTOM'],['PUSH','PUSH']].map(([value,label],index)=>row('MOCK_DICT_PROTOCOL_'+index,{typeCode:'integration_protocol',label,value,sortOrder:index+1,status:'ENABLED',remark:'仅展示代码已支持协议',systemLocked:true})),
+  ...businessDictionarySeed(row).items
  ];
  const roles = [
   row('ROLE_SUPER',{roleCode:'SUPER_ADMIN',roleName:'门户超级管理员',description:'拥有全部门户管理权限及高风险管理能力，不授予子系统业务权限。',permissions:[...SUPER_PERMISSIONS],status:'ENABLED',builtIn:true}),

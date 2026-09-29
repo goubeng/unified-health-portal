@@ -311,8 +311,8 @@ test('新增公告仅定时发布时显示定时发布时间且失效日期按�
   const createDialog=source.split(':mode="createFullscreen?\'full-screen\':\'modal\'"')[1]?.split('</t-dialog>')[0]||'';
   assert(createDialog.includes("class=\"announcement-publish-row\" :class=\"{'is-scheduled':form.publishMode==='SCHEDULED'}\""));
   assert(createDialog.includes('v-model="form.publishMode"'));
-  assert(createDialog.includes('value="IMMEDIATE"'));
-  assert(createDialog.includes('value="SCHEDULED"'));
+  assert(createDialog.includes('v-for="option in publishModeOptions"'));
+  assert(source.includes("dictionaryOptions('publish_mode',['IMMEDIATE','SCHEDULED'])"));
   assert(createDialog.includes("v-if=\"form.publishMode==='SCHEDULED'\""));
   assert(createDialog.includes('v-model="form.scheduledPublishAt"'));
   assert(!createDialog.includes(":disabled=\"form.publishMode!=='SCHEDULED'\""));
@@ -723,7 +723,7 @@ test('列表文本仅在溢出截断时显示完整内容Tooltip',()=>{
 test('管理端应用列表使用全量目录且启用状态与适用用户按实际字段精确筛选',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   assert(source.includes("else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}"));
-  assert(source.includes("filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED']),'status')"));
+  assert(source.includes("filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status')"));
   assert(source.includes("if(filter.key==='enabled')return (row.enabled===false?'DISABLED':'ENABLED')===String(selected)"));
   assert(!source.includes("if(filter.key==='userType'&&['apps','mine'].includes(listResource.value))"));
   assert(source.includes("const actual=String(row[filter.key]??'');return actual===String(selected);"));
@@ -814,10 +814,11 @@ test('应用中心与我的申请覆盖主要结果状态和下一步操作',()=
 test('申请列表状态筛选按访问申请和账号开通申请分别提供',()=>{
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
   assert(page.includes("if(key==='applicationRequests')"));
-  assert(page.includes("fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN','EXPIRED'])"));
+  assert(page.includes("fixedOptions(['PENDING','APPROVED','REJECTED','WITHDRAWN'],'application_request_status')"));
   assert(page.includes("if(key==='accountOpeningRequests')"));
-  assert(page.includes("fixedOptions(['PENDING','PROCESSING','COMPLETED'])"));
+  assert(page.includes("fixedOptions(['PENDING','PROCESSING','COMPLETED'],'account_opening_status')"));
   assert(page.includes("if(key==='myApplicationRequests')"));
+  assert(page.includes('myRequestStatusOptions()'));
 });
 
 
@@ -842,7 +843,7 @@ test('消息详情去掉关联信息并把读取状态放到发送方同一元�
   assert(block.includes('<span>发送方</span>'));
   assert(block.includes('<span>读取状态</span>'));
   assert(block.indexOf('<span>发送方</span>')<block.indexOf('<span>读取状态</span>'));
-  assert(block.includes("record.status==='UNREAD'?'未读':'已读'"));
+  assert(block.includes("label(record.status,'message_read_status')"));
   assert(!block.includes('关联信息'));
   assert(!block.includes('portal-message-business'));
   assert(!block.includes('portal-message-grid'));

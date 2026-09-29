@@ -8,6 +8,9 @@
         <t-form-item class="portal-query-select query-width-source" label="来源应用">
           <t-select v-model="appName" clearable filterable placeholder="全部" :options="appOptions"/>
         </t-form-item>
+        <t-form-item class="portal-query-select query-width-kind" label="任务类型">
+          <t-select v-model="businessType" clearable placeholder="全部" :options="typeOptions"/>
+        </t-form-item>
         <t-form-item class="portal-query-select query-width-status" label="状态">
           <t-select v-model="status" clearable placeholder="全部" :options="statusOptions"/>
         </t-form-item>
@@ -25,10 +28,10 @@
           <TableCellTooltip :text="text(row.title)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.title)||'-'}}</button></TableCellTooltip>
         </template>
         <template #businessType="{row}">
-          <t-tag size="small" variant="light" theme="primary">{{text(row.businessType)||'-'}}</t-tag>
+          <t-tag size="small" variant="light" theme="primary">{{label(row.businessType,'todo_task_type')}}</t-tag>
         </template>
         <template #status="{row}">
-          <t-tag size="small" variant="light" :theme="statusTheme(row.status)">{{label(row.status)}}</t-tag>
+          <t-tag size="small" variant="light" :theme="statusTheme(row.status)">{{label(row.status,'todo_status')}}</t-tag>
         </template>
         <template #operation="{row}">
           <t-button v-if="row.status==='PENDING'" size="small" variant="text" theme="primary" @click="process(row)">去处理</t-button>
@@ -64,23 +67,28 @@ import EmptyState from './EmptyState.vue';
 import TodoDetailContent from './TodoDetailContent.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {command} from '../../services/runtime.js';
-import {date,label,text} from './presentation.js';
+import {date,label,text,dictionaryOptions} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
-const keyword=ref(''),appName=ref(''),status=ref('');
+const keyword=ref(''),appName=ref(''),businessType=ref(''),status=ref('');
 const page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),active=ref(null);
 
 const appOptions=computed(()=>[...new Set(props.rows.map(row=>row.appName).filter(Boolean))].map(value=>({value,label:value})));
-const statusOptions=['PENDING','COMPLETED','WITHDRAWN'].map(value=>({value,label:label(value)}));
+const typeOptions=computed(()=>{
+ const values=[...new Set(props.rows.map(row=>row.businessType).filter(Boolean))];
+ return dictionaryOptions('todo_task_type',values,{includeDisabled:true});
+});
+const statusOptions=computed(()=>dictionaryOptions('todo_status',['PENDING','COMPLETED','WITHDRAWN',...(props.rows.some(row=>row.status==='EXPIRED')?['EXPIRED']:[])],{includeDisabled:true}));
 
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
   return props.rows.filter(row=>{
     const keywordMatched=!term||String(row.title||'').toLowerCase().includes(term);
     const appMatched=!appName.value||row.appName===appName.value;
+    const typeMatched=!businessType.value||row.businessType===businessType.value;
     const statusMatched=!status.value||row.status===status.value;
-    return keywordMatched&&appMatched&&statusMatched;
+    return keywordMatched&&appMatched&&typeMatched&&statusMatched;
   }).sort((a,b)=>{
     if(a.status==='PENDING'&&b.status!=='PENDING')return -1;
     if(a.status!=='PENDING'&&b.status==='PENDING')return 1;
@@ -88,7 +96,7 @@ const filtered=computed(()=>{
   });
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
-watch([keyword,appName,status,pageSize],()=>{page.value=1;});
+watch([keyword,appName,businessType,status,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 
 const columns=[
@@ -104,7 +112,7 @@ const columns=[
 
 
 function statusTheme(value){return value==='PENDING'?'warning':value==='COMPLETED'?'success':'default';}
-function reset(){keyword.value='';appName.value='';status.value='';page.value=1;}
+function reset(){keyword.value='';appName.value='';businessType.value='';status.value='';page.value=1;}
 function openDetail(row){active.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 async function process(row){
   try{

@@ -42,8 +42,7 @@
         <div class="form-field announcement-publish-mode-field">
           <label>发布方式 <span class="portal-required">*</span></label>
           <t-radio-group v-model="form.publishMode">
-            <t-radio value="IMMEDIATE">立即发布</t-radio>
-            <t-radio value="SCHEDULED">定时发布</t-radio>
+            <t-radio v-for="option in publishModeOptions" :key="option.value" :value="option.value">{{option.label}}</t-radio>
           </t-radio-group>
         </div>
         <div v-if="form.publishMode==='SCHEDULED'" class="form-field announcement-schedule-field">
@@ -98,7 +97,7 @@ import {computed,reactive,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
-import {label} from './presentation.js';
+import {dictionaryOptions} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({
@@ -124,7 +123,8 @@ const typeOptions=computed(()=>{
   const items=props.typeItems.filter(item=>item.typeCode==='announcement_type'&&item.status==='ENABLED');
   return items.length?items.map(item=>({value:item.label,label:item.label})):[{value:'通知',label:'通知'},{value:'提示',label:'提示'}];
 });
-const scopeOptions=['ALL','CITIZEN','GOV'].map(value=>({value,label:label(value)}));
+const scopeOptions=computed(()=>dictionaryOptions('announcement_scope',['ALL','CITIZEN','GOV']));
+const publishModeOptions=computed(()=>dictionaryOptions('publish_mode',['IMMEDIATE','SCHEDULED']));
 
 function toDateValue(value){
   const d=new Date(value);

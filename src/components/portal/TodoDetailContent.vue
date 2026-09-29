@@ -11,7 +11,7 @@
         <span class="todo-detail-meta-item">
           <Icon name="task"/>
           <em>业务类型：</em>
-          <PortalTooltip :content="text(record.businessType)||'-'" placement="top"><strong>{{text(record.businessType)||'-'}}</strong></PortalTooltip>
+          <PortalTooltip :content="label(record.businessType,'todo_task_type')" placement="top"><strong>{{label(record.businessType,'todo_task_type')}}</strong></PortalTooltip>
         </span>
         <span class="todo-detail-meta-item">
           <Icon name="time"/>
@@ -21,7 +21,7 @@
         <span class="todo-detail-meta-item">
           <Icon name="check-circle"/>
           <em>状态：</em>
-          <t-tag size="small" variant="light" :theme="statusTheme(record.status)">{{label(record.status)}}</t-tag>
+          <t-tag size="small" variant="light" :theme="statusTheme(record.status)">{{label(record.status,'todo_status')}}</t-tag>
         </span>
       </div>
       <div class="todo-detail-divider"></div>

@@ -44,7 +44,7 @@
         <div class="message-letter-meta">
           <div><Icon name="user"/><span>接收对象</span><strong>{{ text(receiver)||'当前登录用户' }}</strong></div>
           <div><Icon name="time"/><span>接收时间</span><strong>{{ date(activeMessage.receivedAt) }}</strong></div>
-          <div><Icon name="mail"/><span>消息类型</span><strong>{{ label(activeMessage.messageType||'BUSINESS') }}</strong></div>
+          <div><Icon name="mail"/><span>消息类型</span><strong>{{ label(activeMessage.messageType||'BUSINESS','message_type') }}</strong></div>
           <div><Icon name="tag"/><span>消息来源</span><strong>{{ text(activeMessage.appName||'统一门户') }}</strong></div>
           <div><Icon name="user-talk"/><span>发送方</span><strong>{{ text(activeMessage.appName||'统一门户') }}</strong></div>
         </div>
@@ -52,7 +52,7 @@
         <p class="message-letter-body">{{ text(activeMessage.content)||'暂无正文' }}</p>
         <section class="message-business-detail"><h3>关联信息</h3><div class="message-business-grid">
           <div><span>来源应用</span><strong>{{ text(activeMessage.appName)||'统一门户' }}</strong></div>
-          <div><span>读取状态</span><strong><t-tag :theme="activeMessage.status==='UNREAD'?'warning':'success'" variant="light">{{ activeMessage.status==='UNREAD'?'未读':'已读' }}</t-tag></strong></div>
+          <div><span>读取状态</span><strong><t-tag :theme="activeMessage.status==='UNREAD'?'warning':'success'" variant="light">{{ label(activeMessage.status,'message_read_status') }}</t-tag></strong></div>
         </div></section>
         <div class="message-letter-actions"><t-button v-if="activeMessage.appId" theme="primary" @click="openBusiness">查看关联业务</t-button></div>
       </article></div></div>
@@ -68,16 +68,16 @@ import {Icon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {command} from '../../services/runtime.js';
-import {text,label,date,theme} from './presentation.js';
+import {text,label,date,theme,dictionaryOptions} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},receiver:{type:String,default:''}});
 const route=useRoute(),router=useRouter();
 const publicPortal=computed(()=>route.path.startsWith('/portal-preview')||route.path.startsWith('/portal/'));
 const statusFilter=ref('UNREAD'),sourceFilter=ref(''),typeFilter=ref(''),keyword=ref(''),page=ref(1),pageSize=ref(10),selectedIds=ref([]);
 const TCheckbox=resolveComponent('t-checkbox');
-const statusOptions=[{label:'未读',value:'UNREAD'},{label:'已读',value:'READ'}];
+const statusOptions=computed(()=>dictionaryOptions('message_read_status',['UNREAD','READ']));
 const sourceOptions=computed(()=>[...new Set(props.rows.map(item=>item.appName).filter(Boolean))].map(value=>({value,label:text(value)})));
-const typeOptions=computed(()=>[...new Set(props.rows.map(item=>item.messageType).filter(Boolean))].map(value=>({value,label:label(value)})));
+const typeOptions=computed(()=>dictionaryOptions('message_type',['SYSTEM','BUSINESS','TODO_REMINDER']));
 const unreadCount=computed(()=>props.rows.filter(item=>item.status==='UNREAD').length);
 const filteredMessages=computed(()=>props.rows.filter(item=>{
  const term=keyword.value.trim().toLowerCase();
@@ -97,8 +97,8 @@ const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64,cell:(_,context)=>(page.value-1)*pageSize.value+context.rowIndex+1},
  {colKey:'title',title:'标题',minWidth:280,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.title)||'-'},()=>h('button',{class:'portal-field-link message-title-link',onClick:()=>open(context.row)},text(context.row.title)||'-'))},
  {colKey:'appName',title:'来源应用',minWidth:220,ellipsis:true,cell:(_,context)=>h(TableCellTooltip,{text:text(context.row.appName)||'统一门户'},()=>text(context.row.appName)||'统一门户')},
- {colKey:'messageType',title:'消息类型',width:130,cell:(_,context)=>label(context.row.messageType||'BUSINESS')},
- {colKey:'status',title:'阅读状态',width:100,cell:(_,context)=>h(resolveComponent('t-tag'),{theme:theme(context.row.status),variant:'light'},()=>label(context.row.status))},
+ {colKey:'messageType',title:'消息类型',width:130,cell:(_,context)=>label(context.row.messageType||'BUSINESS','message_type')},
+ {colKey:'status',title:'阅读状态',width:100,cell:(_,context)=>h(resolveComponent('t-tag'),{theme:theme(context.row.status),variant:'light'},()=>label(context.row.status,'message_read_status'))},
  {colKey:'receivedAt',title:'接收时间',width:180,cell:(_,context)=>date(context.row.receivedAt)}
 ]);
 
