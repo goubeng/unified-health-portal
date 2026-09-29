@@ -650,7 +650,7 @@
 .admin-pending-panel,.admin-work-panel{height:100%}
 .admin-pending-panel .section-head,.admin-work-panel .section-head{margin-bottom:12px}
 
-.admin-reminder-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+.admin-reminder-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;column-gap:10px!important;row-gap:5px!important}
 .admin-reminder-card{
   min-height:86px!important;
   justify-content:center!important;
@@ -1012,16 +1012,19 @@
 .admin-runtime-capability-grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
+  gap:0;
   margin-bottom:0;
 }
 .admin-runtime-capability-card{
   min-width:0;
-  padding:14px 14px;
-  border:1px solid #e5e8ef;
-  border-radius:12px;
-  background:#fff;
+  padding:14px 18px;
+  border:0;
+  border-radius:0;
+  background:transparent;
   color:#344054;
+}
+.admin-runtime-capability-card+.admin-runtime-capability-card{
+  border-left:1px solid #e5e8ef;
 }
 .admin-runtime-capability-title{
   display:block;
