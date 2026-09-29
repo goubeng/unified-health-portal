@@ -1221,6 +1221,14 @@
   font-size:16px;
   font-weight:600;
 }
+.monitor-visual-summary-icon{
+  width:16px!important;
+  height:16px!important;
+  margin-right:2px;
+  color:#2454ff;
+  font-size:16px!important;
+  flex:none;
+}
 .monitor-visual-legend{
   display:flex;
   align-items:center;
