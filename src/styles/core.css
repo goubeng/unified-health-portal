@@ -905,3 +905,35 @@
 .identity-mappings-dialog .identity-mapping-basic-section .portal-detail-item dt{
   white-space:nowrap!important;
 }
+
+
+/* 2026-09-29 admin home quick entries: compact single-line cards with dark icon tiles. */
+.admin-shortcut-card{
+  min-height:58px!important;
+  align-items:center!important;
+  gap:14px!important;
+}
+.admin-shortcut-card>strong{
+  min-width:0;
+  overflow:hidden;
+  color:#1f2329!important;
+  font-size:13px!important;
+  font-weight:500!important;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.admin-shortcut-icon{
+  width:32px!important;
+  height:32px!important;
+  border-radius:4px!important;
+}
+.admin-shortcut-icon>.t-icon{
+  width:17px!important;
+  height:17px!important;
+  color:#fff!important;
+}
+.admin-shortcut-icon.tone-blue{background:#5268d9!important;color:#fff!important}
+.admin-shortcut-icon.tone-green{background:#00a47a!important;color:#fff!important}
+.admin-shortcut-icon.tone-purple{background:#6c50e8!important;color:#fff!important}
+.admin-shortcut-icon.tone-cyan{background:#6578c7!important;color:#fff!important}
+.admin-shortcut-icon.tone-gray{background:#667085!important;color:#fff!important}
