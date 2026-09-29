@@ -87,7 +87,7 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(source.includes("icon:'app',tone:'blue'"));
   assert(source.includes("icon:'check-circle',tone:'green'"));
   assert(source.includes("icon:'user',tone:'purple'"));
-  assert(source.includes("icon:'user-check',tone:'cyan'"));
+  assert(source.includes("icon:'user',tone:'cyan'"));
   assert(source.includes("icon:'code',tone:'indigo'"));
   assert(source.includes("icon:'browse',tone:'teal'"));
   assert(source.includes('adminPendingItems'));
@@ -1833,4 +1833,11 @@ test('首页接入异常类型使用标签显示',()=>{
   assert(!source.includes('<p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p>'));
   assert(css.includes('.admin-runtime-kind-tag{'));
   assert(css.includes('font-size:12px!important;'));
+});
+
+
+test('有效用户指标使用可用用户图标',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(source.includes("{label:'有效用户',value:overview.value.enabledUserCount??0,icon:'user',tone:'cyan'"));
+  assert(!source.includes("icon:'user-check'"));
 });
