@@ -1021,11 +1021,7 @@
   background:#fff;
   color:#344054;
   text-align:left;
-  cursor:pointer;
-}
-.admin-runtime-capability-card:hover{
-  border-color:#b8c8e4;
-  background:#fbfcfe;
+  cursor:default;
 }
 .admin-runtime-capability-card>strong{
   color:#1f2329;
