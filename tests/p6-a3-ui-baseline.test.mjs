@@ -1823,3 +1823,14 @@ test('管理首页接入分析加宽并为指标增加统计说明',()=>{
   assert(css.includes('grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)!important;'));
   assert(css.includes('.admin-overview-help{'));
 });
+
+
+test('首页接入异常类型使用标签显示',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="admin-runtime-exception-meta"'));
+  assert(source.includes('class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
+  assert(!source.includes('<p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p>'));
+  assert(css.includes('.admin-runtime-kind-tag{'));
+  assert(css.includes('font-size:12px!important;'));
+});
