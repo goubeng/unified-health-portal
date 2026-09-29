@@ -19,7 +19,7 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
         <template #empty><EmptyState description="暂无符合条件的日志"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
@@ -63,6 +63,8 @@ const props=defineProps({rows:{type:Array,default:()=>[]},kind:{type:String,defa
 const auditText=value=>String(value??'').trim();
 const emit=defineEmits(['saved']);
 const keyword=ref(''),appName=ref(''),status=ref(''),resolutionStatus=ref(''),page=ref(1),pageSize=ref(10);
+const defaultTableSort=()=>({sortBy:'createdAt',descending:true});
+const tableSort=ref(defaultTableSort());
 const detailVisible=ref(false),detail=ref(null),resolveVisible=ref(false),resolveRow=ref(null),resolutionNote=ref(''),formError=ref(''),saving=ref(false);
 const resultOptions=['SUCCESS','FAILURE','DENIED'].map(value=>({value,label:label(value)}));
 const resolutionOptions=['OPEN','RESOLVED'].map(value=>({value,label:label(value)}));
@@ -76,52 +78,61 @@ const searchFields=computed(()=>({
   login:['userName','account','requestId','failureReason'],access:['userName','account','appName','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
   api:['appName','interfaceName','requestId','errorMessage'],error:['errorCode','errorMessage','moduleName','requestId','resolutionNote']
 }[props.kind]||['description','requestId']));
+const compareLogRows=(a,b,key)=>{
+  if(key==='createdAt')return (Date.parse(a.createdAt)||0)-(Date.parse(b.createdAt)||0);
+  if(['statusCode','durationMs'].includes(key))return (Number(a[key])||0)-(Number(b[key])||0);
+  const enumKeys=['status','identitySource','loginMethod','accessMode','severity','resolutionStatus'];
+  const av=key==='actorType'?actorTypeLabel(a):key==='authType'?authTypeLabel(a):enumKeys.includes(key)?label(a[key]):auditText(a[key]);
+  const bv=key==='actorType'?actorTypeLabel(b):key==='authType'?authTypeLabel(b):enumKeys.includes(key)?label(b[key]):auditText(b[key]);
+  return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+};
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
-  return props.rows.filter(row=>{
+  const result=props.rows.filter(row=>{
     const matchesKeyword=!term||searchFields.value.some(key=>auditText(row[key]).toLowerCase().includes(term));
     return matchesKeyword&&(!appName.value||row.appName===appName.value)&&(!status.value||row.status===status.value)&&(!resolutionStatus.value||row.resolutionStatus===resolutionStatus.value);
-  }).sort((a,b)=>(Date.parse(b.createdAt)||0)-(Date.parse(a.createdAt)||0));
+  });
+  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+  if(!active?.sortBy)return result;
+  const direction=active.descending?-1:1;
+  return result.sort((a,b)=>direction*compareLogRows(a,b,active.sortBy));
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const column=(colKey,title,options={})=>({colKey,title,...options,cell:(_,ctx)=>auditText(ctx.row[colKey])||'-'});
+const sortColumn=(colKey,title,options={})=>column(colKey,title,{...options,sorter:true,sortType:'all'});
 
 const columns=computed(()=>{
   const serial={colKey:'serial',title:'序号',width:64};
   const requestId={colKey:'requestId',title:'请求ID',width:190,ellipsis:true};
-  const commonStatus={colKey:'status',title:props.kind==='login'?'登录结果':'结果',width:100};
+  const commonStatus={colKey:'status',title:props.kind==='login'?'登录结果':'结果',width:100,sorter:true,sortType:'all'};
   const operation={colKey:'operation',title:'操作',width:100,fixed:'right'};
+  const timeColumn=title=>({colKey:'createdAt',title,width:180,sorter:true,sortType:'all',cell:(_,ctx)=>date(ctx.row.createdAt)});
   if(props.kind==='login')return [
-    serial,requestId,
-    {colKey:'createdAt',title:'登录时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},
-    column('userName','登录用户',{width:120,ellipsis:true}),column('account','登录账号',{width:150,ellipsis:true}),
-    {colKey:'actorType',title:'主体类型',width:130,cell:(_,ctx)=>actorTypeLabel(ctx.row)},{colKey:'authType',title:'认证类型',width:110,cell:(_,ctx)=>authTypeLabel(ctx.row)},
-    {colKey:'identitySource',title:'身份来源',width:120,cell:(_,ctx)=>label(ctx.row.identitySource)},
-    column('loginSource','登录来源',{width:110}),{colKey:'loginMethod',title:'登录方式',width:110,cell:(_,ctx)=>label(ctx.row.loginMethod)},
+    serial,requestId,timeColumn('登录时间'),
+    sortColumn('userName','登录用户',{width:120,ellipsis:true}),sortColumn('account','登录账号',{width:150,ellipsis:true}),
+    {colKey:'actorType',title:'主体类型',width:130,sorter:true,sortType:'all',cell:(_,ctx)=>actorTypeLabel(ctx.row)},{colKey:'authType',title:'认证类型',width:110,sorter:true,sortType:'all',cell:(_,ctx)=>authTypeLabel(ctx.row)},
+    {colKey:'identitySource',title:'身份来源',width:120,sorter:true,sortType:'all',cell:(_,ctx)=>label(ctx.row.identitySource)},
+    sortColumn('loginSource','登录来源',{width:110}),{colKey:'loginMethod',title:'登录方式',width:110,sorter:true,sortType:'all',cell:(_,ctx)=>label(ctx.row.loginMethod)},
     commonStatus,column('failureReason','失败原因',{minWidth:180,ellipsis:true}),column('ip','IP',{width:130}),column('client','客户端',{width:160,ellipsis:true})
   ];
   if(props.kind==='access')return [
-    serial,requestId,
-    {colKey:'createdAt',title:'访问时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},column('userName','用户',{width:120}),column('account','账号',{width:150}),
-    column('appName','来源应用',{minWidth:230,ellipsis:true}),{colKey:'accessMode',title:'访问模式',width:110,cell:(_,ctx)=>label(ctx.row.accessMode)},commonStatus,
+    serial,requestId,timeColumn('访问时间'),sortColumn('userName','用户',{width:120}),sortColumn('account','账号',{width:150}),
+    sortColumn('appName','来源应用',{minWidth:230,ellipsis:true}),{colKey:'accessMode',title:'访问模式',width:110,sorter:true,sortType:'all',cell:(_,ctx)=>label(ctx.row.accessMode)},commonStatus,
     column('ip','IP',{width:130})
   ];
   if(props.kind==='operation')return [
-    serial,requestId,
-    {colKey:'createdAt',title:'操作时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},column('actor','操作人',{width:120}),column('moduleName','模块',{width:130}),
-    column('pageName','页面',{width:140}),column('actionName','操作动作',{width:140}),column('objectType','对象类型',{width:120}),commonStatus
+    serial,requestId,timeColumn('操作时间'),sortColumn('actor','操作人',{width:120}),sortColumn('moduleName','模块',{width:130}),
+    sortColumn('pageName','页面',{width:140}),sortColumn('actionName','操作动作',{width:140}),sortColumn('objectType','对象类型',{width:120}),commonStatus
   ];
   if(props.kind==='api')return [
-    serial,requestId,
-    {colKey:'createdAt',title:'调用时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},column('appName','来源应用',{minWidth:220,ellipsis:true}),
-    column('interfaceName','接口',{minWidth:250,ellipsis:true}),commonStatus,column('httpMethod','方法',{width:90}),column('statusCode','状态码',{width:90}),
-    column('durationMs','耗时(ms)',{width:100}),column('errorMessage','错误信息',{minWidth:200,ellipsis:true})
+    serial,requestId,timeColumn('调用时间'),sortColumn('appName','来源应用',{minWidth:220,ellipsis:true}),
+    sortColumn('interfaceName','接口',{minWidth:250,ellipsis:true}),commonStatus,sortColumn('httpMethod','方法',{width:90}),sortColumn('statusCode','状态码',{width:90}),
+    sortColumn('durationMs','耗时(ms)',{width:100}),column('errorMessage','错误信息',{minWidth:200,ellipsis:true})
   ];
   return [
-    serial,requestId,
-    {colKey:'createdAt',title:'发生时间',width:180,cell:(_,ctx)=>date(ctx.row.createdAt)},{colKey:'severity',title:'级别',width:90,cell:(_,ctx)=>label(ctx.row.severity)},
-    column('moduleName','模块',{width:130}),column('errorCode','错误编码',{width:190,ellipsis:true}),column('errorMessage','异常信息',{minWidth:260,ellipsis:true}),
-    {colKey:'resolutionStatus',title:'处理状态',width:110},column('resolutionNote','处理说明',{minWidth:220,ellipsis:true}),operation
+    serial,requestId,timeColumn('发生时间'),{colKey:'severity',title:'级别',width:90,sorter:true,sortType:'all',cell:(_,ctx)=>label(ctx.row.severity)},
+    sortColumn('moduleName','模块',{width:130}),sortColumn('errorCode','错误编码',{width:190,ellipsis:true}),column('errorMessage','异常信息',{minWidth:260,ellipsis:true}),
+    {colKey:'resolutionStatus',title:'处理状态',width:110,sorter:true,sortType:'all'},column('resolutionNote','处理说明',{minWidth:220,ellipsis:true}),operation
   ];
 });
 
@@ -145,7 +156,12 @@ const detailItems=computed(()=>detailKeys.value.map(([key,labelText])=>{
   return {key,label:labelText,value};
 }));
 
-function reset(){keyword.value='';appName.value='';status.value='';resolutionStatus.value='';page.value=1;}
+function handleSortChange(sort){
+  const next=Array.isArray(sort)?sort[0]:sort;
+  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:defaultTableSort();
+  page.value=1;
+}
+function reset(){keyword.value='';appName.value='';status.value='';resolutionStatus.value='';tableSort.value=defaultTableSort();page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function openResolve(row){resolveRow.value=JSON.parse(JSON.stringify(row));resolutionNote.value='';formError.value='';resolveVisible.value=true;}
 async function resolveError(){
