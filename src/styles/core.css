@@ -1250,7 +1250,16 @@
 .monitor-health-stat:first-child{padding-left:0}
 .monitor-health-stat:last-child{padding-right:0}
 .monitor-health-stat + .monitor-health-stat{
-  border-left:1px solid #e5e8ef;
+  position:relative;
+}
+.monitor-health-stat + .monitor-health-stat::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:25%;
+  width:1px;
+  height:50%;
+  background:#e5e8ef;
 }
 .monitor-health-stat-icon{
   width:14px!important;
