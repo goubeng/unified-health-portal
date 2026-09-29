@@ -1103,10 +1103,16 @@
   height:100%;
   box-sizing:border-box;
 }
+.admin-home-bottom-grid .admin-runtime-exception-panel>.section-head{
+  margin-bottom:4px;
+}
 .admin-home-bottom-grid .admin-runtime-exception-list{
-  flex:1;
-  min-height:0;
+  height:260px;
+  flex:none;
+  min-height:260px;
+  max-height:260px;
   overflow-y:auto;
+  padding-right:4px;
 }
 .admin-runtime-exception-panel .section-head h2{
   display:flex;
@@ -1153,7 +1159,8 @@
   white-space:nowrap;
 }
 .admin-runtime-exception-list .list-row{
-  min-height:62px;
+  min-height:86px;
+  padding:12px 0;
 }
 @media(max-width:1200px){
   .admin-home-analysis-grid{
