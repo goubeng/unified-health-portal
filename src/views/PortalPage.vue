@@ -60,21 +60,9 @@
         </div>
        </div>
       </section>
+     </div>
 
-      <section class="panel admin-work-panel">
-       <div class="section-head"><h2>快捷入口</h2></div>
-       <div class="admin-shortcut-grid">
-        <button v-if="can(actor,'announcement:edit')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
-         <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
-         <strong>新增公告</strong>
-        </button>
-        <button v-for="item in adminShortcuts" :key="item.id" class="admin-shortcut-card" @click="item.resource==='apps'?openForm('saveApp'):router.push(item.path)">
-         <span class="admin-shortcut-icon" :class="'tone-'+adminShortcutTone(item.resource)"><Icon :name="adminShortcutIcon(item.resource)"/></span>
-         <strong>{{item.resource==='apps'?'新增应用':text(item.title)}}</strong>
-        </button>
-       </div>
-      </section>
-
+     <div class="admin-home-bottom-grid">
       <section class="panel admin-runtime-exception-panel">
        <div class="section-head">
         <h2>接入异常 <span class="admin-runtime-exception-count">（<strong>{{homeExceptions.length}}</strong>）</span></h2>
@@ -86,17 +74,14 @@
           <button class="portal-field-link" @click="showDetail(item,'monitorException')">{{text(item.appName||item.name)}}</button>
           <p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>
          </div>
-         <t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>
         </div>
         <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
        </div>
       </section>
+      <AdminTrendChart v-if="can(actor,'audit:view')" title="门户访问量趋势" :rows="homeAccessLogs" series-name="访问次数"/>
+      <AdminTrendChart v-if="can(actor,'audit:view')" title="接口调用量趋势" :rows="homeApiLogs" series-name="调用次数"/>
      </div>
 
-     <div v-if="can(actor,'audit:view')" class="admin-home-trend-grid">
-      <AdminTrendChart title="门户访问量趋势" :rows="homeAccessLogs" series-name="访问次数"/>
-      <AdminTrendChart title="接口调用量趋势" :rows="homeApiLogs" series-name="调用次数"/>
-     </div>
 
     </template>
     <template v-else>

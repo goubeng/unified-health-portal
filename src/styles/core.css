@@ -968,13 +968,10 @@
 .admin-shortcut-icon.tone-gray{background:#667085!important;color:#fff!important}
 
 
-/* 2026-09-29 admin home: aligned two-column dashboard grid. */
+/* 2026-09-29 admin home: two-row dashboard grid. Row1: pending(2/6)+runtime(4/6). Row2: exception+trend+trend (3 equal). */
 .admin-home-analysis-grid{
   display:grid;
-  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
-  grid-template-areas:
-    "pending runtime"
-    "shortcut exception";
+  grid-template-columns:1fr 2fr;
   gap:16px;
   align-items:stretch;
   margin-bottom:16px;
@@ -985,17 +982,23 @@
   height:100%;
   margin:0!important;
 }
-.admin-pending-panel{grid-area:pending}
-.admin-runtime-analysis-panel{grid-area:runtime}
-.admin-work-panel{grid-area:shortcut}
-.admin-runtime-exception-panel{grid-area:exception}
-.admin-runtime-analysis-panel,
-.admin-runtime-exception-panel{
+.admin-home-bottom-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  align-items:stretch;
+  margin-bottom:16px;
+}
+.admin-home-bottom-grid>.panel{
+  box-sizing:border-box;
+  min-width:0;
+  margin:0!important;
+}
+.admin-runtime-analysis-panel{
   min-width:0;
   margin:0!important;
 }
 .admin-pending-panel .section-head,
-.admin-work-panel .section-head,
 .admin-runtime-analysis-panel>.section-head,
 .admin-runtime-exception-panel>.section-head{
   margin-bottom:12px;
@@ -1016,15 +1019,25 @@
   margin-bottom:0;
 }
 .admin-runtime-capability-card{
+  display:flex;
+  flex-direction:column;
   min-width:0;
   padding:14px 18px;
   border:0;
   border-radius:0;
   background:transparent;
   color:#344054;
+  position:relative;
 }
-.admin-runtime-capability-card+.admin-runtime-capability-card{
-  border-left:1px solid #e5e8ef;
+.admin-runtime-capability-card+.admin-runtime-capability-card::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  width:1px;
+  height:50%;
+  background:#e5e8ef;
 }
 .admin-runtime-capability-title{
   display:block;
@@ -1085,6 +1098,15 @@
 .admin-runtime-exception-panel{
   display:flex;
   flex-direction:column;
+}
+.admin-home-bottom-grid .admin-runtime-exception-panel{
+  height:100%;
+  box-sizing:border-box;
+}
+.admin-home-bottom-grid .admin-runtime-exception-list{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
 }
 .admin-runtime-exception-panel .section-head h2{
   display:flex;
@@ -1206,7 +1228,7 @@
 
 /* 2026-09-29 widen runtime analysis and add metric help tooltips. */
 .admin-home-analysis-grid{
-  grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)!important;
+  grid-template-columns:1fr 2fr!important;
 }
 .admin-overview-content>.admin-overview-label{
   display:inline-flex!important;
