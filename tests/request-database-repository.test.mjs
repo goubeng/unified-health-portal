@@ -45,3 +45,28 @@ test('normalized reload restores request lifecycle and grant while preserving un
  assert.deepEqual(state.accountOpeningRequests,[]);
  assert.equal(state.customMarker,'keep');
 });
+
+test('opening request SQL and normalized reload keep submission time separate from creation and persist handler identity',async()=>{
+ const seed=createSeed(),opening=seed.accountOpeningRequests.find(row=>row.id==='MOCK_OPEN_COMPLETED');
+ const sql=requestMirrorSql({accountOpeningRequests:[]},{accountOpeningRequests:[opening]});
+ assert.match(sql,/"account_opening_request"/);
+ assert.match(sql,/"created_at"/);
+ assert.match(sql,/"submitted_at"/);
+ assert.match(sql,/"handled_by"/);
+ assert.match(sql,/"handled_at"/);
+ assert.match(sql,/"handle_note"/);
+ assert.match(sql,/P4FIX_ADMIN/);
+ const physical={applicationRequests:[],applicationGrants:[],accountOpeningRequests:[{
+  id:'P4FIX_OPEN_COMPLETED',runtime_id:'MOCK_OPEN_COMPLETED',created_at:'2026-09-28T07:59:00.000Z',updated_at:'2026-09-29T08:00:00.000Z',version:2,
+  request_no:'OPEN-1',user_id:'P4FIX_EDITOR',application_id:'P4FIX_APP_6',reason:'业务需要',contact:'联系信息',remark:'备注',status:'COMPLETED',
+  submitted_at:'2026-09-28T08:00:00.000Z',handled_by:'P4FIX_ADMIN',handled_at:'2026-09-29T08:00:00.000Z',handle_note:'已开通'
+ }]};
+ const state=await loadRequestState(async()=>JSON.stringify(physical),seed);
+ const row=state.accountOpeningRequests[0];
+ assert.equal(row.createdAt,'2026-09-28T07:59:00.000Z');
+ assert.equal(row.submittedAt,'2026-09-28T08:00:00.000Z');
+ assert.equal(row.handledBy,'MOCK_ADMIN');
+ assert.equal(row.handledAt,'2026-09-29T08:00:00.000Z');
+ assert.equal(row.handleNote,'已开通');
+ assert.equal(row.userName,seed.users.find(user=>user.id==='MOCK_EDITOR').name);
+});

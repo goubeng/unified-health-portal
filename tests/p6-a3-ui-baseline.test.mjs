@@ -1703,11 +1703,12 @@ test('系统顶部头像统一显示姓名首字且不使用人像图标',()=>{
 });
 
 
-test('子系统账号开通申请详情加宽并将第二行改为三列',()=>{
+test('子系统账号开通申请详情加宽并按申请与处理信息分行',()=>{
   const source=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
   assert(source.includes(":width=\"isAccountOpeningDetail?'1120px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'\""));
-  assert(source.includes("['userName','申请人','is-third'],['appName','来源应用','is-third'],['contact','联系方式','is-third']"));
-  assert(source.includes("['userId','统一身份标识','is-wide']"));
+  assert(source.includes("['userName','申请人','is-half'],['appName','来源应用','is-half']"));
+  assert(source.includes("['contact','联系方式','is-half'],['userId','统一身份标识','is-half']"));
+  assert(source.includes("['reason','申请原因','is-wide'],['remark','备注','is-wide']"));
 });
 
 
@@ -1898,7 +1899,7 @@ test('运行监控图示模式全量展示并使用状态标签',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('v-if="filtered.length" class="monitor-visual-grid"'));
   assert(source.includes('v-for="row in filtered"'));
-  assert(!/monitor-visual-panel[\s\S]*<t-pagination/.test(source.slice(source.indexOf('<section v-else class="panel monitor-visual-panel">'),source.indexOf('<t-dialog')));
+  assert(!/monitor-visual-panel[\s\S]*<t-pagination/.test(source.slice(source.indexOf('<section v-else class="panel monitor-visual-panel">'),source.indexOf('<t-dialog'))));
   assert(source.includes('class="monitor-visual-status-tag"'));
   assert(source.includes(":theme=\"visualStatusTheme(row[kind.toLowerCase()+'Status'])\""));
   assert(source.includes('theme="success" variant="light" size="small">正常</t-tag>'));

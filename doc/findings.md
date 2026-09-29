@@ -144,3 +144,4 @@
 - 待核：`createdAt` 是否仅为记录创建技术时间，`submittedAt` 是否独立业务申请时间；处理人是否已有 `handledBy` 或审计事件引用，且数据库规范表是否真实存储。详情展示不能从当前登录用户臆造历史处理人。
 - 已核对：新提交时服务在同一 `now` 写入 `createdAt` 和 `submittedAt`，当前库 3 条两者相等；前者是记录建立、后者是业务提交，语义独立，未来草稿/导入可不同。详情只展示用户要求的“申请时间”。
 - 规范表 `account_opening_request` 已有 `handled_by`（引用 unified_user）、`handled_at`、`handle_note`，Repository 写入/读回均存在；无需新增物理列。当前库待处理的处理人为空，处理中及已完成处理人均可解析为“周明”。`handledAt` 仅在完成时写，处理中不应把更新时间冒充处理时间。
+- 实际详情已按申请区三列、两列、两列、通栏、通栏及处理区两列、通栏布局；仅显示 `submittedAt` 而非技术创建时间，状态用 `account_opening_status` 字典标签。管理与公众入口均读取 `handledByName`，由稳定 `handledBy` ID 解析，未知处理人不臆造姓名。
