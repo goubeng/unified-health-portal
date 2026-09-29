@@ -1197,7 +1197,7 @@
   font-size:14px!important;
 }
 .monitor-visual-panel{
-  padding:12px 14px!important;
+  padding:24px 28px!important;
 }
 .monitor-visual-meta{
   display:flex;
@@ -1260,7 +1260,7 @@
   align-items:stretch;
   justify-content:center;
   gap:9px;
-  padding:20px 22px;
+  padding:10px 11px;
   border:1px solid #eef0f4;
   border-radius:0;
   background:#fafbfc;
