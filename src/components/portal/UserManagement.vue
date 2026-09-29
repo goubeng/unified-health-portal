@@ -27,7 +27,7 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
         <template #empty><EmptyState description="暂无符合条件的门户管理用户"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #account="{row}"><TableCellTooltip :text="text(row.account)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{text(row.account)||'-'}}</button></TableCellTooltip></template>
@@ -125,7 +125,7 @@ const props=defineProps({
 const emit=defineEmits(['saved']);
 
 const keyword=ref(''),authType=ref(''),identitySource=ref(''),roleId=ref(''),status=ref('');
-const page=ref(1),pageSize=ref(10);
+const page=ref(1),pageSize=ref(10),tableSort=ref(null);
 const detailVisible=ref(false),detail=ref(null);
 const formVisible=ref(false),formMode=ref('edit'),form=reactive({}),formError=ref(''),saving=ref(false);
 const resetVisible=ref(false),resetTarget=ref(null),resetForm=reactive({newPassword:'',confirmPassword:''}),resetError=ref(''),resetSaving=ref(false);
@@ -152,17 +152,31 @@ const filtered=computed(()=>{
     return matchKeyword&&matchType&&matchSource&&matchRole&&matchStatus;
   });
 });
-const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const compareUserRows=(a,b,key)=>{
+  if(key==='lastLoginAt')return (Date.parse(a.lastLoginAt)||0)-(Date.parse(b.lastLoginAt)||0);
+  if(key==='enabled')return Number(adminEnabled(a))-Number(adminEnabled(b));
+  const av=key==='authType'?authTypeLabel(adminAuthType(a)):key==='identitySource'?identitySourceText(a):text(a[key]);
+  const bv=key==='authType'?authTypeLabel(adminAuthType(b)):key==='identitySource'?identitySourceText(b):text(b[key]);
+  return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+};
+const sortedFiltered=computed(()=>{
+  const result=filtered.value.slice();
+  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+  if(!active?.sortBy)return result;
+  const direction=active.descending?-1:1;
+  return result.sort((a,b)=>direction*compareUserRows(a,b,active.sortBy));
+});
+const paged=computed(()=>sortedFiltered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'account',title:'管理账号',width:160,ellipsis:true},
-  {colKey:'name',title:'姓名',width:120,ellipsis:true},
-  {colKey:'authType',title:'认证类型',width:110},
-  {colKey:'identitySource',title:'身份来源',width:110},
+  {colKey:'account',title:'管理账号',width:160,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'name',title:'姓名',width:120,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'authType',title:'认证类型',width:110,sorter:true,sortType:'all'},
+  {colKey:'identitySource',title:'身份来源',width:110,sorter:true,sortType:'all'},
   {colKey:'roleLabels',title:'门户角色',width:220,ellipsis:true},
-  {colKey:'enabled',title:'启用状态',width:110},
-  {colKey:'lastLoginAt',title:'最近管理端登录',width:180},
+  {colKey:'enabled',title:'启用状态',width:110,sorter:true,sortType:'all'},
+  {colKey:'lastLoginAt',title:'最近管理端登录',width:180,sorter:true,sortType:'all'},
   {colKey:'operation',title:'操作',width:210,fixed:'right'}
 ];
 
@@ -183,7 +197,12 @@ const externalIdentityItems=computed(()=>[
   {key:'accessUserType',label:'绑定访问身份',value:form.userType?label(form.userType):'-'}
 ]);
 
-function reset(){keyword.value='';authType.value='';identitySource.value='';roleId.value='';status.value='';page.value=1;}
+function handleSortChange(sort){
+  const next=Array.isArray(sort)?sort[0]:sort;
+  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
+  page.value=1;
+}
+function reset(){keyword.value='';authType.value='';identitySource.value='';roleId.value='';status.value='';tableSort.value=null;page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function assignForm(row){Object.keys(form).forEach(key=>delete form[key]);Object.assign(form,JSON.parse(JSON.stringify(row)));}
 function openCreateLocal(){formMode.value='createLocal';assignForm({account:'',name:'',authType:'LOCAL',identitySource:'门户本地',enabled:true,roleIds:[]});formError.value='';formVisible.value=true;}
