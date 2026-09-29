@@ -1200,9 +1200,15 @@
 .monitor-health-stat{
   display:flex;
   min-width:0;
-  align-items:baseline;
+  align-items:center;
   gap:5px;
   white-space:nowrap;
+}
+.monitor-health-stat-icon{
+  width:14px!important;
+  height:14px!important;
+  flex:none;
+  font-size:14px!important;
 }
 .monitor-health-stat em{
   overflow:hidden;
