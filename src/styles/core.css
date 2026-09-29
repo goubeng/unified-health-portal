@@ -1199,16 +1199,16 @@
   justify-content:center;
   gap:9px;
   padding:10px 11px;
-  border:1px solid #e5e8ef;
+  border:1px solid #eef0f4;
   border-radius:0;
-  background:#fff;
+  background:#f6f8fb;
   color:#344054;
   text-align:left;
   cursor:pointer;
 }
 .monitor-visual-card:hover{
-  border-color:#b8c8e4;
-  background:#fbfcfe;
+  border-color:#dfe5ee;
+  background:#f3f6fa;
 }
 .monitor-visual-name{
   overflow:hidden;
