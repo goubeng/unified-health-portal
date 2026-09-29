@@ -1714,3 +1714,13 @@ test('组织详情弹窗宽度加宽',()=>{
   assert(source.includes('header="组织详情" width="920px"'));
   assert(source.includes(':header="form.id?\'编辑组织\':\'新增本地组织\'"\n      width="760px"'));
 });
+
+
+test('身份与子系统映射基本信息字段名加宽并禁止换行',()=>{
+  const source=fs.readFileSync('src/components/portal/IdentityMappings.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('identity-mapping-section identity-mapping-basic-section'));
+  assert(css.includes('.identity-mappings-dialog .identity-mapping-basic-section .portal-detail-item{'));
+  assert(css.includes('grid-template-columns:150px minmax(0,1fr)!important;'));
+  assert(css.includes('white-space:nowrap!important;'));
+});
