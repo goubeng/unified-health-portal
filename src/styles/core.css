@@ -1265,9 +1265,14 @@
   width:14px!important;
   height:14px!important;
   flex:none;
+  align-self:center;
   font-size:14px!important;
+  line-height:14px!important;
 }
 .monitor-health-stat em{
+  display:inline-flex;
+  height:18px;
+  align-items:center;
   overflow:visible;
   font-size:12px;
   font-style:normal;
@@ -1275,10 +1280,13 @@
   text-overflow:clip;
 }
 .monitor-health-stat b{
+  display:inline-flex;
+  height:18px;
   flex:none;
-  font-size:16px;
+  align-items:center;
+  font-size:14px;
   font-weight:600;
-  line-height:20px;
+  line-height:18px;
 }
 .monitor-health-stat.is-normal,
 .monitor-health-stat.is-normal b{color:#2ba471}
