@@ -16,7 +16,7 @@
           @click="viewMode='visual'"
         >
           <template #icon><t-icon name="view-module"/></template>
-          图示
+          卡片
         </t-button>
       </div>
     </Teleport>
