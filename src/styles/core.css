@@ -1171,7 +1171,7 @@
 /* 2026-09-29 monitor list health summary cards. */
 .monitor-health-grid{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:minmax(180px,.7fr) repeat(3,minmax(0,1fr));
   gap:12px;
   margin:0 0 16px;
 }
