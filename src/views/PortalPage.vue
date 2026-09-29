@@ -81,8 +81,7 @@
         <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
        </div>
       </section>
-      <AdminTrendChart v-if="can(actor,'audit:view')" title="门户访问量趋势" :rows="homeAccessLogs" series-name="访问次数"/>
-      <AdminTrendChart v-if="can(actor,'audit:view')" title="接口调用量趋势" :rows="homeApiLogs" series-name="调用次数"/>
+      <AdminTrendChart v-if="can(actor,'audit:view')" :access-rows="homeAccessLogs" :api-rows="homeApiLogs"/>
      </div>
 
 
