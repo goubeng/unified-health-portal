@@ -1220,14 +1220,16 @@
   white-space:nowrap;
 }
 .monitor-visual-status-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
   gap:5px;
 }
 .monitor-visual-status-tag{
-  display:flex!important;
-  width:100%;
+  display:inline-flex!important;
+  width:auto!important;
   min-width:0;
+  flex:none!important;
   justify-content:center;
   overflow:hidden;
   font-size:11px!important;
