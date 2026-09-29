@@ -63,7 +63,7 @@
               :theme="visualStatusTheme(row[kind.toLowerCase()+'Status'])"
               variant="light"
               size="small"
-            >{{kind}}</t-tag>
+            ><span class="monitor-visual-status-dot" aria-hidden="true"></span>{{kind}}</t-tag>
           </span>
         </button>
       </div>
