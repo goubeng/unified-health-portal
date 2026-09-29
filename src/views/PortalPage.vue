@@ -60,7 +60,7 @@
        <div v-if="overview.serviceHealth" class="admin-runtime-capability-grid">
         <div v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" class="admin-runtime-capability-card">
          <span class="admin-runtime-kind-icon" :class="'tone-'+adminRuntimeTone(kind)">
-          <Icon :name="adminRuntimeIcon(kind)"/>
+          <component :is="adminRuntimeIcon(kind)"/>
          </span>
          <div class="admin-runtime-capability-content">
           <strong>{{kind}}</strong>
@@ -219,7 +219,7 @@ import TableCellTooltip from '../components/portal/TableCellTooltip.vue';
 import {computed,h,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
-import {Icon} from 'tdesign-icons-vue-next';
+import {Icon,LinkIcon,TaskIcon,MailIcon} from 'tdesign-icons-vue-next';
 import {actor,portal,command,revision,availableUsers,downloadAccessContract,loadDictionaryLookups,dictionaryLookups} from '../services/runtime.js';
 import {pages,can,shouldLoadAppCatalog} from '../config/pages.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
@@ -280,7 +280,7 @@ const adminOverviewCards=computed(()=>[
 const adminShortcutIcon=resource=>({apps:'add',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
 const adminRuntimeTone=kind=>({SSO:'blue',TODO:'green',MESSAGE:'purple'}[kind]||'blue');
-const adminRuntimeIcon=kind=>({SSO:'link',TODO:'task',MESSAGE:'mail'}[kind]||'link');
+const adminRuntimeIcon=kind=>({SSO:LinkIcon,TODO:TaskIcon,MESSAGE:MailIcon}[kind]||LinkIcon);
 const adminPendingItems=computed(()=>[
  {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application:view')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
  {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application:view')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
