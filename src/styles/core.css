@@ -1089,3 +1089,42 @@
 .admin-overview-grid{
   margin-bottom:12px!important;
 }
+
+
+/* 2026-09-29 widen runtime analysis and add metric help tooltips. */
+.admin-home-analysis-grid{
+  grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)!important;
+}
+.admin-overview-content>.admin-overview-label{
+  display:inline-flex!important;
+  max-width:100%;
+  align-items:center;
+  gap:4px;
+  overflow:visible!important;
+  white-space:nowrap;
+}
+.admin-overview-label>span:first-child{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.admin-overview-help{
+  display:inline-flex;
+  width:16px;
+  height:16px;
+  flex:none;
+  align-items:center;
+  justify-content:center;
+  color:#98a2b3;
+  cursor:help;
+}
+.admin-overview-help:hover{color:#667085}
+.admin-overview-help>.t-icon{
+  width:14px!important;
+  height:14px!important;
+  font-size:14px!important;
+}
+@media(max-width:1200px){
+  .admin-home-analysis-grid{grid-template-columns:1fr!important}
+}
