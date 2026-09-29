@@ -1294,13 +1294,13 @@
   flex:none!important;
   justify-content:center;
   overflow:hidden;
-  font-size:12px!important;
+  font-size:11px!important;
   font-weight:400!important;
   white-space:nowrap;
 }
 .monitor-visual-status-tag .t-tag__text{
   overflow:hidden;
-  font-size:12px!important;
+  font-size:11px!important;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
