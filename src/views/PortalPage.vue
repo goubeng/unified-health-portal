@@ -462,12 +462,19 @@ const sortableFields={
  applicationRequests:new Set(['requestNo','userName','appName','reason','status','submittedAt'])
 };
 const isSortableField=key=>sortableFields[listResource.value]?.has(key)===true;
+const accountOpeningStatusTheme=status=>({
+ PENDING:'warning',
+ PROCESSING:'primary',
+ COMPLETED:'success',
+ FAILED:'danger',
+ REJECTED:'danger'
+})[status]||theme(status);
 const columns=computed(()=>[
  {colKey:'serial',title:'序号',width:64},
  ...fields.value.map((key,index)=>({colKey:index===0?'primary':key,title:columnTitle(key),width:columnWidth(key,index),ellipsis:true,sorter:isSortableField(key),sortType:'all',cell:index===0||resource.value==='apps'&&key==='enabled'?undefined:(_,context)=>{
   const domain=resource.value==='myApplicationRequests'&&context.row.requestType==='ACCOUNT_OPENING'?'accountOpeningRequests':resource.value;
   return ['status','runtimeStatus','aggregateRuntimeStatus','ssoStatus','todoStatus','messageStatus'].includes(key)
-   ?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':theme(context.row[key]),variant:'light'},()=>label(context.row[key],dictionaryTypeFor(domain,key)))
+   ?h(Tag,{theme:resource.value==='monitor'&&context.row[key]==='ABNORMAL'?'warning':resource.value==='accountOpeningRequests'&&key==='status'?accountOpeningStatusTheme(context.row[key]):theme(context.row[key]),variant:'light'},()=>label(context.row[key],dictionaryTypeFor(domain,key)))
    :h(TableCellTooltip,{text:display(key,context.row[key],domain)},()=>display(key,context.row[key],domain));
  }})),
  ...(hasOperations.value?[{colKey:'operation',title:'操作',width:resource.value==='apps'&&admin.value?240:200,fixed:'right'}]:[])
