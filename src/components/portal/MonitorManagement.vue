@@ -56,7 +56,7 @@
               :theme="visualStatusTheme(row[kind.toLowerCase()+'Status'])"
               variant="light"
               size="small"
-            >{{kind}} {{visualStatusText(row[kind.toLowerCase()+'Status'])}}</t-tag>
+            >{{kind}}</t-tag>
           </span>
         </button>
       </div>
@@ -156,7 +156,6 @@ const detailRows=computed(()=>kinds.map(kind=>{
   };
 }));
 
-const visualStatusText=value=>value==='NORMAL'?'正常':value==='DISABLED'?'停用':value==='ABNORMAL'?'异常':'未配置';
 const visualStatusTheme=value=>value==='NORMAL'?'success':['DISABLED','ABNORMAL'].includes(value)?'danger':'default';
 function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
