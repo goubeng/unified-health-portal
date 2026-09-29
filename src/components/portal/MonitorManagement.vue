@@ -22,6 +22,18 @@
     </Teleport>
     <p class="inline-note">运行状态为本地演示样本，尚未接入真实上下游系统；“正常”仅用于演示，不代表实际连通。</p>
     <div class="monitor-health-grid">
+      <section class="monitor-health-card monitor-health-total-card">
+        <span class="monitor-health-kind-icon tone-cyan">
+          <AppIcon/>
+        </span>
+        <div class="monitor-health-content">
+          <strong class="monitor-health-title">纳管应用</strong>
+          <div class="monitor-health-total">
+            <b>{{props.rows.length}}</b>
+            <span>个</span>
+          </div>
+        </div>
+      </section>
       <section v-for="item in monitorHealthStats" :key="item.kind" class="monitor-health-card">
         <span class="monitor-health-kind-icon" :class="'tone-'+item.tone">
           <component :is="monitorHealthIcon(item.kind)"/>
@@ -143,7 +155,7 @@
 <script setup>
 import {computed,defineComponent,h,ref,watch} from 'vue';
 import {Tag} from 'tdesign-vue-next';
-import {LinkIcon,TaskIcon,MailIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,LinkIcon,TaskIcon,MailIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text,theme,dictionaryOptions} from './presentation.js';
