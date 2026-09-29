@@ -1841,3 +1841,15 @@ test('有效用户指标使用可用用户图标',()=>{
   assert(source.includes("{label:'有效用户',value:overview.value.enabledUserCount??0,icon:'user',tone:'cyan'"));
   assert(!source.includes("icon:'user-check'"));
 });
+
+
+test('子系统帐号开通申请状态标签按状态区分颜色',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(source.includes("const accountOpeningStatusTheme=status=>({"));
+  assert(source.includes("PENDING:'warning'"));
+  assert(source.includes("PROCESSING:'primary'"));
+  assert(source.includes("COMPLETED:'success'"));
+  assert(source.includes("FAILED:'danger'"));
+  assert(source.includes("REJECTED:'danger'"));
+  assert(source.includes("resource.value==='accountOpeningRequests'&&key==='status'?accountOpeningStatusTheme(context.row[key]):theme(context.row[key])"));
+});
