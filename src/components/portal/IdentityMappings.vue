@@ -8,7 +8,7 @@
    <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetFilters">重置</t-button></t-form-item>
   </t-form>
   <section class="panel portal-table-panel">
-   <t-table row-key="user.id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+   <t-table row-key="user.id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
     <template #empty><EmptyState description="暂无符合条件的用户"/></template>
     <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
     <template #name="{row}"><TableCellTooltip :text="text(row.user.name)||'-'"><button class="portal-field-link" @click="selectedId=row.user.id">{{text(row.user.name)||'-'}}</button></TableCellTooltip></template>
@@ -35,7 +35,7 @@
        <template #prefix-icon><SearchIcon/></template>
       </t-input>
      </div>
-    <t-table row-key="id" :data="mappingPaged" :columns="mappingColumns" hover table-layout="fixed" size="medium">
+    <t-table row-key="id" :data="mappingPaged" :columns="mappingColumns" :sort="mappingSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleMappingSortChange">
      <template #empty><EmptyState description="暂无符合条件的子系统映射"/></template>
      <template #mappingSerial="{rowIndex}">{{(mappingPage-1)*mappingPageSize+rowIndex+1}}</template>
      <template #operation="{row}"><div class="row-actions">
@@ -64,7 +64,7 @@ import {text,label,date,theme} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},canManage:Boolean,exceptionsOnly:Boolean});
 defineEmits(['unbind','resolve','approve','reject']);
-const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),selectedId=ref(null),mappingKeyword=ref(''),mappingPage=ref(1),mappingPageSize=ref(10);
+const keyword=ref(''),userTypeFilter=ref(''),sourceFilter=ref(''),mappingFilter=ref(props.exceptionsOnly?'exception':''),page=ref(1),pageSize=ref(10),tableSort=ref(null),selectedId=ref(null),mappingKeyword=ref(''),mappingPage=ref(1),mappingPageSize=ref(10),mappingSort=ref(null);
 const userTypeOptions=[{value:'CITIZEN',label:'公众用户'},{value:'GOV',label:'政务用户'}];
 const sourceOptions=[{value:'闽政通',label:'闽政通'},{value:'闽政务',label:'闽政务'}];
 const mappingOptions=[{value:'bound',label:'已关联'},{value:'review',label:'待审核'},{value:'exception',label:'存在异常'},{value:'none',label:'未关联'}];
@@ -76,7 +76,20 @@ const filtered=computed(()=>accessRows.value.filter(row=>{
  const values=[user.id,user.name,user.account,user.orgName,...(row.mappings||[]).flatMap(mapping=>[mapping.appName,mapping.externalAccount])];
  return matchesMapping&&(!userTypeFilter.value||user.userType===userTypeFilter.value)&&(!sourceFilter.value||identitySource(user)===sourceFilter.value)&&(!term||values.some(value=>text(value).toLowerCase().includes(term)));
 }));
-const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const compareIdentityRows=(a,b,key)=>{
+ const au=a.user||{},bu=b.user||{};
+ if(['boundCount','exceptionCount'].includes(key))return (Number(a[key])||0)-(Number(b[key])||0);
+ const av=key==='source'?identitySource(au):['userType','status'].includes(key)?label(au[key]):text(au[key]);
+ const bv=key==='source'?identitySource(bu):['userType','status'].includes(key)?label(bu[key]):text(bu[key]);
+ return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+};
+const sortedFiltered=computed(()=>{
+ const result=filtered.value.slice(),active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+ if(!active?.sortBy)return result;
+ const direction=active.descending?-1:1;
+ return result.sort((a,b)=>direction*compareIdentityRows(a,b,active.sortBy));
+});
+const paged=computed(()=>sortedFiltered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const selected=computed(()=>accessRows.value.find(row=>row.user.id===selectedId.value)||null);
 const selectedMappings=computed(()=>{
  const term=mappingKeyword.value.trim().toLowerCase();
@@ -84,7 +97,19 @@ const selectedMappings=computed(()=>{
  if(!term)return mappings;
  return mappings.filter(mapping=>[mapping.appName,mapping.externalAccount].some(value=>text(value).toLowerCase().includes(term)));
 });
-const mappingPaged=computed(()=>selectedMappings.value.slice((mappingPage.value-1)*mappingPageSize.value,mappingPage.value*mappingPageSize.value));
+const compareMappings=(a,b,key)=>{
+ if(key==='boundAt')return (Date.parse(a.boundAt)||0)-(Date.parse(b.boundAt)||0);
+ const av=['bindingMethod','verificationMethod','riskLevel','status'].includes(key)?label(a[key]):text(a[key]);
+ const bv=['bindingMethod','verificationMethod','riskLevel','status'].includes(key)?label(b[key]):text(b[key]);
+ return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+};
+const sortedMappings=computed(()=>{
+ const result=selectedMappings.value.slice(),active=Array.isArray(mappingSort.value)?mappingSort.value[0]:mappingSort.value;
+ if(!active?.sortBy)return result;
+ const direction=active.descending?-1:1;
+ return result.sort((a,b)=>direction*compareMappings(a,b,active.sortBy));
+});
+const mappingPaged=computed(()=>sortedMappings.value.slice((mappingPage.value-1)*mappingPageSize.value,mappingPage.value*mappingPageSize.value));
 const identityDetails=computed(()=>{
  const user=selected.value?.user||{};
  return [['id','门户访问主体标识'],['name','姓名'],['account','帐号'],['orgName','所属单位'],['userType','用户类别'],['status','门户访问状态']].map(([key,title])=>({key,label:title,value:label(user[key])})).concat({key:'source',label:'身份来源',value:identitySource(user)});
@@ -92,27 +117,37 @@ const identityDetails=computed(()=>{
 const userColumn=(key,title,width)=>({colKey:key,title,width,ellipsis:true,cell:(_,context)=>h(TableCellTooltip,{text:label(context.row.user[key])},()=>label(context.row.user[key]))});
 const statusCell=value=>h(Tag,{theme:theme(value),variant:'light'},()=>label(value));
 const columns=[
- {colKey:'serial',title:'序号',width:64},{colKey:'name',title:'姓名',width:130},
- userColumn('account','帐号',180),userColumn('orgName','所属单位',220),userColumn('userType','用户类别',110),
- {colKey:'source',title:'身份来源',width:100,cell:(_,context)=>identitySource(context.row.user)},
- {colKey:'status',title:'门户访问状态',width:110,cell:(_,context)=>statusCell(context.row.user.status)},
- {colKey:'boundCount',title:'已关联系统',width:110},{colKey:'exceptionCount',title:'异常映射',width:100},
+ {colKey:'serial',title:'序号',width:64},{colKey:'name',title:'姓名',width:130,sorter:true,sortType:'all'},
+ {...userColumn('account','帐号',180),sorter:true,sortType:'all'},{...userColumn('orgName','所属单位',220),sorter:true,sortType:'all'},{...userColumn('userType','用户类别',110),sorter:true,sortType:'all'},
+ {colKey:'source',title:'身份来源',width:100,sorter:true,sortType:'all',cell:(_,context)=>identitySource(context.row.user)},
+ {colKey:'status',title:'门户访问状态',width:110,sorter:true,sortType:'all',cell:(_,context)=>statusCell(context.row.user.status)},
+ {colKey:'boundCount',title:'已关联系统',width:110,sorter:true,sortType:'all'},{colKey:'exceptionCount',title:'异常映射',width:100,sorter:true,sortType:'all'},
  {colKey:'operation',title:'操作',width:110,fixed:'right'}
 ];
 const mappingColumns=[
  {colKey:'mappingSerial',title:'序号',width:64},
- {colKey:'appName',title:'系统名称',width:220,ellipsis:true},
- {colKey:'externalAccount',title:'子系统账号',width:180,ellipsis:true},
- {colKey:'bindingMethod',title:'关联方式',width:100,cell:(_,context)=>label(context.row.bindingMethod)},
- {colKey:'verificationMethod',title:'验证方式',width:150,cell:(_,context)=>label(context.row.verificationMethod)},
- {colKey:'riskLevel',title:'风险级别',width:100,cell:(_,context)=>label(context.row.riskLevel)},
- {colKey:'status',title:'映射状态',width:110,cell:(_,context)=>statusCell(context.row.status)},
- {colKey:'boundAt',title:'关联时间',width:180,cell:(_,context)=>date(context.row.boundAt)},
+ {colKey:'appName',title:'系统名称',width:220,ellipsis:true,sorter:true,sortType:'all'},
+ {colKey:'externalAccount',title:'子系统账号',width:180,ellipsis:true,sorter:true,sortType:'all'},
+ {colKey:'bindingMethod',title:'关联方式',width:100,sorter:true,sortType:'all',cell:(_,context)=>label(context.row.bindingMethod)},
+ {colKey:'verificationMethod',title:'验证方式',width:150,sorter:true,sortType:'all',cell:(_,context)=>label(context.row.verificationMethod)},
+ {colKey:'riskLevel',title:'风险级别',width:100,sorter:true,sortType:'all',cell:(_,context)=>label(context.row.riskLevel)},
+ {colKey:'status',title:'映射状态',width:110,sorter:true,sortType:'all',cell:(_,context)=>statusCell(context.row.status)},
+ {colKey:'boundAt',title:'关联时间',width:180,sorter:true,sortType:'all',cell:(_,context)=>date(context.row.boundAt)},
  {colKey:'operation',title:'操作',width:150,fixed:'right'}
 ];
-function resetFilters(){keyword.value='';userTypeFilter.value='';sourceFilter.value='';mappingFilter.value=props.exceptionsOnly?'exception':'';page.value=1;}
+function handleSortChange(sort){
+ const next=Array.isArray(sort)?sort[0]:sort;
+ tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
+ page.value=1;
+}
+function handleMappingSortChange(sort){
+ const next=Array.isArray(sort)?sort[0]:sort;
+ mappingSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
+ mappingPage.value=1;
+}
+function resetFilters(){keyword.value='';userTypeFilter.value='';sourceFilter.value='';mappingFilter.value=props.exceptionsOnly?'exception':'';tableSort.value=null;page.value=1;}
 function closeDialog(visible){if(!visible)selectedId.value=null;}
-watch(selectedId,()=>{mappingKeyword.value='';mappingPage.value=1;});
+watch(selectedId,()=>{mappingKeyword.value='';mappingSort.value=null;mappingPage.value=1;});
 watch(mappingKeyword,()=>{mappingPage.value=1;});
 watch(mappingPageSize,()=>{mappingPage.value=1;});
 watch(()=>selectedMappings.value.length,()=>{mappingPage.value=Math.min(mappingPage.value,Math.max(1,Math.ceil(selectedMappings.value.length/mappingPageSize.value)));});
