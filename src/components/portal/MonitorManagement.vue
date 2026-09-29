@@ -39,20 +39,28 @@
     </section>
 
     <section v-else class="panel monitor-visual-panel">
-      <div v-if="paged.length" class="monitor-visual-grid">
-        <button v-for="row in paged" :key="row.id" type="button" class="monitor-visual-card" @click="openDetail(row)">
+      <div class="monitor-visual-legend">
+        <span>状态图例：</span>
+        <t-tag theme="success" variant="light" size="small">正常</t-tag>
+        <t-tag theme="danger" variant="light" size="small">异常 / 停用</t-tag>
+        <t-tag theme="default" variant="light" size="small">未配置</t-tag>
+      </div>
+      <div v-if="filtered.length" class="monitor-visual-grid">
+        <button v-for="row in filtered" :key="row.id" type="button" class="monitor-visual-card" @click="openDetail(row)">
           <span class="monitor-visual-name" :title="text(row.appName)">{{text(row.appName)}}</span>
-          <span class="monitor-visual-code">{{text(row.appCode)}}</span>
           <span class="monitor-visual-status-grid">
-            <span v-for="kind in kinds" :key="kind" class="monitor-visual-status-item">
-              <b>{{kind}}</b>
-              <span><i class="monitor-status-dot" :class="visualStatusClass(row[kind.toLowerCase()+'Status'])"></i>{{visualStatusText(row[kind.toLowerCase()+'Status'])}}</span>
-            </span>
+            <t-tag
+              v-for="kind in kinds"
+              :key="kind"
+              class="monitor-visual-status-tag"
+              :theme="visualStatusTheme(row[kind.toLowerCase()+'Status'])"
+              variant="light"
+              size="small"
+            >{{kind}} {{visualStatusText(row[kind.toLowerCase()+'Status'])}}</t-tag>
           </span>
         </button>
       </div>
       <EmptyState v-else description="暂无符合条件的运行监控记录"/>
-      <t-pagination v-if="filtered.length" v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
 
     <t-dialog
@@ -149,7 +157,7 @@ const detailRows=computed(()=>kinds.map(kind=>{
 }));
 
 const visualStatusText=value=>value==='NORMAL'?'正常':value==='DISABLED'?'停用':value==='ABNORMAL'?'异常':'未配置';
-const visualStatusClass=value=>value==='NORMAL'?'is-normal':['DISABLED','ABNORMAL'].includes(value)?'is-danger':'is-muted';
+const visualStatusTheme=value=>value==='NORMAL'?'success':['DISABLED','ABNORMAL'].includes(value)?'danger':'default';
 function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 watch([keyword,ssoStatus,todoStatus,messageStatus,pageSize],()=>{page.value=1;});
