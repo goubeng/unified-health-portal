@@ -149,9 +149,27 @@ export function createPortalService(provider,getActor){
    if(resource==='header')return {unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length};
    if(resource==='lookupDictionaries')return {types:(d.dictTypes||[]).map(({code,name,status,sortOrder})=>({code,name,status,sortOrder})),items:(d.dictItems||[]).map(({typeCode,value,label,status,sortOrder})=>({typeCode,value,label,status,sortOrder}))};
    if(resource==='home')return {appCount:userApps().length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
-   const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',adminHome:'any',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
+   const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',adminHome:'any',auditTrends:'audit:view',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
+   if(resource==='auditTrends'){
+    const chinaDay=value=>{
+     const current=new Date(value);
+     if(!Number.isFinite(current.getTime()))return '';
+     const parts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(current).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
+     return `${parts.year}-${parts.month}-${parts.day}`;
+    };
+    const valid=(d.logs||[]).filter(item=>['access','api'].includes(String(item.kind||'').toLowerCase())&&Number.isFinite(Date.parse(item.createdAt)));
+    const base=valid.length?new Date(Math.max(...valid.map(item=>Date.parse(item.createdAt)))):new Date();
+    const baseKey=chinaDay(base),baseDate=new Date(baseKey+'T00:00:00+08:00');
+    const days=Array.from({length:30},(_,index)=>{
+     const date=new Date(baseDate.getTime()-(29-index)*86400000),day=chinaDay(date);
+     return {day,access:0,api:0};
+    });
+    const byDay=new Map(days.map(item=>[item.day,item]));
+    valid.forEach(item=>{const target=byDay.get(chinaDay(item.createdAt));if(target)target[String(item.kind).toLowerCase()]+=1;});
+    return {access:days.map(item=>({date:item.day,count:item.access})),api:days.map(item=>({date:item.day,count:item.api}))};
+   }
    if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName,handledByName:handlerName(x.handledBy)})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(['categories','settings','mappings','organizations'].includes(resource))return d[resource];
