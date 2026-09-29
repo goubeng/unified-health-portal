@@ -144,8 +144,13 @@ function backToList(){
 }
 async function exitSystem(){
   accountOpen.value=false;
-  try{await logout();router.replace('/login');}
-  catch(error){MessagePlugin.error(error?.message||'退出失败');}
+  try{
+    await logout();
+  }catch(error){
+    MessagePlugin.error(error?.message||'退出失败');
+  }finally{
+    await router.replace('/login');
+  }
 }
 
 watch(()=>route.fullPath,()=>{accountOpen.value=false;});
