@@ -1699,3 +1699,11 @@ test('系统顶部头像统一显示姓名首字且不使用人像图标',()=>{
   assert(!home.includes('<span class="public-portal-avatar"><UserIcon /></span>'));
   assert(!layout.includes('<span class="public-portal-avatar"><UserIcon /></span>'));
 });
+
+
+test('子系统账号开通申请详情加宽并将第二行改为三列',()=>{
+  const source=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
+  assert(source.includes(":width=\"isAccountOpeningDetail?'1120px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'\""));
+  assert(source.includes("['userName','申请人','is-third'],['appName','来源应用','is-third'],['contact','联系方式','is-third']"));
+  assert(source.includes("['userId','统一身份标识','is-wide']"));
+});
