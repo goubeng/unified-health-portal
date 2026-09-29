@@ -105,13 +105,14 @@ function render(){
     series:[{
       name:currentSeriesName.value,
       type:'line',
-      smooth:false,
+      smooth:true,
       showSymbol:true,
       symbol:'circle',
       symbolSize:5,
       data:trend.value.map(item=>item.value),
       lineStyle:{width:2,color:'#2454ff'},
-      itemStyle:{color:'#2454ff'}
+      itemStyle:{color:'#2454ff'},
+      areaStyle:{color:'rgba(36,84,255,.10)'}
     }]
   },true);
 }
