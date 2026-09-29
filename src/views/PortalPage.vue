@@ -126,9 +126,11 @@
    <section v-else class="portal-list" :class="{'portal-app-center':isAppCenter,'portal-announcement-center':preview&&resource==='announcements'}">
     <div v-if="admin&&resource==='apps'" class="app-user-stats-grid">
      <section v-for="item in appUserTypeStats" :key="item.userType" class="app-user-stat-card">
-      <span class="app-user-stat-label">{{item.label}}</span>
-      <strong>{{item.count}}</strong>
-      <small>个应用</small>
+      <span class="app-user-stat-icon" :class="'tone-'+item.tone"><Icon :name="item.icon"/></span>
+      <span class="app-user-stat-content">
+       <span class="app-user-stat-label">{{item.label}}</span>
+       <span class="app-user-stat-value"><strong>{{item.count}}</strong><small>个应用</small></span>
+      </span>
      </section>
     </div>
     <t-form layout="inline" class="portal-query list-toolbar">
@@ -388,9 +390,9 @@ const querySpec=computed(()=>{
 });
 const queryFilters=computed(()=>querySpec.value.filters||[]);
 const appUserTypeStats=computed(()=>[
- {userType:'CITIZEN',label:label('CITIZEN'),count:rows.value.filter(row=>row.userType==='CITIZEN').length},
- {userType:'GOV',label:label('GOV'),count:rows.value.filter(row=>row.userType==='GOV').length},
- {userType:'BOTH',label:label('BOTH'),count:rows.value.filter(row=>row.userType==='BOTH').length}
+ {userType:'CITIZEN',label:label('CITIZEN'),icon:'user',tone:'blue',count:rows.value.filter(row=>row.userType==='CITIZEN').length},
+ {userType:'GOV',label:label('GOV'),icon:'user-safety',tone:'green',count:rows.value.filter(row=>row.userType==='GOV').length},
+ {userType:'BOTH',label:label('BOTH'),icon:'usergroup',tone:'purple',count:rows.value.filter(row=>row.userType==='BOTH').length}
 ]);
 const normalizeSortKey=sortBy=>sortBy==='primary'?({apps:'name',applicationRequests:'requestNo'}[listResource.value]||sortBy):sortBy;
 const compareTableValue=(a,b,key)=>{
