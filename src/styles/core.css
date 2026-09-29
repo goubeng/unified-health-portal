@@ -1128,6 +1128,30 @@
 .admin-runtime-exception-list .portal-field-link{
   font-weight:500!important;
 }
+.admin-runtime-exception-content{
+  min-width:0;
+  flex:1 1 auto;
+}
+.admin-runtime-exception-title-line{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.admin-runtime-exception-title-line .portal-field-link{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.admin-runtime-exception-time{
+  flex:none;
+  color:#86909c;
+  font-size:12px;
+  font-weight:400;
+  white-space:nowrap;
+}
 .admin-runtime-exception-list .list-row{
   min-height:62px;
 }
@@ -1151,6 +1175,8 @@
   .admin-runtime-capability-card{padding:14px}
   .admin-runtime-capability-body{grid-template-columns:84px minmax(0,1fr);gap:10px}
   .admin-runtime-ring-chart{width:84px;height:84px}
+  .admin-runtime-exception-title-line{align-items:flex-start;flex-direction:column;gap:2px}
+  .admin-runtime-exception-time{white-space:normal}
 }
 
 
