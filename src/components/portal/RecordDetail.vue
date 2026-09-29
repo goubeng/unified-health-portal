@@ -101,7 +101,7 @@ const openingApplicationDetails=computed(()=>{
  return [
   ['requestNo','申请编号','is-third'],['submittedAt','申请时间','is-third'],['status','状态','is-third'],
   ['userName','申请人','is-half'],['appName','来源应用','is-half'],
-  ['contact','联系方式','is-half'],['userId','统一身份标识','is-half'],
+  ['userId','统一身份标识','is-half'],['contact','联系方式','is-half'],
   ['reason','申请原因','is-wide'],['remark','备注','is-wide']
  ].map(([key,labelText,layout])=>({key,label:labelText,layout,value:display(key,row[key],'accountOpeningRequests')}));
 });

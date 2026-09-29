@@ -23,7 +23,7 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="organizationRows" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
+      <t-table row-key="id" :data="organizationRows" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的组织"/></template>
         <template #name="{row}">
           <span class="organization-name" :style="{paddingLeft:`${row._treeLevel * 22}px`}">
@@ -113,7 +113,7 @@ const props=defineProps({
 });
 const emit=defineEmits(['saved']);
 
-const keyword=ref(''),type=ref(''),sourceValue=ref(''),status=ref(''),page=ref(1),pageSize=ref(10),tableSort=ref(null);
+const keyword=ref(''),type=ref(''),sourceValue=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
 const expandedOrgIds=ref(new Set());
 const detailVisible=ref(false),detail=ref(null),formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false);
 const statusOptions=[{value:'ENABLED',label:'启用'},{value:'DISABLED',label:'停用'}];
@@ -183,11 +183,6 @@ const filtered=computed(()=>{
     return matchKeyword&&(!type.value||row.type===type.value)&&(!sourceValue.value||row.source===sourceValue.value)&&(!status.value||row.status===status.value);
   });
 });
-const compareOrganizationRows=(a,b,key)=>{
-  const av=key==='type'?typeLabel(a.type):key==='source'?sourceLabel(a.source):key==='status'?label(a.status):text(a[key]);
-  const bv=key==='type'?typeLabel(b.type):key==='source'?sourceLabel(b.source):key==='status'?label(b.status):text(b[key]);
-  return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
-};
 const treeRows=computed(()=>{
   const sourceRows=filtered.value.map(row=>({...row,children:[]}));
   const byId=new Map(sourceRows.map(row=>[row.id,row]));
@@ -197,14 +192,8 @@ const treeRows=computed(()=>{
     if(parent)parent.children.push(row);
     else roots.push(row);
   });
-  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
   const sortRows=list=>{
-    if(active?.sortBy){
-      const direction=active.descending?-1:1;
-      list.sort((a,b)=>direction*compareOrganizationRows(a,b,active.sortBy));
-    }else{
-      list.sort((a,b)=>(Number(a.sortOrder)||0)-(Number(b.sortOrder)||0)||text(a.name).localeCompare(text(b.name),'zh-CN'));
-    }
+    list.sort((a,b)=>(Number(a.sortOrder)||0)-(Number(b.sortOrder)||0)||text(a.name).localeCompare(text(b.name),'zh-CN'));
     list.forEach(row=>sortRows(row.children));
   };
   sortRows(roots);
@@ -228,12 +217,12 @@ function toggleOrganization(row){
   expandedOrgIds.value=next;
 }
 const columns=[
-  {colKey:'name',title:'组织名称',width:220,ellipsis:true,sorter:true,sortType:'all'},
-  {colKey:'code',title:'组织编码',width:160,ellipsis:true,sorter:true,sortType:'all'},
-  {colKey:'type',title:'组织类型',width:120,sorter:true,sortType:'all'},
-  {colKey:'parentName',title:'上级组织',width:180,ellipsis:true,sorter:true,sortType:'all'},
-  {colKey:'source',title:'数据来源',width:110,sorter:true,sortType:'all'},
-  {colKey:'status',title:'启用状态',width:100,sorter:true,sortType:'all'},
+  {colKey:'name',title:'组织名称',width:220,ellipsis:true},
+  {colKey:'code',title:'组织编码',width:160,ellipsis:true},
+  {colKey:'type',title:'组织类型',width:120},
+  {colKey:'parentName',title:'上级组织',width:180,ellipsis:true},
+  {colKey:'source',title:'数据来源',width:110},
+  {colKey:'status',title:'启用状态',width:100},
   {colKey:'operation',title:'操作',width:130,fixed:'right'}
 ];
 const detailItems=computed(()=>{
@@ -245,12 +234,7 @@ const detailItems=computed(()=>{
   ].map(([key,labelText,value])=>({key,label:labelText,value}));
 });
 
-function handleSortChange(sort){
-  const next=Array.isArray(sort)?sort[0]:sort;
-  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
-  page.value=1;
-}
-function reset(){keyword.value='';type.value='';sourceValue.value='';status.value='';tableSort.value=null;page.value=1;}
+function reset(){keyword.value='';type.value='';sourceValue.value='';status.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function assign(row){Object.keys(form).forEach(key=>delete form[key]);Object.assign(form,JSON.parse(JSON.stringify(row)));}
 function openCreate(){assign({code:'',name:'',type:typeOptions.value[0]?.value||'OTHER',parentId:null,source:'PORTAL_LOCAL',status:'ENABLED',sortOrder:0,remark:''});formError.value='';formVisible.value=true;}

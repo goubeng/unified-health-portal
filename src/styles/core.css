@@ -875,7 +875,14 @@
 .organization-management .organization-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:20px}
 
 
-/* Admin list tables: keep headers on one line and scroll horizontally when needed. */
+/* List table headers stay on one line; body cells keep their own wrapping rules. */
+.t-table th,
+.t-table .t-table__th-cell-inner,
+.t-table th *{
+  white-space:nowrap!important;
+}
+
+/* Admin wide tables scroll horizontally when needed. */
 .admin-nowrap-table-scroll{
   width:100%;
   max-width:100%;

@@ -6,6 +6,18 @@ import {createPortalService} from '../src/services/portal.js';
 import {actors} from '../src/mock/seed.js';
 
 const detail=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
+const portalPage=fs.readFileSync('src/views/PortalPage.vue','utf8');
+const myApplications=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
+
+test('account-opening list omits processing note while detail retains it',()=>{
+ const fields=portalPage.match(/accountOpeningRequests:\[([^\]]+)\]/)?.[1]||'';
+ assert.match(fields,/'submittedAt'/);
+ assert.doesNotMatch(fields,/'handleNote'/);
+ const publicOpeningColumns=myApplications.split('const openingColumns=[')[1]?.split('];')[0]||'';
+ assert.doesNotMatch(publicOpeningColumns,/colKey:'handleNote'/);
+ assert.match(myApplications,/colKey:'reviewNote',title:'审核意见'/);
+ assert.match(detail,/\{key:'handleNote',label:'处理说明'/);
+});
 
 test('both account-opening detail entries share the specified application and processing layout',()=>{
  assert.match(detail,/props\.kind==='accountOpeningRequests'\|\|props\.kind==='myApplicationRequests'&&props\.record\?\.requestType==='ACCOUNT_OPENING'/);
@@ -17,7 +29,7 @@ test('both account-opening detail entries share the specified application and pr
  assert.deepEqual(fields,[
   ['requestNo','申请编号','is-third'],['submittedAt','申请时间','is-third'],['status','状态','is-third'],
   ['userName','申请人','is-half'],['appName','来源应用','is-half'],
-  ['contact','联系方式','is-half'],['userId','统一身份标识','is-half'],
+  ['userId','统一身份标识','is-half'],['contact','联系方式','is-half'],
   ['reason','申请原因','is-wide'],['remark','备注','is-wide']
  ]);
  assert.match(detail,/<t-tag v-if="item\.key==='status'"[^>]*>\{\{label\(record\.status,'account_opening_status'\)\}\}<\/t-tag>/);

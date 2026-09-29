@@ -79,7 +79,6 @@ const openingColumns=[
  {colKey:'appName',title:'应用名称',minWidth:240,ellipsis:true},
  {colKey:'submittedAt',title:'申请时间',width:180,cell:(_,ctx)=>date(ctx.row.submittedAt)},
  {colKey:'status',title:'处理状态',width:110},
- {colKey:'handleNote',title:'处理说明',minWidth:240,ellipsis:true,cell:(_,ctx)=>h(TableCellTooltip,{text:text(ctx.row.handleNote)||'-'},()=>text(ctx.row.handleNote)||'-')},
  {colKey:'operation',title:'操作',width:110,fixed:'right'}
 ];
 </script>

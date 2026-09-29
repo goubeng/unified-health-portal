@@ -175,7 +175,7 @@ const columns=[
   {colKey:'authType',title:'认证类型',width:110,sorter:true,sortType:'all'},
   {colKey:'identitySource',title:'身份来源',width:110,sorter:true,sortType:'all'},
   {colKey:'roleLabels',title:'门户角色',width:220,ellipsis:true},
-  {colKey:'enabled',title:'启用状态',width:110,sorter:true,sortType:'all'},
+  {colKey:'enabled',title:'启用状态',width:110},
   {colKey:'lastLoginAt',title:'最近管理端登录',width:180,sorter:true,sortType:'all'},
   {colKey:'operation',title:'操作',width:210,fixed:'right'}
 ];

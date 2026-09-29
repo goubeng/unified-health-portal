@@ -1707,7 +1707,7 @@ test('子系统账号开通申请详情加宽并按申请与处理信息分行',
   const source=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
   assert(source.includes(":width=\"isAccountOpeningDetail?'1120px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'\""));
   assert(source.includes("['userName','申请人','is-half'],['appName','来源应用','is-half']"));
-  assert(source.includes("['contact','联系方式','is-half'],['userId','统一身份标识','is-half']"));
+  assert(source.includes("['userId','统一身份标识','is-half'],['contact','联系方式','is-half']"));
   assert(source.includes("['reason','申请原因','is-wide'],['remark','备注','is-wide']"));
 });
 
