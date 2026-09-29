@@ -35,7 +35,7 @@ function render(){
     series:[{
       type:'pie',
       silent:true,
-      radius:['66%','82%'],
+      radius:['60%','82%'],
       center:['50%','50%'],
       startAngle:90,
       clockwise:true,
@@ -44,8 +44,8 @@ function render(){
       labelLine:{show:false},
       itemStyle:{
         borderColor:'#fff',
-        borderWidth:5,
-        borderRadius:6
+        borderWidth:6,
+        borderRadius:8
       },
       data:[
         {name:'正常',value:Number(props.normal||0),itemStyle:{color:'#2ba471'}},
