@@ -1132,6 +1132,12 @@
 
 /* 2026-09-29 runtime exception kind uses a compact tag. */
 .admin-runtime-exception-meta{
+  display:flex!important;
+  min-width:0;
+  align-items:center;
+  gap:6px;
+}
+.admin-runtime-exception-meta>span{
   min-width:0;
   overflow:hidden;
   color:#86909c;
@@ -1143,3 +1149,17 @@
   font-size:12px!important;
   font-weight:400!important;
 }
+
+
+/* 2026-09-29 runtime health stats use semantic dot markers. */
+.admin-runtime-capability-stats>span::before{
+  content:"";
+  display:inline-block;
+  width:6px;
+  height:6px;
+  flex:none;
+  border-radius:50%;
+}
+.admin-runtime-capability-stats>span.is-normal::before{background:#2ba471}
+.admin-runtime-capability-stats>span.is-abnormal::before{background:#d54941}
+.admin-runtime-capability-stats>span.is-muted::before{background:#86909c}
