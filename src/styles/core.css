@@ -875,6 +875,25 @@
 .organization-management .organization-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:20px}
 
 
+/* Admin list tables: keep headers on one line and scroll horizontally when needed. */
+.admin-nowrap-table-scroll{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+.admin-nowrap-table-scroll .t-table__th-cell-inner,
+.admin-nowrap-table-scroll .t-table th,
+.admin-nowrap-table-scroll .t-table th *{
+  white-space:nowrap!important;
+}
+.role-table-scroll .t-table{
+  min-width:1300px;
+}
+.dictionary-table-scroll .t-table{
+  min-width:1000px;
+}
+
 /* Role read-only detail follows office-house collapsible permission viewing pattern. */
 .role-detail-descriptions .t-descriptions__label{width:120px;white-space:nowrap}
 .role-detail-permission-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:18px 0 10px}
