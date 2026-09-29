@@ -66,7 +66,7 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户访问用户','接入异常','待处理事项','接入运行状态','常用管理'])assert(source.includes(label),label+' 未体现');
+  for(const label of ['纳管应用','启用应用','门户访问用户','接入异常','待处理事项','接入运行状态','快捷入口'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
@@ -1723,4 +1723,17 @@ test('身份与子系统映射基本信息字段名加宽并禁止换行',()=>{
   assert(css.includes('.identity-mappings-dialog .identity-mapping-basic-section .portal-detail-item{'));
   assert(css.includes('grid-template-columns:150px minmax(0,1fr)!important;'));
   assert(css.includes('white-space:nowrap!important;'));
+});
+
+
+test('管理首页快捷入口去掉描述并使用深色图标块',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('<div class="section-head"><h2>快捷入口</h2></div>'));
+  assert(!source.includes('<small>创建并发布门户公告</small>'));
+  assert(!source.includes('adminShortcutHint'));
+  assert(source.includes('<strong>新增公告</strong>'));
+  assert(css.includes('.admin-shortcut-icon.tone-blue{background:#5268d9!important;color:#fff!important}'));
+  assert(css.includes('.admin-shortcut-icon>.t-icon{'));
+  assert(css.includes('color:#fff!important;'));
 });
