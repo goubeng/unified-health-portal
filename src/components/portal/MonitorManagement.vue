@@ -144,8 +144,7 @@
           <span>{{row.enabled}}</span>
         </template>
         <template #runStatus="{row}">
-          <StatusTag v-if="row.runStatus!=='-'" :value="row.runStatus"/>
-          <span v-else>-</span>
+          <StatusTag :value="row.runStatus"/>
         </template>
       </t-table>
     </t-dialog>
@@ -231,7 +230,7 @@ const detailRows=computed(()=>kinds.map(kind=>{
     kind,
     configStatus,
     enabled:item.enabled==='ENABLED'?'启用':item.enabled==='DISABLED'?'停用':'-',
-    runStatus:configStatus==='CONFIGURED'?runtimeStatus:'-',
+    runStatus:runtimeStatus,
     lastCheckedAt:date(item.lastCheckedAt),
     lastSuccessAt:date(item.lastSuccessAt),
     lastFailureAt:date(item.lastFailureAt),

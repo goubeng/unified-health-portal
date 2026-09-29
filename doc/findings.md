@@ -159,3 +159,12 @@
 - 服务现状：`src/services/portal.js` 的 `adminHome` 由 `monitorProfiles(d)` 得到各应用服务状态，`abnormalServiceCount` 把三种能力的异常个数直接相加。目标可新增 `abnormalApplicationCount`，按监控行中任一能力为 `ABNORMAL` 计算一次；保留原字段供可能的旧调用方使用。右侧异常列表和 `openErrorCount` 是另一条数据链，不在本轮变更范围。
 - 用户纠偏后核对：管理端应用列表 `adminApps` 走 `allApps()`→`decorate(d,a)`，直接返回 `aggregateRuntimeStatus`；其规则是应用停用优先 `DISABLED`，否则三类状态存在 `ABNORMAL` 才为异常。尽管当前规则与“任一监控能力异常”通常等价，指标仍应直接复用列表 DTO 的综合状态，避免日后两套规则漂移。
 - 已用 `allApps().filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length` 生成新指标，测试对照 `adminApps` 返回值：同一应用两项异常只计 1，另一异常应用再计 1，停用应用即使底层能力异常也不计入。原三类服务异常项数及日志异常行统计均未改。
+
+## 2026-09-29 应用综合状态与运行监控一致性及正常样本
+
+- 待核：真实数据库中各状态数量和应用/监控是否不一致；源码初查两处均引用 `integrationState(d,app,kind)`，但展示聚合和异常数据可能存在不同来源或优先级。必须以同一真实库快照读回确认，不以 Mock 推断现场。
+- 只读现库版本 492：42 个活动应用，ABNORMAL 30 / NORMAL 10 / DISABLED 2。126 条集成运行实体与运行态快照 JSON 一致；12 条历史监控样本仅属 APP_1~4，采样于 9/19，早于配置更新 9/23，当前不覆盖配置。`application.runtime_status` 物理列并非综合状态来源，不可直接改该列来造正常场景。
+- 两页面关系：管理应用列表 `decorate` 和运行监控 `monitorProfiles` 都调用同一个 `integrationState`；综合状态按停用优先、任一异常、任一正常、全停用、其余未配置的次序聚合。监控详情过去在 `configStatus` 未配置时把运行状态遮盖为“-”，即使列表有值；该显示缺陷已修复，配置状态仍独立展示。
+- APP_18/19/21 目标接入分别为 TODO/SSO/MESSAGE，应用自身未人工编辑，目标集成版本 2 且为 DEMO_FIXTURE，相关业务记录与 9/20 后审计为空；其余状态和历史异常场景应保留。预计调整后三类综合分布为异常 27、正常 13、停用 2，须以真实写后读回为准。
+- 实际写后读回符合预期：APP_18 三态 SSO/TODO/MESSAGE 为 NORMAL/NORMAL/DISABLED，APP_19 为 NORMAL/DISABLED/UNCONFIGURED，APP_21 为 UNCONFIGURED/NORMAL/NORMAL，三者应用综合均 NORMAL；总量 ABNORMAL 27 / NORMAL 13 / DISABLED 2。`sso_config`/`push_integration_config.status` 属配置态，保留 UNCONFIGURED，未用它冒充运行态或已联调。
+- 三个应用名称读回分别为 APP_18“福建省互联网医院监管平台”、APP_19“省医改效果监测管理系统”、APP_21“福建省公立医院绩效考核系统”。
