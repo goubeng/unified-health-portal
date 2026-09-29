@@ -69,37 +69,49 @@ function render(){
   if(!chart)chart=echarts.init(chartEl.value,null,{renderer:'canvas'});
   chart.setOption({
     animationDuration:350,
-    grid:{left:42,right:18,top:18,bottom:30},
+    grid:{
+      left:18,
+      right:18,
+      top:18,
+      bottom:period.value===30?18:12,
+      containLabel:true
+    },
     tooltip:{trigger:'axis',confine:true},
     xAxis:{
       type:'category',
       boundaryGap:false,
       data:trend.value.map(item=>item.label),
-      axisLine:{lineStyle:{color:'#d9dde5'}},
-      axisTick:{show:false},
-      axisLabel:{color:'#86909c',fontSize:11,interval:period.value===30?4:0}
+      axisLine:{show:true,lineStyle:{color:'#86909c',width:1}},
+      axisTick:{show:true,alignWithLabel:true,length:4,lineStyle:{color:'#86909c'}},
+      axisLabel:{
+        show:true,
+        color:'#4e5969',
+        fontSize:11,
+        interval:0,
+        rotate:period.value===30?45:0,
+        margin:10
+      }
     },
     yAxis:{
       type:'value',
       min:0,
       minInterval:1,
       splitNumber:4,
-      axisLine:{show:false},
-      axisTick:{show:false},
-      axisLabel:{color:'#86909c',fontSize:11},
-      splitLine:{lineStyle:{color:'#eef0f4'}}
+      axisLine:{show:true,lineStyle:{color:'#86909c',width:1}},
+      axisTick:{show:true,length:4,lineStyle:{color:'#86909c'}},
+      axisLabel:{show:true,color:'#4e5969',fontSize:11,margin:8},
+      splitLine:{show:true,lineStyle:{color:'#eef0f4',type:'dashed'}}
     },
     series:[{
       name:currentSeriesName.value,
       type:'line',
-      smooth:true,
-      showSymbol:period.value===7,
+      smooth:false,
+      showSymbol:true,
       symbol:'circle',
-      symbolSize:6,
+      symbolSize:5,
       data:trend.value.map(item=>item.value),
       lineStyle:{width:2,color:'#2454ff'},
-      itemStyle:{color:'#2454ff'},
-      areaStyle:{color:'rgba(36,84,255,.08)'}
+      itemStyle:{color:'#2454ff'}
     }]
   },true);
 }
