@@ -1079,3 +1079,13 @@
 @media(max-width:650px){
   .admin-overview-grid{grid-template-columns:1fr!important}
 }
+
+
+/* 2026-09-29 compact admin overview cards. */
+.admin-overview-card{
+  min-height:88px!important;
+  padding:10px 16px!important;
+}
+.admin-overview-grid{
+  margin-bottom:12px!important;
+}
