@@ -21,7 +21,7 @@
         <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
           <template #empty><EmptyState description="暂无符合条件的角色"/></template>
           <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-          <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
+          <template #roleName="{row}"><TableCellTooltip :text="text(row.roleName)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.roleName)}}</button></TableCellTooltip></template>
           <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
           <template #builtIn="{row}"><t-tag v-if="row.builtIn" variant="light">内置</t-tag><span v-else>自定义</span></template>
           <template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>
@@ -205,8 +205,7 @@ const detailPermissionGroups=computed(()=>permissionGroups.map(group=>{
 
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'roleCode',title:'角色编码',width:170,ellipsis:true,sorter:true,sortType:'all'},
-  {colKey:'roleName',title:'角色名称',width:170,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'roleName',title:'角色名称',width:190,ellipsis:true,sorter:true,sortType:'all'},
   {colKey:'description',title:'角色说明',minWidth:280,ellipsis:true},
   {colKey:'builtIn',title:'角色类型',width:100,sorter:true,sortType:'all'},
   {colKey:'userCount',title:'关联用户数',width:110,sorter:true,sortType:'all'},
