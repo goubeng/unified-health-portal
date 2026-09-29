@@ -1176,15 +1176,39 @@
   margin:0 0 16px;
 }
 .monitor-health-card{
-  display:flex;
+  display:grid;
   min-width:0;
   min-height:86px;
-  flex-direction:column;
-  justify-content:center;
-  gap:12px;
+  grid-template-columns:32px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
   padding:14px 16px;
   border:1px solid #e5e8ef;
   background:#fff;
+}
+.monitor-health-kind-icon{
+  display:inline-flex;
+  width:32px;
+  height:32px;
+  flex:none;
+  align-items:center;
+  justify-content:center;
+  border-radius:4px;
+  color:#fff;
+}
+.monitor-health-kind-icon>.t-icon{
+  width:17px!important;
+  height:17px!important;
+  color:#fff!important;
+}
+.monitor-health-kind-icon.tone-blue{background:#5268d9}
+.monitor-health-kind-icon.tone-green{background:#00a47a}
+.monitor-health-kind-icon.tone-purple{background:#6c50e8}
+.monitor-health-content{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  gap:10px;
 }
 .monitor-health-title{
   color:#1d2129;
