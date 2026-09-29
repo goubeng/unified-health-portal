@@ -61,7 +61,7 @@ function render(){
       style:{
         text:`${normalRate.value}%`,
         fill:'#1d2129',
-        font:'600 22px Arial, sans-serif',
+        font:'600 18px Arial, sans-serif',
         textAlign:'center',
         textVerticalAlign:'middle'
       }
