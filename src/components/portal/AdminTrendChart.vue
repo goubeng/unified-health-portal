@@ -87,8 +87,8 @@ function render(){
         show:true,
         color:'#4e5969',
         fontSize:11,
-        interval:0,
-        rotate:period.value===30?45:0,
+        interval:period.value===30?4:0,
+        rotate:0,
         margin:10
       }
     },
