@@ -17,19 +17,21 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
-        <template #empty><EmptyState description="暂无符合条件的角色"/></template>
-        <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-        <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
-        <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
-        <template #builtIn="{row}"><t-tag v-if="row.builtIn" variant="light">内置</t-tag><span v-else>自定义</span></template>
-        <template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>
-        <template #operation="{row}">
-          <div class="row-actions">
-            <t-button size="small" variant="text" theme="primary" @click="openEdit(row)">权限配置</t-button>
-          </div>
-        </template>
-      </t-table>
+      <div class="admin-nowrap-table-scroll role-table-scroll">
+        <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
+          <template #empty><EmptyState description="暂无符合条件的角色"/></template>
+          <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
+          <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
+          <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
+          <template #builtIn="{row}"><t-tag v-if="row.builtIn" variant="light">内置</t-tag><span v-else>自定义</span></template>
+          <template #updatedAt="{row}">{{roleUpdatedAt(row.updatedAt)}}</template>
+          <template #operation="{row}">
+            <div class="row-actions">
+              <t-button size="small" variant="text" theme="primary" @click="openEdit(row)">权限配置</t-button>
+            </div>
+          </template>
+        </t-table>
+      </div>
       <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
 
