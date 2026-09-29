@@ -1884,7 +1884,7 @@ test('运行监控支持紧凑五列图示视图',()=>{
   assert(source.includes("v-if=\"viewMode==='table'\""));
   assert(source.includes('class="monitor-visual-grid"'));
   assert(source.includes('class="monitor-visual-card"'));
-  assert(source.includes("visualStatusText=value=>value==='NORMAL'?'正常':value==='DISABLED'?'停用':value==='ABNORMAL'?'异常':'未配置'"));
+  assert(!source.includes('visualStatusText='));
   assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr));'));
   assert(css.includes('min-height:78px;'));
   assert(css.includes('.monitor-visual-status-tag{'));
@@ -1916,4 +1916,16 @@ test('首页接入异常类型标签使用浅灰样式',()=>{
   assert(source.includes('class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
   assert(css.includes('background:#f2f3f5!important;'));
   assert(css.includes('color:#6b778c!important;'));
+});
+
+
+test('运行监控图示状态标签仅显示接入类型',()=>{
+  const source=fs.readFileSync('src/components/portal/MonitorManagement.vue','utf8');
+  assert(source.includes('>{{kind}}</t-tag>'));
+  assert(!source.includes(">{{kind}} {{visualStatusText("));
+  assert(!source.includes('const visualStatusText='));
+  assert(source.includes(":theme=\"visualStatusTheme(row[kind.toLowerCase()+'Status'])\""));
+  assert(source.includes('theme="success" variant="light" size="small">正常</t-tag>'));
+  assert(source.includes('theme="danger" variant="light" size="small">异常 / 停用</t-tag>'));
+  assert(source.includes('theme="default" variant="light" size="small">未配置</t-tag>'));
 });
