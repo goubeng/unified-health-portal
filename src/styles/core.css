@@ -1171,6 +1171,33 @@
 /* 2026-09-29 monitor compact visual card view. */
 .monitor-view-switch{
   margin-left:auto!important;
+  height:32px!important;
+}
+.monitor-view-switch :is(.t-form__controls,.t-form__controls-content){
+  height:32px!important;
+  display:flex!important;
+  align-items:center!important;
+}
+.monitor-view-switch .t-radio-group{
+  height:32px!important;
+  flex-wrap:nowrap!important;
+}
+.monitor-view-switch .t-radio-button{
+  height:32px!important;
+  min-height:32px!important;
+  font-size:13px!important;
+}
+.monitor-view-option{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:13px;
+  line-height:1;
+}
+.monitor-view-option .t-icon{
+  width:14px!important;
+  height:14px!important;
+  font-size:14px!important;
 }
 .monitor-visual-panel{
   padding:12px 14px!important;
@@ -1178,7 +1205,7 @@
 .monitor-visual-meta{
   display:flex;
   align-items:center;
-  justify-content:flex-start;
+  justify-content:space-between;
   flex-wrap:wrap;
   gap:16px;
   margin-bottom:10px;
@@ -1188,20 +1215,22 @@
   align-items:baseline;
   gap:4px;
   color:#4e5969;
-  font-size:12px;
+  font-size:14px;
+  font-weight:500;
   white-space:nowrap;
 }
 .monitor-visual-summary strong{
   color:#1d2129;
-  font-size:14px;
+  font-size:16px;
   font-weight:600;
 }
 .monitor-visual-legend{
   display:flex;
   align-items:center;
-  justify-content:flex-start;
+  justify-content:flex-end;
   flex-wrap:wrap;
   gap:6px;
+  margin-left:auto;
   margin-bottom:0;
   color:#86909c;
   font-size:12px;
@@ -1263,6 +1292,16 @@
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+.monitor-visual-status-dot{
+  display:inline-block;
+  width:5px;
+  height:5px;
+  margin-right:5px;
+  flex:none;
+  border-radius:50%;
+  background:currentColor;
+  vertical-align:middle;
+}
 @media(max-width:1400px){
   .monitor-visual-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
@@ -1275,5 +1314,6 @@
 }
 @media(max-width:520px){
   .monitor-visual-grid{grid-template-columns:1fr}
-  .monitor-visual-legend{justify-content:flex-start}
+  .monitor-visual-meta{align-items:flex-start}
+  .monitor-visual-legend{width:100%;margin-left:0;justify-content:flex-start}
 }
