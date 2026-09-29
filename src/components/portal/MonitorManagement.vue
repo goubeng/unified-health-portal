@@ -21,7 +21,7 @@
       </div>
     </Teleport>
     <p class="inline-note">运行状态为本地演示样本，尚未接入真实上下游系统；“正常”仅用于演示，不代表实际连通。</p>
-    <div v-if="viewMode==='table'" class="monitor-health-grid">
+    <div class="monitor-health-grid">
       <section v-for="item in monitorHealthStats" :key="item.kind" class="monitor-health-card">
         <span class="monitor-health-kind-icon" :class="'tone-'+item.tone">
           <component :is="monitorHealthIcon(item.kind)"/>
