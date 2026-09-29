@@ -21,6 +21,17 @@
         <div class="portal-letter-body portal-rich-content" v-html="richText(record.content)"></div>
         <h3>相关信息</h3><DetailGrid :items="metadata"/>
       </article>
+      <section v-else-if="isAccountOpeningDetail" class="portal-generic-detail portal-account-opening-detail">
+        <h3 class="portal-detail-section-title">申请信息</h3>
+        <dl class="portal-detail-grid portal-account-opening-grid">
+          <div v-for="item in openingApplicationDetails" :key="item.key" class="portal-detail-item" :class="item.layout">
+            <dt>{{item.label}}</dt>
+            <dd><t-tag v-if="item.key==='status'" :theme="theme(record.status)" variant="light">{{label(record.status,'account_opening_status')}}</t-tag><template v-else>{{item.value}}</template></dd>
+          </div>
+        </dl>
+        <h3 class="portal-detail-section-title">处理信息</h3>
+        <DetailGrid :items="openingProcessingDetails"/>
+      </section>
       <template v-else>
         <div class="portal-generic-detail">
           <h3 v-if="showBasicSectionTitle" class="portal-detail-section-title">基本信息</h3>
@@ -66,8 +77,9 @@ const auditEventLabels={
   'logs:error':'异常类型'
 };
 const isAuditLog=computed(()=>String(props.kind||'').startsWith('logs:'));
+const isAccountOpeningDetail=computed(()=>props.kind==='accountOpeningRequests'||props.kind==='myApplicationRequests'&&props.record?.requestType==='ACCOUNT_OPENING');
 const showBasicSectionTitle=computed(()=>props.kind==='apps'&&props.showConnection);
-const dialogTitle=computed(()=>props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
+const dialogTitle=computed(()=>isAccountOpeningDetail.value?'子系统账号开通申请详情':props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
 const detailTitle=(key)=>{
  const overrides={
   apps:{name:'应用名称',code:'应用编码',enabled:'启用状态'},
@@ -84,6 +96,23 @@ const detailTitle=(key)=>{
  return titles[key]||key;
 };
 const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>titles[key]&&(key==='permissions'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value,props.kind==='myApplicationRequests'&&props.record?.requestType==='ACCOUNT_OPENING'?'accountOpeningRequests':props.kind),wide:['content','description','summary','remark','reason','reviewNote','handleNote','permissions','roleIds'].includes(key)})));
+const openingApplicationDetails=computed(()=>{
+ const row=props.record||{};
+ return [
+  ['requestNo','申请编号','is-third'],['submittedAt','申请时间','is-third'],['status','状态','is-third'],
+  ['userName','申请人','is-half'],['appName','来源应用','is-half'],
+  ['contact','联系方式','is-half'],['userId','统一身份标识','is-half'],
+  ['reason','申请原因','is-wide'],['remark','备注','is-wide']
+ ].map(([key,labelText,layout])=>({key,label:labelText,layout,value:display(key,row[key],'accountOpeningRequests')}));
+});
+const openingProcessingDetails=computed(()=>{
+ const row=props.record||{};
+ return [
+  {key:'handledByName',label:'处理人',value:text(row.handledByName)||'-'},
+  {key:'handledAt',label:'处理时间',value:date(row.handledAt)},
+  {key:'handleNote',label:'处理说明',value:text(row.handleNote)||'-',wide:true}
+ ];
+});
 const appDetails=computed(()=>{
   const row=props.record||{};
   const item=(key,labelText,wide=false)=>({key,label:labelText,value:display(key,row[key],'apps'),wide});

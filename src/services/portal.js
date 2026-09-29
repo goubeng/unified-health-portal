@@ -132,6 +132,7 @@ export function createPortalService(provider,getActor){
    if(provider.kind!=='mock')fail('CAPABILITY_UNAVAILABLE','真实服务尚未配置');
    const d=provider.read();
    const allApps=()=>decorate(d,a),userApps=()=>accountApps(d,a);
+   const handlerName=id=>(d.users||[]).find(user=>user.id===id)?.name||'';
    if(resource==='apps')return allApps().filter(x=>x.applicable&&x.enabled);
    if(resource==='adminApps'){auth(a,'application:view');return allApps();}
    if(resource==='mine')return userApps().filter(x=>['DIRECT','BOUND'].includes(x.accessState));
@@ -142,7 +143,7 @@ export function createPortalService(provider,getActor){
    if(resource==='profile')return decorateUser(d,a);
    if(resource==='myApplicationRequests'){
     const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>{const app=d.apps.find(item=>item.id===x.appId);return {...x,requestType:'APPLICATION_ACCESS',appName:app?.name||x.appName,accessMode:app?.accessMode||'REQUEST',postGrantMode:app?.postGrantMode||'DIRECT'};});
-    const opening=(d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName}));
+    const opening=(d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,handledByName:handlerName(x.handledBy)}));
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
    if(resource==='header')return {unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length};
@@ -152,7 +153,7 @@ export function createPortalService(provider,getActor){
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
    if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
-   if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
+   if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName,handledByName:handlerName(x.handledBy)})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(['categories','settings','mappings','organizations'].includes(resource))return d[resource];
    if(resource==='dictionaries')return {types:d.dictTypes||[],items:d.dictItems||[]};
    if(resource==='users')return (d.users||actors).filter(user=>adminSubject(user)).map(user=>decorateAdminUser(d,user));
