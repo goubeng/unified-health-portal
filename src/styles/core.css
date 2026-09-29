@@ -1116,10 +1116,29 @@
 .admin-trend-card .section-head{
   margin-bottom:4px;
 }
-.admin-trend-subtitle{
-  color:#86909c;
+.admin-trend-range{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  padding:2px;
+  border:1px solid #e5e8ef;
+  background:#f7f8fa;
+}
+.admin-trend-range button{
+  height:24px;
+  padding:0 9px;
+  border:0;
+  background:transparent;
+  color:#697386;
   font-size:12px;
-  font-weight:400;
+  line-height:24px;
+  cursor:pointer;
+}
+.admin-trend-range button.active{
+  background:#fff;
+  color:#2454ff;
+  font-weight:500;
+  box-shadow:0 0 0 1px #dbe5ff;
 }
 .admin-trend-chart{
   width:100%;
