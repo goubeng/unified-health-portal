@@ -54,7 +54,7 @@
 
     <section v-else class="panel monitor-visual-panel">
       <div class="monitor-visual-meta">
-        <span class="monitor-visual-summary">纳管应用 <strong>{{props.rows.length}}</strong> 个</span>
+        <span class="monitor-visual-summary"><t-icon name="app" class="monitor-visual-summary-icon"/>纳管应用 <strong>{{props.rows.length}}</strong> 个</span>
         <div class="monitor-visual-legend">
           <span>状态图例：</span>
           <t-tag theme="success" variant="light" size="small">正常</t-tag>
