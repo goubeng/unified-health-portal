@@ -1828,7 +1828,7 @@ test('管理首页接入分析加宽并为指标增加统计说明',()=>{
 test('首页接入异常类型使用标签显示',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes('<p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>'));
+  assert(source.includes('<p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>'));
   assert(source.includes('class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
   assert(!source.includes(':theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
   assert(css.includes('.admin-runtime-kind-tag{'));
@@ -1857,7 +1857,7 @@ test('子系统帐号开通申请状态标签按状态区分颜色',()=>{
 
 test('首页接入异常右侧仅显示灰色类型标签',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
-  assert(source.includes('<p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>'));
+  assert(source.includes('<p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>'));
   assert(source.includes('<t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
   assert(source.includes('<t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
 });
@@ -1870,7 +1870,7 @@ test('接入运行统计增加状态圆点并恢复异常列表布局',()=>{
   assert(css.includes('.admin-runtime-capability-stats>span.is-normal::before{background:#2ba471}'));
   assert(css.includes('.admin-runtime-capability-stats>span.is-abnormal::before{background:#d54941}'));
   assert(css.includes('.admin-runtime-capability-stats>span.is-muted::before{background:#86909c}'));
-  assert(source.includes('class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span>'));
+  assert(source.includes('class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span>'));
   assert(source.includes('<t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
 });
 
@@ -1907,4 +1907,13 @@ test('运行监控图示模式全量展示并使用状态标签',()=>{
   assert(source.includes("const visualStatusTheme=value=>value==='NORMAL'?'success':['DISABLED','ABNORMAL'].includes(value)?'danger':'default';"));
   assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr));'));
   assert(css.includes('min-height:78px;'));
+});
+
+
+test('首页接入异常类型标签使用浅灰样式',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
+  assert(css.includes('background:#f2f3f5!important;'));
+  assert(css.includes('color:#6b778c!important;'));
 });
