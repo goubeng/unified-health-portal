@@ -1171,7 +1171,7 @@
 /* 2026-09-29 monitor list health summary cards. */
 .monitor-health-grid{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(4,minmax(0,1fr));
   gap:12px;
   margin:0 0 16px;
 }
@@ -1204,6 +1204,7 @@
 .monitor-health-kind-icon.tone-blue{background:#5268d9}
 .monitor-health-kind-icon.tone-green{background:#00a47a}
 .monitor-health-kind-icon.tone-purple{background:#6c50e8}
+.monitor-health-kind-icon.tone-cyan{background:#6578c7}
 .monitor-health-content{
   display:flex;
   min-width:0;
@@ -1215,6 +1216,22 @@
   font-size:14px;
   font-weight:600;
   line-height:20px;
+}
+.monitor-health-total{
+  display:flex;
+  align-items:baseline;
+  gap:4px;
+  color:#1d2129;
+}
+.monitor-health-total b{
+  font-size:22px;
+  font-weight:600;
+  line-height:24px;
+}
+.monitor-health-total span{
+  color:#86909c;
+  font-size:12px;
+  line-height:18px;
 }
 .monitor-health-stats{
   display:grid;
@@ -1253,7 +1270,10 @@
 .monitor-health-stat.is-abnormal b{color:#d54941}
 .monitor-health-stat.is-muted,
 .monitor-health-stat.is-muted b{color:#86909c}
-@media(max-width:1100px){
+@media(max-width:1300px){
+  .monitor-health-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
   .monitor-health-grid{grid-template-columns:1fr}
 }
 
