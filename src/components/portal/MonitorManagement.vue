@@ -39,11 +39,14 @@
     </section>
 
     <section v-else class="panel monitor-visual-panel">
-      <div class="monitor-visual-legend">
-        <span>状态图例：</span>
-        <t-tag theme="success" variant="light" size="small">正常</t-tag>
-        <t-tag theme="danger" variant="light" size="small">异常 / 停用</t-tag>
-        <t-tag theme="default" variant="light" size="small">未配置</t-tag>
+      <div class="monitor-visual-meta">
+        <span class="monitor-visual-summary">纳管应用 <strong>{{props.rows.length}}</strong> 个</span>
+        <div class="monitor-visual-legend">
+          <span>状态图例：</span>
+          <t-tag theme="success" variant="light" size="small">正常</t-tag>
+          <t-tag theme="danger" variant="light" size="small">异常 / 停用</t-tag>
+          <t-tag theme="default" variant="light" size="small">未配置</t-tag>
+        </div>
       </div>
       <div v-if="filtered.length" class="monitor-visual-grid">
         <button v-for="row in filtered" :key="row.id" type="button" class="monitor-visual-card" @click="openDetail(row)">
