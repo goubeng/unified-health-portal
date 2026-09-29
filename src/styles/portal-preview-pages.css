@@ -1224,3 +1224,10 @@
     grid-template-columns:1fr!important;
   }
 }
+
+/* Unified public avatar appearance */
+.public-portal-secondary-shell .portal-profile-avatar{
+  background:var(--portal-primary)!important;
+  color:#fff!important;
+  font-weight:600!important;
+}
