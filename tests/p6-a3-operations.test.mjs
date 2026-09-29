@@ -137,4 +137,27 @@ test('管理首页按服务级口径输出规模待办与三类接入健康统�
     abnormalTotal+=home.serviceHealth[kind].abnormal;
   }
   assert.equal(home.abnormalServiceCount,abnormalTotal);
+  assert.equal(home.abnormalApplicationCount,(await h.read('adminApps')).filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length);
+});
+
+test('管理首页接入异常应用按应用去重，且不计正常、未配置和停用能力',async()=>{
+  const h=setup();
+  const kinds=['SSO','TODO','MESSAGE'];
+  h.provider.transact(data=>{
+    assert(data.apps.length>=4);
+    for(const app of data.apps)app.enabled=true;
+    data.apps[3].enabled=false;
+    data.monitorSamples=[];
+    data.integrations=data.apps.flatMap((app,index)=>kinds.map((kind,kindIndex)=>({
+      id:`TEST_INTEGRATION_${index}_${kind}`,appId:app.id,kind,enabled:'ENABLED',configStatus:'CONFIGURED',
+      runtimeStatus:index===0&&kindIndex<2||index===1&&kindIndex===2||index===3?'ABNORMAL':index===2&&kindIndex===0?'UNCONFIGURED':index===2&&kindIndex===1?'DISABLED':'NORMAL'
+    })));
+  });
+  const home=await h.read('adminHome');
+  assert.equal(home.abnormalServiceCount,3);
+  assert.equal(home.abnormalApplicationCount,2);
+  const apps=await h.read('adminApps');
+  assert.equal(apps.filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length,2);
+  assert.equal(apps[2].aggregateRuntimeStatus,'NORMAL');
+  assert.equal(apps[3].aggregateRuntimeStatus,'DISABLED');
 });

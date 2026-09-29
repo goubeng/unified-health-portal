@@ -188,7 +188,7 @@ export function createPortalService(provider,getActor){
     };
     const today=chinaDay(new Date()),todayLogs=(d.logs||[]).filter(item=>chinaDay(item.createdAt)===today);
     return {appCount:d.apps.length,enabledCount:d.apps.filter(app=>appEnabled(app)).length,
-     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),userCount:accessUsers.length,enabledUserCount:accessUsers.filter(user=>accessUserEnabled(user)).length,adminUserCount:adminUsers.length,
+     abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),abnormalApplicationCount:allApps().filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length,userCount:accessUsers.length,enabledUserCount:accessUsers.filter(user=>accessUserEnabled(user)).length,adminUserCount:adminUsers.length,
      todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length,todayAccessCount:todayLogs.filter(x=>x.kind==='access').length,todayLoginCount:todayLogs.filter(x=>x.kind==='login').length,
      pendingAccessCount:(d.applicationRequests||[]).filter(x=>x.status==='PENDING').length,pendingAccountOpeningCount:(d.accountOpeningRequests||[]).filter(x=>['PENDING','PROCESSING'].includes(x.status)).length,
      pendingBindingReviewCount:(d.mappings||[]).filter(x=>x.status==='REVIEWING').length,mappingExceptionCount:(d.mappings||[]).filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,

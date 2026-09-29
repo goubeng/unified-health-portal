@@ -152,3 +152,10 @@
 - 源码盘点：项目列表均使用 TDesign `t-table`（公众端列表也在内），已有全局 `.t-table th` 规则，可从表头范围统一控制不换行。开通列表列由 `PortalPage.vue` 的 `fieldMap.accountOpeningRequests` 配置；用户、角色、组织排序均由各自列的 `sorter` 控制。详情字段是独立配置，列表移除字段不影响详情持有的数据。
 - 再核：公众“我的申请”内开通申请也使用独立 `MyApplications.vue` 的 `openingColumns`，含“处理说明”列；本轮统一从管理和公众两个开通申请列表移除，应用访问申请的“审核意见”不受影响。
 - 已核：角色“角色说明”列原无 `sorter`，无需改动；组织管理表头排序入口与相关状态已整体移除，但保留组织树原本按 `sortOrder`/名称的稳定默认顺序。表头统一只约束 TDesign `th` 及内部标题元素 `white-space:nowrap`，正文单元格不受影响；公众卡片式列表没有表头。
+
+## 2026-09-29 管理首页接入异常应用去重
+
+- 初查：顶部卡片在 `PortalPage.vue` 绑定 `overview.abnormalServiceCount`，文案明确为 SSO/TODO/MESSAGE 三类异常接入项总数。用户要按应用去重并改名；需核对 `adminHome` 统计源后定义新字段或调整既有字段，避免误改右侧按审计异常行展示的列表。
+- 服务现状：`src/services/portal.js` 的 `adminHome` 由 `monitorProfiles(d)` 得到各应用服务状态，`abnormalServiceCount` 把三种能力的异常个数直接相加。目标可新增 `abnormalApplicationCount`，按监控行中任一能力为 `ABNORMAL` 计算一次；保留原字段供可能的旧调用方使用。右侧异常列表和 `openErrorCount` 是另一条数据链，不在本轮变更范围。
+- 用户纠偏后核对：管理端应用列表 `adminApps` 走 `allApps()`→`decorate(d,a)`，直接返回 `aggregateRuntimeStatus`；其规则是应用停用优先 `DISABLED`，否则三类状态存在 `ABNORMAL` 才为异常。尽管当前规则与“任一监控能力异常”通常等价，指标仍应直接复用列表 DTO 的综合状态，避免日后两套规则漂移。
+- 已用 `allApps().filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length` 生成新指标，测试对照 `adminApps` 返回值：同一应用两项异常只计 1，另一异常应用再计 1，停用应用即使底层能力异常也不计入。原三类服务异常项数及日志异常行统计均未改。

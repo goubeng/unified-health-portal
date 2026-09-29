@@ -92,7 +92,7 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(source.includes("icon:'browse',tone:'teal'"));
   assert(source.includes('adminPendingItems'));
   assert(!/adminPendingItems=computed\(\(\)=>\[[\s\S]*tone:'(?:blue|cyan|orange|red|yellow|purple)'/.test(source));
-  assert(source.includes("overview.value.abnormalServiceCount??0"));
+  assert(source.includes("overview.value.abnormalApplicationCount??0"));
   assert(source.includes("latest(homeExceptions,'lastCheckedAt')"));
   assert(css.includes('.admin-overview-card{'));
   assert(css.includes('flex-direction:row!important'));
@@ -1763,7 +1763,7 @@ test('管理首页顶部六项核心指标单行展示',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const service=fs.readFileSync('src/services/portal.js','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','接入异常','有效用户','接口调用量(今日)','今日访问量']){
+  for(const label of ['纳管应用','启用应用','接入异常应用','有效用户','接口调用量(今日)','今日访问量']){
     assert(source.includes("label:'"+label+"'"),label+' 指标未配置');
   }
   assert(!source.includes("label:'门户访问用户'"));
@@ -1771,7 +1771,7 @@ test('管理首页顶部六项核心指标单行展示',()=>{
   assert(source.includes("overview.value.todayApiCallCount??0"));
   assert(source.includes("overview.value.todayAccessCount??0"));
   assert(!source.includes("label:'今日登录次数'"));
-  assert(source.includes("label:'接入异常',value:overview.value.abnormalServiceCount"));
+  assert(source.includes("label:'接入异常应用',value:overview.value.abnormalApplicationCount"));
   assert(service.includes("timeZone:'Asia/Shanghai'"));
   assert(service.includes("todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length"));
   assert(service.includes("todayAccessCount:todayLogs.filter(x=>x.kind==='access').length"));
@@ -1788,7 +1788,7 @@ test('顶部指标不与待处理事项重复',()=>{
     assert(!block.includes(label),label+' 不应出现在顶部统计指标');
   }
   assert(!block.includes("label:'今日登录次数'"));
-  assert(block.includes("label:'接入异常'"));
+  assert(block.includes("label:'接入异常应用'"));
 });
 
 
@@ -1796,7 +1796,7 @@ test('管理首页顶部指标顺序与紧凑间距',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   const block=source.slice(source.indexOf('const adminOverviewCards'),source.indexOf('const adminShortcutIcon'));
-  const labels=['纳管应用','启用应用','接入异常','有效用户','接口调用量(今日)','今日访问量'];
+  const labels=['纳管应用','启用应用','接入异常应用','有效用户','接口调用量(今日)','今日访问量'];
   let last=-1;
   for(const label of labels){
     const index=block.indexOf("label:'"+label+"'");
@@ -1818,7 +1818,7 @@ test('管理首页接入分析加宽并为指标增加统计说明',()=>{
   assert(source.includes('<t-tooltip :content="card.hint" placement="top">'));
   assert(source.includes('class="admin-overview-help"'));
   assert(source.includes('name="help-circle"'));
-  for(const hint of ['当前门户应用目录中已纳管的全部应用数量','当前处于启用状态的纳管应用数量','三类接入能力中状态为异常的接入项总数','当前未停用且允许访问门户的用户数量','按北京时间当天统计的接口调用日志数量','每次访问行为计 1 次，不按用户去重']){
+  for(const hint of ['当前门户应用目录中已纳管的全部应用数量','当前处于启用状态的纳管应用数量','当前应用列表中“综合运行状态”为异常的应用数量；同一应用仅计一次','当前未停用且允许访问门户的用户数量','按北京时间当天统计的接口调用日志数量','每次访问行为计 1 次，不按用户去重']){
     assert(source.includes(hint),hint+' 统计说明未配置');
   }
   assert(css.includes('grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)!important;'));
