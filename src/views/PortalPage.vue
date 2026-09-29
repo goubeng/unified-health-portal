@@ -58,14 +58,14 @@
       <section class="panel admin-runtime-analysis-panel">
        <div class="section-head"><h2>接入运行分析</h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看运行监控</router-link></div>
        <div v-if="overview.serviceHealth" class="admin-runtime-capability-grid">
-        <button v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" type="button" class="admin-runtime-capability-card" @click="can(actor,'monitor:view')&&router.push('/admin/monitor')">
+        <div v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" class="admin-runtime-capability-card">
          <strong>{{kind}}</strong>
          <div class="admin-runtime-capability-stats">
           <span class="is-normal"><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
           <span class="is-abnormal"><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
           <span class="is-muted"><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
          </div>
-        </button>
+        </div>
        </div>
 
        <div class="admin-runtime-exception-head">
