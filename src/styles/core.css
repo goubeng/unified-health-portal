@@ -1064,3 +1064,18 @@
 @media(max-width:650px){
   .admin-runtime-capability-stats{align-items:flex-start;flex-direction:column}
 }
+
+
+/* 2026-09-29 admin overview expanded to two rows of four cards. */
+.admin-overview-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+.admin-overview-icon.tone-indigo{background:#eef0ff!important;color:#5968d9!important}
+.admin-overview-icon.tone-teal{background:#e9f8f5!important;color:#159a8c!important}
+.admin-overview-icon.tone-orange{background:#fff3e8!important;color:#d46b08!important}
+@media(max-width:1100px){
+  .admin-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:650px){
+  .admin-overview-grid{grid-template-columns:1fr!important}
+}
