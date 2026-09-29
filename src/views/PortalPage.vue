@@ -59,11 +59,16 @@
        <div class="section-head"><h2>接入运行分析</h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看运行监控</router-link></div>
        <div v-if="overview.serviceHealth" class="admin-runtime-capability-grid">
         <div v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" class="admin-runtime-capability-card">
-         <strong>{{kind}}</strong>
-         <div class="admin-runtime-capability-stats">
-          <span class="is-normal"><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
-          <span class="is-abnormal"><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
-          <span class="is-muted"><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
+         <span class="admin-runtime-kind-icon" :class="'tone-'+adminRuntimeTone(kind)">
+          <Icon :name="adminRuntimeIcon(kind)"/>
+         </span>
+         <div class="admin-runtime-capability-content">
+          <strong>{{kind}}</strong>
+          <div class="admin-runtime-capability-stats">
+           <span class="is-normal"><Icon name="check-circle"/><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
+           <span class="is-abnormal"><Icon name="error-circle"/><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
+           <span class="is-muted"><Icon name="minus-circle"/><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
+          </div>
          </div>
         </div>
        </div>
@@ -274,6 +279,8 @@ const adminOverviewCards=computed(()=>[
 ]);
 const adminShortcutIcon=resource=>({apps:'add',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
+const adminRuntimeTone=kind=>({SSO:'blue',TODO:'green',MESSAGE:'purple'}[kind]||'blue');
+const adminRuntimeIcon=kind=>({SSO:'link',TODO:'task',MESSAGE:'mail'}[kind]||'link');
 const adminPendingItems=computed(()=>[
  {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application:view')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
  {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application:view')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
