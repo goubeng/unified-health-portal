@@ -1828,9 +1828,9 @@ test('管理首页接入分析加宽并为指标增加统计说明',()=>{
 test('首页接入异常类型使用标签显示',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  assert(source.includes('class="admin-runtime-exception-meta"'));
-  assert(source.includes('class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
-  assert(!source.includes('<p>{{label(item.kind)}} · {{text(item.remark)||label(item.status)}}</p>'));
+  assert(source.includes('<p class="admin-runtime-exception-meta">{{text(item.remark)||label(item.status)}}</p>'));
+  assert(source.includes('class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
+  assert(!source.includes(':theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
   assert(css.includes('.admin-runtime-kind-tag{'));
   assert(css.includes('font-size:12px!important;'));
 });
@@ -1852,4 +1852,12 @@ test('子系统帐号开通申请状态标签按状态区分颜色',()=>{
   assert(source.includes("FAILED:'danger'"));
   assert(source.includes("REJECTED:'danger'"));
   assert(source.includes("resource.value==='accountOpeningRequests'&&key==='status'?accountOpeningStatusTheme(context.row[key]):theme(context.row[key])"));
+});
+
+
+test('首页接入异常右侧仅显示灰色类型标签',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  assert(source.includes('<p class="admin-runtime-exception-meta">{{text(item.remark)||label(item.status)}}</p>'));
+  assert(source.includes('<t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag>'));
+  assert(!source.includes('<t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
 });
