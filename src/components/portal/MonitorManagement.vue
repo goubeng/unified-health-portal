@@ -1,5 +1,25 @@
 <template>
   <section class="portal-list monitor-management">
+    <Teleport to="#page-header-actions">
+      <div class="monitor-header-view-switch" role="group" aria-label="运行监控视图切换">
+        <t-button
+          :theme="viewMode==='table'?'primary':'default'"
+          :variant="viewMode==='table'?'base':'outline'"
+          @click="viewMode='table'"
+        >
+          <template #icon><t-icon name="view-list"/></template>
+          列表
+        </t-button>
+        <t-button
+          :theme="viewMode==='visual'?'primary':'default'"
+          :variant="viewMode==='visual'?'base':'outline'"
+          @click="viewMode='visual'"
+        >
+          <template #icon><t-icon name="view-module"/></template>
+          图示
+        </t-button>
+      </div>
+    </Teleport>
     <p class="inline-note">运行状态为本地演示样本，尚未接入真实上下游系统；“正常”仅用于演示，不代表实际连通。</p>
     <t-form layout="inline" class="portal-query list-toolbar">
       <t-form-item class="portal-query-keyword query-width-keyword" label="应用">
@@ -16,16 +36,6 @@
       </t-form-item>
       <t-form-item class="portal-query-action">
         <t-button theme="default" variant="outline" @click="reset">重置</t-button>
-      </t-form-item>
-      <t-form-item class="monitor-view-switch">
-        <t-radio-group v-model="viewMode" variant="default-filled">
-          <t-radio-button value="table">
-            <span class="monitor-view-option"><t-icon name="view-list"/>列表</span>
-          </t-radio-button>
-          <t-radio-button value="visual">
-            <span class="monitor-view-option"><t-icon name="view-module"/>图示</span>
-          </t-radio-button>
-        </t-radio-group>
       </t-form-item>
     </t-form>
 
