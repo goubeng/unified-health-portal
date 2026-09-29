@@ -26,14 +26,17 @@
         <strong class="monitor-health-title">{{item.kind}}</strong>
         <div class="monitor-health-stats">
           <span class="monitor-health-stat is-normal">
+            <t-icon name="check-circle" class="monitor-health-stat-icon"/>
             <em>正常</em>
             <b>{{item.normal}}</b>
           </span>
           <span class="monitor-health-stat is-abnormal">
+            <t-icon name="error-circle" class="monitor-health-stat-icon"/>
             <em>异常</em>
             <b>{{item.abnormal}}</b>
           </span>
           <span class="monitor-health-stat is-muted">
+            <t-icon name="minus-circle" class="monitor-health-stat-icon"/>
             <em>未配置/停用</em>
             <b>{{item.inactive}}</b>
           </span>
