@@ -1,5 +1,5 @@
 <template>
-  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="kind==='messages'?'1120px':kind==='todos'?'900px':'920px'" :footer="false" @update:visible="$emit('update:visible',$event)">
+  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="isAccountOpeningDetail?'1120px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'" :footer="false" @update:visible="$emit('update:visible',$event)">
     <template v-if="record">
       <TodoDetailContent v-if="kind==='todos'" :record="record"/>
       <article v-else-if="kind==='messages'" class="portal-message-letter">
@@ -100,8 +100,8 @@ const openingApplicationDetails=computed(()=>{
  const row=props.record||{};
  return [
   ['requestNo','申请编号','is-third'],['submittedAt','申请时间','is-third'],['status','状态','is-third'],
-  ['userName','申请人','is-half'],['appName','来源应用','is-half'],
-  ['contact','联系方式','is-half'],['userId','统一身份标识','is-half'],
+  ['userName','申请人','is-third'],['appName','来源应用','is-third'],['contact','联系方式','is-third'],
+  ['userId','统一身份标识','is-wide'],
   ['reason','申请原因','is-wide'],['remark','备注','is-wide']
  ].map(([key,labelText,layout])=>({key,label:labelText,layout,value:display(key,row[key],'accountOpeningRequests')}));
 });
