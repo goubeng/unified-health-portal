@@ -85,6 +85,11 @@
       </section>
      </div>
 
+     <div v-if="can(actor,'audit:view')" class="admin-home-trend-grid">
+      <AdminTrendChart title="近7日门户访问量趋势" :rows="homeAccessLogs" series-name="访问次数"/>
+      <AdminTrendChart title="近7日接口调用量趋势" :rows="homeApiLogs" series-name="调用次数"/>
+     </div>
+
     </template>
     <template v-else>
      <div class="portal-home-feeds">
@@ -228,6 +233,7 @@ import AnnouncementManagement from '../components/portal/AnnouncementManagement.
 import AnnouncementEditPage from '../components/portal/AnnouncementEditPage.vue';
 import MonitorManagement from '../components/portal/MonitorManagement.vue';
 import LogManagement from '../components/portal/LogManagement.vue';
+import AdminTrendChart from '../components/portal/AdminTrendChart.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
@@ -244,7 +250,7 @@ const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
 const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
-const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]);
+const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]),homeAccessLogs=ref([]),homeApiLogs=ref([]);
 const homeAppLimit=10;
 const homeAppCount=computed(()=>homeApps.value.length);
 const homeVisibleApps=computed(()=>homeApps.value.slice(0,homeAppLimit));
@@ -292,6 +298,10 @@ async function load(){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'monitor:view'))tasks.monitor=read('monitor');
+   if(isAdmin&&can(actor.value,'audit:view')){
+    tasks.accessLogs=read('logs:access');
+    tasks.apiLogs=read('logs:api');
+   }
   }else if(center)tasks.mine=read('mine');
   else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}
   else if(key==='users'){
@@ -319,6 +329,8 @@ async function load(){
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
    homeMessages.value=latest((data.messages||[]).filter(item=>item.status==='UNREAD'),'receivedAt');homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
    const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.runtimeStatus==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
+   homeAccessLogs.value=data.accessLogs||[];
+   homeApiLogs.value=data.apiLogs||[];
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps||[]:(key==='dictionaries'?[]:data.rows||[]);
   if(key==='announcementDetail'){
