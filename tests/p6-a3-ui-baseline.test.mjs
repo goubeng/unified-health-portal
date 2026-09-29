@@ -1707,3 +1707,10 @@ test('子系统账号开通申请详情加宽并将第二行改为三列',()=>{
   assert(source.includes("['userName','申请人','is-third'],['appName','来源应用','is-third'],['contact','联系方式','is-third']"));
   assert(source.includes("['userId','统一身份标识','is-wide']"));
 });
+
+
+test('组织详情弹窗宽度加宽',()=>{
+  const source=fs.readFileSync('src/components/portal/OrganizationManagement.vue','utf8');
+  assert(source.includes('header="组织详情" width="920px"'));
+  assert(source.includes(':header="form.id?\'编辑组织\':\'新增本地组织\'"\n      width="760px"'));
+});
