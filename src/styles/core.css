@@ -1106,6 +1106,78 @@
 }
 
 
+/* 2026-09-29 admin home layout: workbench row + runtime split view. */
+.admin-workbench-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.45fr) minmax(360px,.95fr)!important;
+  gap:16px!important;
+  align-items:stretch!important;
+  margin-bottom:16px!important;
+}
+.admin-workbench-grid>.panel{
+  min-width:0;
+  height:100%;
+  margin:0!important;
+}
+.admin-runtime-analysis-panel{
+  min-width:0;
+  margin:0 0 16px!important;
+}
+.admin-runtime-analysis-body{
+  display:grid;
+  min-width:0;
+  grid-template-columns:minmax(320px,.8fr) minmax(0,1.2fr);
+  gap:16px;
+  align-items:stretch;
+}
+.admin-runtime-analysis-body>.admin-runtime-capability-grid{
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  margin:0!important;
+}
+.admin-runtime-analysis-body .admin-runtime-capability-card{
+  min-height:78px;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:12px 16px;
+}
+.admin-runtime-analysis-body .admin-runtime-capability-card>strong{
+  min-width:68px;
+  flex:none;
+}
+.admin-runtime-analysis-body .admin-runtime-capability-stats{
+  width:auto;
+  min-width:0;
+  flex:1;
+  justify-content:flex-end;
+  gap:14px;
+}
+.admin-runtime-exception-column{
+  min-width:0;
+  padding-left:16px;
+  border-left:1px solid #eef0f4;
+}
+.admin-runtime-exception-column .admin-runtime-exception-head{
+  padding-top:0;
+}
+@media(max-width:1200px){
+  .admin-workbench-grid{grid-template-columns:1fr!important}
+  .admin-runtime-analysis-body{grid-template-columns:1fr}
+  .admin-runtime-exception-column{padding-left:0;border-left:0}
+}
+@media(max-width:650px){
+  .admin-runtime-analysis-body .admin-runtime-capability-card{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .admin-runtime-analysis-body .admin-runtime-capability-stats{
+    width:100%;
+    justify-content:space-between;
+  }
+}
+
 /* 2026-09-29 admin overview: six core metrics in one desktop row. */
 .admin-overview-grid{
   grid-template-columns:repeat(6,minmax(0,1fr))!important;
