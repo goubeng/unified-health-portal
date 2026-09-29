@@ -2,7 +2,10 @@
   <section class="panel admin-trend-card">
     <div class="section-head">
       <h2>{{title}}</h2>
-      <span class="admin-trend-subtitle">近7日</span>
+      <div class="admin-trend-range" aria-label="趋势时间范围">
+        <button type="button" :class="{active:period===7}" @click="period=7">近7天</button>
+        <button type="button" :class="{active:period===30}" @click="period=30">近30天</button>
+      </div>
     </div>
     <div ref="chartEl" class="admin-trend-chart" role="img" :aria-label="title"></div>
   </section>
@@ -24,6 +27,7 @@ const props=defineProps({
 });
 
 const chartEl=ref(null);
+const period=ref(7);
 let chart=null;
 let resizeObserver=null;
 
@@ -39,8 +43,8 @@ const trend=computed(()=>{
   const base=valid.length?new Date(Math.max(...valid.map(item=>item.time))):new Date();
   const baseKey=chinaDay(base);
   const baseDate=new Date(baseKey+'T00:00:00+08:00');
-  const days=Array.from({length:7},(_,index)=>{
-    const date=new Date(baseDate.getTime()-(6-index)*86400000);
+  const days=Array.from({length:period.value},(_,index)=>{
+    const date=new Date(baseDate.getTime()-(period.value-1-index)*86400000);
     const key=chinaDay(date);
     return {key,label:`${Number(key.slice(5,7))}/${Number(key.slice(8,10))}`,value:0};
   });
@@ -63,7 +67,7 @@ function render(){
       data:trend.value.map(item=>item.label),
       axisLine:{lineStyle:{color:'#d9dde5'}},
       axisTick:{show:false},
-      axisLabel:{color:'#86909c',fontSize:11}
+      axisLabel:{color:'#86909c',fontSize:11,interval:period.value===30?4:0}
     },
     yAxis:{
       type:'value',
@@ -79,7 +83,7 @@ function render(){
       name:props.seriesName,
       type:'line',
       smooth:true,
-      showSymbol:true,
+      showSymbol:period.value===7,
       symbol:'circle',
       symbolSize:6,
       data:values,
@@ -100,7 +104,7 @@ onMounted(async()=>{
     window.addEventListener('resize',render);
   }
 });
-watch(()=>[props.rows,props.title],async()=>{await nextTick();render();},{deep:true});
+watch(()=>[props.rows,props.title,period.value],async()=>{await nextTick();render();},{deep:true});
 onBeforeUnmount(()=>{
   resizeObserver?.disconnect();
   window.removeEventListener('resize',render);
