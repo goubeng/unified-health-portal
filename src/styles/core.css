@@ -1175,13 +1175,34 @@
 .monitor-visual-panel{
   padding:12px 14px!important;
 }
+.monitor-visual-meta{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:16px;
+  margin-bottom:10px;
+}
+.monitor-visual-summary{
+  display:inline-flex;
+  align-items:baseline;
+  gap:4px;
+  color:#4e5969;
+  font-size:12px;
+  white-space:nowrap;
+}
+.monitor-visual-summary strong{
+  color:#1d2129;
+  font-size:14px;
+  font-weight:600;
+}
 .monitor-visual-legend{
   display:flex;
   align-items:center;
-  justify-content:flex-end;
+  justify-content:flex-start;
   flex-wrap:wrap;
   gap:6px;
-  margin-bottom:10px;
+  margin-bottom:0;
   color:#86909c;
   font-size:12px;
 }
@@ -1201,14 +1222,14 @@
   padding:10px 11px;
   border:1px solid #eef0f4;
   border-radius:0;
-  background:#f6f8fb;
+  background:#fafbfc;
   color:#344054;
   text-align:left;
   cursor:pointer;
 }
 .monitor-visual-card:hover{
   border-color:#dfe5ee;
-  background:#f3f6fa;
+  background:#f7f9fc;
 }
 .monitor-visual-name{
   overflow:hidden;
@@ -1232,12 +1253,13 @@
   flex:none!important;
   justify-content:center;
   overflow:hidden;
-  font-size:11px!important;
+  font-size:12px!important;
   font-weight:400!important;
   white-space:nowrap;
 }
 .monitor-visual-status-tag .t-tag__text{
   overflow:hidden;
+  font-size:12px!important;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
