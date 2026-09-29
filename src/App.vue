@@ -5,7 +5,7 @@
    <PortalTooltip :content="collapsed?'展开菜单':'收起菜单'" placement="bottom"><t-button class="collapse-button" shape="square" variant="text" aria-label="展开或收起菜单" @click="collapsed=!collapsed"><template #icon><component :is="collapsed?MenuUnfoldIcon:MenuFoldIcon"/></template></t-button></PortalTooltip>
    <span class="brand">卫健XC统一门户</span><span class="portal-caption" :class="{admin}">{{admin?'平台管理端':'用户端门户'}}</span>
    <div class="topbar-actions">
-    <PortalTooltip v-if="can(actor,'any')" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><component :is="admin?UserIcon:SettingIcon" size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
+    <PortalTooltip v-if="can(actor,'any')" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><SwapIcon size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
     <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="消息中心" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
     <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
      <button class="account-entry" :aria-expanded="accountOpen" aria-label="用户菜单"><span class="avatar">{{displayName(actor).slice(0,1)}}</span><span class="user-name">{{displayName(actor)}}</span><ChevronDownIcon/></button>
@@ -47,7 +47,7 @@
 <script setup>
 import {computed,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon,SwapIcon} from 'tdesign-icons-vue-next';
 import {pages,can,labels} from './config/pages.js';
 import {actor,portal,revision,logout,command} from './services/runtime.js';
 import {validateLocalPassword} from './config/password-policy.js';
