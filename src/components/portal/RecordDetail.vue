@@ -35,9 +35,12 @@
       <template v-else>
         <div class="portal-generic-detail">
           <h3 v-if="showBasicSectionTitle" class="portal-detail-section-title">基本信息</h3>
-          <DetailGrid :items="kind==='apps'?appDetails:(isAuditLog?auditDetails:details)">
+          <DetailGrid :items="kind==='apps'?appDetails:(isMonitorException?monitorExceptionDetails:(isAuditLog?auditDetails:details))">
             <template v-if="kind==='apps'" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
             <template v-if="kind==='apps'" #aggregateRuntimeStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
+            <template v-if="isMonitorException" #runtimeStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
+            <template v-if="isMonitorException" #configStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
+            <template v-if="isMonitorException" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
           </DetailGrid>
           <section v-if="showConnection&&kind==='apps'" class="portal-app-connection-detail">
             <h3 class="portal-detail-section-title">连接信息</h3>
@@ -80,9 +83,10 @@ const auditEventLabels={
   'logs:error':'异常类型'
 };
 const isAuditLog=computed(()=>String(props.kind||'').startsWith('logs:'));
+const isMonitorException=computed(()=>props.kind==='monitorException');
 const isAccountOpeningDetail=computed(()=>props.kind==='accountOpeningRequests'||props.kind==='myApplicationRequests'&&props.record?.requestType==='ACCOUNT_OPENING');
 const showBasicSectionTitle=computed(()=>props.kind==='apps'&&props.showConnection);
-const dialogTitle=computed(()=>isAccountOpeningDetail.value?'子系统账号开通申请详情':props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
+const dialogTitle=computed(()=>isMonitorException.value?'接入异常详情':isAccountOpeningDetail.value?'子系统账号开通申请详情':props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
 const detailTitle=(key)=>{
  const overrides={
   apps:{name:'应用名称',code:'应用编码',enabled:'启用状态'},
@@ -115,6 +119,27 @@ const openingProcessingDetails=computed(()=>{
   {key:'handledAt',label:'处理时间',value:date(row.handledAt)},
   {key:'handleNote',label:'处理说明',value:text(row.handleNote)||'-',wide:true}
  ];
+});
+const monitorExceptionDetails=computed(()=>{
+  const row=props.record||{},kind=row.kind||'',service=row.services?.[kind]||{};
+  const runtimeState=service.runtimeStatus||service.status||row.status||'ABNORMAL';
+  const configState=service.configStatus||'UNCONFIGURED';
+  const enabledState=['ENABLED','DISABLED'].includes(service.enabled)?service.enabled:'UNCONFIGURED';
+  const item=(key,labelText,value,wide=false,state=null)=>({key,label:labelText,value,wide,state});
+  return [
+    item('appName','应用名称',text(row.appName)||'-'),
+    item('appCode','应用编码',text(row.appCode)||'-'),
+    item('kind','异常服务',text(kind)||'-'),
+    item('runtimeStatus','运行状态',label(runtimeState,'runtime_status'),false,runtimeState),
+    item('configStatus','配置状态',label(configState),false,configState),
+    item('enabled','启用状态',label(enabledState,'enable_status'),false,enabledState),
+    item('lastCheckedAt','最近检测时间',date(service.lastCheckedAt||row.lastCheckedAt)),
+    item('lastFailureAt','最近异常时间',date(service.lastFailureAt)),
+    item('failureCount','失败次数',service.failureCount??'-'),
+    item('responseTimeMs','响应耗时',service.responseTimeMs===null||service.responseTimeMs===undefined?'-':service.responseTimeMs+' ms'),
+    item('lastError','异常信息',text(service.lastError)||text(row.remark)||'-',true),
+    item('remark','接入备注',text(service.remark)||'-',true)
+  ];
 });
 const appDetails=computed(()=>{
   const row=props.record||{};
