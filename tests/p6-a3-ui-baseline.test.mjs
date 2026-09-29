@@ -1674,3 +1674,15 @@ test('公众门户顶部与个人中心头像统一蓝底白字',()=>{
   assert(pagesCss.includes('background:var(--portal-primary)!important;'));
   assert(pagesCss.includes('color:#fff!important;'));
 });
+
+
+test('退出系统无论接口结果都清空登录态并返回登录页',()=>{
+  const runtime=fs.readFileSync('src/services/runtime.js','utf8');
+  const home=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(runtime.includes("const result=await request('logout',{});"));
+  assert(runtime.indexOf('actor.value=null;') < runtime.indexOf('if(!result.ok)throw new Error(result.error.message);'));
+  assert(runtime.includes('users.value=[];'));
+  assert(home.includes("}finally{\n    await router.replace('/login');"));
+  assert(layout.includes("}finally{\n    await router.replace('/login');"));
+});
