@@ -18,9 +18,13 @@
         <t-button theme="default" variant="outline" @click="reset">重置</t-button>
       </t-form-item>
       <t-form-item class="monitor-view-switch">
-        <t-radio-group v-model="viewMode" variant="default-filled" size="small">
-          <t-radio-button value="table">列表</t-radio-button>
-          <t-radio-button value="visual">图示</t-radio-button>
+        <t-radio-group v-model="viewMode" variant="default-filled">
+          <t-radio-button value="table">
+            <span class="monitor-view-option"><t-icon name="view-list"/>列表</span>
+          </t-radio-button>
+          <t-radio-button value="visual">
+            <span class="monitor-view-option"><t-icon name="view-module"/>图示</span>
+          </t-radio-button>
         </t-radio-group>
       </t-form-item>
     </t-form>
