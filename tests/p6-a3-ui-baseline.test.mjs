@@ -66,7 +66,7 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户用户总数','接入异常','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
+  for(const label of ['纳管应用','启用应用','门户用户总数','有效门户用户','今日接口调用量','今日门户访问量','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
@@ -87,7 +87,9 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(source.includes("icon:'app',tone:'blue'"));
   assert(source.includes("icon:'check-circle',tone:'green'"));
   assert(source.includes("icon:'user',tone:'purple'"));
-  assert(source.includes("icon:'error-circle',tone:'red'"));
+  assert(source.includes("icon:'user-check',tone:'cyan'"));
+  assert(source.includes("icon:'code',tone:'indigo'"));
+  assert(source.includes("icon:'browse',tone:'teal'"));
   assert(source.includes('adminPendingItems'));
   assert(!/adminPendingItems=computed\(\(\)=>\[[\s\S]*tone:'(?:blue|cyan|orange|red|yellow|purple)'/.test(source));
   assert(source.includes("overview.value.abnormalServiceCount??0"));
@@ -1756,22 +1758,34 @@ test('管理首页左侧待处理与快捷入口右侧接入运行分析',()=>{
 });
 
 
-test('管理首页顶部扩展八项指标并区分总用户与有效用户',()=>{
+test('管理首页顶部六项核心指标单行展示',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const service=fs.readFileSync('src/services/portal.js','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户用户总数','有效门户用户','今日接口调用量','今日门户访问量','今日登录次数','接入异常']){
+  for(const label of ['纳管应用','启用应用','门户用户总数','有效门户用户','今日接口调用量','今日门户访问量']){
     assert(source.includes("label:'"+label+"'"),label+' 指标未配置');
   }
   assert(!source.includes("label:'门户访问用户'"));
   assert(source.includes("overview.value.enabledUserCount??0"));
   assert(source.includes("overview.value.todayApiCallCount??0"));
   assert(source.includes("overview.value.todayAccessCount??0"));
-  assert(source.includes("overview.value.todayLoginCount??0"));
+  assert(!source.includes("label:'今日登录次数'"));
+  assert(!source.includes("label:'接入异常',value:overview.value.abnormalServiceCount"));
   assert(service.includes("timeZone:'Asia/Shanghai'"));
   assert(service.includes("todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length"));
   assert(service.includes("todayAccessCount:todayLogs.filter(x=>x.kind==='access').length"));
   assert(service.includes("todayLoginCount:todayLogs.filter(x=>x.kind==='login').length"));
   assert(css.includes('.admin-overview-grid{'));
-  assert(css.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important;'));
+  assert(css.includes('grid-template-columns:repeat(6,minmax(0,1fr))!important;'));
+});
+
+
+test('顶部指标不与待处理事项重复',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const block=source.slice(source.indexOf('const adminOverviewCards'),source.indexOf('const adminShortcutIcon'));
+  for(const label of ['应用访问申请','账号开通申请','账号确认审核','映射异常','异常日志','定时公告']){
+    assert(!block.includes(label),label+' 不应出现在顶部统计指标');
+  }
+  assert(!block.includes("label:'今日登录次数'"));
+  assert(!block.includes("label:'接入异常'"));
 });
