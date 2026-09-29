@@ -124,6 +124,13 @@
    </template>
    <section v-else-if="resource==='external'" class="panel"><div class="empty-conditional"><t-tag theme="warning" variant="light">尚未启用</t-tag><h2>公共服务接入</h2><p>通过闽政通、闽政务提供二维码、手机验证码等公共服务。服务开通后，可按授权范围使用。</p><router-link to="/admin/monitor">查看接入状态</router-link></div></section>
    <section v-else class="portal-list" :class="{'portal-app-center':isAppCenter,'portal-announcement-center':preview&&resource==='announcements'}">
+    <div v-if="admin&&resource==='apps'" class="app-user-stats-grid">
+     <section v-for="item in appUserTypeStats" :key="item.userType" class="app-user-stat-card">
+      <span class="app-user-stat-label">{{item.label}}</span>
+      <strong>{{item.count}}</strong>
+      <small>个应用</small>
+     </section>
+    </div>
     <t-form layout="inline" class="portal-query list-toolbar">
      <t-form-item class="portal-query-keyword query-width-keyword" :label="querySpec.keywordLabel||'关键词'"><t-input v-model="search" :placeholder="querySpec.keywordPlaceholder" clearable/></t-form-item>
      <t-form-item v-for="filter in queryFilters" :key="filter.key" class="portal-query-select" :class="queryWidthClass(filter.widthKey||filter.key)" :label="filter.label"><t-select v-model="filterValues[filter.key]" clearable :filterable="filter.searchable===true" :placeholder="filter.placeholder" :options="filter.options"/></t-form-item>
@@ -380,6 +387,11 @@ const querySpec=computed(()=>{
  return {keywordPlaceholder:'关键词',keywordFields:Object.keys(titles),filters:[]};
 });
 const queryFilters=computed(()=>querySpec.value.filters||[]);
+const appUserTypeStats=computed(()=>[
+ {userType:'CITIZEN',label:label('CITIZEN'),count:rows.value.filter(row=>row.userType==='CITIZEN').length},
+ {userType:'GOV',label:label('GOV'),count:rows.value.filter(row=>row.userType==='GOV').length},
+ {userType:'BOTH',label:label('BOTH'),count:rows.value.filter(row=>row.userType==='BOTH').length}
+]);
 const normalizeSortKey=sortBy=>sortBy==='primary'?({apps:'name',applicationRequests:'requestNo'}[listResource.value]||sortBy):sortBy;
 const compareTableValue=(a,b,key)=>{
  if(['submittedAt','createdAt','publishedAt','receivedAt','lastCheckedAt'].includes(key))return (Date.parse(a?.[key])||0)-(Date.parse(b?.[key])||0);
