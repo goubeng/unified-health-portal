@@ -1128,3 +1128,24 @@
 @media(max-width:1200px){
   .admin-home-analysis-grid{grid-template-columns:1fr!important}
 }
+
+
+/* 2026-09-29 runtime exception kind uses a compact tag. */
+.admin-runtime-exception-meta{
+  display:flex!important;
+  min-width:0;
+  align-items:center;
+  gap:6px;
+}
+.admin-runtime-kind-tag{
+  flex:none!important;
+  font-size:12px!important;
+  font-weight:400!important;
+}
+.admin-runtime-exception-meta>span{
+  min-width:0;
+  overflow:hidden;
+  color:#86909c;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
