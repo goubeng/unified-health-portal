@@ -36,15 +36,15 @@
       </section>
 
       <section class="panel admin-work-panel">
-       <div class="section-head"><h2>常用管理</h2></div>
+       <div class="section-head"><h2>快捷入口</h2></div>
        <div class="admin-shortcut-grid">
         <button v-if="can(actor,'announcement:edit')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
          <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
-         <span><strong>新增公告</strong><small>创建并发布门户公告</small></span>
+         <strong>新增公告</strong>
         </button>
         <button v-for="item in adminShortcuts" :key="item.id" class="admin-shortcut-card" @click="router.push(item.path)">
          <span class="admin-shortcut-icon" :class="'tone-'+adminShortcutTone(item.resource)"><Icon :name="adminShortcutIcon(item.resource)"/></span>
-         <span><strong>{{text(item.title)}}</strong><small>{{adminShortcutHint(item.resource)}}</small></span>
+         <strong>{{text(item.title)}}</strong>
         </button>
        </div>
       </section>
@@ -240,7 +240,6 @@ const adminOverviewCards=computed(()=>[
  {label:'门户访问用户',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'identity:view')?'/admin/identities':''},
  {label:'接入异常',value:overview.value.abnormalServiceCount??0,icon:'error-circle',tone:'red',path:can(actor.value,'monitor:view')?'/admin/monitor':''}
 ]);
-const adminShortcutHint=resource=>({apps:'应用目录与接入配置',users:'门户管理用户授权',identityOverview:'身份与子系统映射'}[resource]||'进入管理模块');
 const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
 const adminPendingItems=computed(()=>[
