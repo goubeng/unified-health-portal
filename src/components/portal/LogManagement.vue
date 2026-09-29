@@ -38,7 +38,7 @@
       <DetailGrid v-if="detail" :items="detailItems"/>
     </t-dialog>
 
-    <t-dialog v-model:visible="resolveVisible" placement="center" header="处理异常" width="680px" :confirm-btn="{content:'确认处理',loading:saving}" :close-on-overlay-click="false" @confirm="resolveError">
+    <t-dialog v-model:visible="resolveVisible" placement="center" header="处理异常" width="860px" :confirm-btn="{content:'确认处理',loading:saving}" :close-on-overlay-click="false" @confirm="resolveError">
       <div v-if="formError" class="error-note">{{formError}}</div>
       <DetailGrid v-if="resolveRow" :items="[
         {key:'errorCode',label:'错误编码',value:resolveRow.errorCode||'-'},
