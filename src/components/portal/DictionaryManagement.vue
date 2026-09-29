@@ -56,7 +56,7 @@
           </t-form-item>
         </t-form>
 
-        <t-table v-if="selectedType" row-key="id" :data="pagedItems" :columns="columns" hover table-layout="fixed" size="medium">
+        <t-table v-if="selectedType" row-key="id" :data="pagedItems" :columns="columns" :sort="tableSort" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
           <template #empty><EmptyState description="当前字典类型暂无字典项"/></template>
           <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
           <template #label="{row}"><TableCellTooltip :text="text(row.label)"><button class="portal-field-link" @click="openItemEdit(row)">{{text(row.label)}}</button></TableCellTooltip></template>
@@ -125,6 +125,8 @@ const props=defineProps({types:{type:Array,default:()=>[]},items:{type:Array,def
 const emit=defineEmits(['saved']);
 
 const selectedTypeCode=ref(''),typeKeyword=ref(''),itemKeyword=ref(''),itemStatus=ref(''),page=ref(1),pageSize=ref(10);
+const defaultTableSort=()=>({sortBy:'sortOrder',descending:false});
+const tableSort=ref(defaultTableSort());
 const typeDialogVisible=ref(false),itemDialogVisible=ref(false),typeForm=reactive({}),itemForm=reactive({}),formError=ref(''),saving=ref(false);
 const statusOptions=[{value:'ENABLED',label:'启用'},{value:'DISABLED',label:'停用'}];
 
@@ -136,22 +138,35 @@ const filteredTypes=computed(()=>{
 });
 const filteredItems=computed(()=>{
   const term=itemKeyword.value.trim().toLowerCase(),code=selectedType.value?.code;
-  return props.items.filter(item=>item.typeCode===code)
-    .filter(item=>(!term||[item.label,item.value].some(value=>text(value).toLowerCase().includes(term)))&&(!itemStatus.value||item.status===itemStatus.value))
-    .sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
+  const result=props.items.filter(item=>item.typeCode===code)
+    .filter(item=>(!term||[item.label,item.value].some(value=>text(value).toLowerCase().includes(term)))&&(!itemStatus.value||item.status===itemStatus.value));
+  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+  if(!active?.sortBy)return result;
+  const direction=active.descending?-1:1;
+  return result.sort((a,b)=>{
+    if(active.sortBy==='sortOrder')return direction*((Number(a.sortOrder)||0)-(Number(b.sortOrder)||0));
+    const av=active.sortBy==='status'?label(a.status):text(a[active.sortBy]);
+    const bv=active.sortBy==='status'?label(b.status):text(b[active.sortBy]);
+    return direction*av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+  });
 });
 const pagedItems=computed(()=>filteredItems.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'label',title:'显示标签',minWidth:180,ellipsis:true},
-  {colKey:'value',title:'字典值',width:180,ellipsis:true},
-  {colKey:'sortOrder',title:'排序',width:90},
-  {colKey:'status',title:'启用状态',width:100},
+  {colKey:'label',title:'显示标签',minWidth:180,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'value',title:'字典值',width:180,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'sortOrder',title:'排序',width:90,sorter:true,sortType:'all'},
+  {colKey:'status',title:'启用状态',width:100,sorter:true,sortType:'all'},
   {colKey:'remark',title:'备注',minWidth:240,ellipsis:true},
   {colKey:'operation',title:'操作',width:130,fixed:'right'}
 ];
 
-function resetItemQuery(){itemKeyword.value='';itemStatus.value='';page.value=1;}
+function handleSortChange(sort){
+  const next=Array.isArray(sort)?sort[0]:sort;
+  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:defaultTableSort();
+  page.value=1;
+}
+function resetItemQuery(){itemKeyword.value='';itemStatus.value='';tableSort.value=defaultTableSort();page.value=1;}
 function assign(target,row){Object.keys(target).forEach(key=>delete target[key]);Object.assign(target,JSON.parse(JSON.stringify(row)));}
 function openTypeCreate(){assign(typeForm,{code:'',name:'',description:'',status:'ENABLED',sortOrder:types.value.length+1,systemLocked:false});formError.value='';typeDialogVisible.value=true;}
 function openTypeEdit(row){assign(typeForm,row);formError.value='';typeDialogVisible.value=true;}
