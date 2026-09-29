@@ -1659,3 +1659,19 @@ test('顶部消息徽标进一步收紧至铃铛右上角',()=>{
   const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
   assert(css.includes('top:2px!important;right:1px!important;transform:none!important'));
 });
+
+
+test('公众门户顶部与个人中心头像统一蓝底白字',()=>{
+  const home=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  const homeCss=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
+  const pagesCss=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
+  assert(home.includes('<span class="public-portal-avatar">{{ displayName.slice(0,1) }}</span>'));
+  assert(layout.includes('<span class="public-portal-avatar">{{ displayName.slice(0,1) }}</span>'));
+  assert(!home.includes('<UserIcon />'));
+  assert(!layout.includes('<UserIcon />'));
+  assert(homeCss.includes('background:var(--portal-primary);color:#fff;'));
+  assert(pagesCss.includes('.public-portal-secondary-shell .portal-profile-avatar{'));
+  assert(pagesCss.includes('background:var(--portal-primary)!important;'));
+  assert(pagesCss.includes('color:#fff!important;'));
+});

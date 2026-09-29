@@ -27,7 +27,7 @@
 .public-portal-user-area .t-badge{position:relative;display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;line-height:1}
 .public-portal-user-area .t-badge__content{min-width:15px;height:15px;padding:0 4px;font-size:9px;line-height:15px;border-width:1px;top:2px!important;right:1px!important;transform:none!important}
 .public-portal-account{display:flex;align-items:center;gap:8px;padding:4px 6px;border:0;background:transparent;color:#263651;font-size:14px;cursor:pointer}
-.public-portal-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#eef1ff;color:var(--portal-primary);font-size:19px}
+.public-portal-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--portal-primary);color:#fff;font-size:15px;font-weight:600;line-height:1}
 .public-portal-account-popover{width:230px;padding:12px;display:flex;flex-direction:column;gap:6px}
 .public-portal-account-popover>strong{font-size:15px;color:#1c2d49;padding:4px 8px 0}
 .public-portal-account-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 10px;border-bottom:1px solid #edf1f6}
