@@ -17,9 +17,15 @@
       <t-form-item class="portal-query-action">
         <t-button theme="default" variant="outline" @click="reset">重置</t-button>
       </t-form-item>
+      <t-form-item class="monitor-view-switch">
+        <t-radio-group v-model="viewMode" variant="default-filled" size="small">
+          <t-radio-button value="table">列表</t-radio-button>
+          <t-radio-button value="visual">图示</t-radio-button>
+        </t-radio-group>
+      </t-form-item>
     </t-form>
 
-    <section class="panel portal-table-panel">
+    <section v-if="viewMode==='table'" class="panel portal-table-panel">
       <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
         <template #empty><EmptyState description="暂无符合条件的运行监控记录"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
@@ -30,6 +36,23 @@
         <template #lastCheckedAt="{row}">{{date(row.lastCheckedAt)}}</template>
       </t-table>
       <t-pagination v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
+    </section>
+
+    <section v-else class="panel monitor-visual-panel">
+      <div v-if="paged.length" class="monitor-visual-grid">
+        <button v-for="row in paged" :key="row.id" type="button" class="monitor-visual-card" @click="openDetail(row)">
+          <span class="monitor-visual-name" :title="text(row.appName)">{{text(row.appName)}}</span>
+          <span class="monitor-visual-code">{{text(row.appCode)}}</span>
+          <span class="monitor-visual-status-grid">
+            <span v-for="kind in kinds" :key="kind" class="monitor-visual-status-item">
+              <b>{{kind}}</b>
+              <span><i class="monitor-status-dot" :class="visualStatusClass(row[kind.toLowerCase()+'Status'])"></i>{{visualStatusText(row[kind.toLowerCase()+'Status'])}}</span>
+            </span>
+          </span>
+        </button>
+      </div>
+      <EmptyState v-else description="暂无符合条件的运行监控记录"/>
+      <t-pagination v-if="filtered.length" v-model="page" v-model:page-size="pageSize" :total="filtered.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
 
     <t-dialog
@@ -73,7 +96,7 @@ import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text,theme,dictionaryOptions} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
-const keyword=ref(''),ssoStatus=ref(''),todoStatus=ref(''),messageStatus=ref(''),page=ref(1),pageSize=ref(10);
+const keyword=ref(''),ssoStatus=ref(''),todoStatus=ref(''),messageStatus=ref(''),viewMode=ref('table'),page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null),kinds=['SSO','TODO','MESSAGE'];
 const statusOptions=computed(()=>dictionaryOptions('runtime_status',['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']));
 const StatusTag=defineComponent({props:{value:{type:String,default:'UNCONFIGURED'}},setup(p){return()=>h(Tag,{theme:theme(p.value),variant:'light'},()=>label(p.value,'runtime_status'));}});
@@ -125,6 +148,8 @@ const detailRows=computed(()=>kinds.map(kind=>{
   };
 }));
 
+const visualStatusText=value=>value==='NORMAL'?'正常':value==='DISABLED'?'停用':value==='ABNORMAL'?'异常':'未配置';
+const visualStatusClass=value=>value==='NORMAL'?'is-normal':['DISABLED','ABNORMAL'].includes(value)?'is-danger':'is-muted';
 function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 watch([keyword,ssoStatus,todoStatus,messageStatus,pageSize],()=>{page.value=1;});
