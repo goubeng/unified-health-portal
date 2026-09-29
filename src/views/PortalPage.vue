@@ -86,8 +86,8 @@
      </div>
 
      <div v-if="can(actor,'audit:view')" class="admin-home-trend-grid">
-      <AdminTrendChart title="近7日门户访问量趋势" :rows="homeAccessLogs" series-name="访问次数"/>
-      <AdminTrendChart title="近7日接口调用量趋势" :rows="homeApiLogs" series-name="调用次数"/>
+      <AdminTrendChart title="门户访问量趋势" :rows="homeAccessLogs" series-name="访问次数"/>
+      <AdminTrendChart title="接口调用量趋势" :rows="homeApiLogs" series-name="调用次数"/>
      </div>
 
     </template>
