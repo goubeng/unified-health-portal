@@ -1,13 +1,19 @@
 <template>
   <section class="panel admin-trend-card">
-    <div class="section-head">
-      <h2>{{title}}</h2>
-      <div class="admin-trend-range" aria-label="趋势时间范围">
-        <button type="button" :class="{active:period===7}" @click="period=7">近7天</button>
-        <button type="button" :class="{active:period===30}" @click="period=30">近30天</button>
+    <div class="section-head admin-trend-head">
+      <h2>访问与调用趋势</h2>
+      <div class="admin-trend-controls">
+        <div class="admin-trend-range" aria-label="趋势指标">
+          <button type="button" :class="{active:metric==='access'}" :aria-pressed="metric==='access'" @click="metric='access'">门户访问量</button>
+          <button type="button" :class="{active:metric==='api'}" :aria-pressed="metric==='api'" @click="metric='api'">接口调用量</button>
+        </div>
+        <div class="admin-trend-range" aria-label="趋势时间范围">
+          <button type="button" :class="{active:period===7}" :aria-pressed="period===7" @click="period=7">近7天</button>
+          <button type="button" :class="{active:period===30}" :aria-pressed="period===30" @click="period=30">近30天</button>
+        </div>
       </div>
     </div>
-    <div ref="chartEl" class="admin-trend-chart" role="img" :aria-label="title"></div>
+    <div ref="chartEl" class="admin-trend-chart" role="img" :aria-label="currentSeriesName+'趋势'"></div>
   </section>
 </template>
 
@@ -21,15 +27,18 @@ import {CanvasRenderer} from 'echarts/renderers';
 echarts.use([LineChart,GridComponent,TooltipComponent,CanvasRenderer]);
 
 const props=defineProps({
-  title:{type:String,required:true},
-  rows:{type:Array,default:()=>[]},
-  seriesName:{type:String,default:'次数'}
+  accessRows:{type:Array,default:()=>[]},
+  apiRows:{type:Array,default:()=>[]}
 });
 
 const chartEl=ref(null);
+const metric=ref('access');
 const period=ref(7);
 let chart=null;
 let resizeObserver=null;
+
+const currentRows=computed(()=>metric.value==='api'?props.apiRows:props.accessRows);
+const currentSeriesName=computed(()=>metric.value==='api'?'接口调用量':'门户访问量');
 
 const chinaDay=value=>{
   const date=new Date(value);
@@ -39,8 +48,10 @@ const chinaDay=value=>{
 };
 
 const trend=computed(()=>{
-  const valid=props.rows.map(row=>({row,time:Date.parse(row.createdAt)})).filter(item=>Number.isFinite(item.time));
-  const base=valid.length?new Date(Math.max(...valid.map(item=>item.time))):new Date();
+  const allRows=[...props.accessRows,...props.apiRows];
+  const allValid=allRows.map(row=>Date.parse(row.createdAt)).filter(Number.isFinite);
+  const valid=currentRows.value.map(row=>({row,time:Date.parse(row.createdAt)})).filter(item=>Number.isFinite(item.time));
+  const base=allValid.length?new Date(Math.max(...allValid)):new Date();
   const baseKey=chinaDay(base);
   const baseDate=new Date(baseKey+'T00:00:00+08:00');
   const days=Array.from({length:period.value},(_,index)=>{
@@ -56,7 +67,6 @@ const trend=computed(()=>{
 function render(){
   if(!chartEl.value)return;
   if(!chart)chart=echarts.init(chartEl.value,null,{renderer:'canvas'});
-  const values=trend.value.map(item=>item.value);
   chart.setOption({
     animationDuration:350,
     grid:{left:42,right:18,top:18,bottom:30},
@@ -80,13 +90,13 @@ function render(){
       splitLine:{lineStyle:{color:'#eef0f4'}}
     },
     series:[{
-      name:props.seriesName,
+      name:currentSeriesName.value,
       type:'line',
       smooth:true,
       showSymbol:period.value===7,
       symbol:'circle',
       symbolSize:6,
-      data:values,
+      data:trend.value.map(item=>item.value),
       lineStyle:{width:2,color:'#2454ff'},
       itemStyle:{color:'#2454ff'},
       areaStyle:{color:'rgba(36,84,255,.08)'}
@@ -104,7 +114,7 @@ onMounted(async()=>{
     window.addEventListener('resize',render);
   }
 });
-watch(()=>[props.rows,props.title,period.value],async()=>{await nextTick();render();},{deep:true});
+watch(()=>[props.accessRows,props.apiRows,metric.value,period.value],async()=>{await nextTick();render();},{deep:true});
 onBeforeUnmount(()=>{
   resizeObserver?.disconnect();
   window.removeEventListener('resize',render);
