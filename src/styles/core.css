@@ -1163,3 +1163,110 @@
 .admin-runtime-capability-stats>span.is-normal::before{background:#2ba471}
 .admin-runtime-capability-stats>span.is-abnormal::before{background:#d54941}
 .admin-runtime-capability-stats>span.is-muted::before{background:#86909c}
+
+
+/* 2026-09-29 monitor compact visual card view. */
+.monitor-view-switch{
+  margin-left:auto!important;
+}
+.monitor-visual-panel{
+  padding:14px 16px!important;
+}
+.monitor-visual-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:10px;
+}
+.monitor-visual-card{
+  display:flex;
+  min-width:0;
+  min-height:104px;
+  flex-direction:column;
+  align-items:stretch;
+  gap:4px;
+  padding:11px 12px 10px;
+  border:1px solid #e5e8ef;
+  border-radius:0;
+  background:#fff;
+  color:#344054;
+  text-align:left;
+  cursor:pointer;
+}
+.monitor-visual-card:hover{
+  border-color:#b8c8e4;
+  background:#fbfcfe;
+}
+.monitor-visual-name{
+  overflow:hidden;
+  color:#1f2329;
+  font-size:13px;
+  font-weight:500;
+  line-height:20px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.monitor-visual-code{
+  overflow:hidden;
+  color:#98a2b3;
+  font-size:11px;
+  line-height:16px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.monitor-visual-status-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:4px;
+  margin-top:5px;
+  padding-top:8px;
+  border-top:1px solid #f0f2f5;
+}
+.monitor-visual-status-item{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  gap:3px;
+}
+.monitor-visual-status-item>b{
+  color:#4e5969;
+  font-size:11px;
+  line-height:16px;
+  font-weight:500;
+}
+.monitor-visual-status-item>span{
+  display:inline-flex;
+  min-width:0;
+  align-items:center;
+  gap:4px;
+  color:#697386;
+  font-size:11px;
+  line-height:16px;
+  white-space:nowrap;
+}
+.monitor-status-dot{
+  display:inline-block;
+  width:6px;
+  height:6px;
+  flex:none;
+  border-radius:50%;
+  background:#86909c;
+}
+.monitor-status-dot.is-normal{background:#2ba471}
+.monitor-status-dot.is-danger{background:#d54941}
+.monitor-status-dot.is-muted{background:#86909c}
+.monitor-visual-panel>.t-pagination{
+  margin-top:14px;
+}
+@media(max-width:1400px){
+  .monitor-visual-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+  .monitor-visual-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:800px){
+  .monitor-view-switch{margin-left:0!important}
+  .monitor-visual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  .monitor-visual-grid{grid-template-columns:1fr}
+}
