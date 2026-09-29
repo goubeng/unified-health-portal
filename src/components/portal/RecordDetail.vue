@@ -36,11 +36,10 @@
         <div class="portal-generic-detail">
           <h3 v-if="showBasicSectionTitle" class="portal-detail-section-title">基本信息</h3>
           <DetailGrid :items="kind==='apps'?appDetails:(isMonitorException?monitorExceptionDetails:(isAuditLog?auditDetails:details))">
-            <template v-if="kind==='apps'" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
+            <template v-if="kind==='apps'||isMonitorException" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
             <template v-if="kind==='apps'" #aggregateRuntimeStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
             <template v-if="isMonitorException" #runtimeStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
             <template v-if="isMonitorException" #configStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
-            <template v-if="isMonitorException" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
           </DetailGrid>
           <section v-if="showConnection&&kind==='apps'" class="portal-app-connection-detail">
             <h3 class="portal-detail-section-title">连接信息</h3>
