@@ -1170,21 +1170,32 @@
   margin-left:auto!important;
 }
 .monitor-visual-panel{
-  padding:14px 16px!important;
+  padding:12px 14px!important;
+}
+.monitor-visual-legend{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:10px;
+  color:#86909c;
+  font-size:12px;
 }
 .monitor-visual-grid{
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:10px;
+  gap:8px;
 }
 .monitor-visual-card{
   display:flex;
   min-width:0;
-  min-height:104px;
+  min-height:78px;
   flex-direction:column;
   align-items:stretch;
-  gap:4px;
-  padding:11px 12px 10px;
+  justify-content:center;
+  gap:9px;
+  padding:10px 11px;
   border:1px solid #e5e8ef;
   border-radius:0;
   background:#fff;
@@ -1201,61 +1212,29 @@
   color:#1f2329;
   font-size:13px;
   font-weight:500;
-  line-height:20px;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.monitor-visual-code{
-  overflow:hidden;
-  color:#98a2b3;
-  font-size:11px;
-  line-height:16px;
+  line-height:18px;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
 .monitor-visual-status-grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:4px;
-  margin-top:5px;
-  padding-top:8px;
-  border-top:1px solid #f0f2f5;
+  gap:5px;
 }
-.monitor-visual-status-item{
-  display:flex;
+.monitor-visual-status-tag{
+  display:flex!important;
+  width:100%;
   min-width:0;
-  flex-direction:column;
-  gap:3px;
-}
-.monitor-visual-status-item>b{
-  color:#4e5969;
-  font-size:11px;
-  line-height:16px;
-  font-weight:500;
-}
-.monitor-visual-status-item>span{
-  display:inline-flex;
-  min-width:0;
-  align-items:center;
-  gap:4px;
-  color:#697386;
-  font-size:11px;
-  line-height:16px;
+  justify-content:center;
+  overflow:hidden;
+  font-size:11px!important;
+  font-weight:400!important;
   white-space:nowrap;
 }
-.monitor-status-dot{
-  display:inline-block;
-  width:6px;
-  height:6px;
-  flex:none;
-  border-radius:50%;
-  background:#86909c;
-}
-.monitor-status-dot.is-normal{background:#2ba471}
-.monitor-status-dot.is-danger{background:#d54941}
-.monitor-status-dot.is-muted{background:#86909c}
-.monitor-visual-panel>.t-pagination{
-  margin-top:14px;
+.monitor-visual-status-tag .t-tag__text{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 @media(max-width:1400px){
   .monitor-visual-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -1269,4 +1248,5 @@
 }
 @media(max-width:520px){
   .monitor-visual-grid{grid-template-columns:1fr}
+  .monitor-visual-legend{justify-content:flex-start}
 }
