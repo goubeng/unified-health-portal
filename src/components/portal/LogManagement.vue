@@ -35,7 +35,11 @@
     </section>
 
     <t-dialog v-model:visible="detailVisible" placement="center" :header="detailTitle" width="820px" :footer="false">
-      <DetailGrid v-if="detail" :items="detailItems"/>
+      <DetailGrid v-if="detail" :items="detailItems">
+        <template #status="{item}"><t-tag :theme="resultTheme(detail?.status)" variant="light">{{item.value}}</t-tag></template>
+        <template #severity="{item}"><t-tag :theme="severityTheme(detail?.severity)" variant="light">{{item.value}}</t-tag></template>
+        <template #resolutionStatus="{item}"><t-tag :theme="resolutionTheme(detail?.resolutionStatus)" variant="light">{{item.value}}</t-tag></template>
+      </DetailGrid>
     </t-dialog>
 
     <t-dialog v-model:visible="resolveVisible" placement="center" header="处理异常" width="860px" :confirm-btn="{content:'确认处理',loading:saving}" :close-on-overlay-click="false" @confirm="resolveError">
@@ -68,6 +72,14 @@ const tableSort=ref(defaultTableSort());
 const detailVisible=ref(false),detail=ref(null),resolveVisible=ref(false),resolveRow=ref(null),resolutionNote=ref(''),formError=ref(''),saving=ref(false);
 const resultOptions=['SUCCESS','FAILURE','DENIED'].map(value=>({value,label:label(value)}));
 const resolutionOptions=['OPEN','RESOLVED'].map(value=>({value,label:label(value)}));
+const resultTheme=value=>value==='SUCCESS'?'success':value==='DENIED'?'warning':'danger';
+const resolutionTheme=value=>value==='RESOLVED'?'success':'warning';
+const severityTheme=value=>{
+  const normalized=String(value||'').toUpperCase();
+  if(['CRITICAL','ERROR','HIGH'].includes(normalized))return 'danger';
+  if(['WARNING','WARN','MEDIUM'].includes(normalized))return 'warning';
+  return 'default';
+};
 const showAppFilter=computed(()=>props.kind!=='login');
 const appOptions=computed(()=>[...new Set(props.rows.map(row=>row.appName).filter(Boolean))].map(value=>({value,label:value})));
 const keywordPlaceholder=computed(()=>({
