@@ -18,7 +18,7 @@
   </section>
   <t-dialog class="identity-mappings-dialog" :visible="!!selected" placement="center" :header="`${text(selected?.user.name)||'用户'} · 子系统账号映射`" width="min(1320px, calc(100vw - 48px))" :footer="false" @update:visible="closeDialog">
    <template v-if="selected">
-    <section class="identity-mapping-section">
+    <section class="identity-mapping-section identity-mapping-basic-section">
      <h3 class="identity-mapping-section-title">基本信息</h3>
      <DetailGrid :items="identityDetails"/>
     </section>
