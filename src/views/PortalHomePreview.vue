@@ -277,9 +277,10 @@ async function exitSystem(){
   accountOpen.value=false;
   try{
     await logout();
-    router.replace('/login');
   }catch(cause){
     MessagePlugin.error(text(cause?.message||'退出失败'));
+  }finally{
+    await router.replace('/login');
   }
 }
 
