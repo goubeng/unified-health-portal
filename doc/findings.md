@@ -168,3 +168,14 @@
 - APP_18/19/21 目标接入分别为 TODO/SSO/MESSAGE，应用自身未人工编辑，目标集成版本 2 且为 DEMO_FIXTURE，相关业务记录与 9/20 后审计为空；其余状态和历史异常场景应保留。预计调整后三类综合分布为异常 27、正常 13、停用 2，须以真实写后读回为准。
 - 实际写后读回符合预期：APP_18 三态 SSO/TODO/MESSAGE 为 NORMAL/NORMAL/DISABLED，APP_19 为 NORMAL/DISABLED/UNCONFIGURED，APP_21 为 UNCONFIGURED/NORMAL/NORMAL，三者应用综合均 NORMAL；总量 ABNORMAL 27 / NORMAL 13 / DISABLED 2。`sso_config`/`push_integration_config.status` 属配置态，保留 UNCONFIGURED，未用它冒充运行态或已联调。
 - 三个应用名称读回分别为 APP_18“福建省互联网医院监管平台”、APP_19“省医改效果监测管理系统”、APP_21“福建省公立医院绩效考核系统”。
+
+## 2026-09-29 应用详情启用状态与编辑字段
+
+- 初查应用详情由 `RecordDetail.vue` 的 `appDetails` 和连接信息独立行渲染；应用编辑表单由 `PortalPage.vue` 的 `saveApp` 字段列表驱动。需核对数据字段是否为布尔 `enabled`、连接项是否为字符串 `enabled`，两者不能混用。
+- 已核：应用列表 DTO 的 `enabled` 为布尔；连接信息行把接入配置 `ENABLED`/`DISABLED` 映射成“启用/停用/未配置”。详情 `DetailGrid` 支持具名插槽，可只对应用启用状态使用标签。编辑表单为三列，访问模式目前位于第二行第 2 列，紧接新增状态可落在同一行第 3 列。
+- 关键保存链：`saveApp` 原先不读取 `p.enabled`，只有 `setAppStatus` 会写入；增加表单字段必须同步服务保存，并在启停状态变化时校验 `application:enable` 权限，防止通过编辑权限绕过独立启停授权。旧调用未传 enabled 时需兼容原有行为。
+- 最终实现：新建表单默认停用，编辑从当前行带入布尔状态；仅启停有变化时服务要求 `application:enable`，并同步 `enabled` 与 `status`。详情连接项缺失时显示“未配置”标签；字典 `enable_status` 对启用/停用提供中文展示。服务测试证明编辑、权限拒绝、非法值及旧调用兼容，仓储映射原有测试覆盖 enabled 规范字段。
+
+## 2026-09-29 编辑启停开关与综合运行状态说明
+
+- 源码初查：`aggregateRuntimeStatus` 对启用应用按“三项任一 ABNORMAL→异常；否则任一 NORMAL→正常；全停用→停用；其余→未配置”聚合。截图中的接入配置状态/启用状态不是运行态，必须读回 APP_4 的 SSO/TODO/MESSAGE 有效运行状态，才能判断当前为何为正常；不先改聚合规则。

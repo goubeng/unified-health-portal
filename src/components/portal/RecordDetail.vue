@@ -35,7 +35,9 @@
       <template v-else>
         <div class="portal-generic-detail">
           <h3 v-if="showBasicSectionTitle" class="portal-detail-section-title">基本信息</h3>
-          <DetailGrid :items="kind==='apps'?appDetails:(isAuditLog?auditDetails:details)"/>
+          <DetailGrid :items="kind==='apps'?appDetails:(isAuditLog?auditDetails:details)">
+            <template v-if="kind==='apps'" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
+          </DetailGrid>
           <section v-if="showConnection&&kind==='apps'" class="portal-app-connection-detail">
             <h3 class="portal-detail-section-title">连接信息</h3>
             <div class="portal-connection-table">
@@ -44,7 +46,7 @@
                 <strong>{{item.kind}}</strong>
                 <span>{{item.mode}}</span>
                 <span><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></span>
-                <span>{{item.enabled}}</span>
+                <span><t-tag :theme="theme(item.enabledState)" variant="light">{{label(item.enabledState,'enable_status')}}</t-tag></span>
               </div>
             </div>
           </section>
@@ -116,11 +118,12 @@ const openingProcessingDetails=computed(()=>{
 const appDetails=computed(()=>{
   const row=props.record||{};
   const item=(key,labelText,wide=false)=>({key,label:labelText,value:display(key,row[key],'apps'),wide});
+  const enabledState=row.enabled===true?'ENABLED':row.enabled===false?'DISABLED':'UNCONFIGURED';
   return [
     item('name','应用名称'),
     item('code','应用编码'),
     item('category','系统分类'),
-    item('enabled','启用状态'),
+    {key:'enabled',label:'启用状态',value:label(enabledState,'enable_status'),state:enabledState},
     item('userType','用户类别'),
     item('createdAt','创建时间'),
     {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus,'apps'),wide:true},
@@ -145,12 +148,12 @@ const auditDetails=computed(()=>{
 const metadata=computed(()=>details.value.filter(item=>['appName','status','scope','type','effectiveStart','effectiveEnd'].includes(item.key)));
 const connectionRows=computed(()=>['SSO','TODO','MESSAGE'].map(kind=>{
   const item=props.accessProfile?.integrations?.[kind]||null;
-  if(!item)return {kind,status:'UNCONFIGURED',enabled:'未配置',mode:'未配置'};
+  if(!item)return {kind,status:'UNCONFIGURED',enabledState:'UNCONFIGURED',mode:'未配置'};
   const configStatus=item.configStatus||'UNCONFIGURED';
   return {
     kind,
     status:configStatus,
-    enabled:item.enabled==='ENABLED'?'启用':item.enabled==='DISABLED'?'停用':'未配置',
+    enabledState:['ENABLED','DISABLED'].includes(item.enabled)?item.enabled:'UNCONFIGURED',
     mode:kind==='SSO'?(item.protocol||item.mode||'未配置'):(item.mode||'未配置')
   };
 }));

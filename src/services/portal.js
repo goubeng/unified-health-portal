@@ -444,6 +444,7 @@ export function createPortalService(provider,getActor){
      if(!receipt){receipt={announcementId:x.id,userId:a.id,readAt:now};d.announcementReads.push(receipt);}result=receipt;
     }else if(action==='saveApp'){
      if(!p.name?.trim()||!p.code?.trim())fail('VALIDATION_ERROR','应用名称与编码为必填');checkUrl(p.url);
+     if(p.enabled!==undefined&&typeof p.enabled!=='boolean')fail('VALIDATION_ERROR','启用状态无效');
      if(!['CITIZEN','GOV','BOTH'].includes(p.userType))fail('VALIDATION_ERROR','请选择适用用户类型');
      if(!['DIRECT','BIND','REQUEST'].includes(p.accessMode))fail('VALIDATION_ERROR','请选择有效访问模式');
      if(p.accessMode==='BIND'&&!['AUTO','SELF','REVIEW','ADMIN'].includes(p.accountBindingMode))fail('VALIDATION_ERROR','请选择有效账号关联方式');
@@ -451,9 +452,12 @@ export function createPortalService(provider,getActor){
      if(p.accessMode==='REQUEST'&&p.postGrantMode==='BIND'&&!['AUTO','SELF','REVIEW','ADMIN'].includes(p.accountBindingMode))fail('VALIDATION_ERROR','请选择有效账号关联方式');
      if(d.apps.some(x=>x.code===p.code.trim()&&x.id!==p.id))fail('VALIDATION_ERROR','应用编码已存在');
      const x=p.id?requireRow(d.apps,p.id,p.version):{id:id(),version:0,createdAt:now,enabled:false,status:'DISABLED'};
+     if(p.enabled!==undefined&&p.enabled!==(x.enabled!==false))auth(a,'application:enable');
      Object.assign(x,{name:p.name.trim(),code:p.code.trim(),category:p.category||'未分类',description:p.description||'',url:p.url,userType:p.userType,
       accessMode:p.accessMode,postGrantMode:p.accessMode==='REQUEST'?p.postGrantMode:'DIRECT',accountBindingMode:p.accessMode==='DIRECT'?'NONE':p.accountBindingMode,
-      accountOpeningMode:p.accountOpeningMode||'NONE',sortOrder:Number(p.sortOrder)||0});stamp(x);if(!p.id)d.apps.push(x);result=x;
+      accountOpeningMode:p.accountOpeningMode||'NONE',sortOrder:Number(p.sortOrder)||0});
+     if(p.enabled!==undefined){x.enabled=p.enabled;x.status=p.enabled?'ENABLED':'DISABLED';}
+     stamp(x);if(!p.id)d.apps.push(x);result=x;
     }else if(action==='removeApp'){
      const x=requireRow(d.apps,p.id,p.version);
      const appId=x.id,appName=x.name;
