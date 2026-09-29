@@ -1169,32 +1169,29 @@
 
 
 /* 2026-09-29 monitor compact visual card view. */
-.monitor-view-switch{
-  margin-left:auto!important;
-  height:32px!important;
+.monitor-header-view-switch{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
 }
-.monitor-view-switch :is(.t-form__controls,.t-form__controls-content){
-  height:32px!important;
-  display:flex!important;
-  align-items:center!important;
-}
-.monitor-view-switch .t-radio-group{
-  height:32px!important;
-  flex-wrap:nowrap!important;
-}
-.monitor-view-switch .t-radio-button{
+.content-header .page-header-actions-host .monitor-header-view-switch .t-button{
+  box-sizing:border-box!important;
   height:32px!important;
   min-height:32px!important;
+  padding:0 14px!important;
   font-size:13px!important;
+  font-weight:400!important;
+  line-height:30px!important;
 }
-.monitor-view-option{
-  display:inline-flex;
-  align-items:center;
+.content-header .page-header-actions-host .monitor-header-view-switch .t-button__text{
+  display:inline-flex!important;
+  align-items:center!important;
   gap:5px;
-  font-size:13px;
-  line-height:1;
+  font-size:13px!important;
+  line-height:20px!important;
 }
-.monitor-view-option .t-icon{
+.content-header .page-header-actions-host .monitor-header-view-switch .t-icon{
   width:14px!important;
   height:14px!important;
   font-size:14px!important;
@@ -1309,7 +1306,6 @@
   .monitor-visual-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:800px){
-  .monitor-view-switch{margin-left:0!important}
   .monitor-visual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:520px){
