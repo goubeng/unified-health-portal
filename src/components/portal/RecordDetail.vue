@@ -37,6 +37,7 @@
           <h3 v-if="showBasicSectionTitle" class="portal-detail-section-title">基本信息</h3>
           <DetailGrid :items="kind==='apps'?appDetails:(isAuditLog?auditDetails:details)">
             <template v-if="kind==='apps'" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
+            <template v-if="kind==='apps'" #aggregateRuntimeStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
           </DetailGrid>
           <section v-if="showConnection&&kind==='apps'" class="portal-app-connection-detail">
             <h3 class="portal-detail-section-title">连接信息</h3>
@@ -126,7 +127,7 @@ const appDetails=computed(()=>{
     {key:'enabled',label:'启用状态',value:label(enabledState,'enable_status'),state:enabledState},
     item('userType','用户类别'),
     item('createdAt','创建时间'),
-    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus,'apps'),wide:true},
+    {key:'aggregateRuntimeStatus',label:'综合运行状态',value:display('aggregateRuntimeStatus',row.aggregateRuntimeStatus,'apps'),state:row.aggregateRuntimeStatus||'UNCONFIGURED',wide:true},
     item('url','入口地址',true),
     item('description','说明',true)
   ];
