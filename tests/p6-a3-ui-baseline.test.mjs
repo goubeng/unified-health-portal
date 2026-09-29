@@ -1873,3 +1873,21 @@ test('接入运行统计增加状态圆点并恢复异常列表布局',()=>{
   assert(source.includes('class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span>'));
   assert(source.includes('<t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>'));
 });
+
+
+test('运行监控支持紧凑五列图示视图',()=>{
+  const source=fs.readFileSync('src/components/portal/MonitorManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes("viewMode=ref('table')"));
+  assert(source.includes('<t-radio-button value="table">列表</t-radio-button>'));
+  assert(source.includes('<t-radio-button value="visual">图示</t-radio-button>'));
+  assert(source.includes("v-if=\"viewMode==='table'\""));
+  assert(source.includes('class="monitor-visual-grid"'));
+  assert(source.includes('class="monitor-visual-card"'));
+  assert(source.includes("visualStatusText=value=>value==='NORMAL'?'正常':value==='DISABLED'?'停用':value==='ABNORMAL'?'异常':'未配置'"));
+  assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr));'));
+  assert(css.includes('min-height:104px;'));
+  assert(css.includes('.monitor-status-dot.is-normal{background:#2ba471}'));
+  assert(css.includes('.monitor-status-dot.is-danger{background:#d54941}'));
+  assert(css.includes('.monitor-status-dot.is-muted{background:#86909c}'));
+});
