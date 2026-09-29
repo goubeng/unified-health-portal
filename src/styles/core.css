@@ -897,3 +897,11 @@
 .role-detail-permission-page>div{display:flex;flex-wrap:wrap;gap:5px}
 .role-detail-permission-page .t-tag{font-size:13px}
 @media(max-width:720px){.role-detail-permission-page{grid-template-columns:1fr;padding-left:28px}}
+
+/* Identity mapping detail: keep long basic-information labels on one line. */
+.identity-mappings-dialog .identity-mapping-basic-section .portal-detail-item{
+  grid-template-columns:150px minmax(0,1fr)!important;
+}
+.identity-mappings-dialog .identity-mapping-basic-section .portal-detail-item dt{
+  white-space:nowrap!important;
+}
