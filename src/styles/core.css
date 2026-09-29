@@ -968,23 +968,27 @@
 .admin-shortcut-icon.tone-gray{background:#667085!important;color:#fff!important}
 
 
-/* 2026-09-29 admin home: left actions + right runtime analysis. */
+/* 2026-09-29 admin home: aligned two-column dashboard grid. */
 .admin-home-analysis-grid{
   display:grid;
   grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  grid-template-areas:
+    "pending runtime"
+    "shortcut exception";
   gap:16px;
   align-items:stretch;
   margin-bottom:16px;
 }
-.admin-home-left-stack,
-.admin-home-right-stack{
-  display:flex;
+.admin-home-analysis-grid>.panel{
+  box-sizing:border-box;
   min-width:0;
-  flex-direction:column;
-  gap:16px;
+  height:100%;
+  margin:0!important;
 }
-.admin-home-left-stack>.panel,
-.admin-home-right-stack>.panel,
+.admin-pending-panel{grid-area:pending}
+.admin-runtime-analysis-panel{grid-area:runtime}
+.admin-work-panel{grid-area:shortcut}
+.admin-runtime-exception-panel{grid-area:exception}
 .admin-runtime-analysis-panel,
 .admin-runtime-exception-panel{
   min-width:0;
@@ -1103,14 +1107,20 @@
   min-height:62px;
 }
 @media(max-width:1200px){
-  .admin-home-analysis-grid{grid-template-columns:1fr}
-  .admin-home-left-stack{display:grid;grid-template-columns:1fr 1fr;align-items:start}
+  .admin-home-analysis-grid{
+    grid-template-columns:1fr!important;
+    grid-template-areas:
+      "pending"
+      "shortcut"
+      "runtime"
+      "exception";
+  }
 }
 @media(max-width:1100px){
   .admin-runtime-capability-grid{grid-template-columns:1fr}
 }
 @media(max-width:900px){
-  .admin-home-left-stack{grid-template-columns:1fr}
+  .admin-home-analysis-grid{gap:12px}
 }
 @media(max-width:650px){
   .admin-runtime-capability-card{padding:14px}
@@ -1226,7 +1236,10 @@
   font-size:14px!important;
 }
 @media(max-width:1200px){
-  .admin-home-analysis-grid{grid-template-columns:1fr!important}
+  .admin-home-analysis-grid{
+    grid-template-columns:1fr!important;
+    grid-template-areas:"pending" "shortcut" "runtime" "exception";
+  }
 }
 
 
