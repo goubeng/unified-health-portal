@@ -66,7 +66,7 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户访问用户','接入异常','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
+  for(const label of ['纳管应用','启用应用','门户用户总数','接入异常','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
@@ -1753,4 +1753,25 @@ test('管理首页左侧待处理与快捷入口右侧接入运行分析',()=>{
   assert(!source.includes('<small>{{item.hint}}</small>'));
   assert(css.includes('grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);'));
   assert(css.includes('.admin-runtime-capability-grid{'));
+});
+
+
+test('管理首页顶部扩展八项指标并区分总用户与有效用户',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const service=fs.readFileSync('src/services/portal.js','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  for(const label of ['纳管应用','启用应用','门户用户总数','有效门户用户','今日接口调用量','今日门户访问量','今日登录次数','接入异常']){
+    assert(source.includes("label:'"+label+"'"),label+' 指标未配置');
+  }
+  assert(!source.includes("label:'门户访问用户'"));
+  assert(source.includes("overview.value.enabledUserCount??0"));
+  assert(source.includes("overview.value.todayApiCallCount??0"));
+  assert(source.includes("overview.value.todayAccessCount??0"));
+  assert(source.includes("overview.value.todayLoginCount??0"));
+  assert(service.includes("timeZone:'Asia/Shanghai'"));
+  assert(service.includes("todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length"));
+  assert(service.includes("todayAccessCount:todayLogs.filter(x=>x.kind==='access').length"));
+  assert(service.includes("todayLoginCount:todayLogs.filter(x=>x.kind==='login').length"));
+  assert(css.includes('.admin-overview-grid{'));
+  assert(css.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important;'));
 });
