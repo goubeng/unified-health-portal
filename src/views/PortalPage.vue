@@ -29,72 +29,68 @@
      </div>
 
      <div class="admin-home-analysis-grid">
-      <div class="admin-home-left-stack">
-       <section class="panel admin-pending-panel">
-        <div class="section-head"><h2>待处理事项</h2></div>
-        <div class="admin-reminder-grid">
-         <button v-for="item in adminPendingItems" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)">
-          <span>{{item.label}}</span>
-          <strong :class="{'is-danger':item.danger}">{{item.value}}</strong>
-         </button>
-        </div>
-       </section>
+      <section class="panel admin-pending-panel">
+       <div class="section-head"><h2>待处理事项</h2></div>
+       <div class="admin-reminder-grid">
+        <button v-for="item in adminPendingItems" :key="item.label" type="button" class="admin-reminder-card" @click="item.path&&router.push(item.path)">
+         <span>{{item.label}}</span>
+         <strong :class="{'is-danger':item.danger}">{{item.value}}</strong>
+        </button>
+       </div>
+      </section>
 
-       <section class="panel admin-work-panel">
-        <div class="section-head"><h2>快捷入口</h2></div>
-        <div class="admin-shortcut-grid">
-         <button v-if="can(actor,'announcement:edit')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
-          <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
-          <strong>新增公告</strong>
-         </button>
-         <button v-for="item in adminShortcuts" :key="item.id" class="admin-shortcut-card" @click="item.resource==='apps'?openForm('saveApp'):router.push(item.path)">
-          <span class="admin-shortcut-icon" :class="'tone-'+adminShortcutTone(item.resource)"><Icon :name="adminShortcutIcon(item.resource)"/></span>
-          <strong>{{item.resource==='apps'?'新增应用':text(item.title)}}</strong>
-         </button>
-        </div>
-       </section>
-      </div>
-
-      <div class="admin-home-right-stack">
-       <section class="panel admin-runtime-analysis-panel">
-        <div class="section-head"><h2>接入运行分析</h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看运行监控</router-link></div>
-        <div v-if="overview.serviceHealth" class="admin-runtime-capability-grid">
-         <div v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" class="admin-runtime-capability-card">
-          <strong class="admin-runtime-capability-title">{{kind}}</strong>
-          <div class="admin-runtime-capability-body">
-           <AdminRuntimeRing
-            :kind="kind"
-            :normal="overview.serviceHealth[kind]?.normal??0"
-            :abnormal="overview.serviceHealth[kind]?.abnormal??0"
-            :inactive="overview.serviceHealth[kind]?.unconfigured??0"
-           />
-           <div class="admin-runtime-capability-stats">
-            <span class="is-normal"><i></i><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
-            <span class="is-abnormal"><i></i><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
-            <span class="is-muted"><i></i><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
-           </div>
+      <section class="panel admin-runtime-analysis-panel">
+       <div class="section-head"><h2>接入运行分析</h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看运行监控</router-link></div>
+       <div v-if="overview.serviceHealth" class="admin-runtime-capability-grid">
+        <div v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" class="admin-runtime-capability-card">
+         <strong class="admin-runtime-capability-title">{{kind}}</strong>
+         <div class="admin-runtime-capability-body">
+          <AdminRuntimeRing
+           :kind="kind"
+           :normal="overview.serviceHealth[kind]?.normal??0"
+           :abnormal="overview.serviceHealth[kind]?.abnormal??0"
+           :inactive="overview.serviceHealth[kind]?.unconfigured??0"
+          />
+          <div class="admin-runtime-capability-stats">
+           <span class="is-normal"><i></i><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
+           <span class="is-abnormal"><i></i><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
+           <span class="is-muted"><i></i><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
           </div>
          </div>
         </div>
-       </section>
+       </div>
+      </section>
 
-       <section class="panel admin-runtime-exception-panel">
-        <div class="section-head">
-         <h2>接入异常 <span class="admin-runtime-exception-count">（<strong>{{homeExceptions.length}}</strong>）</span></h2>
-         <router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看全部</router-link>
-        </div>
-        <div class="admin-runtime-exception-list">
-         <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row">
-          <div>
-           <button class="portal-field-link" @click="showDetail(item,'monitorException')">{{text(item.appName||item.name)}}</button>
-           <p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>
-          </div>
-          <t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>
+      <section class="panel admin-work-panel">
+       <div class="section-head"><h2>快捷入口</h2></div>
+       <div class="admin-shortcut-grid">
+        <button v-if="can(actor,'announcement:edit')" class="admin-shortcut-card" @click="router.push({path:'/admin/announcements',query:{action:'create'}})">
+         <span class="admin-shortcut-icon tone-purple"><Icon name="notification"/></span>
+         <strong>新增公告</strong>
+        </button>
+        <button v-for="item in adminShortcuts" :key="item.id" class="admin-shortcut-card" @click="item.resource==='apps'?openForm('saveApp'):router.push(item.path)">
+         <span class="admin-shortcut-icon" :class="'tone-'+adminShortcutTone(item.resource)"><Icon :name="adminShortcutIcon(item.resource)"/></span>
+         <strong>{{item.resource==='apps'?'新增应用':text(item.title)}}</strong>
+        </button>
+       </div>
+      </section>
+
+      <section class="panel admin-runtime-exception-panel">
+       <div class="section-head">
+        <h2>接入异常 <span class="admin-runtime-exception-count">（<strong>{{homeExceptions.length}}</strong>）</span></h2>
+        <router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看全部</router-link>
+       </div>
+       <div class="admin-runtime-exception-list">
+        <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row">
+         <div>
+          <button class="portal-field-link" @click="showDetail(item,'monitorException')">{{text(item.appName||item.name)}}</button>
+          <p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>
          </div>
-         <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
+         <t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>
         </div>
-       </section>
-      </div>
+        <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
+       </div>
+      </section>
      </div>
 
      <div v-if="can(actor,'audit:view')" class="admin-home-trend-grid">
