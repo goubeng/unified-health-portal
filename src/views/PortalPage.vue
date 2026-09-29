@@ -75,7 +75,7 @@
        <div class="admin-runtime-exception-list">
         <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row">
          <div>
-          <button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button>
+          <button class="portal-field-link" @click="showDetail(item,'monitorException')">{{text(item.appName||item.name)}}</button>
           <p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>
          </div>
          <t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>
