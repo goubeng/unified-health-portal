@@ -1886,8 +1886,25 @@ test('运行监控支持紧凑五列图示视图',()=>{
   assert(source.includes('class="monitor-visual-card"'));
   assert(source.includes("visualStatusText=value=>value==='NORMAL'?'正常':value==='DISABLED'?'停用':value==='ABNORMAL'?'异常':'未配置'"));
   assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr));'));
-  assert(css.includes('min-height:104px;'));
-  assert(css.includes('.monitor-status-dot.is-normal{background:#2ba471}'));
-  assert(css.includes('.monitor-status-dot.is-danger{background:#d54941}'));
-  assert(css.includes('.monitor-status-dot.is-muted{background:#86909c}'));
+  assert(css.includes('min-height:78px;'));
+  assert(css.includes('.monitor-visual-status-tag{'));
+  assert(css.includes('theme="danger" variant="light" size="small">异常 / 停用</t-tag>'));
+  assert(css.includes('theme="default" variant="light" size="small">未配置</t-tag>'));
+});
+
+
+test('运行监控图示模式全量展示并使用状态标签',()=>{
+  const source=fs.readFileSync('src/components/portal/MonitorManagement.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('v-if="filtered.length" class="monitor-visual-grid"'));
+  assert(source.includes('v-for="row in filtered"'));
+  assert(!/monitor-visual-panel[\s\S]*<t-pagination/.test(source.slice(source.indexOf('<section v-else class="panel monitor-visual-panel">'),source.indexOf('<t-dialog')));
+  assert(source.includes('class="monitor-visual-status-tag"'));
+  assert(source.includes(":theme=\"visualStatusTheme(row[kind.toLowerCase()+'Status'])\""));
+  assert(source.includes('theme="success" variant="light" size="small">正常</t-tag>'));
+  assert(source.includes('theme="danger" variant="light" size="small">异常 / 停用</t-tag>'));
+  assert(source.includes('theme="default" variant="light" size="small">未配置</t-tag>'));
+  assert(source.includes("const visualStatusTheme=value=>value==='NORMAL'?'success':['DISABLED','ABNORMAL'].includes(value)?'danger':'default';"));
+  assert(css.includes('grid-template-columns:repeat(5,minmax(0,1fr));'));
+  assert(css.includes('min-height:78px;'));
 });
