@@ -69,7 +69,7 @@
         <router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看全部</router-link>
        </div>
        <div class="admin-runtime-exception-list">
-        <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row">
+        <div v-for="item in latest(homeExceptions,'lastCheckedAt')" :key="item.id" class="list-row">
          <div class="admin-runtime-exception-content">
           <div class="admin-runtime-exception-title-line">
            <button class="portal-field-link" @click="showDetail(item,'monitorException')">{{text(item.appName||item.name)}}</button>
