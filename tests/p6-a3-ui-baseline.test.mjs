@@ -66,7 +66,7 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户访问用户','接入异常','待处理事项','接入运行状态','快捷入口'])assert(source.includes(label),label+' 未体现');
+  for(const label of ['纳管应用','启用应用','门户访问用户','接入异常','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
@@ -80,8 +80,8 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(!source.includes('快速进入常用管理模块'));
   assert(source.includes('<strong>新增公告</strong>'));
   assert(source.includes("router.push({path:'/admin/announcements',query:{action:'create'}})"));
-  assert(source.includes('class="admin-workbench-grid"'));
-  assert(source.includes('class="admin-health-workbench-grid"'));
+  assert(source.includes('class="admin-home-analysis-grid"'));
+  assert(source.includes('class="admin-runtime-analysis-panel"'));
   assert(source.includes('class="admin-shortcut-grid"'));
   assert(source.includes('class="admin-shortcut-card"'));
   assert(source.includes("icon:'app',tone:'blue'"));
@@ -100,11 +100,11 @@ test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   assert(css.includes('.admin-reminder-card{'));
   assert(css.includes('background:#f6f8fb!important'));
   assert(!css.includes('.admin-reminder-card.tone-blue{'));
-  assert(css.includes('.admin-health-workbench-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)'));
-  assert(css.includes('.admin-service-health-grid{display:grid!important;grid-template-columns:1fr!important'));
-  assert(source.includes('class="admin-health-stat is-normal"><Icon name="check-circle"/><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b>'));
-  assert(source.includes('class="admin-health-stat is-abnormal"><Icon name="error-circle"/><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b>'));
-  assert(source.includes('class="admin-health-stat is-muted"><Icon name="minus-circle"/><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b>'));
+  assert(css.includes('.admin-home-analysis-grid{'));
+  assert(css.includes('.admin-runtime-capability-grid{'));
+  assert(source.includes('<span class="is-normal"><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>'));
+  assert(source.includes('<span class="is-abnormal"><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>'));
+  assert(source.includes('<span class="is-muted"><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>'));
   assert(css.includes('.admin-health-stat.is-normal,.admin-health-stat.is-normal b,.admin-health-stat.is-normal>.t-icon{color:#2ba471!important}'));
   assert(css.includes('.admin-health-stat.is-abnormal,.admin-health-stat.is-abnormal b,.admin-health-stat.is-abnormal>.t-icon{color:#d54941!important}'));
   assert(css.includes('.admin-health-stat.is-muted,.admin-health-stat.is-muted b,.admin-health-stat.is-muted>.t-icon{color:#86909c!important}'));
@@ -1736,4 +1736,21 @@ test('管理首页快捷入口去掉描述并使用深色图标块',()=>{
   assert(css.includes('.admin-shortcut-icon.tone-blue{background:#5268d9!important;color:#fff!important}'));
   assert(css.includes('.admin-shortcut-icon>.t-icon{'));
   assert(css.includes('color:#fff!important;'));
+});
+
+
+test('管理首页左侧待处理与快捷入口右侧接入运行分析',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="admin-home-analysis-grid"'));
+  assert(source.includes('class="admin-home-left-stack"'));
+  assert(source.includes('<h2>待处理事项</h2>'));
+  assert(source.includes('<h2>快捷入口</h2>'));
+  assert(source.includes('<h2>接入运行分析</h2>'));
+  assert(source.includes("v-for=\"kind in ['SSO','TODO','MESSAGE']\""));
+  assert(source.includes('class="admin-runtime-capability-grid"'));
+  assert(source.includes('class="admin-runtime-exception-list"'));
+  assert(!source.includes('<small>{{item.hint}}</small>'));
+  assert(css.includes('grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);'));
+  assert(css.includes('.admin-runtime-capability-grid{'));
 });
