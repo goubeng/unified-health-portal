@@ -73,7 +73,7 @@
          <div class="admin-runtime-exception-content">
           <div class="admin-runtime-exception-title-line">
            <button class="portal-field-link" @click="showDetail(item,'monitorException')">{{text(item.appName||item.name)}}</button>
-           <span class="admin-runtime-exception-time">最近异常时间：{{date(item.services?.[item.kind]?.lastFailureAt||item.lastCheckedAt)}}</span>
+           <span class="admin-runtime-exception-time">{{date(item.services?.[item.kind]?.lastFailureAt||item.lastCheckedAt)}}</span>
           </div>
           <p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>
          </div>
