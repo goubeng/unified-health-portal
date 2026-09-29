@@ -50,7 +50,38 @@
 .slide-verification{margin:18px 0;padding:14px 16px 12px;background:#f7f9fc;border:1px solid #dfe4ec;border-radius:6px;text-align:left;color:#667085;transition:.18s}.slide-verification-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;font-size:12px}.slide-verification-head strong{color:#344054;font-size:12px;font-weight:500}.slide-verification input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;margin:6px 0 10px;border-radius:999px;outline:none;background:linear-gradient(to right,#2454ff 0 var(--slide-progress),#dfe5ee var(--slide-progress) 100%);cursor:ew-resize}.slide-verification input[type="range"]::-webkit-slider-runnable-track{height:6px;border:0;background:transparent}.slide-verification input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border:2px solid #fff;border-radius:50%;background:#2454ff;box-shadow:0 1px 5px rgba(36,84,255,.3);cursor:grab}.slide-verification input[type="range"]::-moz-range-track{height:6px;border:0;border-radius:999px;background:#dfe5ee}.slide-verification input[type="range"]::-moz-range-progress{height:6px;border-radius:999px;background:#2454ff}.slide-verification input[type="range"]::-moz-range-thumb{width:24px;height:24px;border:2px solid #fff;border-radius:50%;background:#2454ff;box-shadow:0 1px 5px rgba(36,84,255,.3);cursor:grab}.slide-verification-tip{display:flex;align-items:center;justify-content:center;gap:7px;color:#7b8494;font-size:12px}.slide-verification-tip span{display:inline-grid;width:18px;height:18px;place-items:center;border-radius:50%;background:#e8eefb;color:#2454ff;font-weight:700}.slide-verification.verified{background:#eff9f3;border-color:#b9e2ca;color:#16834b}.slide-verification.verified .slide-verification-head strong{color:#16834b}.slide-verification.verified input[type="range"]{background:#2ba471}.slide-verification.verified .slide-verification-tip{color:#16834b}.slide-verification.verified .slide-verification-tip span{background:#dff3e8;color:#16834b}
 @media(max-width:760px){.page-header-actions-host{width:100%;justify-content:flex-start;margin-left:0}.portal-caption{padding:0 6px}}
 /* 2026-09-18 v3: topbar switch order, endpoint switch icon and regular page titles. */
-.portal-switch-button{flex:none;color:#344054!important;font-size:13px!important}.portal-switch-button:hover{color:#2454ff!important}.portal-switch-button .t-button__text{display:inline-flex;align-items:center}.portal-switch-glyph{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;color:currentColor;font-size:16px;font-weight:400;line-height:16px}.content-header h1{font-weight:500!important}
+.portal-switch-button{
+  box-sizing:border-box!important;
+  min-width:auto!important;
+  height:30px!important;
+  min-height:30px!important;
+  padding:0 12px!important;
+  flex:none;
+  border:1px solid #b8cdf6!important;
+  border-radius:4px!important;
+  background:#f3f7ff!important;
+  color:#2454ff!important;
+  font-size:13px!important;
+  font-weight:400!important;
+  box-shadow:none!important;
+}
+.portal-switch-button:hover:not(:disabled){
+  border-color:#8fb0ef!important;
+  background:#eaf2ff!important;
+  color:#1d4ed8!important;
+}
+.portal-switch-button:active:not(:disabled){
+  border-color:#7ba2eb!important;
+  background:#e2ecff!important;
+  color:#173ea5!important;
+}
+.portal-switch-button:focus-visible{
+  outline:2px solid rgba(36,84,255,.18)!important;
+  outline-offset:2px!important;
+}
+.portal-switch-button .t-button__text{display:inline-flex;align-items:center;gap:5px}
+.portal-switch-button .t-icon{color:currentColor!important}
+.portal-switch-glyph{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;color:currentColor;font-size:16px;font-weight:400;line-height:16px}.content-header h1{font-weight:500!important}
 
 /* V4: 顶部当前用户姓名增强 */
 .account-entry .user-name{font-size:14px;font-weight:500;line-height:22px;color:#1d2129;white-space:nowrap}
