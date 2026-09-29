@@ -1146,6 +1146,9 @@
 }
 .admin-runtime-kind-tag{
   flex:none!important;
+  border-color:#e5e6eb!important;
+  background:#f2f3f5!important;
+  color:#6b778c!important;
   font-size:12px!important;
   font-weight:400!important;
 }
