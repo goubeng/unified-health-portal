@@ -1209,25 +1209,32 @@
 }
 .monitor-visual-summary{
   display:inline-flex;
-  align-items:baseline;
-  gap:4px;
+  align-items:center;
+  gap:6px;
   color:#4e5969;
   font-size:14px;
   font-weight:500;
+  line-height:1;
   white-space:nowrap;
 }
 .monitor-visual-summary strong{
   color:#1d2129;
   font-size:16px;
   font-weight:600;
+  line-height:1;
 }
 .monitor-visual-summary-icon{
+  display:inline-flex!important;
   width:16px!important;
   height:16px!important;
-  margin-right:2px;
+  align-items:center;
+  justify-content:center;
+  margin-right:0;
   color:#2454ff;
   font-size:16px!important;
+  line-height:1!important;
   flex:none;
+  vertical-align:middle;
 }
 .monitor-visual-legend{
   display:flex;
