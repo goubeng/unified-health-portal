@@ -56,18 +56,20 @@
           </t-form-item>
         </t-form>
 
-        <t-table v-if="selectedType" row-key="id" :data="pagedItems" :columns="columns" :sort="tableSort" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
-          <template #empty><EmptyState description="当前字典类型暂无字典项"/></template>
-          <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
-          <template #label="{row}"><TableCellTooltip :text="text(row.label)"><button class="portal-field-link" @click="openItemEdit(row)">{{text(row.label)}}</button></TableCellTooltip></template>
-          <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
-          <template #operation="{row}">
-            <div class="row-actions">
-              <t-button size="small" variant="text" theme="primary" @click="openItemEdit(row)">编辑</t-button>
-              <t-button v-if="!selectedType?.systemLocked&&!row.systemLocked" size="small" variant="text" theme="danger" @click="removeItem(row)">删除</t-button>
-            </div>
-          </template>
-        </t-table>
+        <div v-if="selectedType" class="admin-nowrap-table-scroll dictionary-table-scroll">
+          <t-table row-key="id" :data="pagedItems" :columns="columns" :sort="tableSort" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
+            <template #empty><EmptyState description="当前字典类型暂无字典项"/></template>
+            <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
+            <template #label="{row}"><TableCellTooltip :text="text(row.label)"><button class="portal-field-link" @click="openItemEdit(row)">{{text(row.label)}}</button></TableCellTooltip></template>
+            <template #status="{row}"><t-tag :theme="row.status==='ENABLED'?'success':'default'" variant="light">{{label(row.status)}}</t-tag></template>
+            <template #operation="{row}">
+              <div class="row-actions">
+                <t-button size="small" variant="text" theme="primary" @click="openItemEdit(row)">编辑</t-button>
+                <t-button v-if="!selectedType?.systemLocked&&!row.systemLocked" size="small" variant="text" theme="danger" @click="removeItem(row)">删除</t-button>
+              </div>
+            </template>
+          </t-table>
+        </div>
         <t-pagination v-if="selectedType" v-model="page" v-model:page-size="pageSize" :total="filteredItems.length" :page-size-options="[10,20,50]" show-jumper/>
       </section>
     </div>
