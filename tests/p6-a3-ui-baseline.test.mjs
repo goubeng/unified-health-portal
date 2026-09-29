@@ -1808,3 +1808,18 @@ test('管理首页顶部指标顺序与紧凑间距',()=>{
   assert(css.includes('padding:10px 16px!important;'));
   assert(css.includes('margin-bottom:12px!important;'));
 });
+
+
+test('管理首页接入分析加宽并为指标增加统计说明',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(source.includes('class="admin-overview-label"'));
+  assert(source.includes('<t-tooltip :content="card.hint" placement="top">'));
+  assert(source.includes('class="admin-overview-help"'));
+  assert(source.includes('name="help-circle"'));
+  for(const hint of ['当前门户应用目录中已纳管的全部应用数量','当前处于启用状态的纳管应用数量','三类接入能力中状态为异常的接入项总数','当前未停用且允许访问门户的用户数量','按北京时间当天统计的接口调用日志数量','每次访问行为计 1 次，不按用户去重']){
+    assert(source.includes(hint),hint+' 统计说明未配置');
+  }
+  assert(css.includes('grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)!important;'));
+  assert(css.includes('.admin-overview-help{'));
+});
