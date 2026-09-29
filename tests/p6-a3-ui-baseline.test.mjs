@@ -1686,3 +1686,15 @@ test('退出系统无论接口结果都清空登录态并返回登录页',()=>{
   assert(home.includes("}finally{\n    await router.replace('/login');"));
   assert(layout.includes("}finally{\n    await router.replace('/login');"));
 });
+
+
+test('系统顶部头像统一显示姓名首字且不使用人像图标',()=>{
+  const app=fs.readFileSync('src/App.vue','utf8');
+  const home=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
+  const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
+  assert(app.includes('<span class="avatar">{{displayName(actor).slice(0,1)}}</span>'));
+  assert(home.includes('<span class="public-portal-avatar">{{ displayName.slice(0,1) }}</span>'));
+  assert(layout.includes('<span class="public-portal-avatar">{{ displayName.slice(0,1) }}</span>'));
+  assert(!home.includes('<span class="public-portal-avatar"><UserIcon /></span>'));
+  assert(!layout.includes('<span class="public-portal-avatar"><UserIcon /></span>'));
+});
