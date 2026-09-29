@@ -460,13 +460,11 @@
 /* 2026-09-19 round 13: connection config dialog */
 .access-config-dialog-body{display:flex!important;flex-direction:column!important;height:60vh!important;min-height:480px!important;max-height:680px!important;overflow:hidden!important;background:#fff!important}
 .access-source-summary{flex:0 0 auto!important;margin-bottom:12px!important}
-.access-config-main{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
-.access-config-tabs{height:100%!important;min-height:0!important}
-.access-config-tabs>.t-tabs__nav{flex:0 0 180px!important;width:180px!important;height:100%!important;min-height:100%!important;align-self:stretch!important;border-right:1px solid #e5e8ef!important;background:#fafbfc!important}
+.access-config-main{display:flex!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+.access-config-tabs{display:flex!important;flex:1 1 auto!important;height:100%!important;min-height:0!important}
+.access-config-tabs>.t-tabs__nav{box-sizing:border-box!important;flex:0 0 180px!important;width:180px!important;height:100%!important;min-height:100%!important;align-self:stretch!important;border-right:1px solid #e5e8ef!important;background:#fafbfc!important}
 .access-config-tabs>.t-tabs__content{flex:1 1 auto!important;min-width:0!important;min-height:0!important;height:100%!important;padding:0 0 0 20px!important;overflow:hidden!important}
-.access-config-tabs .t-tab-panel{height:100%!important;min-height:0!important}
-.access-config-panel{display:flex!important;height:100%!important;min-height:0!important;flex-direction:column!important}
-.access-config-panel>.access-source-summary{flex:0 0 auto!important;margin-bottom:12px!important}
+.access-config-tabs .t-tab-panel{display:flex!important;height:100%!important;min-height:0!important;flex-direction:column!important}
 .access-config-scroll{height:auto!important;min-height:0!important;flex:1 1 auto!important;padding:2px 18px 16px 0!important;overflow:auto!important}
 .access-config-tab-head{margin-bottom:16px!important;padding-bottom:12px!important;border-bottom:1px solid #eef0f4!important}
 .access-config-grid{padding:0!important}
@@ -1089,6 +1087,9 @@
 .admin-runtime-exception-list{
   min-width:0;
 }
+.admin-runtime-exception-list .portal-field-link{
+  font-weight:500!important;
+}
 .admin-runtime-exception-list .list-row{
   min-height:62px;
 }
@@ -1190,6 +1191,9 @@
   color:#6b778c!important;
   font-size:10px!important;
   font-weight:400!important;
+}
+.admin-runtime-kind-tag .t-tag__text{
+  font-size:10px!important;
 }
 
 
