@@ -79,7 +79,7 @@
     </t-form>
 
     <section v-if="viewMode==='table'" class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
         <template #empty><EmptyState description="暂无符合条件的运行监控记录"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #appName="{row}"><TableCellTooltip :text="text(row.appName)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.appName)}}</button></TableCellTooltip></template>
@@ -162,6 +162,8 @@ import {date,label,text,theme,dictionaryOptions} from './presentation.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]}});
 const keyword=ref(''),ssoStatus=ref(''),todoStatus=ref(''),messageStatus=ref(''),viewMode=ref('table'),page=ref(1),pageSize=ref(10);
+const defaultTableSort=()=>({sortBy:'lastCheckedAt',descending:true});
+const tableSort=ref(defaultTableSort());
 const detailVisible=ref(false),detail=ref(null),kinds=['SSO','TODO','MESSAGE'];
 const statusOptions=computed(()=>dictionaryOptions('runtime_status',['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']));
 const monitorHealthTones={SSO:'blue',TODO:'green',MESSAGE:'purple'};
@@ -187,15 +189,26 @@ const filtered=computed(()=>{
     return matchKeyword&&(!ssoStatus.value||row.ssoStatus===ssoStatus.value)&&(!todoStatus.value||row.todoStatus===todoStatus.value)&&(!messageStatus.value||row.messageStatus===messageStatus.value);
   });
 });
-const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const compareMonitorRows=(a,b,key)=>{
+  if(key==='lastCheckedAt')return (Date.parse(a.lastCheckedAt)||0)-(Date.parse(b.lastCheckedAt)||0);
+  return text(a[key]).localeCompare(text(b[key]),'zh-CN',{numeric:true,sensitivity:'base'});
+};
+const sortedFiltered=computed(()=>{
+  const rows=filtered.value.slice();
+  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+  if(!active?.sortBy)return rows;
+  const direction=active.descending?-1:1;
+  return rows.sort((a,b)=>direction*compareMonitorRows(a,b,active.sortBy));
+});
+const paged=computed(()=>sortedFiltered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'appName',title:'应用名称',minWidth:250,ellipsis:true},
-  {colKey:'appCode',title:'应用编码',width:170,ellipsis:true},
+  {colKey:'appName',title:'应用名称',minWidth:250,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'appCode',title:'应用编码',width:170,ellipsis:true,sorter:true,sortType:'all'},
   {colKey:'ssoStatus',title:'SSO状态',width:120},
   {colKey:'todoStatus',title:'TODO状态',width:120},
   {colKey:'messageStatus',title:'MESSAGE状态',width:135},
-  {colKey:'lastCheckedAt',title:'最近检测时间',width:180}
+  {colKey:'lastCheckedAt',title:'最近检测时间',width:180,sorter:true,sortType:'all'}
 ];
 
 const detailColumns=[
@@ -228,7 +241,12 @@ const detailRows=computed(()=>kinds.map(kind=>{
 }));
 
 const visualStatusTheme=value=>value==='NORMAL'?'success':['DISABLED','ABNORMAL'].includes(value)?'danger':'default';
-function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';page.value=1;}
+function handleSortChange(sort){
+  const next=Array.isArray(sort)?sort[0]:sort;
+  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:defaultTableSort();
+  page.value=1;
+}
+function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';tableSort.value=defaultTableSort();page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 watch([keyword,ssoStatus,todoStatus,messageStatus,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
