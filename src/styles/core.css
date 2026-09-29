@@ -1168,6 +1168,65 @@
 .admin-runtime-capability-stats>span.is-muted::before{background:#86909c}
 
 
+/* 2026-09-29 monitor list health summary cards. */
+.monitor-health-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin:0 0 16px;
+}
+.monitor-health-card{
+  display:flex;
+  min-width:0;
+  min-height:86px;
+  flex-direction:column;
+  justify-content:center;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid #e5e8ef;
+  background:#fff;
+}
+.monitor-health-title{
+  color:#1d2129;
+  font-size:14px;
+  font-weight:600;
+  line-height:20px;
+}
+.monitor-health-stats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.monitor-health-stat{
+  display:flex;
+  min-width:0;
+  align-items:baseline;
+  gap:5px;
+  white-space:nowrap;
+}
+.monitor-health-stat em{
+  overflow:hidden;
+  font-size:12px;
+  font-style:normal;
+  line-height:18px;
+  text-overflow:ellipsis;
+}
+.monitor-health-stat b{
+  flex:none;
+  font-size:16px;
+  font-weight:600;
+  line-height:20px;
+}
+.monitor-health-stat.is-normal,
+.monitor-health-stat.is-normal b{color:#2ba471}
+.monitor-health-stat.is-abnormal,
+.monitor-health-stat.is-abnormal b{color:#d54941}
+.monitor-health-stat.is-muted,
+.monitor-health-stat.is-muted b{color:#86909c}
+@media(max-width:1100px){
+  .monitor-health-grid{grid-template-columns:1fr}
+}
+
 /* 2026-09-29 monitor compact visual card view. */
 .monitor-header-view-switch{
   display:flex;
