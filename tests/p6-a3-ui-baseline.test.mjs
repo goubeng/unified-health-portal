@@ -66,7 +66,7 @@ test('首页待办公告消息标题链接使用同一规则且未读状态不�
 test('管理首页概览左图右两行且四个图标均有背景色',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户用户总数','有效门户用户','今日接口调用量','今日门户访问量','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
+  for(const label of ['纳管应用','启用应用','有效用户','有效用户','接口调用量(今日)','今日访问量','待处理事项','接入运行分析','快捷入口'])assert(source.includes(label),label+' 未体现');
   assert(!source.includes("{label:'正常应用'"));
   assert(!source.includes("{label:'异常应用'"));
   assert(source.includes('class="admin-overview-icon"'));
@@ -1762,7 +1762,7 @@ test('管理首页顶部六项核心指标单行展示',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const service=fs.readFileSync('src/services/portal.js','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const label of ['纳管应用','启用应用','门户用户总数','有效门户用户','今日接口调用量','今日门户访问量']){
+  for(const label of ['纳管应用','启用应用','接入异常','有效用户','接口调用量(今日)','今日访问量']){
     assert(source.includes("label:'"+label+"'"),label+' 指标未配置');
   }
   assert(!source.includes("label:'门户访问用户'"));
@@ -1770,7 +1770,7 @@ test('管理首页顶部六项核心指标单行展示',()=>{
   assert(source.includes("overview.value.todayApiCallCount??0"));
   assert(source.includes("overview.value.todayAccessCount??0"));
   assert(!source.includes("label:'今日登录次数'"));
-  assert(!source.includes("label:'接入异常',value:overview.value.abnormalServiceCount"));
+  assert(source.includes("label:'接入异常',value:overview.value.abnormalServiceCount"));
   assert(service.includes("timeZone:'Asia/Shanghai'"));
   assert(service.includes("todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length"));
   assert(service.includes("todayAccessCount:todayLogs.filter(x=>x.kind==='access').length"));
@@ -1787,5 +1787,24 @@ test('顶部指标不与待处理事项重复',()=>{
     assert(!block.includes(label),label+' 不应出现在顶部统计指标');
   }
   assert(!block.includes("label:'今日登录次数'"));
-  assert(!block.includes("label:'接入异常'"));
+  assert(block.includes("label:'接入异常'"));
+});
+
+
+test('管理首页顶部指标顺序与紧凑间距',()=>{
+  const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  const block=source.slice(source.indexOf('const adminOverviewCards'),source.indexOf('const adminShortcutIcon'));
+  const labels=['纳管应用','启用应用','接入异常','有效用户','接口调用量(今日)','今日访问量'];
+  let last=-1;
+  for(const label of labels){
+    const index=block.indexOf("label:'"+label+"'");
+    assert(index>last,label+' 顺序不正确');
+    last=index;
+  }
+  assert(!block.includes("label:'门户用户总数'"));
+  assert(!block.includes("label:'有效门户用户'"));
+  assert(css.includes('min-height:88px!important;'));
+  assert(css.includes('padding:10px 16px!important;'));
+  assert(css.includes('margin-bottom:12px!important;'));
 });
