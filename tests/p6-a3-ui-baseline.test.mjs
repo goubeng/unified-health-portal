@@ -1929,3 +1929,15 @@ test('运行监控图示状态标签仅显示接入类型',()=>{
   assert(source.includes('theme="danger" variant="light" size="small">异常 / 停用</t-tag>'));
   assert(source.includes('theme="default" variant="light" size="small">未配置</t-tag>'));
 });
+
+
+test('运行监控图示标签宽度按内容自适应',()=>{
+  const css=fs.readFileSync('src/styles/core.css','utf8');
+  assert(css.includes('.monitor-visual-status-grid{'));
+  assert(css.includes('display:flex;'));
+  assert(css.includes('flex-wrap:wrap;'));
+  assert(css.includes('.monitor-visual-status-tag{'));
+  assert(css.includes('width:auto!important;'));
+  assert(css.includes('flex:none!important;'));
+  assert(!css.includes('grid-template-columns:repeat(3,minmax(0,1fr));'));
+});
