@@ -515,7 +515,7 @@ const formFields=computed(()=>{
    f('enabled','启用状态','text',true,[{value:true,label:'启用'},{value:false,label:'停用'}]),
    ...(form.accessMode==='REQUEST'?[f('postGrantMode','申请通过后','text',true,opt(['DIRECT','BIND']))]:[]),
    ...((form.accessMode==='BIND'||(form.accessMode==='REQUEST'&&form.postGrantMode==='BIND'))?[f('accountBindingMode','账号关联方式','text',true,opt(['AUTO','SELF','REVIEW','ADMIN'])),f('accountOpeningMode','未找到账号时','text',true,[{value:'NONE',label:'仅提示联系管理员'},{value:'REQUEST',label:'允许提交开通申请'}])]:[]),
-   f('url','入口地址','text',true,null,true),...(form.id?[]:[f('sortOrder','显示排序','number')]),f('description','说明','textarea',false,null,true)],
+   ...(form.id?[]:[f('sortOrder','显示排序','number')]),f('url','入口地址','text',true,null,true),f('description','说明','textarea',false,null,true)],
   saveCategory:[f('name','分类名称','text',true),f('code','分类编码','text',true),f('sortOrder','排序','number')],
   saveAnnouncement:[f('title','公告标题','text',true,null,true),f('type','公告类型'),f('scope','发布范围','text',true,opt(['ALL','CITIZEN','GOV'],'announcement_scope')),f('effectiveStart','生效时间','date'),f('effectiveEnd','失效时间','date')],
   bind:[f('externalAccount','已有子系统账号','text',true,null,true)],
