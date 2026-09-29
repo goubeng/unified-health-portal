@@ -333,7 +333,7 @@ async function load(){
 function resetQuery(){
  search.value='';
  for(const key of Object.keys(filterValues))delete filterValues[key];
- tableSort.value=listResource.value==='applicationRequests'?{sortBy:'submittedAt',descending:true}:null;
+ tableSort.value=['applicationRequests','accountOpeningRequests'].includes(listResource.value)?{sortBy:'submittedAt',descending:true}:null;
  page.value=1;appPages.mine=1;appPages.other=1;
 }
 watch(()=>preview.value?route.path:route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
@@ -394,11 +394,13 @@ const appUserTypeStats=computed(()=>[
  {userType:'GOV',label:label('GOV'),icon:'user-safety',tone:'green',count:rows.value.filter(row=>row.userType==='GOV').length},
  {userType:'BOTH',label:label('BOTH'),icon:'usergroup',tone:'purple',count:rows.value.filter(row=>row.userType==='BOTH').length}
 ]);
-const normalizeSortKey=sortBy=>sortBy==='primary'?({apps:'name',applicationRequests:'requestNo'}[listResource.value]||sortBy):sortBy;
+const normalizeSortKey=sortBy=>sortBy==='primary'?({apps:'name',applicationRequests:'requestNo',accountOpeningRequests:'requestNo',categories:'name',permissions:'code'}[listResource.value]||sortBy):sortBy;
 const compareTableValue=(a,b,key)=>{
- if(['submittedAt','createdAt','publishedAt','receivedAt','lastCheckedAt'].includes(key))return (Date.parse(a?.[key])||0)-(Date.parse(b?.[key])||0);
- const av=['status','aggregateRuntimeStatus','userType'].includes(key)?label(a?.[key]):text(a?.[key]);
- const bv=['status','aggregateRuntimeStatus','userType'].includes(key)?label(b?.[key]):text(b?.[key]);
+ if(['submittedAt','createdAt','publishedAt','receivedAt','lastCheckedAt','updatedAt'].includes(key))return (Date.parse(a?.[key])||0)-(Date.parse(b?.[key])||0);
+ if(key==='enabled')return Number(a?.enabled!==false)-Number(b?.enabled!==false);
+ if(['sortOrder','userCount'].includes(key))return (Number(a?.[key])||0)-(Number(b?.[key])||0);
+ const av=['status','aggregateRuntimeStatus','userType','accessMode'].includes(key)?label(a?.[key]):text(a?.[key]);
+ const bv=['status','aggregateRuntimeStatus','userType','accessMode'].includes(key)?label(b?.[key]):text(b?.[key]);
  return String(av||'').localeCompare(String(bv||''),'zh-CN',{numeric:true,sensitivity:'base'});
 };
 const filtered=computed(()=>{
@@ -472,8 +474,11 @@ const columnWidth=(key,index)=>{
  return 160;
 };
 const sortableFields={
- apps:new Set(['name','code','aggregateRuntimeStatus','userType']),
- applicationRequests:new Set(['requestNo','userName','appName','reason','status','submittedAt'])
+ apps:new Set(['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled']),
+ applicationRequests:new Set(['requestNo','userName','appName','status','submittedAt']),
+ accountOpeningRequests:new Set(['requestNo','userName','appName','status','submittedAt']),
+ categories:new Set(['name','code','status']),
+ permissions:new Set(['code','name'])
 };
 const isSortableField=key=>sortableFields[listResource.value]?.has(key)===true;
 const accountOpeningStatusTheme=status=>({
