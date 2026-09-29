@@ -55,7 +55,7 @@
       <t-pagination v-if="treeRows.length" v-model="page" v-model:page-size="pageSize" :total="treeRows.length" :page-size-options="[10,20,50]" show-jumper/>
     </section>
 
-    <t-dialog v-model:visible="detailVisible" placement="center" header="组织详情" width="760px" :footer="false">
+    <t-dialog v-model:visible="detailVisible" placement="center" header="组织详情" width="920px" :footer="false">
       <t-alert v-if="detail?.source==='MINZHENGWU'" theme="info" class="organization-source-alert organization-detail-source-alert">
         该组织来自闽政务组织索引，门户仅展示引用，不维护上游权威组织主数据。
       </t-alert>
