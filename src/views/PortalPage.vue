@@ -76,9 +76,9 @@
         <div v-for="item in latest(homeExceptions,'lastCheckedAt').slice(0,5)" :key="item.id" class="list-row">
          <div>
           <button class="portal-field-link" @click="showDetail(item,'monitor')">{{text(item.appName||item.name)}}</button>
-          <p class="admin-runtime-exception-meta">{{text(item.remark)||label(item.status)}}</p>
+          <p class="admin-runtime-exception-meta"><t-tag class="admin-runtime-kind-tag" theme="primary" variant="light" size="small">{{label(item.kind)}}</t-tag><span>{{text(item.remark)||label(item.status)}}</span></p>
          </div>
-         <t-tag class="admin-runtime-kind-tag" theme="default" variant="light" size="small">{{label(item.kind)}}</t-tag>
+         <t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag>
         </div>
         <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
        </div>
