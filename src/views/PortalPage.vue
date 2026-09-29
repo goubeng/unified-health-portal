@@ -63,6 +63,7 @@
      </div>
 
      <div class="admin-home-bottom-grid">
+      <AdminTrendChart v-if="can(actor,'audit:view')" :access-rows="homeAccessLogs" :api-rows="homeApiLogs"/>
       <section class="panel admin-runtime-exception-panel">
        <div class="section-head">
         <h2>接入异常 <span class="admin-runtime-exception-count">（<strong>{{homeExceptions.length}}</strong>）</span></h2>
@@ -81,7 +82,6 @@
         <EmptyState v-if="!homeExceptions.length" :description="can(actor,'monitor:view')?'暂无接入异常':'当前权限范围暂无接入异常'"/>
        </div>
       </section>
-      <AdminTrendChart v-if="can(actor,'audit:view')" :access-rows="homeAccessLogs" :api-rows="homeApiLogs"/>
      </div>
 
 
