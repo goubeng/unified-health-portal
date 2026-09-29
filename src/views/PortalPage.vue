@@ -244,9 +244,7 @@ const adminOverviewCards=computed(()=>[
  {label:'门户用户总数',value:overview.value.userCount??0,icon:'user',tone:'purple',path:can(actor.value,'identity:view')?'/admin/identities':''},
  {label:'有效门户用户',value:overview.value.enabledUserCount??0,icon:'user-check',tone:'cyan',path:can(actor.value,'identity:view')?'/admin/identities':''},
  {label:'今日接口调用量',value:overview.value.todayApiCallCount??0,icon:'code',tone:'indigo',path:can(actor.value,'audit:view')?'/admin/logs/api':''},
- {label:'今日门户访问量',value:overview.value.todayAccessCount??0,icon:'browse',tone:'teal',path:can(actor.value,'audit:view')?'/admin/logs/access':''},
- {label:'今日登录次数',value:overview.value.todayLoginCount??0,icon:'login',tone:'orange',path:can(actor.value,'audit:view')?'/admin/logs/login':''},
- {label:'接入异常',value:overview.value.abnormalServiceCount??0,icon:'error-circle',tone:'red',path:can(actor.value,'monitor:view')?'/admin/monitor':''}
+ {label:'今日门户访问量',value:overview.value.todayAccessCount??0,icon:'browse',tone:'teal',path:can(actor.value,'audit:view')?'/admin/logs/access':''}
 ]);
 const adminShortcutIcon=resource=>({apps:'app',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
