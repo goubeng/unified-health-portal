@@ -1003,96 +1003,74 @@
 }
 .admin-runtime-capability-grid{
   display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
   margin-bottom:18px;
 }
 .admin-runtime-capability-card{
-  display:grid;
   min-width:0;
-  min-height:88px;
-  grid-template-columns:48px minmax(0,1fr);
-  align-items:center;
-  gap:20px;
-  padding:16px 18px;
+  padding:18px 20px;
   border:1px solid #e5e8ef;
-  border-radius:0;
+  border-radius:16px;
   background:#fff;
   color:#344054;
 }
-.admin-runtime-kind-icon{
-  display:inline-flex;
-  width:48px;
-  height:48px;
-  flex:none;
-  align-items:center;
-  justify-content:center;
-  border-radius:6px;
-  color:#fff;
-}
-.admin-runtime-kind-icon>.t-icon{
-  width:22px!important;
-  height:22px!important;
-  color:#fff!important;
-}
-.admin-runtime-kind-icon.tone-blue{background:#5268d9}
-.admin-runtime-kind-icon.tone-green{background:#00a47a}
-.admin-runtime-kind-icon.tone-purple{background:#6c50e8}
-.admin-runtime-capability-content{
-  display:flex;
-  min-width:0;
-  flex-direction:column;
-  gap:10px;
-}
-.admin-runtime-capability-content>strong{
+.admin-runtime-capability-title{
+  display:block;
+  margin-bottom:12px;
   color:#1f2329;
   font-size:16px;
   font-weight:600;
   line-height:22px;
 }
+.admin-runtime-capability-body{
+  display:grid;
+  min-width:0;
+  grid-template-columns:132px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+}
+.admin-runtime-ring-chart{
+  width:132px;
+  height:132px;
+}
 .admin-runtime-capability-stats{
   display:flex;
   min-width:0;
-  align-items:center;
-  gap:0;
+  flex-direction:column;
+  gap:10px;
 }
 .admin-runtime-capability-stats>span{
-  position:relative;
-  display:inline-flex;
+  display:grid;
   min-width:0;
+  grid-template-columns:10px minmax(0,1fr) auto;
   align-items:center;
-  gap:6px;
-  padding:0 18px;
-  white-space:nowrap;
+  gap:8px;
 }
-.admin-runtime-capability-stats>span:first-child{padding-left:0}
-.admin-runtime-capability-stats>span:last-child{padding-right:0}
-.admin-runtime-capability-stats>span+span{
-  border-left:1px solid #e5e8ef;
-}
-.admin-runtime-capability-stats>span>.t-icon{
-  width:18px!important;
-  height:18px!important;
-  flex:none;
+.admin-runtime-capability-stats>span>i{
+  display:block;
+  width:10px;
+  height:10px;
+  border-radius:50%;
 }
 .admin-runtime-capability-stats em{
+  min-width:0;
+  overflow:hidden;
+  color:#697386;
   font-size:13px;
   font-style:normal;
   font-weight:400;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .admin-runtime-capability-stats b{
-  font-size:16px;
+  color:#1d2129;
+  font-size:14px;
   font-weight:600;
 }
-.admin-runtime-capability-stats .is-normal,
-.admin-runtime-capability-stats .is-normal b,
-.admin-runtime-capability-stats .is-normal>.t-icon{color:#2ba471!important}
-.admin-runtime-capability-stats .is-abnormal,
-.admin-runtime-capability-stats .is-abnormal b,
-.admin-runtime-capability-stats .is-abnormal>.t-icon{color:#d54941!important}
-.admin-runtime-capability-stats .is-muted,
-.admin-runtime-capability-stats .is-muted b,
-.admin-runtime-capability-stats .is-muted>.t-icon{color:#86909c!important}
+.admin-runtime-capability-stats .is-normal>i{background:#2ba471}
+.admin-runtime-capability-stats .is-abnormal>i{background:#d54941}
+.admin-runtime-capability-stats .is-muted>i{background:#d9deea}
 .admin-runtime-exception-head{
   display:flex;
   min-height:34px;
@@ -1129,16 +1107,16 @@
   .admin-home-analysis-grid{grid-template-columns:1fr}
   .admin-home-left-stack{display:grid;grid-template-columns:1fr 1fr;align-items:start}
 }
-@media(max-width:900px){
-  .admin-home-left-stack{grid-template-columns:1fr}
+@media(max-width:1100px){
   .admin-runtime-capability-grid{grid-template-columns:1fr}
 }
+@media(max-width:900px){
+  .admin-home-left-stack{grid-template-columns:1fr}
+}
 @media(max-width:650px){
-  .admin-runtime-capability-card{grid-template-columns:40px minmax(0,1fr);gap:14px;padding:14px}
-  .admin-runtime-kind-icon{width:40px;height:40px}
-  .admin-runtime-kind-icon>.t-icon{width:19px!important;height:19px!important}
-  .admin-runtime-capability-stats{align-items:flex-start;flex-wrap:wrap;row-gap:8px}
-  .admin-runtime-capability-stats>span{padding:0 10px}
+  .admin-runtime-capability-card{padding:16px}
+  .admin-runtime-capability-body{grid-template-columns:110px minmax(0,1fr);gap:10px}
+  .admin-runtime-ring-chart{width:110px;height:110px}
 }
 
 
