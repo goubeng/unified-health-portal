@@ -23,7 +23,7 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
         <template #empty><EmptyState description="暂无符合条件的公告"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}"><TableCellTooltip :text="text(row.title)"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></TableCellTooltip></template>
@@ -147,7 +147,7 @@ const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,
 const route=useRoute(),router=useRouter();
 const emit=defineEmits(['saved','detail']);
 
-const keyword=ref(''),type=ref(''),scope=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
+const keyword=ref(''),type=ref(''),scope=ref(''),status=ref(''),page=ref(1),pageSize=ref(10),tableSort=ref(null);
 const formVisible=ref(false),createFullscreen=ref(false),form=reactive({}),formError=ref(''),saving=ref(false),uploadFiles=ref([]);
 const submitVisible=ref(false),submitRow=ref(null),publishMode=ref('IMMEDIATE'),scheduledPublishAt=ref('');
 const previewVisible=ref(false),previewRecord=ref(null);
@@ -163,25 +163,44 @@ const publishModeOptions=computed(()=>dictionaryOptions('publish_mode',['IMMEDIA
 const displayStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const statusTheme=value=>value==='PUBLISHED'?'success':value==='SCHEDULED'?'warning':['WITHDRAWN','EXPIRED'].includes(value)?'default':'primary';
 
+const publishTimestamp=row=>Date.parse(displayStatus(row)==='SCHEDULED'?row.scheduledPublishAt:row.publishedAt)||0;
+const compareAnnouncement=(a,b,key)=>{
+  if(key==='publishAt')return publishTimestamp(a)-publishTimestamp(b);
+  if(key==='updatedAt')return (Date.parse(a.updatedAt||a.createdAt)||0)-(Date.parse(b.updatedAt||b.createdAt)||0);
+  if(key==='status')return label(displayStatus(a),'announcement_status').localeCompare(label(displayStatus(b),'announcement_status'),'zh-CN',{numeric:true,sensitivity:'base'});
+  const av=key==='title'?text(a.title):text(a[key]);
+  const bv=key==='title'?text(b.title):text(b[key]);
+  return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+};
 const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
-  return props.rows.filter(row=>(!term||text(row.title).toLowerCase().includes(term))&&(!type.value||row.type===type.value)&&(!scope.value||row.scope===scope.value)&&(!status.value||displayStatus(row)===status.value))
-    .sort((a,b)=>(Date.parse(b.updatedAt||b.createdAt)||0)-(Date.parse(a.updatedAt||a.createdAt)||0));
+  const result=props.rows.filter(row=>(!term||text(row.title).toLowerCase().includes(term))&&(!type.value||row.type===type.value)&&(!scope.value||row.scope===scope.value)&&(!status.value||displayStatus(row)===status.value));
+  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+  if(active?.sortBy){
+    const direction=active.descending?-1:1;
+    return result.sort((a,b)=>direction*compareAnnouncement(a,b,active.sortBy));
+  }
+  return result.sort((a,b)=>(Date.parse(b.updatedAt||b.createdAt)||0)-(Date.parse(a.updatedAt||a.createdAt)||0));
 });
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'title',title:'公告标题',minWidth:260,ellipsis:true},
-  {colKey:'type',title:'公告类型',width:110},
+  {colKey:'title',title:'公告标题',minWidth:260,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'type',title:'公告类型',width:110,sorter:true,sortType:'all'},
   {colKey:'scope',title:'发布范围',width:110},
-  {colKey:'status',title:'状态',width:110},
-  {colKey:'publishAt',title:'发布/计划时间',width:180},
+  {colKey:'status',title:'状态',width:110,sorter:true,sortType:'all'},
+  {colKey:'publishAt',title:'发布/计划时间',width:180,sorter:true,sortType:'all'},
   {colKey:'effectiveEnd',title:'失效日期',width:140},
-  {colKey:'updatedAt',title:'更新时间',width:180,cell:(_,ctx)=>date(ctx.row.updatedAt)},
+  {colKey:'updatedAt',title:'更新时间',width:180,sorter:true,sortType:'all',cell:(_,ctx)=>date(ctx.row.updatedAt)},
   {colKey:'operation',title:'操作',width:220,fixed:'right'}
 ];
 
-function reset(){keyword.value='';type.value='';scope.value='';status.value='';page.value=1;}
+function handleSortChange(sort){
+  const next=Array.isArray(sort)?sort[0]:sort;
+  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
+  page.value=1;
+}
+function reset(){keyword.value='';type.value='';scope.value='';status.value='';tableSort.value=null;page.value=1;}
 function assign(row){
   Object.keys(form).forEach(key=>delete form[key]);
   Object.assign(form,JSON.parse(JSON.stringify(row)));
