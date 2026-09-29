@@ -17,7 +17,7 @@
     </t-form>
 
     <section class="panel portal-table-panel">
-      <t-table row-key="id" :data="paged" :columns="columns" hover table-layout="fixed" size="medium">
+      <t-table row-key="id" :data="paged" :columns="columns" :sort="tableSort||undefined" hover table-layout="fixed" size="medium" @sort-change="handleSortChange">
         <template #empty><EmptyState description="暂无符合条件的角色"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #roleCode="{row}"><TableCellTooltip :text="text(row.roleCode)"><button class="portal-field-link" @click="openDetail(row)">{{text(row.roleCode)}}</button></TableCellTooltip></template>
@@ -146,7 +146,7 @@ import {rolePermissionGroups,permissionsFromScopes} from '../../config/pages.js'
 const props=defineProps({rows:{type:Array,default:()=>[]}});
 const emit=defineEmits(['saved']);
 
-const keyword=ref(''),status=ref(''),page=ref(1),pageSize=ref(10);
+const keyword=ref(''),status=ref(''),page=ref(1),pageSize=ref(10),tableSort=ref(null);
 const detailVisible=ref(false),detail=ref(null),formVisible=ref(false),form=reactive({}),formError=ref(''),saving=ref(false);
 const statusOptions=[{value:'ENABLED',label:'启用'},{value:'DISABLED',label:'停用'}];
 
@@ -159,7 +159,22 @@ const filtered=computed(()=>{
     return matchKeyword&&(!status.value||row.status===status.value);
   });
 });
-const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
+const compareRoleRows=(a,b,key)=>{
+  if(key==='updatedAt')return (Date.parse(a.updatedAt)||0)-(Date.parse(b.updatedAt)||0);
+  if(key==='userCount')return (Number(a.userCount)||0)-(Number(b.userCount)||0);
+  if(key==='builtIn')return Number(Boolean(a.builtIn))-Number(Boolean(b.builtIn));
+  const av=key==='status'?label(a.status):text(a[key]);
+  const bv=key==='status'?label(b.status):text(b[key]);
+  return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
+};
+const sortedFiltered=computed(()=>{
+  const result=filtered.value.slice();
+  const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
+  if(!active?.sortBy)return result;
+  const direction=active.descending?-1:1;
+  return result.sort((a,b)=>direction*compareRoleRows(a,b,active.sortBy));
+});
+const paged=computed(()=>sortedFiltered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
 const selectedPermissions=computed(()=>form.permissions||[]);
 const rolePermissions=row=>Array.isArray(row?.permissions)?row.permissions:permissionsFromScopes(row?.scopes||[]);
 const detailPermissions=computed(()=>detail.value?rolePermissions(detail.value):[]);
@@ -188,13 +203,13 @@ const detailPermissionGroups=computed(()=>permissionGroups.map(group=>{
 
 const columns=[
   {colKey:'serial',title:'序号',width:64},
-  {colKey:'roleCode',title:'角色编码',width:170,ellipsis:true},
-  {colKey:'roleName',title:'角色名称',width:170,ellipsis:true},
+  {colKey:'roleCode',title:'角色编码',width:170,ellipsis:true,sorter:true,sortType:'all'},
+  {colKey:'roleName',title:'角色名称',width:170,ellipsis:true,sorter:true,sortType:'all'},
   {colKey:'description',title:'角色说明',minWidth:280,ellipsis:true},
-  {colKey:'builtIn',title:'角色类型',width:100},
-  {colKey:'userCount',title:'关联用户数',width:110},
-  {colKey:'status',title:'启用状态',width:100},
-  {colKey:'updatedAt',title:'更新时间',width:180,ellipsis:true},
+  {colKey:'builtIn',title:'角色类型',width:100,sorter:true,sortType:'all'},
+  {colKey:'userCount',title:'关联用户数',width:110,sorter:true,sortType:'all'},
+  {colKey:'status',title:'启用状态',width:100,sorter:true,sortType:'all'},
+  {colKey:'updatedAt',title:'更新时间',width:180,ellipsis:true,sorter:true,sortType:'all'},
   {colKey:'operation',title:'操作',width:120,fixed:'right'}
 ];
 
@@ -203,7 +218,12 @@ function roleUpdatedAt(value){
   const d=new Date(value),pad=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
-function reset(){keyword.value='';status.value='';page.value=1;}
+function handleSortChange(sort){
+  const next=Array.isArray(sort)?sort[0]:sort;
+  tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:null;
+  page.value=1;
+}
+function reset(){keyword.value='';status.value='';tableSort.value=null;page.value=1;}
 function assignForm(row){
   Object.keys(form).forEach(key=>delete form[key]);
   const copy=JSON.parse(JSON.stringify(row));
