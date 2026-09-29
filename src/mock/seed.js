@@ -157,6 +157,21 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
   return row('MOCK_LOG_error_'+i,{...common,name:'接入异常',severity:i%2?'MEDIUM':'HIGH',moduleName:i%2?'运行监控':'身份映射',errorCode:i%2?'UPSTREAM_TIMEOUT':'ACCOUNT_MAPPING_CONFLICT',
    errorMessage:i%2?'上游服务响应超时':'子系统账号关联冲突',resolutionStatus:errorOpen?'OPEN':'RESOLVED',resolutionNote:errorOpen?'':'已完成Mock核查',resolvedAt:errorOpen?null:at(-1),resolvedBy:errorOpen?null:actors[2].id,description:i%2?'上游服务响应超时':'子系统账号关联冲突'});
  }));
+ const accessTrendCounts=[5,7,6,9,8,12,10],apiTrendCounts=[14,18,16,21,19,25,23];
+ accessTrendCounts.forEach((count,dayIndex)=>{
+  const daysAgo=6-dayIndex;
+  for(let i=0;i<count;i++){
+   const actor=actors[i%actors.length],app=apps[(i+dayIndex)%apps.length],createdAt=at(-daysAgo*24-1-(i%6)*.35);
+   logs.push(row(`MOCK_LOG_TREND_ACCESS_${dayIndex}_${i}`,{kind:'access',name:'应用访问',actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,actorType:actor.kind==='ADMIN'?'PORTAL_ADMIN_USER':'ACCESS_USER',authType:actor.authType||'EXTERNAL',identitySource:identityCode(actor),appId:app.id,appName:app.name,status:'SUCCESS',createdAt,requestId:`P4_TREND_ACCESS_${dayIndex}_${i}`,ip:'127.0.0.1',client:'Chrome / Windows',accessMethod:'门户入口',accessMode:app.accessMode,description:'趋势样本：访问应用 '+app.name}));
+  }
+ });
+ apiTrendCounts.forEach((count,dayIndex)=>{
+  const daysAgo=6-dayIndex;
+  for(let i=0;i<count;i++){
+   const actor=actors[i%actors.length],app=apps[(i+dayIndex*2)%apps.length],createdAt=at(-daysAgo*24-2-(i%8)*.25);
+   logs.push(row(`MOCK_LOG_TREND_API_${dayIndex}_${i}`,{kind:'api',name:'接口调用',actor:actor.name,userId:actor.id,userName:actor.name,account:actor.account,userType:actor.userType,actorType:'APPLICATION',authType:actor.authType||'EXTERNAL',identitySource:identityCode(actor),appId:app.id,appName:app.name,status:i%11===0?'FAILURE':'SUCCESS',createdAt,requestId:`P4_TREND_API_${dayIndex}_${i}`,ip:'127.0.0.1',client:'服务端调用',interfaceName:i%2?'/api/portal/ingest/todos':'/api/portal/ingest/messages',httpMethod:'POST',statusCode:i%11===0?500:200,durationMs:70+(i%7)*18,errorMessage:i%11===0?'模拟接口响应异常':null,description:'趋势样本：接口调用'}));
+  }
+ });
  const visits=businessActors.flatMap(actor=>available(actor).slice(0,4).map((app,i)=>({userId:actor.id,appId:app.id,at:at(-i-1)})));
  const requestApp6=apps.find(x=>x.id==='MOCK_APP_6'),requestApp13=apps.find(x=>x.id==='MOCK_APP_13'),requestApp17=apps.find(x=>x.id==='MOCK_APP_17');
  const applicationRequests=[
