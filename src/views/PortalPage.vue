@@ -59,15 +59,18 @@
        <div class="section-head"><h2>接入运行分析</h2><router-link v-if="can(actor,'monitor:view')" to="/admin/monitor">查看运行监控</router-link></div>
        <div v-if="overview.serviceHealth" class="admin-runtime-capability-grid">
         <div v-for="kind in ['SSO','TODO','MESSAGE']" :key="kind" class="admin-runtime-capability-card">
-         <span class="admin-runtime-kind-icon" :class="'tone-'+adminRuntimeTone(kind)">
-          <component :is="adminRuntimeIcon(kind)"/>
-         </span>
-         <div class="admin-runtime-capability-content">
-          <strong>{{kind}}</strong>
+         <strong class="admin-runtime-capability-title">{{kind}}</strong>
+         <div class="admin-runtime-capability-body">
+          <AdminRuntimeRing
+           :kind="kind"
+           :normal="overview.serviceHealth[kind]?.normal??0"
+           :abnormal="overview.serviceHealth[kind]?.abnormal??0"
+           :inactive="overview.serviceHealth[kind]?.unconfigured??0"
+          />
           <div class="admin-runtime-capability-stats">
-           <span class="is-normal"><Icon name="check-circle"/><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
-           <span class="is-abnormal"><Icon name="error-circle"/><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
-           <span class="is-muted"><Icon name="minus-circle"/><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
+           <span class="is-normal"><i></i><em>正常</em><b>{{overview.serviceHealth[kind]?.normal??0}}</b></span>
+           <span class="is-abnormal"><i></i><em>异常</em><b>{{overview.serviceHealth[kind]?.abnormal??0}}</b></span>
+           <span class="is-muted"><i></i><em>未配置/停用</em><b>{{overview.serviceHealth[kind]?.unconfigured??0}}</b></span>
           </div>
          </div>
         </div>
@@ -219,7 +222,7 @@ import TableCellTooltip from '../components/portal/TableCellTooltip.vue';
 import {computed,h,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
-import {Icon,LinkIcon,TaskIcon,MailIcon} from 'tdesign-icons-vue-next';
+import {Icon} from 'tdesign-icons-vue-next';
 import {actor,portal,command,revision,availableUsers,downloadAccessContract,loadDictionaryLookups,dictionaryLookups} from '../services/runtime.js';
 import {pages,can,shouldLoadAppCatalog} from '../config/pages.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
@@ -239,6 +242,7 @@ import AnnouncementEditPage from '../components/portal/AnnouncementEditPage.vue'
 import MonitorManagement from '../components/portal/MonitorManagement.vue';
 import LogManagement from '../components/portal/LogManagement.vue';
 import AdminTrendChart from '../components/portal/AdminTrendChart.vue';
+import AdminRuntimeRing from '../components/portal/AdminRuntimeRing.vue';
 import DetailGrid from '../components/portal/DetailGrid.vue';
 import PersonalProfile from '../components/portal/PersonalProfile.vue';
 import RecordDetail from '../components/portal/RecordDetail.vue';
@@ -279,8 +283,6 @@ const adminOverviewCards=computed(()=>[
 ]);
 const adminShortcutIcon=resource=>({apps:'add',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
-const adminRuntimeTone=kind=>({SSO:'blue',TODO:'green',MESSAGE:'purple'}[kind]||'blue');
-const adminRuntimeIcon=kind=>({SSO:LinkIcon,TODO:TaskIcon,MESSAGE:MailIcon}[kind]||LinkIcon);
 const adminPendingItems=computed(()=>[
  {label:'应用访问申请',value:overview.value.pendingAccessCount??0,hint:'待审核入口资格',path:can(actor.value,'application:view')?'/admin/application-requests':'',danger:(overview.value.pendingAccessCount??0)>0},
  {label:'账号开通申请',value:overview.value.pendingAccountOpeningCount??0,hint:'待子系统处理',path:can(actor.value,'application:view')?'/admin/account-opening-requests':'',danger:(overview.value.pendingAccountOpeningCount??0)>0},
