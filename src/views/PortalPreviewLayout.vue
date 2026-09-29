@@ -25,7 +25,7 @@
           </t-badge>
           <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
             <button class="public-portal-account" type="button">
-              <span class="public-portal-avatar"><UserIcon /></span>
+              <span class="public-portal-avatar">{{ displayName.slice(0,1) }}</span>
               <span>{{ displayName }}</span>
               <ChevronDownIcon size="16px" />
             </button>
@@ -87,7 +87,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,NotificationIcon,UserIcon} from 'tdesign-icons-vue-next';
+import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,NotificationIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
