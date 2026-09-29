@@ -23,23 +23,28 @@
     <p class="inline-note">运行状态为本地演示样本，尚未接入真实上下游系统；“正常”仅用于演示，不代表实际连通。</p>
     <div v-if="viewMode==='table'" class="monitor-health-grid">
       <section v-for="item in monitorHealthStats" :key="item.kind" class="monitor-health-card">
-        <strong class="monitor-health-title">{{item.kind}}</strong>
-        <div class="monitor-health-stats">
-          <span class="monitor-health-stat is-normal">
-            <t-icon name="check-circle" class="monitor-health-stat-icon"/>
-            <em>正常</em>
-            <b>{{item.normal}}</b>
-          </span>
-          <span class="monitor-health-stat is-abnormal">
-            <t-icon name="error-circle" class="monitor-health-stat-icon"/>
-            <em>异常</em>
-            <b>{{item.abnormal}}</b>
-          </span>
-          <span class="monitor-health-stat is-muted">
-            <t-icon name="minus-circle" class="monitor-health-stat-icon"/>
-            <em>未配置/停用</em>
-            <b>{{item.inactive}}</b>
-          </span>
+        <span class="monitor-health-kind-icon" :class="'tone-'+item.tone">
+          <component :is="monitorHealthIcon(item.kind)"/>
+        </span>
+        <div class="monitor-health-content">
+          <strong class="monitor-health-title">{{item.kind}}</strong>
+          <div class="monitor-health-stats">
+            <span class="monitor-health-stat is-normal">
+              <t-icon name="check-circle" class="monitor-health-stat-icon"/>
+              <em>正常</em>
+              <b>{{item.normal}}</b>
+            </span>
+            <span class="monitor-health-stat is-abnormal">
+              <t-icon name="error-circle" class="monitor-health-stat-icon"/>
+              <em>异常</em>
+              <b>{{item.abnormal}}</b>
+            </span>
+            <span class="monitor-health-stat is-muted">
+              <t-icon name="minus-circle" class="monitor-health-stat-icon"/>
+              <em>未配置/停用</em>
+              <b>{{item.inactive}}</b>
+            </span>
+          </div>
         </div>
       </section>
     </div>
@@ -138,6 +143,7 @@
 <script setup>
 import {computed,defineComponent,h,ref,watch} from 'vue';
 import {Tag} from 'tdesign-vue-next';
+import {LinkIcon,TaskIcon,MailIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text,theme,dictionaryOptions} from './presentation.js';
@@ -146,11 +152,15 @@ const props=defineProps({rows:{type:Array,default:()=>[]}});
 const keyword=ref(''),ssoStatus=ref(''),todoStatus=ref(''),messageStatus=ref(''),viewMode=ref('table'),page=ref(1),pageSize=ref(10);
 const detailVisible=ref(false),detail=ref(null),kinds=['SSO','TODO','MESSAGE'];
 const statusOptions=computed(()=>dictionaryOptions('runtime_status',['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']));
+const monitorHealthTones={SSO:'blue',TODO:'green',MESSAGE:'purple'};
+const monitorHealthIcons={SSO:LinkIcon,TODO:TaskIcon,MESSAGE:MailIcon};
+const monitorHealthIcon=kind=>monitorHealthIcons[kind]||LinkIcon;
 const monitorHealthStats=computed(()=>kinds.map(kind=>{
   const key=kind.toLowerCase()+'Status';
   const statuses=props.rows.map(row=>row?.[key]);
   return {
     kind,
+    tone:monitorHealthTones[kind]||'blue',
     normal:statuses.filter(value=>value==='NORMAL').length,
     abnormal:statuses.filter(value=>value==='ABNORMAL').length,
     inactive:statuses.filter(value=>value==='UNCONFIGURED'||value==='DISABLED').length
