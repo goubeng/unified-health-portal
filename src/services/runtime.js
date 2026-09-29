@@ -27,7 +27,14 @@ export async function initializeRuntime(){
 }
 export const portal={read:resource=>request('read?resource='+encodeURIComponent(resource))};
 export async function login(id,loginMethod){const result=await request('session',{userId:id,loginMethod});if(!result.ok)throw new Error(result.error.message);applySession(result.data||{});revision.value++;}
-export async function logout(){const result=await request('logout',{});if(!result.ok)throw new Error(result.error.message);actor.value=null;session.value={accessSubject:null,adminUser:null,adminAccess:false,roles:[],permissions:[],authType:null,identitySource:null};revision.value++;}
+export async function logout(){
+ const result=await request('logout',{});
+ actor.value=null;
+ session.value={accessSubject:null,adminUser:null,adminAccess:false,roles:[],permissions:[],authType:null,identitySource:null};
+ users.value=[];
+ revision.value++;
+ if(!result.ok)throw new Error(result.error.message);
+}
 export async function command(action,payload={}){const result=await request('command',{action,payload});if(result.ok){await initializeRuntime();revision.value++;}return result;}
 export async function downloadContract(kind,appId){const result=await request(`contracts/${kind}/${encodeURIComponent(appId)}`);if(!result.ok)throw Error(result.error.message);const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`${kind.toLowerCase()}-${appId}-openapi.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
