@@ -7,6 +7,7 @@ import {loadApplicationState,applicationMirrorSql} from './application-persisten
 import {loadMessageTodoState,messageTodoMirrorSql} from './message-todo-persistence.mjs';
 import {loadRequestState,requestMirrorSql} from './request-persistence.mjs';
 import {loadRemainingState,remainingMirrorSql,remainingResources} from './remaining-persistence.mjs';
+import {loadMonitorHistory,monitorHistoryMirrorSql} from './monitor-history-persistence.mjs';
 
 export const schema='pb3gir75kkooyea';
 export const dbId=id=>id?'P4FIX_'+String(id).replace(/^MOCK_/,''):null;
@@ -99,7 +100,11 @@ export function mirrorSql(before,after){
  const changed=(key,fn)=>{const old=new Map((before[key]||[]).map(x=>[x.id,JSON.stringify(x)]));for(const row of after[key]||[])if(old.get(row.id)!==JSON.stringify(row))statements.push(fn(row));};
  changed('users',x=>upsert('unified_user',{...base(x),display_name:x.name,org_key:x.orgKey||null,org_name:x.orgName||null,status:x.status}));
  changed('mappings',x=>{const subject=dbId(x.externalUserId||'ACCOUNT_'+x.externalAccount),app=dbId(x.appId);return upsert('application_user_mapping',{...base(x),user_id:dbId(x.userId),application_id:app,external_user_id:subject,external_account:x.externalAccount,binding_method:x.bindingMethod||'SELF',status:x.status,active_account_key:x.status==='BOUND'?JSON.stringify([app,subject]):null,bound_at:x.status==='BOUND'?x.boundAt||x.updatedAt:null,unbound_at:x.status==='UNBOUND'?x.updatedAt:null,conflict_reason:x.conflictReason||null});});
- changed('monitorSamples',x=>upsert('monitor_status',{...base(x),target_key:dbId(x.appId),service_type:x.kind,status:x.status,last_success_at:x.status==='NORMAL'?x.lastCheckedAt:null,last_failure_at:x.status==='ABNORMAL'?x.lastCheckedAt:null,failure_count:x.status==='ABNORMAL'?1:0,response_time_ms:x.responseTimeMs||null,last_error:x.status==='ABNORMAL'?'接口响应超时（场景样本）':null}));
+ changed('monitorSamples',x=>{
+  const row={...base(x),target_key:dbId(x.appId),service_type:x.kind,status:x.status,last_success_at:x.lastSuccessAt||(x.status==='NORMAL'?x.lastCheckedAt:null),last_failure_at:x.lastFailureAt||(x.status==='ABNORMAL'?x.lastCheckedAt:null),failure_count:Number(x.failureCount??(x.status==='ABNORMAL'?1:0)),response_time_ms:x.responseTimeMs??null,last_error:x.status==='ABNORMAL'?x.lastError||x.reason||'接入检测异常':null};
+  const keys=Object.keys(row),target=table('monitor_status');
+  return `INSERT INTO ${target} (${keys.map(ident).join(',')}) VALUES (${keys.map(key=>lit(row[key])).join(',')}) ON CONFLICT (target_key,service_type) DO UPDATE SET status=EXCLUDED.status,updated_at=EXCLUDED.updated_at,version=${target}.version+1,last_success_at=coalesce(EXCLUDED.last_success_at,${target}.last_success_at),last_failure_at=coalesce(EXCLUDED.last_failure_at,${target}.last_failure_at),failure_count=EXCLUDED.failure_count,response_time_ms=EXCLUDED.response_time_ms,last_error=EXCLUDED.last_error;`;
+ });
  changed('settings',x=>upsert('system_config',{...base(x),code:'P4FIX_'+x.code,value:x.value,unit:x.unit||'count',status:x.value==null?'UNCONFIGURED':'CONFIGURED',description:x.name||x.code}));
  changed('integrations',x=>x.kind==='SSO'?upsert('sso_config',{...base({...x,id:'SSO_'+x.appId}),application_id:dbId(x.appId),enabled:x.enabled||'DISABLED',remark:x.remark||'',protocol:x.protocol||'UNCONFIGURED',client_id:x.clientId||null,secret_ref:x.credentialRef||null,endpoints:{authorizeUrl:x.authorizeUrl||'',tokenUrl:x.tokenUrl||'',callbackUrl:x.callbackUrl||''},status:x.status==='DISABLED'?'DISABLED':'UNCONFIGURED'}):upsert('push_integration_config',{...base({...x,id:'PUSH_'+x.appId+'_'+x.kind}),application_id:dbId(x.appId),kind:x.kind,enabled:x.enabled||'DISABLED',remark:x.remark||'',mode:'PUSH',credential_ref:x.credentialRef||null,field_mapping:x.fieldMapping||{},value_mapping:x.valueMapping||{},target_key_kind:'UNIFIED_USER_ID',status:x.status==='DISABLED'?'DISABLED':'UNCONFIGURED'}));
  const receiptKey=x=>[x.appId,x.kind|| (JSON.parse(x.payload).sourceTodoId?'TODO':'MESSAGE'),x.eventId].join('|');
@@ -112,6 +117,7 @@ export function mirrorSql(before,after){
    statements.push(`DO $$ BEGIN UPDATE ${table('audit_event')} SET resolution_status=${lit(row.resolutionStatus)},details=(coalesce(nullif(details,''),'{}')::jsonb||${lit({resolutionNote:row.resolutionNote||'',resolvedAt:row.resolvedAt||null,resolvedBy:row.resolvedBy||null})}::jsonb)::text,version=${Number(row.version)},updated_at=now() WHERE id=${lit(row.id)} AND kind='ERROR' AND version=${Number(old.version)}; IF NOT FOUND THEN RAISE EXCEPTION 'LOG_VERSION_CONFLICT'; END IF; END $$;`);
   }
   statements.push(remainingMirrorSql(before,after));
+ statements.push(monitorHistoryMirrorSql(before,after));
  statements.push(applicationMirrorSql(before,after));
  statements.push(messageTodoMirrorSql(before,after));
  statements.push(requestMirrorSql(before,after));
@@ -171,12 +177,12 @@ export function createRepository(query=sqlQuery){
    async load(){
     const raw=await query(`SELECT json_build_object('version',version,'state',value::jsonb) FROM ${table('system_config')} WHERE id='P4RUN_STATE';`);
     if(raw){const record=JSON.parse(raw);ensureRules(record.state);
-     const [remaining,applications,announcements]=await Promise.all([
-      loadRemainingState(query,record.state),loadApplicationState(query,record.state),loadAnnouncementState(query,record.state)
+     const [remaining,applications,announcements,monitorHistory]=await Promise.all([
+      loadRemainingState(query,record.state),loadApplicationState(query,record.state),loadAnnouncementState(query,record.state),loadMonitorHistory(query)
      ]);
      const state={...record.state};
      for(const key of remainingResources)if(Object.hasOwn(remaining,key))state[key]=remaining[key];
-     Object.assign(state,{categories:applications.categories,apps:applications.apps,
+     Object.assign(state,{categories:applications.categories,apps:applications.apps,monitorHistory,
       announcements:announcements.announcements,announcementTrash:announcements.announcementTrash,announcementReads:announcements.announcementReads});
      const [messageTodo,requests]=await Promise.all([loadMessageTodoState(query,state),loadRequestState(query,state)]);
      Object.assign(state,{todos:messageTodo.todos,messages:messageTodo.messages,
@@ -189,7 +195,8 @@ export function createRepository(query=sqlQuery){
   },
   async commit(before,after,version,event){
    const insert=event?`INSERT INTO ${table('audit_event')}(id,created_at,updated_at,version,kind,event_code,request_id,actor_user_id,actor_kind,application_id,object_type,object_id,result,summary,details) VALUES (${lit(event.id)},${lit(event.at)},${lit(event.at)},1,${lit(event.kind)},${lit(event.action)},${lit(event.requestId)},${lit(dbId(event.actorId))},${lit(event.actorKind)},${lit(dbId(event.appId))},${lit(event.details.objectType||'portal')},${lit(event.objectId)},${lit(event.result)},${lit(event.summary)},${lit(event.details)});`:'';
-   await query(`BEGIN; SET LOCAL lock_timeout='5s'; SELECT pg_advisory_xact_lock(38013800); DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM ${table('system_config')} WHERE id='P4RUN_STATE' AND version=${Number(version)} FOR UPDATE) THEN RAISE EXCEPTION 'STATE_VERSION_CONFLICT'; END IF; END $$; ${mirrorSql(before,after)} ${insert} UPDATE ${table('system_config')} SET value=${lit(after)},version=version+1,updated_at=now() WHERE id='P4RUN_STATE'; COMMIT;`);
+   const snapshot={...after};delete snapshot.monitorHistory;
+   await query(`BEGIN; SET LOCAL lock_timeout='5s'; SELECT pg_advisory_xact_lock(38013800); DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM ${table('system_config')} WHERE id='P4RUN_STATE' AND version=${Number(version)} FOR UPDATE) THEN RAISE EXCEPTION 'STATE_VERSION_CONFLICT'; END IF; END $$; ${mirrorSql(before,after)} ${insert} UPDATE ${table('system_config')} SET value=${lit(snapshot)},version=version+1,updated_at=now() WHERE id='P4RUN_STATE'; COMMIT;`);
   },
    async logs(kind){const raw=await query(`SELECT coalesce(json_agg(r),'[]'::json) FROM (SELECT a.id,a.version,lower(a.kind) AS kind,a.event_code AS name,u.display_name AS actor,a.actor_kind AS "actorKind",r.payload AS "actorProfile",p.runtime_payload AS "appProfile",a.summary AS description,a.result AS status,a.created_at AS "createdAt",a.request_id AS "requestId",p.name AS "appName",a.application_id AS "appId",a.object_type AS "objectType",a.object_id AS "objectId",a.details::jsonb AS details,coalesce(a.resolution_status,'OPEN') AS "resolutionStatus",a.details::jsonb->>'resolutionNote' AS "resolutionNote",a.details::jsonb->>'resolvedAt' AS "resolvedAt",a.details::jsonb->>'resolvedBy' AS "resolvedBy" FROM ${table('audit_event')} a LEFT JOIN ${table('unified_user')} u ON a.actor_user_id=u.id LEFT JOIN ${table('portal_runtime_entity')} r ON r.resource='users' AND r.runtime_id=regexp_replace(a.actor_user_id,'^P4FIX_','MOCK_') LEFT JOIN ${table('application')} p ON a.application_id=p.id WHERE ${kind==='login'?"a.kind IN ('LOGIN','AUTH')":`a.kind=${lit(kind.toUpperCase())}`} ORDER BY a.created_at DESC LIMIT 1000) r;`);return JSON.parse(raw).map(auditLogDto);},
    async openErrorCount(){const raw=await query(`SELECT count(*) FROM ${table('audit_event')} WHERE kind='ERROR' AND coalesce(resolution_status,'OPEN')='OPEN';`);return Number(raw);}

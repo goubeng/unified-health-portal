@@ -179,3 +179,22 @@
 ## 2026-09-29 编辑启停开关与综合运行状态说明
 
 - 源码初查：`aggregateRuntimeStatus` 对启用应用按“三项任一 ABNORMAL→异常；否则任一 NORMAL→正常；全停用→停用；其余→未配置”聚合。截图中的接入配置状态/启用状态不是运行态，必须读回 APP_4 的 SSO/TODO/MESSAGE 有效运行状态，才能判断当前为何为正常；不先改聚合规则。
+- 新进程真实库 v499 读回截图应用 WJ_APP_04/APP_4：应用启用且访问模式 BIND，SSO 实际 DISABLED、TODO 实际 UNCONFIGURED、MESSAGE 实际 NORMAL，因此按现规则显示综合 NORMAL。SSO 当前不可用却综合“正常”反映的是“有一项正常且无异常”的聚合规则，不代表该应用三项全正常或可成功进入；改变综合语义需另定必需能力规则。
+- 编辑表单仅将启停字段从下拉改成布尔开关，保留 `application:enable` 禁用边界及已有保存逻辑；定向测试 3/3 与生产构建通过。既有详情静态断言因共用插槽条件更新而失配，与本轮开关无关；现场视觉未验收。
+
+## 2026-09-30 接入异常与恢复日志现状核对
+
+- 待核：`monitor_status` 是否仅存当前/最后成功失败，`audit_event` 是否为动作审计而非每次检测；管理端“日志审计”与运行监控详情是否能展示异常→恢复的逐次历史。
+- 源码与现库只读核对：`monitor_status` 按 `(target_key,service_type)` 唯一，一项服务只留一条快照及最近成功/失败等字段；现库 13 条。运行监控页面展示当前状态和最近检测/成功/失败，不提供逐次历史。`audit_event` 现有 17 条 ERROR，其中 4 条旧演示事件（含 APP_4 的“上游服务响应超时”且人工处理标记 RESOLVED），其余为 `openTodo`/`enterApp`/`saveApp`/`setAppStatus` 等操作失败。RESOLVED 不等于服务恢复 NORMAL；没有自动写入 ABNORMAL→NORMAL 的状态迁移事件。
+
+## 2026-09-30 接入状态历史实现核查
+
+- 监控有效状态由配置启停、应用启停与较新的 `monitorSamples` 合成；只有 `monitor_status` 当前快照，不能用于逐次历史。现有 API 服务命令均不提供检测器写入 NORMAL/ABNORMAL 的入口，`saveIntegration` 只重置为 UNCONFIGURED；后续接口需将一次观测与状态迁移分开，重复相同状态不产生迁移。
+- 采用独立追加型物理表保存应用/能力/前后状态/发生时间/原因/来源；读取按时间倒序，人工 `audit_event.resolution_status=RESOLVED` 与监控恢复完全隔离。迁移只建空表，不凭历史快照杜撰过往异常恢复。
+- `recordMonitorObservation` 受 `monitor:check` 权限保护，只接受已启用应用上 `configStatus=CONFIGURED` 且接入项启用的 SSO/TODO/MESSAGE，检测结果仅 NORMAL/ABNORMAL；异常原因必填。重复同态刷新最近检测及成功/失败时间，但不会新增迁移历史；ABNORMAL→NORMAL 才是恢复事件。物理 `monitor_status` 保留上次成功/失败时刻，当前恢复后清空 `last_error`。
+- 选定 APP_18 的 TODO（福建省互联网医院监管平台）作为历史演示样本：当前已配置、启用、NORMAL，待办/消息/映射/申请/授权/账号开通/访问/回执八类业务关系全为 0；不扰动有依赖的应用。记录两次真实状态迁移后恢复 NORMAL，历史保留供页面演示。
+
+## 2026-09-30 必需能力综合状态
+
+- `enterApp` 与 `openTodo` 对所有访问模式都要求 SSO 运行态 NORMAL，故 SSO 恒为必需；TODO/MESSAGE 仅在接入配置 `enabled=ENABLED` 时纳入必需能力。应用停用仍优先显示 DISABLED；必需项按 ABNORMAL、DISABLED、UNCONFIGURED 优先级判定，全部 NORMAL 才综合 NORMAL。
+- 旧规则只要三项中任一 NORMAL 且无 ABNORMAL 就显示 NORMAL，导致 APP_4 的 SSO DISABLED、TODO UNCONFIGURED、MESSAGE NORMAL 被误判为 NORMAL。新规则将其显示为 DISABLED，不把停用能力伪装成异常。

@@ -105,7 +105,7 @@
    <OrganizationManagement v-else-if="resource==='organizations'" :rows="rows" :type-items="dictItems" :can-super="can(actor,'system:super')" @saved="load"/>
    <DictionaryManagement v-else-if="resource==='dictionaries'" :types="dictTypes" :items="dictItems" @saved="load"/>
    <AnnouncementManagement v-else-if="resource==='announcements'&&admin" :rows="rows" :type-items="dictItems" @saved="load" @detail="openAdminAnnouncementDetail"/>
-   <MonitorManagement v-else-if="resource==='monitor'" :rows="rows"/>
+   <MonitorManagement v-else-if="resource==='monitor'" :rows="rows" :history-rows="monitorHistory" :can-check="can(actor,'monitor:check')" @saved="load"/>
    <LogManagement v-else-if="resource.startsWith('logs:')" :rows="rows" :kind="resource.split(':')[1]" @saved="load"/>
    <MyApplications v-else-if="resource==='myApplicationRequests'" :rows="rows" @withdraw="confirm('withdrawApplicationRequest',$event,'确认撤回此应用访问申请？')" @reapply="openForm('submitApplicationRequest',{appId:$event.appId,appName:$event.appName})" @bind="bindByRequest" @enter="enterAppByRequest" @detail="showDetail($event,'myApplicationRequests')"/>
    <template v-else-if="resource==='announcementDetail'">
@@ -190,7 +190,7 @@
    <p v-if="formAction==='rejectApplicationRequest'" class="inline-note">请填写驳回原因。驳回后用户可在“我的申请”中查看并重新申请。</p>
    <p v-if="formAction==='saveIntegration'" class="inline-note">待办和消息采用PUSH方式接收。凭据填写服务端环境变量名，不填写密钥。SSO参数可维护，认证适配器尚未接入。</p>
    <div v-if="formError" role="alert" class="error-note">{{text(formError)}}</div><t-alert v-if="bindFeedback" :theme="bindFeedback.theme" :message="bindFeedback.message" class="portal-bind-feedback"/>
-   <div class="form-grid" :class="{'app-form-grid':formAction==='saveApp'}"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><t-select v-if="field.options" v-model="form[field.key]" :options="field.options" :disabled="field.key==='enabled'&&formAction==='saveApp'&&!can(actor,'application:enable')"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :autosize="{minRows:4,maxRows:8}"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
+   <div class="form-grid" :class="{'app-form-grid':formAction==='saveApp'}"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><div v-if="field.type==='switch'" class="app-status-switch-line"><t-switch v-model="form[field.key]" :disabled="!can(actor,'application:enable')"/><span>{{form[field.key]?'启用':'停用'}}</span></div><t-select v-else-if="field.options" v-model="form[field.key]" :options="field.options"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :autosize="{minRows:4,maxRows:8}"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
    <AnnouncementEditor v-if="formAction==='saveAnnouncement'" v-model="form.content" v-model:files="announcementUploadFiles"/>
   </t-dialog>
   <t-dialog v-model:visible="accessDialogVisible" placement="center" :header="accessDialogTitle" width="1180px" :close-on-overlay-click="false">
@@ -245,7 +245,7 @@ const portalPath=path=>(previewRoute.value?'/portal-preview':'/portal')+path;
 const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
-const rows=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
+const rows=ref([]),monitorHistory=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
 const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]),homeAccessLogs=ref([]),homeApiLogs=ref([]);
 const homeAppLimit=10;
 const homeAppCount=computed(()=>homeApps.value.length);
@@ -315,7 +315,10 @@ async function load(){
    tasks.rows=read(isAdmin?'adminAnnouncements':'announcements');
    if(isAdmin&&can(actor.value,'dictionary:view'))tasks.dictionaryData=read('dictionaries');
   }
-  else if(!['profile','external'].includes(key))tasks.rows=read(key==='announcements'&&isAdmin?'adminAnnouncements':key);
+  else if(!['profile','external'].includes(key)){
+   tasks.rows=read(key==='announcements'&&isAdmin?'adminAnnouncements':key);
+   if(key==='monitor')tasks.monitorHistory=read('monitorHistory');
+  }
   const entries=await Promise.all(Object.entries(tasks).map(async([name,promise])=>[name,await promise]));
   if(version!==loadVersion)return;
   const data=Object.fromEntries(entries);allApps.value=data.apps||[];categories.value=data.categories||[];accessProfiles.value=data.accessProfiles||accessProfiles.value;systemRoles.value=data.systemRoles||(key==='roles'?data.rows:[])||[];organizations.value=data.organizations||organizations.value;dictTypes.value=data.dictionaryData?.types||[];dictItems.value=data.dictionaryData?.items||[];
@@ -328,7 +331,7 @@ async function load(){
    homeAccessLogs.value=data.accessLogs||[];
    homeApiLogs.value=data.apiLogs||[];
   }
-  mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps||[]:(key==='dictionaries'?[]:data.rows||[]);
+  mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps||[]:(key==='dictionaries'?[]:data.rows||[]);monitorHistory.value=data.monitorHistory||[];
   if(key==='announcementDetail'){
    const article=rows.value.find(item=>item.id===route.params.id);
    if(!article){detail.value=null;error.value='公告不存在或不在当前用户的可见范围';}
@@ -520,7 +523,7 @@ const formFields=computed(()=>{
  return ({
   saveApp:[f('name','应用名称','text',true),f('code','应用编码','text',true),f('category','系统分类','text',true,categories.value.map(item=>({value:item.name,label:text(item.name)}))),f('userType','适用用户','text',true,opt(['BOTH','CITIZEN','GOV'])),
    f('accessMode','访问模式','text',true,opt(['DIRECT','BIND','REQUEST'])),
-   f('enabled','启用状态','text',true,[{value:true,label:'启用'},{value:false,label:'停用'}]),
+   f('enabled','启用状态','switch',true),
    ...(form.accessMode==='REQUEST'?[f('postGrantMode','申请通过后','text',true,opt(['DIRECT','BIND']))]:[]),
    ...((form.accessMode==='BIND'||(form.accessMode==='REQUEST'&&form.postGrantMode==='BIND'))?[f('accountBindingMode','账号关联方式','text',true,opt(['AUTO','SELF','REVIEW','ADMIN'])),f('accountOpeningMode','未找到账号时','text',true,[{value:'NONE',label:'仅提示联系管理员'},{value:'REQUEST',label:'允许提交开通申请'}])]:[]),
    ...(form.id?[]:[f('sortOrder','显示排序','number')]),f('url','入口地址','text',true,null,true),f('description','说明','textarea',false,null,true)],

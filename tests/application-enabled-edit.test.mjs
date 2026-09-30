@@ -7,11 +7,12 @@ import {actors} from '../src/mock/seed.js';
 
 const input={name:'启用状态测试',code:'ENABLED_EDIT_TEST',category:'公众服务',userType:'BOTH',accessMode:'DIRECT',url:'https://example.invalid/app'};
 
-test('应用表单在访问模式后显示中文启用状态并使用布尔值',()=>{
+test('应用表单在访问模式后显示启停开关并使用布尔值',()=>{
  const source=readFileSync(new URL('../src/views/PortalPage.vue',import.meta.url),'utf8');
- assert.match(source,/f\('accessMode','访问模式'[^\n]*\n\s*f\('enabled','启用状态','text',true,\[\{value:true,label:'启用'\},\{value:false,label:'停用'\}\]\)/);
+ assert.match(source,/f\('accessMode','访问模式'[^\n]*\n\s*f\('enabled','启用状态','switch',true\)/);
  assert.match(source,/accessMode:'BIND',enabled:false/);
- assert.match(source,/field\.key==='enabled'&&formAction==='saveApp'&&!can\(actor,'application:enable'\)/);
+ assert.match(source,/<t-switch v-model="form\[field\.key\]" :disabled="!can\(actor,'application:enable'\)"\/>/);
+ assert.match(source,/\{\{form\[field\.key\]\?'启用':'停用'\}\}/);
 });
 
 test('应用编辑可保存启停状态，且无启停权限时只能保持原状态',async()=>{

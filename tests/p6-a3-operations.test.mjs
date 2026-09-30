@@ -158,6 +158,6 @@ test('管理首页接入异常应用按应用去重，且不计正常、未配�
   assert.equal(home.abnormalApplicationCount,2);
   const apps=await h.read('adminApps');
   assert.equal(apps.filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length,2);
-  assert.equal(apps[2].aggregateRuntimeStatus,'NORMAL');
+  assert.equal(apps[2].aggregateRuntimeStatus,'DISABLED');
   assert.equal(apps[3].aggregateRuntimeStatus,'DISABLED');
 });

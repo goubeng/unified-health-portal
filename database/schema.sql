@@ -508,6 +508,20 @@ CREATE TABLE "monitor_status" (
   UNIQUE ("target_key", "service_type")
 );
 
+-- 接入有效运行状态逐次迁移历史；不从当前快照伪造历史
+CREATE TABLE "monitor_status_history" (
+  "id" text PRIMARY KEY,
+  "application_id" text NOT NULL,
+  "service_type" text NOT NULL CHECK ("service_type" IN ('SSO','TODO','MESSAGE')),
+  "from_status" text NOT NULL CHECK ("from_status" IN ('NORMAL','ABNORMAL','UNCONFIGURED','DISABLED')),
+  "to_status" text NOT NULL CHECK ("to_status" IN ('NORMAL','ABNORMAL','UNCONFIGURED','DISABLED')),
+  "occurred_at" timestamptz NOT NULL,
+  "reason" text NOT NULL,
+  "source" text NOT NULL CHECK ("source" IN ('MONITOR_OBSERVATION','CONFIGURATION','APPLICATION')),
+  CHECK ("from_status" <> "to_status")
+);
+CREATE INDEX "monitor_status_history_app_time_idx" ON "monitor_status_history" ("application_id","occurred_at" DESC,"id");
+
 -- 统一物理日志；按kind提供各日志视图
 CREATE TABLE "audit_event" (
   "id" text PRIMARY KEY NOT NULL,

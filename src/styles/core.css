@@ -1703,3 +1703,4 @@
   .monitor-visual-meta{align-items:flex-start}
   .monitor-visual-legend{width:100%;margin-left:0;justify-content:flex-start}
 }
+.app-status-switch-line{display:flex;align-items:center;gap:8px;min-height:32px;color:#1f2329;font-size:13px}

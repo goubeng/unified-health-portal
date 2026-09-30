@@ -135,6 +135,7 @@ test('DATABASE Repository 每次 load 都以公告规范表恢复且不污染持
     sqlCalls.push(sql);
     if(sql.includes("id='P4RUN_STATE'"))return JSON.stringify({version:9,state:storedState});
     if(sql.includes('portal_runtime_entity_domain'))return '[]';
+    if(sql.includes('monitor_status_history'))return '[]';
     if(sql.includes("'categories'"))return JSON.stringify({categories:[],apps:[]});
     if(sql.includes("'todos'"))return JSON.stringify({todos:[],messages:[]});
     if(sql.includes("'applicationRequests'"))return JSON.stringify({applicationRequests:[],applicationGrants:[],accountOpeningRequests:[]});

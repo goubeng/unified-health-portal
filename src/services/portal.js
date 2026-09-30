@@ -20,7 +20,13 @@ const integrationState=(d,app,kind)=>{
  const sampleIsNewer=sample&&(Date.parse(sample.lastCheckedAt)||0)>(Date.parse(config?.updatedAt||config?.createdAt)||0);
  const source=sampleIsNewer?sample:config;
  const runtimeStatus=!appEnabled(app)||config?.enabled==='DISABLED'?'DISABLED':!config?'UNCONFIGURED':source?.runtimeStatus||source?.status||'UNCONFIGURED';
- return {...config,runtimeStatus,statusSource:sampleIsNewer?'HISTORICAL_FIXTURE':config?.statusSource||'LEGACY_CONFIG',lastCheckedAt:sampleIsNewer?sample.lastCheckedAt:config?.lastCheckedAt||null,responseTimeMs:sampleIsNewer?sample.responseTimeMs:config?.responseTimeMs};
+ return {...config,runtimeStatus,statusSource:sampleIsNewer?sample.statusSource||'HISTORICAL_FIXTURE':config?.statusSource||'LEGACY_CONFIG',lastCheckedAt:sampleIsNewer?sample.lastCheckedAt:config?.lastCheckedAt||null,responseTimeMs:sampleIsNewer?sample.responseTimeMs:config?.responseTimeMs,lastError:sampleIsNewer?sample.lastError||null:config?.lastError||null,lastSuccessAt:sampleIsNewer?sample.lastSuccessAt||null:config?.lastSuccessAt||null,lastFailureAt:sampleIsNewer?sample.lastFailureAt||null:config?.lastFailureAt||null,failureCount:sampleIsNewer?sample.failureCount||0:config?.failureCount||0};
+};
+const aggregateRuntimeStatus=(app,integrations)=>{
+ if(!appEnabled(app))return 'DISABLED';
+ const required=integrations.filter((item,index)=>index===0||item.enabled==='ENABLED');
+ const statuses=required.map(item=>item.runtimeStatus||'UNCONFIGURED');
+ return ['ABNORMAL','DISABLED','UNCONFIGURED'].find(status=>statuses.includes(status))||(statuses.every(status=>status==='NORMAL')?'NORMAL':'UNCONFIGURED');
 };
 const announcementDisplayStatus=(x,now=Date.now())=>{
  if(x.status==='WITHDRAWN')return 'WITHDRAWN';
@@ -44,10 +50,9 @@ export function createPortalService(provider,getActor){
  const decorate=(d,a)=>d.apps.map(app=>{
   const applicable=['CITIZEN','GOV'].includes(a.userType)&&(app.userType==='BOTH'||app.userType===a.userType);
   const appIntegrations=['SSO','TODO','MESSAGE'].map(kind=>integrationState(d,app,kind));
-  const integrationStates=appIntegrations.map(item=>item.runtimeStatus||'UNCONFIGURED');
   const ssoIntegration=appIntegrations[0];
   const ssoRuntimeStatus=!appEnabled(app)?'DISABLED':ssoIntegration?.runtimeStatus||'UNCONFIGURED';
-  const aggregateRuntimeStatus=!appEnabled(app)?'DISABLED':integrationStates.includes('ABNORMAL')?'ABNORMAL':integrationStates.includes('NORMAL')?'NORMAL':integrationStates.length&&integrationStates.every(value=>value==='DISABLED')?'DISABLED':'UNCONFIGURED';
+  const appRuntimeStatus=aggregateRuntimeStatus(app,appIntegrations);
   const mapping=d.mappings.find(m=>m.appId===app.id&&own(m,a)&&m.status!=='UNBOUND')||null;
   const request=requestFor(d,a,app.id),grant=grantFor(d,a,app.id);
   const accessMode=app.accessMode||'BIND';
@@ -65,7 +70,7 @@ export function createPortalService(provider,getActor){
   })[accessState]||'VIEW';
   if(accessState==='FAILED'&&mapping?.externalAccountStatus==='DISABLED')primaryAction='VIEW_REASON';
   const {status:_legacyStatus,runtimeStatus:_legacyRuntimeStatus,connectionStatus:_legacyConnectionStatus,...appDto}=app;
-  return {...appDto,enabled:appEnabled(app),aggregateRuntimeStatus,ssoRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
+  return {...appDto,enabled:appEnabled(app),aggregateRuntimeStatus:appRuntimeStatus,ssoRuntimeStatus,applicable,mappingStatus:mapping?.status||'UNBOUND',mappingId:mapping?.id||null,externalAccountStatus:mapping?.externalAccountStatus||null,
    requestStatus:request?.status||null,requestId:request?.id||null,grantStatus:grant?.status||null,accessState,primaryAction};
  });
  const accountApps=(d,a)=>{
@@ -107,7 +112,7 @@ export function createPortalService(provider,getActor){
    };
    const services={SSO:detail('SSO',measured('SSO')),TODO:detail('TODO',measured('TODO')),MESSAGE:detail('MESSAGE',measured('MESSAGE'))};
    const times=Object.values(services).map(item=>item.lastCheckedAt).filter(Boolean).sort();
-   return {id:'MONITOR_'+app.id,appId:app.id,appName:app.name,appCode:app.code,
+   return {id:'MONITOR_'+app.id,appId:app.id,appName:app.name,appCode:app.code,appEnabled:appEnabled(app),
     ssoStatus:services.SSO.status,todoStatus:services.TODO.status,messageStatus:services.MESSAGE.status,lastCheckedAt:times.at(-1)||null,services};
   });
  };
@@ -149,7 +154,7 @@ export function createPortalService(provider,getActor){
    if(resource==='header')return {unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length};
    if(resource==='lookupDictionaries')return {types:(d.dictTypes||[]).map(({code,name,status,sortOrder})=>({code,name,status,sortOrder})),items:(d.dictItems||[]).map(({typeCode,value,label,status,sortOrder})=>({typeCode,value,label,status,sortOrder}))};
    if(resource==='home')return {appCount:userApps().length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
-   const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',adminHome:'any',auditTrends:'audit:view',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
+   const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',monitorHistory:'monitor:view',adminHome:'any',auditTrends:'audit:view',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
    if(resource==='auditTrends'){
@@ -214,6 +219,7 @@ export function createPortalService(provider,getActor){
      serviceHealth:health};
    }
    if(resource==='monitor')return monitorProfiles(d);
+   if(resource==='monitorHistory')return [...(d.monitorHistory||[])].map(item=>({...item,appName:d.apps.find(app=>app.id===item.appId)?.name||item.appName||item.appId})).sort((x,y)=>Date.parse(y.occurredAt)-Date.parse(x.occurredAt));
    if(resource==='access')return accessProfiles(d);
    const kind={sso:'SSO',todoIntegration:'TODO',messageIntegration:'MESSAGE'}[resource];
    return kind?d.integrations.filter(x=>x.kind===kind):[];
@@ -223,6 +229,7 @@ export function createPortalService(provider,getActor){
    return provider.transact(d=>{
     const now=new Date().toISOString(),id=()=> 'MOCK_'+createUUID();
     const stamp=x=>Object.assign(x,{version:(x.version||0)+1,updatedAt:now});
+   const beforeRuntime=new Map(d.apps.flatMap(app=>['SSO','TODO','MESSAGE'].map(kind=>[`${app.id}|${kind}`,integrationState(d,app,kind).runtimeStatus])));
     const ensureMapping=(app,externalAccount,values={})=>{
      let mapping=d.mappings.find(m=>m.userId===a.id&&m.appId===app.id);
      if(!mapping){mapping={id:id(),version:0,createdAt:now,userId:a.id,userName:a.name,appId:app.id,appName:app.name,boundAt:null};d.mappings.push(mapping);}
@@ -238,7 +245,7 @@ export function createPortalService(provider,getActor){
      saveAnnouncement:'announcement:edit',publish:'announcement:publish',withdraw:'announcement:publish',saveConfig:'settings:edit',
      saveIntegration:'integration:edit',createAccessProfile:'integration:edit',approveApplicationRequest:'application:review',rejectApplicationRequest:'application:review',completeMockAccountOpeningRequest:'application:review',
      approveBindingReview:'identity:review',rejectBindingReview:'identity:review',resolveLogError:'audit:resolve',unbind:'identity:unbind',resolveMapping:'identity:review',
-     pushTodo:'integration:edit',pushMessage:'integration:edit'
+     pushTodo:'integration:edit',pushMessage:'integration:edit',recordMonitorObservation:'monitor:check'
     };
     if(permissionByAction[action])auth(a,permissionByAction[action]);
     if(action==='removeAnnouncement'){
@@ -584,6 +591,18 @@ export function createPortalService(provider,getActor){
      const selected={valueMapping,targetKeyKind:'UNIFIED_USER_ID',enabled:p.enabled,protocol:p.protocol||'PUSH',mode:x.kind==='SSO'?'SSO':'PUSH',credentialRef:p.credentialRef||'',clientId:p.clientId||'',authorizeUrl:p.authorizeUrl||'',tokenUrl:p.tokenUrl||'',callbackUrl:p.callbackUrl||'',fieldMapping:mapping,remark:p.remark||''};
      const runtimeStatus=p.enabled==='DISABLED'?'DISABLED':'UNCONFIGURED';
      Object.assign(x,selected,{runtimeStatus,configStatus:'CONFIGURED'});result=stamp(x);
+    }else if(action==='recordMonitorObservation'){
+     const app=requireRow(d.apps,p.appId),kind=p.kind,status=p.status,reason=typeof p.reason==='string'?p.reason.trim():'';
+     if(!['SSO','TODO','MESSAGE'].includes(kind)||!['NORMAL','ABNORMAL'].includes(status))fail('VALIDATION_ERROR','请选择有效接入类型和检测结果');
+     if(status==='ABNORMAL'&&!reason)fail('VALIDATION_ERROR','异常检测须填写原因');
+     const config=d.integrations.find(item=>item.appId===app.id&&item.kind===kind);
+     if(!appEnabled(app)||!config||config.enabled!=='ENABLED'||config.configStatus!=='CONFIGURED')fail('INVALID_TRANSITION','应用及接入配置必须启用且已配置');
+     const checkedAt=new Date(Math.max(Date.now(),(Date.parse(config.updatedAt||config.createdAt)||0)+1)).toISOString();
+     d.monitorSamples??=[];
+     let sample=d.monitorSamples.find(item=>item.appId===app.id&&item.kind===kind);
+     if(sample)Object.assign(sample,{status,runtimeStatus:status,statusSource:'MONITOR_OBSERVATION',lastCheckedAt:checkedAt,lastSuccessAt:status==='NORMAL'?checkedAt:sample.lastSuccessAt||null,lastFailureAt:status==='ABNORMAL'?checkedAt:sample.lastFailureAt||null,failureCount:status==='ABNORMAL'?Number(sample.failureCount||0)+1:Number(sample.failureCount||0),lastError:status==='ABNORMAL'?reason:null,reason:reason||null,updatedAt:checkedAt,version:(sample.version||0)+1});
+     else{sample={id:id(),appId:app.id,kind,status,runtimeStatus:status,statusSource:'MONITOR_OBSERVATION',lastCheckedAt:checkedAt,lastSuccessAt:status==='NORMAL'?checkedAt:null,lastFailureAt:status==='ABNORMAL'?checkedAt:null,failureCount:status==='ABNORMAL'?1:0,lastError:status==='ABNORMAL'?reason:null,reason:reason||null,createdAt:checkedAt,updatedAt:checkedAt,version:1};d.monitorSamples.push(sample);}
+     result={appId:app.id,kind,status,lastCheckedAt:checkedAt};
     }else if(action==='pushTodo'){
      const targetApp=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');if(!p.sourceTodoId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!terminalStatuses.includes(p.status))fail('VALIDATION_ERROR','事件ID、源事项ID、标题及有效状态必填');
      if(p.businessType!==undefined&&(typeof p.businessType!=='string'||!p.businessType.trim()))fail('VALIDATION_ERROR','待办任务类型无效');
@@ -605,6 +624,13 @@ export function createPortalService(provider,getActor){
      if(existing)fail('IDEMPOTENCY_CONFLICT','该来源消息已存在，请用原事件ID重试');
      const x={id:id(),version:1,createdAt:now,updatedAt:now,receivedAt:now,appId:p.appId,sourceMessageId:p.sourceMessageId,userId:p.userId,title:p.title.trim(),content:p.content.trim(),appName:app.name,sourceKind:'APPLICATION',status:'UNREAD',readAt:null,deleted:false,deletedAt:null};d.messages.push(x);result={entityId:x.id,disposition:'APPLIED'};d.receipts.push({appId:p.appId,eventId:p.eventId,payload,result});
     }else fail('CAPABILITY_UNAVAILABLE','该动作尚未开放');
+    for(const app of d.apps)for(const kind of ['SSO','TODO','MESSAGE']){
+     const fromStatus=beforeRuntime.get(`${app.id}|${kind}`),toStatus=integrationState(d,app,kind).runtimeStatus;
+     if(!fromStatus||fromStatus===toStatus)continue;
+     const source=action==='recordMonitorObservation'?'MONITOR_OBSERVATION':action==='setAppStatus'||action==='saveApp'?'APPLICATION':'CONFIGURATION';
+     const reason=action==='recordMonitorObservation'?(p.reason?.trim()||'接入检测恢复正常'):action==='setAppStatus'||action==='saveApp'?'应用启用状态变更':'接入配置变更';
+     d.monitorHistory??=[];d.monitorHistory.push({id:id(),appId:app.id,appName:app.name,kind,fromStatus,toStatus,occurredAt:now,reason,source});
+    }
     const todoForLog=action==='openTodo'?(d.todos||[]).find(item=>item.id===p.id):null;
     const relatedForLog=[...(d.mappings||[]),...(d.applicationRequests||[]),...(d.accountOpeningRequests||[]),...(d.integrations||[])].find(item=>item.id===p.id);
     const logAppId=p.appId||todoForLog?.appId||relatedForLog?.appId||(['enterApp','removeApp'].includes(action)?p.id:null);

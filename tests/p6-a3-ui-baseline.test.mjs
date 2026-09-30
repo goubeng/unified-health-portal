@@ -1899,7 +1899,7 @@ test('运行监控图示模式全量展示并使用状态标签',()=>{
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('v-if="filtered.length" class="monitor-visual-grid"'));
   assert(source.includes('v-for="row in filtered"'));
-  assert(!/monitor-visual-panel[\s\S]*<t-pagination/.test(source.slice(source.indexOf('<section v-else class="panel monitor-visual-panel">'),source.indexOf('<t-dialog'))));
+  assert(!/monitor-visual-panel[\s\S]*<t-pagination/.test(source.slice(source.indexOf('<section v-else class="panel monitor-visual-panel">'),source.indexOf('<section class="panel monitor-history-panel">'))));
   assert(source.includes('class="monitor-visual-status-tag"'));
   assert(source.includes(":theme=\"visualStatusTheme(row[kind.toLowerCase()+'Status'])\""));
   assert(source.includes('theme="success" variant="light" size="small">正常</t-tag>'));
