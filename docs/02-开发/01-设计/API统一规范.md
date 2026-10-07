@@ -1,5 +1,7 @@
 # API 统一规范
 
+> **目标规范与现状区分（2026-10-01）：**以下 `/api/integration/v1/*` 路径、`code/message/traceId` 响应封装及生产鉴权要求是正式接口目标，不能直接用于当前本地服务。现行服务以 `/api/portal/*` 为入口，响应主要使用 `ok/data/error/requestId`；TODO/MESSAGE 本地接收器位于 `/api/portal/ingest/{appId}/...`。以 `server/api.mjs` 与 `src/config/integration-contract.js` 的实际路由和 OpenAPI 为演示环境联调用契约。
+
 ## 1. 基础约定
 
 - JSON API；

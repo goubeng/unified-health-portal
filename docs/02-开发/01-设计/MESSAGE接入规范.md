@@ -1,5 +1,7 @@
 # MESSAGE 接入规范
 
+> **实施边界（2026-10-01）：**下述 `/api/integration/v1/messages` 是正式目标路径。当前仅有本地演示接收器 `POST /api/portal/ingest/{appId}/messages`，以配置的服务端凭据引用进行 Bearer 校验；最小入参实际为 `eventId`、`sourceMessageId`、`userId`、`title`、`content`，一次推送对应一个收件人。目标协议的 `appCode`、`receivers`、`messageType`、`actionPath`、`sentAt` 等不能当作现行 API 必填项，也未完成真实子系统联调。
+
 ## 1. 原则
 
 MESSAGE 用于统一告知；TODO 用于需要用户处理的业务。是否同一业务同时产生 TODO 与 MESSAGE 由具体业务规则决定。

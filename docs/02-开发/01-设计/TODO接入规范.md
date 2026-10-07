@@ -1,5 +1,7 @@
 # TODO 接入规范
 
+> **实施边界（2026-10-01）：**下述 `/api/integration/v1/*` 为正式目标路径。当前仅有本地演示接收器 `POST /api/portal/ingest/{appId}/todos`，以配置的服务端凭据引用进行 Bearer 校验；最小入参实际为 `eventId`、`sourceTodoId`、`userId`、`status`、`title`，`businessType` 可选。目标协议的 `appCode`、`receiverIdentity`、`actionPath`、`sourceUpdatedAt` 等字段不能当作现行 API 必填项，也未完成真实子系统联调。
+
 ## 1. 原则
 
 子系统是待办业务状态的权威来源，门户只保存统一展示投影。门户“去处理”不改变待办状态。

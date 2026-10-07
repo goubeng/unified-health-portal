@@ -1,6 +1,8 @@
 # Service 契约（V1.0 目标）
 
-> 目标设计：V20260921-01。当前前端 Mock 与历史 P3 数据库不代表本契约已实现。
+> 目标设计：V20260921-01。本文件列出正式服务契约，不代表各接口已按列出的名称和语义实现。
+
+> **现行实现核对（2026-10-01）：**前端默认通过 `/api/portal/*` 访问 DATABASE Repository，`dev:mock` 才使用内存数据；登录和密码维护仍按演示边界模拟。已实现本地 TODO/MESSAGE 接收及接入检测结果录入、状态迁移历史查询；正式外部身份认证、一次性 SSO Ticket、自动健康检测器以及本文件所列完整生产契约仍未接通。请以 `server/api.mjs`、`src/config/integration-contract.js` 与 `src/services/portal.js` 为当前可调用接口准据。
 
 ## 1. 身份与会话
 
