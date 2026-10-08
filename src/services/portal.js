@@ -5,6 +5,7 @@ import {rules} from '../config/rules.js';
 import {integrationFields,integrationOptionalFields,terminalStatuses} from '../config/integration-contract.js';
 import {validateLocalPassword} from '../config/password-policy.js';
 import {auditActionNames,auditActionPages} from '../config/audit-activity.js';
+import {countRowsByChinaDay} from '../utils/chinaCalendar.mjs';
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
@@ -13,6 +14,7 @@ const identitySourceName=user=>user?.authType==='LOCAL'?'门户本地':user?.use
 const accessUserEnabled=x=>['CITIZEN','GOV'].includes(x?.userType)&&x?.enabled!==false&&x?.status!=='DISABLED';
 const adminUserEnabled=x=>Boolean(x&&(x.adminAccess||x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)&&x.adminEnabled!==false&&(x.adminStatus||'NORMAL')!=='DISABLED'&&(x.authType!=='LOCAL'||(x.enabled!==false&&x.status!=='DISABLED')));
 const actorSessionEnabled=x=>x?.authType==='LOCAL'?adminUserEnabled(x):accessUserEnabled(x);
+const portalEntryLog=x=>String(x?.kind||'').toLowerCase()==='login'&&x.status==='SUCCESS'&&['LOGIN','身份登录'].includes(x.name);
 const appEnabled=app=>app?.enabled!==false;
 const integrationState=(d,app,kind)=>{
  const config=(d.integrations||[]).find(item=>item.appId===app.id&&item.kind===kind);
@@ -158,22 +160,9 @@ export function createPortalService(provider,getActor){
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
    if(resource.startsWith('logs:'))return d.logs.filter(x=>x.kind===resource.split(':')[1]);
    if(resource==='auditTrends'){
-    const chinaDay=value=>{
-     const current=new Date(value);
-     if(!Number.isFinite(current.getTime()))return '';
-     const parts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(current).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
-     return `${parts.year}-${parts.month}-${parts.day}`;
-    };
-    const valid=(d.logs||[]).filter(item=>['access','api'].includes(String(item.kind||'').toLowerCase())&&Number.isFinite(Date.parse(item.createdAt)));
-    const base=valid.length?new Date(Math.max(...valid.map(item=>Date.parse(item.createdAt)))):new Date();
-    const baseKey=chinaDay(base),baseDate=new Date(baseKey+'T00:00:00+08:00');
-    const days=Array.from({length:30},(_,index)=>{
-     const date=new Date(baseDate.getTime()-(29-index)*86400000),day=chinaDay(date);
-     return {day,access:0,api:0};
-    });
-    const byDay=new Map(days.map(item=>[item.day,item]));
-    valid.forEach(item=>{const target=byDay.get(chinaDay(item.createdAt));if(target)target[String(item.kind).toLowerCase()]+=1;});
-    return {access:days.map(item=>({date:item.day,count:item.access})),api:days.map(item=>({date:item.day,count:item.api}))};
+    const trend=kind=>countRowsByChinaDay((d.logs||[]).filter(item=>String(item.kind||'').toLowerCase()===kind),30)
+     .map(item=>({date:item.key,count:item.value}));
+    return {access:countRowsByChinaDay((d.logs||[]).filter(portalEntryLog),30).map(item=>({date:item.key,count:item.value})),api:trend('api')};
    }
    if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName,handledByName:handlerName(x.handledBy)})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
@@ -209,10 +198,10 @@ export function createPortalService(provider,getActor){
       const parts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(current).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
       return `${parts.year}-${parts.month}-${parts.day}`;
     };
-    const today=chinaDay(new Date()),todayLogs=(d.logs||[]).filter(item=>chinaDay(item.createdAt)===today);
+    const now=new Date(),today=chinaDay(now),todayLogs=(d.logs||[]).filter(item=>chinaDay(item.createdAt)===today&&Date.parse(item.createdAt)<=now.getTime());
     return {appCount:d.apps.length,enabledCount:d.apps.filter(app=>appEnabled(app)).length,
      abnormalServiceCount:Object.values(health).reduce((sum,item)=>sum+(item.abnormal||0),0),abnormalApplicationCount:allApps().filter(app=>app.aggregateRuntimeStatus==='ABNORMAL').length,userCount:accessUsers.length,enabledUserCount:accessUsers.filter(user=>accessUserEnabled(user)).length,adminUserCount:adminUsers.length,
-     todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length,todayAccessCount:todayLogs.filter(x=>x.kind==='access').length,todayLoginCount:todayLogs.filter(x=>x.kind==='login').length,
+     todayApiCallCount:todayLogs.filter(x=>x.kind==='api').length,todayAccessCount:todayLogs.filter(portalEntryLog).length,todayLoginCount:todayLogs.filter(x=>x.kind==='login').length,
      pendingAccessCount:(d.applicationRequests||[]).filter(x=>x.status==='PENDING').length,pendingAccountOpeningCount:(d.accountOpeningRequests||[]).filter(x=>['PENDING','PROCESSING'].includes(x.status)).length,
      pendingBindingReviewCount:(d.mappings||[]).filter(x=>x.status==='REVIEWING').length,mappingExceptionCount:(d.mappings||[]).filter(x=>['CONFLICT','FAILED'].includes(x.status)).length,
      openErrorCount:(d.logs||[]).filter(x=>x.kind==='error'&&x.resolutionStatus==='OPEN').length,scheduledAnnouncementCount:(d.announcements||[]).filter(x=>announcementDisplayStatus(x)==='SCHEDULED').length,

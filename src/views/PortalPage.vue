@@ -63,7 +63,7 @@
      </div>
 
      <div class="admin-home-bottom-grid">
-      <AdminTrendChart v-if="can(actor,'audit:view')" :access-rows="homeAccessLogs" :api-rows="homeApiLogs"/>
+      <AdminTrendChart v-if="can(actor,'audit:view')" :access-rows="homeAuditTrends.access" :api-rows="homeAuditTrends.api" @day-change="load"/>
       <section class="panel admin-runtime-exception-panel">
        <div class="section-head">
         <h2>接入异常 <span class="admin-runtime-exception-count">（<strong>{{homeExceptions.length}}</strong>）</span></h2>
@@ -246,7 +246,7 @@ const isHome=computed(()=>['home','adminHome'].includes(resource.value));
 const isAppCenter=computed(()=>!admin.value&&['apps','mine'].includes(resource.value));
 const listResource=computed(()=>resource.value==='announcementDetail'?'announcements':resource.value);
 const rows=ref([]),monitorHistory=ref([]),overview=ref({}),allApps=ref([]),categories=ref([]),systemRoles=ref([]),organizations=ref([]),dictTypes=ref([]),dictItems=ref([]),mineIds=ref([]),accessProfiles=ref([]);
-const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]),homeAccessLogs=ref([]),homeApiLogs=ref([]);
+const homeApps=ref([]),homeTodos=ref([]),homeMessages=ref([]),homeAnnouncements=ref([]),homeExceptions=ref([]),homeAuditTrends=ref({access:[],api:[]});
 const homeAppLimit=10;
 const homeAppCount=computed(()=>homeApps.value.length);
 const homeVisibleApps=computed(()=>homeApps.value.slice(0,homeAppLimit));
@@ -266,7 +266,7 @@ const adminOverviewCards=computed(()=>[
  {label:'接入异常应用',value:overview.value.abnormalApplicationCount??0,icon:'error-circle',tone:'red',hint:'当前应用列表中“综合运行状态”为异常的应用数量；同一应用仅计一次。',path:can(actor.value,'monitor:view')?'/admin/monitor':''},
  {label:'有效用户',value:overview.value.enabledUserCount??0,icon:'user',tone:'cyan',hint:'公众用户和政务用户中，当前未停用且允许访问门户的用户数量。',path:can(actor.value,'identity:view')?'/admin/identities':''},
  {label:'接口调用量(今日)',value:overview.value.todayApiCallCount??0,icon:'code',tone:'indigo',hint:'按北京时间当天统计的接口调用日志数量，包含成功和失败的接口调用。',path:can(actor.value,'audit:view')?'/admin/logs/api':''},
- {label:'今日访问量',value:overview.value.todayAccessCount??0,icon:'browse',tone:'teal',hint:'按北京时间当天统计的门户访问类日志数量，每次访问行为计 1 次，不按用户去重。',path:can(actor.value,'audit:view')?'/admin/logs/access':''}
+ {label:'今日访问量',value:overview.value.todayAccessCount??0,icon:'browse',tone:'teal',hint:'按北京时间当天统计成功进入门户的次数；切换用户、退出及进入应用不计入，不按用户去重。',path:can(actor.value,'audit:view')?'/admin/logs/login':''}
 ]);
 const adminShortcutIcon=resource=>({apps:'add',users:'user',identityOverview:'link'}[resource]||'file');
 const adminShortcutTone=resource=>({apps:'blue',users:'green',identityOverview:'cyan'}[resource]||'gray');
@@ -294,10 +294,7 @@ async function load(){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
    if(isAdmin&&can(actor.value,'monitor:view'))tasks.monitor=read('monitor');
-   if(isAdmin&&can(actor.value,'audit:view')){
-    tasks.accessLogs=read('logs:access');
-    tasks.apiLogs=read('logs:api');
-   }
+   if(isAdmin&&can(actor.value,'audit:view'))tasks.auditTrends=read('auditTrends');
   }else if(center)tasks.mine=read('mine');
   else if(key==='apps'&&isAdmin){tasks.rows=tasks.apps;}
   else if(key==='users'){
@@ -328,8 +325,7 @@ async function load(){
    homeTodos.value=latest((data.todos||[]).filter(item=>item.status==='PENDING'));
    homeMessages.value=latest((data.messages||[]).filter(item=>item.status==='UNREAD'),'receivedAt');homeAnnouncements.value=latest(data.announcements||[],'publishedAt');
    const monitorExceptions=(data.monitor||[]).flatMap(item=>['SSO','TODO','MESSAGE'].filter(kind=>item.services?.[kind]?.runtimeStatus==='ABNORMAL').map(kind=>({...item,id:`${item.id||item.appId||item.appCode}-${kind}`,kind,status:'ABNORMAL',remark:text(item.services?.[kind]?.lastError)||'运行异常'})));homeExceptions.value=monitorExceptions;
-   homeAccessLogs.value=data.accessLogs||[];
-   homeApiLogs.value=data.apiLogs||[];
+   homeAuditTrends.value=data.auditTrends||{access:[],api:[]};
   }
   mineIds.value=(data.mine||[]).map(item=>item.id);rows.value=center?data.apps||[]:(key==='dictionaries'?[]:data.rows||[]);monitorHistory.value=data.monitorHistory||[];
   if(key==='announcementDetail'){

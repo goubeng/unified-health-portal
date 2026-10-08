@@ -2,9 +2,13 @@ import {createServer} from 'node:http';
 import {randomUUID,randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {createPortalService} from '../src/services/portal.js';
+import {chinaDayWindow,chinaWindowBounds} from '../src/utils/chinaCalendar.mjs';
 import {archiveExpired} from '../src/config/rules.js';
 import {can} from '../src/config/pages.js';
 import {createRepository,createMemoryRepository,makeEvent} from './repository.mjs';
+import {portalApiCodeRevision} from './code-revision.mjs';
+
+const codeRevision=portalApiCodeRevision();
 
 const resultError=(code,message)=>({ok:false,error:{code,message,retryable:false}});
 export {appContract as contract} from '../src/config/integration-contract.js';
@@ -41,6 +45,11 @@ export function createPortalApi({repository=null,env=process.env}={}){
   return snapshotLoad;
  };
  const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({...data,requestId:data.requestId||randomUUID()}));};
+ const auditWindow=async(now=new Date())=>{
+  const {startAt,endAt}=chinaWindowBounds(30,now),rows=await repository.auditDayCounts(startAt,endAt);
+  const byDay=new Map(rows.map(row=>[row.day,row]));
+  return chinaDayWindow(30,now).map(({key})=>({date:key,access:Number(byDay.get(key)?.access)||0,api:Number(byDay.get(key)?.api)||0,login:Number(byDay.get(key)?.login)||0}));
+ };
  const accessUserEnabled=x=>x&&['CITIZEN','GOV'].includes(x.userType)&&x.enabled!==false&&x.status!=='DISABLED';
  const adminUserEnabled=x=>Boolean(x&&(x.adminAccess||x.adminSubject||x.kind==='ADMIN'||(x.roleIds||[]).length)&&x.adminEnabled!==false&&(x.adminStatus||'NORMAL')!=='DISABLED'&&(x.authType!=='LOCAL'||(x.enabled!==false&&x.status!=='DISABLED')));
  const sessionActorEnabled=x=>x?.authType==='LOCAL'?adminUserEnabled(x):accessUserEnabled(x);
@@ -74,7 +83,7 @@ export function createPortalApi({repository=null,env=process.env}={}){
    const processRequest=async()=>{
     if(!readOnly){snapshot=null;snapshotLoad=null;}
     const {state,version}=readOnly?await readSnapshot():await repository.load();const actor=resolveActor(req,state);
-    if(path==='/api/portal/health')return send(res,200,{ok:true,data:{repository:repository.mode||'UNKNOWN',database:repository.database||null,schema:repository.schema||null,phase:repository.mode==='DATABASE'?'0.3.0-B/C':'0.3.0-A',version}});
+    if(path==='/api/portal/health')return send(res,200,{ok:true,data:{repository:repository.mode||'UNKNOWN',database:repository.database||null,schema:repository.schema||null,phase:repository.mode==='DATABASE'?'0.3.0-B/C':'0.3.0-A',version,codeRevision}});
     if(path==='/api/portal/session'&&req.method==='GET')return send(res,200,{ok:true,data:sessionView(state,actor)});
     if(path==='/api/portal/session'&&req.method==='POST'){
      const next=state.users.find(x=>x.id===payload.userId&&sessionActorEnabled(x));if(!next)return send(res,403,resultError('FORBIDDEN','用户已停用或不存在'));
@@ -123,6 +132,14 @@ export function createPortalApi({repository=null,env=process.env}={}){
     if(path==='/api/portal/read'&&req.method==='GET'){
      const resource=url.searchParams.get('resource')||'';const result=await service.read(resource);
      if(result.ok&&resource.startsWith('logs:'))result.data=await repository.logs(resource.slice(5));
+     if(result.ok&&repository.mode==='DATABASE'&&repository.auditDayCounts&&['auditTrends','adminHome'].includes(resource)){
+      const days=await auditWindow();
+      if(resource==='auditTrends')result.data={access:days.map(day=>({date:day.date,count:day.access})),api:days.map(day=>({date:day.date,count:day.api}))};
+      else{
+       const today=days.at(-1);
+       Object.assign(result.data,{todayAccessCount:today.access,todayApiCallCount:today.api,todayLoginCount:today.login});
+      }
+     }
      if(result.ok&&resource==='adminHome'&&repository.openErrorCount)result.data.openErrorCount=await repository.openErrorCount();
      return send(res,statusFor(result),result);
     }

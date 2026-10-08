@@ -23,6 +23,7 @@ import * as echarts from 'echarts/core';
 import {LineChart} from 'echarts/charts';
 import {GridComponent,TooltipComponent} from 'echarts/components';
 import {CanvasRenderer} from 'echarts/renderers';
+import {chinaDayKey,normalizeChinaDayCounts} from '../../utils/chinaCalendar.mjs';
 
 echarts.use([LineChart,GridComponent,TooltipComponent,CanvasRenderer]);
 
@@ -30,39 +31,27 @@ const props=defineProps({
   accessRows:{type:Array,default:()=>[]},
   apiRows:{type:Array,default:()=>[]}
 });
+const emit=defineEmits(['day-change']);
 
 const chartEl=ref(null);
 const metric=ref('access');
 const period=ref(7);
+const now=ref(new Date());
 let chart=null;
 let resizeObserver=null;
+let clockTimer=null;
 
 const currentRows=computed(()=>metric.value==='api'?props.apiRows:props.accessRows);
 const currentSeriesName=computed(()=>metric.value==='api'?'接口调用量':'门户访问量');
 
-const chinaDay=value=>{
-  const date=new Date(value);
-  if(!Number.isFinite(date.getTime()))return '';
-  const parts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
-  return `${parts.year}-${parts.month}-${parts.day}`;
-};
+const trend=computed(()=>normalizeChinaDayCounts(currentRows.value,period.value,now.value));
 
-const trend=computed(()=>{
-  const allRows=[...props.accessRows,...props.apiRows];
-  const allValid=allRows.map(row=>Date.parse(row.createdAt)).filter(Number.isFinite);
-  const valid=currentRows.value.map(row=>({row,time:Date.parse(row.createdAt)})).filter(item=>Number.isFinite(item.time));
-  const base=allValid.length?new Date(Math.max(...allValid)):new Date();
-  const baseKey=chinaDay(base);
-  const baseDate=new Date(baseKey+'T00:00:00+08:00');
-  const days=Array.from({length:period.value},(_,index)=>{
-    const date=new Date(baseDate.getTime()-(period.value-1-index)*86400000);
-    const key=chinaDay(date);
-    return {key,label:`${Number(key.slice(5,7))}/${Number(key.slice(8,10))}`,value:0};
-  });
-  const byKey=new Map(days.map(item=>[item.key,item]));
-  valid.forEach(({row})=>{const item=byKey.get(chinaDay(row.createdAt));if(item)item.value+=1;});
-  return days;
-});
+function refreshClock(){
+  const current=new Date();
+  if(chinaDayKey(current)===chinaDayKey(now.value))return;
+  now.value=current;
+  emit('day-change');
+}
 
 function render(){
   if(!chartEl.value)return;
@@ -119,7 +108,10 @@ function render(){
 
 onMounted(async()=>{
   await nextTick();
+  refreshClock();
   render();
+  clockTimer=window.setInterval(refreshClock,30000);
+  document.addEventListener('visibilitychange',refreshClock);
   if(typeof ResizeObserver!=='undefined'){
     resizeObserver=new ResizeObserver(()=>chart?.resize());
     if(chartEl.value)resizeObserver.observe(chartEl.value);
@@ -127,8 +119,10 @@ onMounted(async()=>{
     window.addEventListener('resize',render);
   }
 });
-watch(()=>[props.accessRows,props.apiRows,metric.value,period.value],async()=>{await nextTick();render();},{deep:true});
+watch(()=>[props.accessRows,props.apiRows,metric.value,period.value,now.value],async()=>{await nextTick();render();},{deep:true});
 onBeforeUnmount(()=>{
+  window.clearInterval(clockTimer);
+  document.removeEventListener('visibilitychange',refreshClock);
   resizeObserver?.disconnect();
   window.removeEventListener('resize',render);
   chart?.dispose();
