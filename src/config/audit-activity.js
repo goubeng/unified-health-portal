@@ -7,7 +7,8 @@ export const auditActionNames={
  submitAccountOpeningRequest:'提交子系统账号开通申请',completeMockAccountOpeningRequest:'完成Mock账号开通申请',approveBindingReview:'通过账号关联审核',rejectBindingReview:'驳回账号关联审核',resolveLogError:'处理异常日志',
  submitApplicationRequest:'提交应用访问申请',withdrawApplicationRequest:'撤回应用访问申请',approveApplicationRequest:'通过应用访问申请',rejectApplicationRequest:'驳回应用访问申请',bind:'关联子系统账号',unbind:'解除账号关联',resolveMapping:'处理映射冲突',
  saveAnnouncement:'保存公告',submitAnnouncement:'提交公告发布',publish:'发布公告',withdraw:'撤回公告',removeAnnouncement:'删除公告',saveConfig:'维护参数',createAccessProfile:'新增应用接入',saveIntegration:'维护接入配置',pushTodo:'接收待办',pushMessage:'接收消息',
- LOGIN:'登录',LOGOUT:'退出登录',SWITCH_USER:'切换用户',DOWNLOAD_CONTRACT:'下载接口契约',PUSH_REJECTED:'拒绝接入推送',ANNOUNCEMENT_RETENTION:'清理过期公告'
+ LOGIN:'登录',LOGOUT:'退出登录',SWITCH_USER:'切换用户',DOWNLOAD_CONTRACT:'下载接口契约',PUSH_REJECTED:'拒绝接入推送',ANNOUNCEMENT_RETENTION:'清理过期公告',
+ P4FIX_login:'登录',P4FIX_auth:'权限核验',IDENTITY_ACCEPTED:'身份核验'
 };
 
 export const auditActionPages={

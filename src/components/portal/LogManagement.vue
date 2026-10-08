@@ -23,6 +23,7 @@
         <template #empty><EmptyState description="暂无符合条件的日志"/></template>
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #status="{row}"><t-tag :theme="row.status==='SUCCESS'?'success':row.status==='DENIED'?'warning':'danger'" variant="light">{{label(row.status)}}</t-tag></template>
+        <template #actionName="{row}"><t-tag :theme="loginActionTheme(row)" variant="light">{{loginActionText(row)}}</t-tag></template>
         <template #resolutionStatus="{row}"><t-tag :theme="row.resolutionStatus==='RESOLVED'?'success':'warning'" variant="light">{{label(row.resolutionStatus||'OPEN')}}</t-tag></template>
         <template #requestId="{row}"><TableCellTooltip :text="auditText(row.requestId)||'-'"><button class="portal-field-link" @click="openDetail(row)">{{auditText(row.requestId)||'-'}}</button></TableCellTooltip></template>
         <template #operation="{row}">
@@ -81,13 +82,20 @@ const severityTheme=value=>{
   return 'default';
 };
 const showAppFilter=computed(()=>props.kind!=='login');
+const loginActionText=row=>auditText(row.actionName||label(row.name)||(row.kind==='login'?'登录':row.name)||'-');
+const loginActionTheme=row=>{
+  const val=loginActionText(row);
+  if(val==='退出登录'||row.name==='LOGOUT')return 'default';
+  if(val==='切换用户'||row.name==='SWITCH_USER')return 'warning';
+  return 'primary';
+};
 const appOptions=computed(()=>[...new Set(props.rows.map(row=>row.appName).filter(Boolean))].map(value=>({value,label:value})));
 const keywordPlaceholder=computed(()=>({
   login:'登录用户 / 账号 / 请求ID',access:'用户 / 应用 / 请求ID',operation:'操作人 / 模块 / 动作',api:'接口 / 应用 / 请求ID',error:'错误编码 / 异常信息 / 请求ID'
 }[props.kind]||'关键词'));
 
 const searchFields=computed(()=>({
-  login:['userName','account','requestId','failureReason'],access:['userName','account','appName','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
+  login:['userName','account','requestId','failureReason','actionName'],access:['userName','account','appName','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
   api:['appName','interfaceName','requestId','errorMessage'],error:['errorCode','errorMessage','moduleName','requestId','resolutionNote']
 }[props.kind]||['description','requestId']));
 const compareLogRows=(a,b,key)=>{
@@ -121,10 +129,11 @@ const columns=computed(()=>{
   const timeColumn=title=>({colKey:'createdAt',title,width:180,sorter:true,sortType:'all',cell:(_,ctx)=>date(ctx.row.createdAt)});
   if(props.kind==='login')return [
     serial,requestId,timeColumn('登录时间'),
+    {colKey:'actionName',title:'事件类型',width:110,sorter:true,sortType:'all'},
     sortColumn('userName','登录用户',{width:120,ellipsis:true}),sortColumn('account','登录账号',{width:150,ellipsis:true}),
     {colKey:'actorType',title:'主体类型',width:130,sorter:true,sortType:'all',cell:(_,ctx)=>actorTypeLabel(ctx.row)},{colKey:'authType',title:'认证类型',width:110,sorter:true,sortType:'all',cell:(_,ctx)=>authTypeLabel(ctx.row)},
     {colKey:'identitySource',title:'身份来源',width:120,sorter:true,sortType:'all',cell:(_,ctx)=>label(ctx.row.identitySource)},
-    sortColumn('loginSource','登录来源',{width:110}),{colKey:'loginMethod',title:'登录方式',width:110,sorter:true,sortType:'all',cell:(_,ctx)=>label(ctx.row.loginMethod)},
+    sortColumn('loginSource','登录来源',{width:110}),{colKey:'loginMethod',title:'登录方式',width:110,sorter:true,sortType:'all',cell:(_,ctx)=>auditText(label(ctx.row.loginMethod))||'-'},
     commonStatus,column('failureReason','失败原因',{minWidth:180,ellipsis:true}),column('ip','IP',{width:130}),column('client','客户端',{width:160,ellipsis:true})
   ];
   if(props.kind==='access')return [
@@ -150,7 +159,7 @@ const columns=computed(()=>{
 
 const detailTitle=computed(()=>({login:'登录/认证日志详情',access:'应用访问日志详情',operation:'门户操作日志详情',api:'接口调用日志详情',error:'异常日志详情'}[props.kind]||'日志详情'));
 const detailKeys=computed(()=>({
-  login:[['createdAt','登录时间'],['userName','登录用户'],['account','登录账号'],['actorType','主体类型'],['authType','认证类型'],['identitySource','身份来源'],['loginSource','登录来源'],['loginMethod','登录方式'],['status','登录结果'],['failureReason','失败原因'],['ip','IP'],['client','客户端'],['requestId','请求ID']],
+  login:[['createdAt','登录时间'],['actionName','事件类型'],['userName','登录用户'],['account','登录账号'],['actorType','主体类型'],['authType','认证类型'],['identitySource','身份来源'],['loginSource','登录来源'],['loginMethod','登录方式'],['status','登录结果'],['failureReason','失败原因'],['ip','IP'],['client','客户端'],['requestId','请求ID']],
   access:[['createdAt','访问时间'],['userName','用户'],['account','账号'],['appName','应用'],['accessMode','访问模式'],['status','结果'],['ip','IP'],['requestId','请求ID']],
   operation:[['createdAt','操作时间'],['actor','操作人'],['moduleName','模块'],['pageName','页面'],['actionName','动作'],['objectType','对象类型'],['objectId','对象ID'],['status','结果'],['requestId','请求ID']],
   api:[['createdAt','调用时间'],['appName','来源应用'],['interfaceName','接口'],['status','结果'],['httpMethod','方法'],['statusCode','状态码'],['durationMs','耗时(ms)'],['errorMessage','错误信息'],['requestId','请求ID']],

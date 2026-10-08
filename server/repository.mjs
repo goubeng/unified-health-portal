@@ -35,7 +35,7 @@ export function auditLogDto(row){
   actor:details.actorName||row.actor||profile.name||null,userName:details.userName||details.actorName||row.actor||profile.name||null,account:details.account||details.actorAccount||profile.account||null,
   actorType:details.actorType||(row.actorKind==='APPLICATION'?'APPLICATION':profile.kind==='ADMIN'||authType==='LOCAL'?'PORTAL_ADMIN_USER':profile.kind==='USER'?'ACCESS_USER':null),authType,identitySource,
   loginSource:details.loginSource||(row.kind==='auth'?'权限核验':({PORTAL_LOCAL:'门户本地',MINZHENGWU:'闽政务',MINZHENGTONG:'闽政通'})[identitySource]||identitySource||null),
-  loginMethod:details.loginMethod||(row.kind==='login'?(authType==='LOCAL'?'PASSWORD':authType==='EXTERNAL'?'QR':null):null),failureReason:details.failureReason||(['login','auth'].includes(row.kind)&&row.status!=='SUCCESS'?row.description:null),
+  loginMethod:action==='LOGOUT'?null:(details.loginMethod||(row.kind==='login'&&(action==='LOGIN'||!action)?(authType==='LOCAL'?'PASSWORD':authType==='EXTERNAL'?'QR':null):null)),failureReason:details.failureReason||(['login','auth'].includes(row.kind)&&row.status!=='SUCCESS'?row.description:null),
   ip:details.ip||null,client:details.client||null,accessMode:details.accessMode||app.accessMode||null,
   moduleName:details.moduleName||moduleName||row.moduleName||'统一门户',pageName:details.pageName||pageName||null,
   actionName:details.actionName||auditActionNames[action]||action,objectType:details.objectType||row.objectType||null,
@@ -132,7 +132,7 @@ export function makeEvent({actor,action,payload={},state,result,kind,sourceLog=n
  const identitySource=actor?.authType==='LOCAL'?'PORTAL_LOCAL':actor?.userType==='GOV'?'MINZHENGWU':actor?.userType==='CITIZEN'?'MINZHENGTONG':null;
  const details={actorName:actor?.name||'系统任务',actorAccount:actor?.account||null,userType:actor?.userType||null,actorType:actor?.kind==='ADMIN'?'PORTAL_ADMIN_USER':actor?'ACCESS_USER':null,authType:actor?.authType||null,
   identitySource,loginSource:actor?.authType==='LOCAL'?'门户本地':actor?.userType==='GOV'?'闽政务':actor?.userType==='CITIZEN'?'闽政通':null,
-  loginMethod:payload.loginMethod|| (actor?.authType==='LOCAL'?'PASSWORD':actor?'QR':null),errorCode:result?.error?.code||null,applicationName:state.apps.find(x=>x.id===appId)?.name||null,
+  loginMethod:action==='LOGOUT'?null:(payload.loginMethod|| (actor?.authType==='LOCAL'?'PASSWORD':actor?'QR':null)),errorCode:result?.error?.code||null,applicationName:state.apps.find(x=>x.id===appId)?.name||null,
   accessMode:state.apps.find(x=>x.id===appId)?.accessMode||null,objectType:action==='openTodo'?'todo':appId?'application':action.includes('Announcement')?'announcement':'portal',
   severity:eventKind==='ERROR'?'HIGH':null,moduleName:appId?'应用集成':'统一门户',errorMessage:result?.ok===false?result.error?.message||null:null,
   previousActor:payload.previousActor||null,objectIds:payload.ids||[],accessOutcome:['enterApp','openTodo'].includes(action)?'ENTRY_REQUEST_ONLY':null};
@@ -149,7 +149,7 @@ export function createMemoryRepository(initialState=createSeed()){
   const base={id:event.id,version:1,kind,name:event.action||'操作记录',actor:details.actorName||'系统任务',userId:event.actorId||null,userName:details.actorName||null,
    account:details.actorAccount||null,userType:details.userType||null,identitySource:details.identitySource||null,appId:event.appId||null,appName:details.applicationName||null,
    status:event.result||'SUCCESS',description:event.summary||event.action||'操作已记录',createdAt:event.at,requestId:event.requestId,ip:'127.0.0.1',client:'Chrome / Windows',details};
-  if(kind==='login')Object.assign(base,{loginSource:'统一登录',loginMethod:details.loginMethod||'QR',failureReason:event.result==='SUCCESS'?null:event.summary});
+  if(kind==='login')Object.assign(base,{loginSource:'统一登录',loginMethod:event.action==='LOGOUT'?null:(details.loginMethod||'QR'),failureReason:event.result==='SUCCESS'?null:event.summary,actionName:auditActionNames[event.action]||event.action||'登录'});
   if(kind==='error')Object.assign(base,{severity:'HIGH',moduleName:details.applicationName?'应用集成':'统一门户',errorCode:details.errorCode||'PORTAL_ERROR',errorMessage:event.summary||'服务异常',resolutionStatus:'OPEN',resolutionNote:'',resolvedAt:null,resolvedBy:null});
   if(kind==='api')Object.assign(base,{interfaceName:details.interfaceName||'PUSH接口',httpMethod:'POST',statusCode:event.result==='SUCCESS'?200:400,durationMs:null,errorMessage:event.result==='SUCCESS'?null:event.summary});
   if(kind==='access')Object.assign(base,{accessMethod:'门户入口',accessMode:details.accessMode||null});
