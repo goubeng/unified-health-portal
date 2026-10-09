@@ -61,13 +61,14 @@
 <script setup>
 import {createUUID} from '../utils/uuid.js';
 import {computed,onBeforeUnmount,ref,watch} from 'vue';
-import {useRouter} from 'vue-router';
+import {useRoute,useRouter} from 'vue-router';
 import {CheckCircleIcon,RefreshIcon} from 'tdesign-icons-vue-next';
 import {login} from '../services/runtime.js';
 import PortalTooltip from '../components/portal/PortalTooltip.vue';
 import loginBackground from '../assets/login-health-bg-3840x2160.png';
+import {publicLoginDestination} from '../mobile/loginRedirect.ts';
 
-const router=useRouter();
+const route=useRoute(),router=useRouter();
 const identityType=ref('CITIZEN'),method=ref('qr'),phone=ref(''),code=ref(''),slide=ref(0),verified=ref(false),codeRequested=ref(false),countdown=ref(0),qrStage=ref('ready'),notice=ref('');
 const localLoggingIn=ref(false),localAccount=ref('admin'),localPassword=ref(''),localCaptchaInput=ref(''),localCaptchaCode=ref('A7K9');
 const platform=computed(()=>identityType.value==='GOV'?'闽政务':'闽政通');
@@ -115,7 +116,7 @@ async function enterLocalAdmin(){
 async function enter(){
  if(identityType.value==='LOCAL'){await enterLocalAdmin();return;}
  try{await login(identityType.value==='GOV'?'MOCK_USER_2':'MOCK_USER_1',method.value==='phone'?'SMS':'QR');}catch(error){notice.value=error.message;return;}
- router.replace('/portal/home');
+ router.replace(publicLoginDestination(route.query.redirect));
 }
 watch([identityType,method],()=>reset(),{immediate:true});
 onBeforeUnmount(()=>clearTimers());

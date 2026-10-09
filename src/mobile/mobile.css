@@ -1,0 +1,38 @@
+.mobile-shell {
+ --mobile-brand: #0b6dce;
+ --mobile-surface: #f4f7fb;
+ --mobile-max-width: 480px;
+ width: 100%;
+ max-width: var(--mobile-max-width);
+ margin-inline: auto;
+ min-height: 100dvh;
+ display: flex;
+ flex-direction: column;
+ background: var(--mobile-surface);
+ color: #24344d;
+}
+
+.mobile-shell__content {
+ flex: 1;
+ min-width: 0;
+ padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+.mobile-shell__navigation {
+ position: fixed;
+ left: 50%;
+ bottom: 0;
+ width: 100%;
+ max-width: var(--mobile-max-width);
+ transform: translateX(-50%);
+ z-index: 20;
+ background: #fff;
+ box-shadow: 0 -4px 20px rgb(16 54 99 / 8%);
+ --td-tab-bar-active-color: var(--mobile-brand);
+ --td-tab-bar-color: #728198;
+}
+
+.mobile-shell__navigation .t-tab-bar {
+ max-width: var(--mobile-max-width);
+ margin-inline: auto;
+}

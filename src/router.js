@@ -6,6 +6,7 @@ import AuthResult from './views/AuthResult.vue';
 import PortalPage from './views/PortalPage.vue';
 import PortalHomePreview from './views/PortalHomePreview.vue';
 import PortalPreviewLayout from './views/PortalPreviewLayout.vue';
+import mobileRoutes from './mobile/routes.ts';
 
 const compatibilityRedirects=[
  {path:'/admin/app-categories',redirect:'/admin/dictionaries'},
@@ -40,6 +41,7 @@ const routes=[
   {path:'profile',name:'PG-PREVIEW-PROFILE',component:PortalPage,meta:portalMeta('profile',true)}
  ]},
  {path:'/',redirect:'/portal/home'},
+ ...mobileRoutes,
  ...compatibilityRedirects,
  {path:'/admin/profile',name:'PG-ADMIN-PROFILE',component:PortalPage,meta:{group:'系统管理',title:'个人信息',resource:'profile',scope:'any'}},
  ...pages.filter(page=>!page.hidden&&!page.path.startsWith('/portal')).map(page=>({
@@ -54,7 +56,7 @@ const routes=[
 const router=createRouter({history:createWebHistory(),routes});
 router.beforeEach(to=>{
  if(to.meta.group==='登录')return true;
- if(!actor.value)return '/login';
+ if(!actor.value)return to.path.startsWith('/m')?{path:'/login',query:{redirect:to.fullPath}}:'/login';
  if(!can(actor.value,to.meta.scope))return '/portal/home';
  return true;
 });

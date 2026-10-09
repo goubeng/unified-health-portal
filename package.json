@@ -8,6 +8,7 @@
     "dev:mock": "node server/dev.mjs --mock",
     "api": "node server/api.mjs",
     "build": "vite build",
+    "check:mobile": "vue-tsc --noEmit -p tsconfig.mobile.json && eslint src/mobile --max-warnings 0",
     "preview": "vite preview --host 127.0.0.1 --port 4010 --strictPort",
     "test": "node --test tests/*.test.mjs",
     "check:p3": "node database/validation/verify-design.mjs",
@@ -17,13 +18,19 @@
   },
   "dependencies": {
     "echarts": "5.4.3",
-    "vue": "3.5.41",
-    "vue-router": "4.6.4",
+    "tdesign-icons-vue-next": "0.3.7",
+    "tdesign-mobile-vue": "^1.16.2",
     "tdesign-vue-next": "1.20.6",
-    "tdesign-icons-vue-next": "0.3.7"
+    "vue": "3.5.41",
+    "vue-router": "4.6.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "5.2.4",
-    "vite": "5.4.21"
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vite": "5.4.21",
+    "vue-tsc": "^3.3.12"
   }
 }
