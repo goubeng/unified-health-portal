@@ -394,3 +394,15 @@
   2. 待办摘要、卡片标题、列表主信息与详情字段等由 13px 统一对齐到移动端标准正文 14px~15px，标题保持 16px~20px 清晰层级；
   3. `mobile.css` 根部注入标准移动字体族体系（PingFang SC, Microsoft YaHei 等）及抗锯齿平滑渲染。
 - 质量检查与构建：`npm run check:mobile`（`vue-tsc` + `eslint`）0 错误 0 告警，`tests/portal.test.mjs` 20/20 通过，`npm run build` 打包构建成功。现场真机视觉与交互录屏仍受环境权限限制，未声称真机视觉签收。
+
+## 2026-10-09 移动端首页精简与待办空状态图落地
+
+- 用户要求：
+  1. 去掉头部的待办事项数量、未读消息数量和新公告数量显示；
+  2. 首页不显示消息中心内容；
+  3. 无待办事项时显示 `nopic.svg` 空状态图。
+- 落地实现：
+  1. `MobileHome.vue` 移除了 Hero 区的 3 按钮统计卡片，顶部欢迎区更为紧凑清爽；
+  2. 移除了首页的消息中心卡片流，并在数据加载中剔除 `read('messages')` 请求，减少首页单次网络与渲染开销；
+  3. 待办事项无数据时引入 `src/assets/nopic.svg`，呈现规范的移动端空状态图与文字提示。
+- 质量校验：`npm run check:mobile`（0 错误 0 告警）、`tests/portal.test.mjs`（20/20 全部通过）、`npm run build` 打包构建成功。

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+  <!-- 消息中心：标准消息对话气泡与信息微标 -->
+  <path d="M20 2H4c-1.1 0-2 .9-2 2v17l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 10H7v-2h10v2zm0-3.2H7V6.8h10V8.8z"/>
+</svg>

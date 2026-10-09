@@ -1,5 +1,10 @@
 .mobile-shell {
- --mobile-brand: #0b6dce;
+ --mobile-brand: #0052d9;
+ --td-brand-color: #0052d9;
+ --td-brand-color-active: #0043b3;
+ --td-brand-color-focus: #0052d9;
+ --td-brand-color-hover: #1e6ceb;
+ --td-brand-color-light: #ecf2fe;
  --mobile-surface: #f4f7fb;
  --mobile-max-width: 480px;
  --td-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
