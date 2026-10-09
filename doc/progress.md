@@ -382,3 +382,15 @@
 ## 2026-10-09 移动端图标与 TDesign 字体规范核查
 
 - 用户询问图标是否均来自 TD，以及移动端默认字号是否符合 TD 规范。已读取教训、核对工作树和移动代码分布，登记专项审查；先核对官方设计与已安装组件样式，再做局部修正。
+- 图标核对与整改完成：
+  1. `MobileProfile.vue` 将非标准文本字符 `›` 替换为官方 `ChevronRightIcon`；
+  2. `MobileMessages.vue` 消息详情顶部返回按钮与删除按钮统一增加官方 `ChevronLeftIcon` 与 `DeleteIcon`，列表未读红点将 `<i>` 替换为语义化 `<span class="mobile-message-unread-dot">`；
+  3. `MobileTodos.vue` 待办详情抽屉头部返回按钮补充官方 `ChevronLeftIcon`，与二级页统一；
+  4. `MobileApps.vue` 原生搜索 input 统一为 `TMobileInput` 组件；
+  5. `MobileAnnouncements.vue` 未读红点替换为语义化 span 标签。
+  五栏及二级页所有图标已 100% 收敛至 `tdesign-icons-vue-next`。
+- 字号与样式规范核对与整改完成：
+  1. 对照 TDesign Mobile Vue 官方设计 Token（`--td-font-size-body-*`、`--td-font-size-title-*`），彻底清理所有 <12px 的过小文字（如 10px、11px），将其提升至标准辅助文字 12px；
+  2. 待办摘要、卡片标题、列表主信息与详情字段等由 13px 统一对齐到移动端标准正文 14px~15px，标题保持 16px~20px 清晰层级；
+  3. `mobile.css` 根部注入标准移动字体族体系（PingFang SC, Microsoft YaHei 等）及抗锯齿平滑渲染。
+- 质量检查与构建：`npm run check:mobile`（`vue-tsc` + `eslint`）0 错误 0 告警，`tests/portal.test.mjs` 20/20 通过，`npm run build` 打包构建成功。现场真机视觉与交互录屏仍受环境权限限制，未声称真机视觉签收。

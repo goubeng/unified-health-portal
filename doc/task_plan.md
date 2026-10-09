@@ -231,6 +231,6 @@
 
 ## 2026-10-09 移动端图标与 TDesign 字体规范核查
 
-- [ ] 清点五栏及二级页的图标来源，确认非 TDesign 符号及替换范围。
-- [ ] 对照 TDesign Mobile Vue 官方规范与本地组件样式核对字号层级，修正偏小的移动正文和辅助文字。
-- [ ] 运行移动类型、Lint 与构建检查，记录视觉验收的实际边界。
+- [x] 清点五栏及二级页的图标来源，确认非 TDesign 符号及替换范围（替换手写字符 `›` 为 `ChevronRightIcon`，待办与消息详情增加 `ChevronLeftIcon`/`DeleteIcon`，未读标识语义化）。
+- [x] 对照 TDesign Mobile Vue 官方规范与本地组件样式核对字号层级，修正偏小的移动正文和辅助文字（清除 <12px 字号、正文对齐 14px、输入框统一组件化，`mobile.css` 接入 `--td-font-family` 与抗锯齿基准）。
+- [x] 运行移动类型、Lint 与构建检查，记录视觉验收的实际边界（`check:mobile` 0 错误 0 告警、定向测试 20/20 通过、`npm run build` 成功）。
