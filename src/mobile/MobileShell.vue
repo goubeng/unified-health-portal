@@ -25,8 +25,8 @@ const router=useRouter();
 const tabs=[
  {path:'/m/home',label:'首页',iconName:'home' as NavIconName},
  {path:'/m/todos',label:'待办事项',iconName:'todo' as NavIconName},
- {path:'/m/apps',label:'全部应用',iconName:'apps' as NavIconName},
  {path:'/m/messages',label:'消息中心',iconName:'message' as NavIconName},
+ {path:'/m/apps',label:'全部应用',iconName:'apps' as NavIconName},
  {path:'/m/profile',label:'我的',iconName:'profile' as NavIconName}
 ] as const;
 const activeTab=computed(()=>{

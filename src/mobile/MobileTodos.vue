@@ -1,14 +1,17 @@
 <template>
   <section class="mobile-todos">
-    <div class="mobile-page-intro">
-      <h1>待办事项</h1>
-      <p>当前有 {{ pendingCount }} 项待处理</p>
-    </div>
+    <!-- 头部品牌蓝渐变区域（无多余赘述，大方利落） -->
+    <header class="mobile-todos-header">
+      <div class="mobile-todos-title-bar">
+        <h1>待办事项</h1>
+        <p class="mobile-todos-subtitle">您当前有 <strong class="todo-highlight-num">{{ pendingCount }}</strong> 条事项待处理</p>
+      </div>
+      <div class="mobile-todo-search">
+        <TMobileInput v-model="keyword" placeholder="搜索待办标题" clearable />
+      </div>
+    </header>
 
-    <div class="mobile-todo-search">
-      <TMobileInput v-model="keyword" placeholder="搜索待办标题" clearable />
-    </div>
-
+    <!-- 状态筛选Tab栏 -->
     <nav class="mobile-todo-filters" aria-label="待办状态">
       <button
         v-for="item in filters"
@@ -22,37 +25,44 @@
       </button>
     </nav>
 
+    <!-- 错误与加载提示 -->
     <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
     <div v-if="loading" class="mobile-list-empty">正在加载待办…</div>
     <div v-else-if="!filtered.length" class="mobile-list-empty">暂无符合条件的待办</div>
 
+    <!-- 待办列表：扁平无多层嵌套 -->
     <div v-else class="mobile-todo-list">
       <article v-for="item in filtered" :key="item.id" class="mobile-todo-card">
-        <div class="mobile-card-main">
-          <div class="mobile-card-top">
-            <strong>{{ text(item.title) || '-' }}</strong>
-            <TMobileTag :theme="item.status === 'PENDING' ? 'warning' : item.status === 'COMPLETED' ? 'success' : 'default'" variant="light" size="small">{{ label(item.status, 'todo_status') }}</TMobileTag>
-          </div>
-          <p v-if="text(item.summary)" class="mobile-card-summary">{{ text(item.summary) }}</p>
-          <div class="mobile-card-footer">
-            <div class="mobile-card-meta-list">
-              <span v-if="taskTypeText(item)" class="meta-item meta-type">
-                <TagIcon class="meta-icon" />
-                <span>{{ taskTypeText(item) }}</span>
-              </span>
-              <span class="meta-item meta-app">
-                <AppIcon class="meta-icon" />
-                <span>{{ text(item.appName) || '统一门户' }}</span>
-              </span>
-              <span class="meta-item meta-time">
-                <TimeIcon class="meta-icon" />
-                <span>{{ date(item.receivedAt) }}</span>
-              </span>
-            </div>
-            <div v-if="item.status === 'PENDING'" class="mobile-card-actions">
-              <TMobileButton size="small" variant="text" theme="primary" @click="process(item)">去处理</TMobileButton>
-            </div>
-          </div>
+        <div class="mobile-card-top">
+          <strong>{{ text(item.title) || '-' }}</strong>
+          <TMobileTag
+            :theme="item.status === 'PENDING' ? 'warning' : item.status === 'COMPLETED' ? 'success' : 'default'"
+            variant="light"
+            size="small"
+          >
+            {{ label(item.status, 'todo_status') }}
+          </TMobileTag>
+        </div>
+
+        <p v-if="text(item.summary)" class="mobile-card-summary">{{ text(item.summary) }}</p>
+
+        <!-- 指标在分隔线上方：来源系统与发布时间 -->
+        <div class="mobile-card-meta-list">
+          <span class="meta-item meta-app">
+            <AppIcon class="meta-icon" />
+            <span>{{ text(item.appName) || '统一门户' }}</span>
+          </span>
+          <span class="meta-item meta-time">
+            <TimeIcon class="meta-icon" />
+            <span>{{ date(item.receivedAt) }}</span>
+          </span>
+        </div>
+
+        <!-- 分隔线下方：按钮“去处理” -->
+        <div v-if="item.status === 'PENDING'" class="mobile-card-actions-row">
+          <TMobileButton size="small" theme="primary" class="todo-process-btn" @click="process(item)">
+            去处理
+          </TMobileButton>
         </div>
       </article>
     </div>
@@ -62,7 +72,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { Button as TMobileButton, Input as TMobileInput, Tag as TMobileTag } from 'tdesign-mobile-vue';
-import { AppIcon, TagIcon, TimeIcon } from 'tdesign-icons-vue-next';
+import { AppIcon, TimeIcon } from 'tdesign-icons-vue-next';
 import { command, portal, revision, loadDictionaryLookups } from '../services/runtime.js';
 import { date, label, text } from '../components/portal/presentation.js';
 
@@ -109,10 +119,6 @@ async function load() {
   loading.value = false;
 }
 
-function taskTypeText(item: Todo): string {
-  return label(item.businessType, 'todo_task_type') || text(item.businessType) || '服务事项';
-}
-
 async function process(item: Todo) {
   error.value = '';
   const result = await command('openTodo', { id: item.id });
@@ -133,30 +139,61 @@ watch(revision, load);
 
 <style scoped>
 .mobile-todos {
-  padding: 20px 16px 32px;
+  padding: 0 0 32px;
   color: #173047;
 }
 
-.mobile-page-intro h1 {
-  margin: 0;
-  font-size: 25px;
-  font-weight: 600;
+/* 头部品牌蓝渐变区域 */
+.mobile-todos-header {
+  padding: 20px 16px 18px;
+  background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.mobile-page-intro p {
-  margin: 5px 0 18px;
-  color: #71879a;
-  font-size: 14px;
+.mobile-todos-title-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-todos-title-bar h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.mobile-todos-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+}
+
+.todo-highlight-num {
+  font-weight: 800;
+  font-size: 18px;
+  color: #ffe600;
+  margin: 0 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  vertical-align: baseline;
 }
 
 .mobile-todo-search {
-  margin-bottom: 16px;
+  width: 100%;
 }
 
+/* 筛选 Tab 按钮 */
 .mobile-todo-filters {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  padding: 14px 16px 8px;
   overflow: auto;
 }
 
@@ -166,9 +203,11 @@ watch(revision, load);
   border-radius: 18px;
   background: #edf3f7;
   color: #5a7287;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.18s ease;
 }
 
 .mobile-todo-filters button.active {
@@ -178,6 +217,7 @@ watch(revision, load);
 }
 
 .mobile-inline-error {
+  margin: 10px 16px;
   padding: 10px 12px;
   border-radius: 8px;
   background: #fff1ef;
@@ -192,29 +232,26 @@ watch(revision, load);
   font-size: 14px;
 }
 
+/* 待办列表 */
 .mobile-todo-list {
   display: grid;
   gap: 12px;
+  padding: 6px 16px;
 }
 
 .mobile-todo-card {
-  background: #fff;
-  border: 1px solid #edf2f4;
+  background: #ffffff;
+  border: 1px solid #edf2f6;
   border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 5px 18px rgba(22, 79, 91, 0.04);
-}
-
-.mobile-card-main {
-  display: block;
-  width: 100%;
+  padding: 15px 15px 12px;
+  box-shadow: 0 4px 14px rgba(18, 52, 95, 0.04);
 }
 
 .mobile-card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
 }
 
 .mobile-card-top strong {
@@ -238,32 +275,43 @@ watch(revision, load);
   overflow: hidden;
 }
 
-.mobile-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #f2f5f8;
-  font-size: 12px;
-}
-
+/* 3 个指标在分隔线上方：统一中性灰配色，不单独使用蓝色 */
 .mobile-card-meta-list {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   min-width: 0;
-  flex: 1;
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12px;
+  overflow: hidden;
 }
 
 .meta-item {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #728496;
+  color: #718598;
   white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meta-item.meta-app {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta-item.meta-app span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-item.meta-time {
+  margin-left: 0;
 }
 
 .meta-item svg,
@@ -274,35 +322,21 @@ watch(revision, load);
   color: #8c9fae;
 }
 
-.meta-item.meta-type {
-  color: #0052d9;
-  font-weight: 500;
-}
-
-.meta-item.meta-type svg,
-.meta-item.meta-type .meta-icon {
-  color: #0052d9;
-}
-
-.meta-item.meta-app {
-  color: #435b71;
-}
-
-.meta-item.meta-time {
-  color: #8c9fae;
-}
-
-.mobile-card-actions {
-  flex: none;
+/* 按钮“去处理”显示在分隔线下面，右对齐 */
+.mobile-card-actions-row {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f3f6;
 }
 
-.mobile-card-actions :deep(.t-button) {
-  padding: 0 4px;
-  height: 24px;
-  line-height: 24px;
-  font-size: 13px;
-  font-weight: 600;
+.todo-process-btn {
+  height: 28px !important;
+  padding: 0 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
 }
 </style>

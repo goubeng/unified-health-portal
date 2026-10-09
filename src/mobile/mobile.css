@@ -1,49 +1,93 @@
 .mobile-shell {
- --mobile-brand: #0052d9;
- --td-brand-color: #0052d9;
- --td-brand-color-active: #0043b3;
- --td-brand-color-focus: #0052d9;
- --td-brand-color-hover: #1e6ceb;
- --td-brand-color-light: #ecf2fe;
- --mobile-surface: #f4f7fb;
- --mobile-max-width: 480px;
- --td-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
- font-family: var(--td-font-family);
- -webkit-font-smoothing: antialiased;
- -webkit-tap-highlight-color: transparent;
- width: 100%;
- max-width: var(--mobile-max-width);
- margin-inline: auto;
- min-height: 100dvh;
- display: flex;
- flex-direction: column;
- background: var(--mobile-surface);
- color: #24344d;
- font-size: 14px;
- line-height: 1.5;
+  --mobile-brand: #0052d9;
+  --td-brand-color: #0052d9;
+  --td-brand-color-active: #0043b3;
+  --td-brand-color-focus: #0052d9;
+  --td-brand-color-hover: #1e6ceb;
+  --td-brand-color-light: #ecf2fe;
+  --mobile-gradient-header: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  --mobile-surface: #f4f7fb;
+  --mobile-max-width: 480px;
+  --td-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-family: var(--td-font-family);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  max-width: var(--mobile-max-width);
+  margin-inline: auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mobile-surface);
+  color: #24344d;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .mobile-shell__content {
- flex: 1;
- min-width: 0;
- padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  flex: 1;
+  min-width: 0;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
 }
 
 .mobile-shell__navigation {
- position: fixed;
- left: 50%;
- bottom: 0;
- width: 100%;
- max-width: var(--mobile-max-width);
- transform: translateX(-50%);
- z-index: 20;
- background: #fff;
- box-shadow: 0 -4px 20px rgb(16 54 99 / 8%);
- --td-tab-bar-active-color: var(--mobile-brand);
- --td-tab-bar-color: #728198;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: var(--mobile-max-width);
+  transform: translateX(-50%);
+  z-index: 20;
+  background: #fff;
+  box-shadow: 0 -4px 20px rgb(16 54 99 / 8%);
+  --td-tab-bar-active-color: var(--mobile-brand);
+  --td-tab-bar-color: #728198;
 }
 
 .mobile-shell__navigation .t-tab-bar {
- max-width: var(--mobile-max-width);
- margin-inline: auto;
+  max-width: var(--mobile-max-width);
+  margin-inline: auto;
+}
+
+/* 全局搜索组件胶囊化覆盖：圆润胶囊形态，精致投影，提示文字缩小 */
+.mobile-todo-search .t-input,
+.mobile-apps-search-wrap .t-input,
+.mobile-message-search .t-input,
+.mobile-capsule-input .t-input {
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(18, 52, 95, 0.06);
+  border: 1px solid rgba(0, 82, 217, 0.08);
+  height: 38px !important;
+  font-size: 13px !important;
+  transition: all 0.2s ease;
+}
+
+.mobile-todo-search .t-input:focus-within,
+.mobile-apps-search-wrap .t-input:focus-within,
+.mobile-message-search .t-input:focus-within,
+.mobile-capsule-input .t-input:focus-within {
+  border-color: #0052d9 !important;
+  box-shadow: 0 4px 16px rgba(0, 82, 217, 0.14) !important;
+}
+
+.mobile-todo-search .t-input__inner,
+.mobile-apps-search-wrap .t-input__inner,
+.mobile-message-search .t-input__inner,
+.mobile-capsule-input .t-input__inner {
+  font-size: 13px !important;
+}
+
+/* 胶囊搜索框提示文字缩小，保持精致 */
+.mobile-todo-search input::placeholder,
+.mobile-apps-search-wrap input::placeholder,
+.mobile-message-search input::placeholder,
+.mobile-capsule-input input::placeholder,
+.mobile-todo-search .t-input__placeholder,
+.mobile-apps-search-wrap .t-input__placeholder,
+.mobile-message-search .t-input__placeholder,
+.mobile-capsule-input .t-input__placeholder {
+  font-size: 12.5px !important;
+  color: #9cb0c2 !important;
+  letter-spacing: 0.2px;
 }
