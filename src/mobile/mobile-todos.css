@@ -3,14 +3,14 @@
   color: #173047;
 }
 
-/* 头部品牌蓝渐变区域：三段式结构，严格统一 gap: 12px 与 padding: 20px 16px 18px */
+/* 三段式蓝色页头，统一复用移动端公共间距变量。 */
 .mobile-todos-header {
-  padding: 20px 16px 18px;
+  padding: var(--mobile-hero-padding-top) 16px var(--mobile-hero-padding-bottom);
   background: var(--mobile-gradient-header);
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--mobile-hero-row-gap);
   box-sizing: border-box;
 }
 
@@ -33,8 +33,8 @@
 
 .mobile-todos-subtitle {
   margin: 0;
-  height: 30px;
-  line-height: 30px;
+  height: 26px;
+  line-height: 26px;
   font-size: 13.5px;
   color: rgba(255, 255, 255, 0.92);
   display: flex;

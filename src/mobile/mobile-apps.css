@@ -6,15 +6,15 @@
   overflow: hidden;
 }
 
-/* 顶部栏：蓝渐变、三段式布局，间距严格统一为 gap: 12px 与 padding: 20px 16px 18px */
+/* 三段式蓝色页头，统一复用移动端公共间距变量。 */
 .mobile-apps-topbar {
   flex: none;
   background: var(--mobile-gradient-header);
-  padding: 20px 16px 18px;
+  padding: var(--mobile-hero-padding-top) 16px var(--mobile-hero-padding-bottom);
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--mobile-hero-row-gap);
   box-sizing: border-box;
 }
 

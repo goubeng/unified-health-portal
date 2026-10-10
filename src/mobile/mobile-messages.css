@@ -9,12 +9,12 @@
 
 /* 顶部品牌蓝渐变区域 */
 .mobile-message-hero {
-  padding: 20px 16px 18px;
+  padding: var(--mobile-hero-padding-top) 16px var(--mobile-hero-padding-bottom);
   background: var(--mobile-gradient-header);
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--mobile-hero-row-gap);
   box-sizing: border-box;
 }
 
@@ -33,7 +33,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 /* 筛选按钮（胶囊样式，高度统一 30px） */

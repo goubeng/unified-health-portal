@@ -10,6 +10,10 @@
   --mobile-font-size-section-title: 16px;
   --mobile-font-size-page-title: 20px;
   --mobile-hero-title-size: 22px;
+  /* 待办、消息、全部应用三段式蓝色页头统一紧凑间距。 */
+  --mobile-hero-padding-top: 14px;
+  --mobile-hero-padding-bottom: 12px;
+  --mobile-hero-row-gap: 6px;
   --mobile-ink: #24344d;
   --mobile-ink-muted: #728198;
   --mobile-border: #edf2f7;
