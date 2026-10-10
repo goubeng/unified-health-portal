@@ -14,8 +14,9 @@
 .mobile-home-hero {
   isolation: isolate;
   margin: 0 -13px;
-  min-height: 200px;
-  padding: 25px 22px 35px;
+  /* 紧凑Banner：保留图片与原文字，仅缩短纵向展示区域。 */
+  min-height: 170px;
+  padding: 18px 22px 22px;
   /* 文案与建筑保留原风格，仅提升主图可视面积与左侧文字可读性。 */
   background-image: linear-gradient(90deg, rgba(230,243,255,.84), rgba(246,251,255,.06));
   align-items: flex-start;
