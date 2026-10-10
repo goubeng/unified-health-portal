@@ -188,45 +188,45 @@ const iconToneClass = computed(() => {
   flex: none;
 }
 
-/* 1. 公众服务：活力暖橙与专属光晕投影 */
+/* 1. 公众服务：活力暖橙与专属柔和微光晕投影 */
 .category-app-icon.tone-public {
   background: linear-gradient(135deg, #ff9f43 0%, #ff6b35 100%);
-  box-shadow: 0 5px 12px rgba(255, 107, 53, 0.38);
+  box-shadow: 0 2.5px 6px rgba(255, 107, 53, 0.18);
 }
 
-/* 2. 政务协同：品牌政务蓝与专属光晕投影 */
+/* 2. 政务协同：品牌政务蓝与专属柔和微光晕投影 */
 .category-app-icon.tone-gov {
   background: linear-gradient(135deg, #2b70f5 0%, #0052d9 100%);
-  box-shadow: 0 5px 12px rgba(0, 82, 217, 0.38);
+  box-shadow: 0 2.5px 6px rgba(0, 82, 217, 0.18);
 }
 
-/* 3. 行业监管：质控青绿与专属光晕投影 */
+/* 3. 行业监管：质控青绿与专属柔和微光晕投影 */
 .category-app-icon.tone-supervision {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 5px 12px rgba(5, 150, 105, 0.38);
+  box-shadow: 0 2.5px 6px rgba(5, 150, 105, 0.18);
 }
 
-/* 4. 培训考试：学识紫罗兰与专属光晕投影 */
+/* 4. 培训考试：学识紫罗兰与专属柔和微光晕投影 */
 .category-app-icon.tone-training {
   background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-  box-shadow: 0 5px 12px rgba(109, 40, 217, 0.38);
+  box-shadow: 0 2.5px 6px rgba(109, 40, 217, 0.18);
 }
 
-/* 5. 卫生监督：执法青蓝天霁与专属光晕投影 */
+/* 5. 卫生监督：执法青蓝天霁与专属柔和微光晕投影 */
 .category-app-icon.tone-health-inspect {
   background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-  box-shadow: 0 5px 12px rgba(8, 145, 178, 0.38);
+  box-shadow: 0 2.5px 6px rgba(8, 145, 178, 0.18);
 }
 
-/* 6. 疾病防控：防线玫红生命与专属光晕投影 */
+/* 6. 疾病防控：防线玫红生命与专属柔和微光晕投影 */
 .category-app-icon.tone-disease-control {
   background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-  box-shadow: 0 5px 12px rgba(225, 29, 72, 0.38);
+  box-shadow: 0 2.5px 6px rgba(225, 29, 72, 0.18);
 }
 
-/* 默认通用与专属光晕投影 */
+/* 默认通用与专属柔和微光晕投影 */
 .category-app-icon.tone-default {
   background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-  box-shadow: 0 5px 12px rgba(71, 85, 105, 0.32);
+  box-shadow: 0 2.5px 6px rgba(71, 85, 105, 0.14);
 }
 </style>
