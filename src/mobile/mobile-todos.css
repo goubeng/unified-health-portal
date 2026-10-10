@@ -204,6 +204,13 @@
   white-space: nowrap;
 }
 
+/* 与首页待办一致的12px应用网格图标，来源与时间仍保持同一行。 */
+.meta-item.meta-app .meta-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--mobile-list-card-source-color);
+}
+
 .meta-item.meta-time {
   margin-left: 0;
   color: var(--mobile-list-card-time-color);

@@ -44,9 +44,15 @@
 
         <p v-if="text(item.summary)" class="mobile-card-summary">{{ text(item.summary) }}</p>
 
-        <!-- 指标在分隔线上方：来源系统与发布时间 -->
+        <!-- 来源系统与接收时间同一行，来源前使用首页待办一致的应用网格图标 -->
         <div class="mobile-card-meta-list">
           <span class="meta-item meta-app">
+            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
             <span>{{ text(item.appName) || '统一门户' }}</span>
           </span>
           <span class="meta-item meta-time">
