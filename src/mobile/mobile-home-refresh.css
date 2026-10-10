@@ -36,6 +36,35 @@
   height: 34px;
   background: linear-gradient(180deg, rgba(238,249,255,0), #eaf5ff 96%);
 }
+/* 与原辅助标题共用一行，避免增加Banner文字块高度。 */
+.mobile-home-hero-identity {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  max-width: 100%;
+  margin-bottom: 7px;
+}
+.mobile-home-hero-identity .mobile-home-kicker { margin: 0; }
+.mobile-home-portal-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: none;
+  min-height: 24px;
+  padding: 2px 9px;
+  border: 1px solid rgba(0, 82, 217, .17);
+  border-radius: 999px;
+  background: rgba(237, 246, 255, .78);
+  color: #0052d9;
+  font-size: 12px;
+  font-weight: var(--mobile-font-weight-medium);
+  line-height: 1.35;
+  white-space: nowrap;
+}
 .mobile-home-kicker {
   font-size: 14px;
   font-weight: var(--mobile-font-weight-semibold);
@@ -106,7 +135,7 @@
   gap: 7px;
   min-height: 99px;
   padding: 9px 3px 7px;
-  border: 1px solid rgba(235,241,250,.65);
+  border: 0;
   border-radius: 12px;
   background: linear-gradient(145deg, #fff9f5, #fffdfb);
   transition: transform .2s ease, box-shadow .2s ease;

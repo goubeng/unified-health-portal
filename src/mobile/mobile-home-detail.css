@@ -32,7 +32,7 @@
   min-height: 104px;
   gap: 6px;
   padding: 9px 3px 8px;
-  border: 1px solid rgba(229,238,250,.66);
+  border: 0;
   border-radius: 13px;
   position: relative;
   overflow: hidden;
