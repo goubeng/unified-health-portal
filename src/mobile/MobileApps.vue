@@ -7,6 +7,7 @@
         <!-- 标题右侧的纯文字统计，底部对齐，不再占据独立一行 -->
         <div class="mobile-apps-title-stats" aria-label="应用数量统计">
           <span>共 <strong>{{ apps.length }}</strong> 个</span>
+          <span class="mobile-apps-stat-divider" aria-hidden="true"></span>
           <span>已关联 <strong>{{ totalBoundCount }}</strong> 个</span>
         </div>
       </div>

@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-/* 三段式蓝色页头，统一复用移动端公共间距变量。 */
+/* 全部应用为两行页头，标题与搜索框间距独立扩大到12px。 */
 .mobile-apps-topbar {
   flex: none;
   background: var(--mobile-gradient-header);
@@ -14,7 +14,7 @@
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: var(--mobile-hero-row-gap);
+  gap: calc(var(--mobile-hero-row-gap) * 2);
   box-sizing: border-box;
 }
 
@@ -45,13 +45,22 @@
   flex: none;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 1px;
   color: rgba(255, 255, 255, .84);
   font-size: var(--mobile-font-size-caption);
   font-weight: var(--mobile-font-weight-normal);
   line-height: 1.4;
   white-space: nowrap;
+}
+
+/* 两组数量中间的细竖线，仅用于视觉分隔，不参与统计朗读。 */
+.mobile-apps-title-stats .mobile-apps-stat-divider {
+  align-self: center;
+  flex: 0 0 1px;
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, .58);
 }
 
 .mobile-apps-title-stats strong {
