@@ -149,7 +149,7 @@ export function createPortalService(provider,getActor){
    if(resource==='adminAnnouncements'){auth(a,'announcement:view');return d.announcements.map(x=>decorateAnnouncement(x));}
    if(resource==='profile')return decorateUser(d,a);
    if(resource==='myApplicationRequests'){
-    const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>{const app=d.apps.find(item=>item.id===x.appId);return {...x,requestType:'APPLICATION_ACCESS',appName:app?.name||x.appName,accessMode:app?.accessMode||'REQUEST',postGrantMode:app?.postGrantMode||'DIRECT'};});
+    const access=(d.applicationRequests||[]).filter(x=>own(x,a)).map(x=>{const app=d.apps.find(item=>item.id===x.appId);return {...x,requestType:'APPLICATION_ACCESS',appName:app?.name||x.appName,accessMode:app?.accessMode||'REQUEST',postGrantMode:app?.postGrantMode||'DIRECT',reviewedByName:handlerName(x.reviewedBy)};});
     const opening=(d.accountOpeningRequests||[]).filter(x=>own(x,a)).map(x=>({...x,requestType:'ACCOUNT_OPENING',appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,handledByName:handlerName(x.handledBy)}));
     return [...access,...opening].sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    }
@@ -164,7 +164,7 @@ export function createPortalService(provider,getActor){
      .map(item=>({date:item.key,count:item.value}));
     return {access:countRowsByChinaDay((d.logs||[]).filter(portalEntryLog),30).map(item=>({date:item.key,count:item.value})),api:trend('api')};
    }
-   if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
+   if(resource==='applicationRequests')return (d.applicationRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName,postGrantMode:d.apps.find(app=>app.id===x.appId)?.postGrantMode||'DIRECT',reviewedByName:handlerName(x.reviewedBy)})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(resource==='accountOpeningRequests')return (d.accountOpeningRequests||[]).map(x=>({...x,appName:d.apps.find(app=>app.id===x.appId)?.name||x.appName,userName:(d.users||actors).find(user=>user.id===x.userId)?.name||x.userName,handledByName:handlerName(x.handledBy)})).sort((x,y)=>(Date.parse(y.submittedAt)||0)-(Date.parse(x.submittedAt)||0));
    if(['categories','settings','mappings','organizations'].includes(resource))return d[resource];
    if(resource==='dictionaries')return {types:d.dictTypes||[],items:d.dictItems||[]};

@@ -44,8 +44,8 @@ export async function loadRequestState(query,state){
  const data=parse(raw)||{},users=new Map((state.users||[]).map(row=>[row.id,row.name])),apps=new Map((state.apps||[]).map(row=>[row.id,row.name]));
  const named=row=>({...row,userName:users.get(row.userId)||'',appName:apps.get(row.appId)||''});
  return {...state,
-  applicationRequests:(data.applicationRequests||[]).map(row=>named({...request(row),reviewedBy:runtimeId(row.reviewed_by),reviewedAt:date(row.reviewed_at),reviewNote:date(row.review_note),withdrawnAt:date(row.withdrawn_at),expiredAt:date(row.expired_at)})),
+  applicationRequests:(data.applicationRequests||[]).map(row=>named({...request(row),reviewedBy:runtimeId(row.reviewed_by),reviewedAt:date(row.reviewed_at),reviewNote:row.review_note||'',withdrawnAt:date(row.withdrawn_at),expiredAt:date(row.expired_at)})),
   applicationGrants:(data.applicationGrants||[]).map(row=>({...identity(row),status:row.status,grantedBy:runtimeId(row.granted_by),grantedAt:date(row.granted_at),expiresAt:date(row.expires_at)})),
-  accountOpeningRequests:(data.accountOpeningRequests||[]).map(row=>named({...request(row),handledBy:runtimeId(row.handled_by),handledAt:date(row.handled_at),handleNote:date(row.handle_note)}))
+  accountOpeningRequests:(data.accountOpeningRequests||[]).map(row=>named({...request(row),handledBy:runtimeId(row.handled_by),handledAt:date(row.handled_at),handleNote:row.handle_note||''}))
  };
 }

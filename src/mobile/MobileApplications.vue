@@ -1,12 +1,13 @@
 <template>
   <div class="mobile-requests">
     <header class="mobile-requests-head">
-      <button type="button" aria-label="返回" @click="router.push('/m/profile')">
+      <button type="button" aria-label="返回" @click="goBack">
         <ChevronLeftIcon />
       </button>
-      <h1>我的申请</h1>
+      <h1>{{ isDetailPage ? '申请详情' : '我的申请' }}</h1>
     </header>
 
+    <template v-if="!isDetailPage">
     <div class="mobile-requests-tabs" role="tablist">
       <button
         type="button"
@@ -36,7 +37,7 @@
       {{ error }} <button type="button" @click="load">重新加载</button>
     </div>
 
-    <p v-if="loading" class="mobile-requests-empty">正在加载申请…</p>
+    <div v-if="loading" class="mobile-requests-empty"><MobileLoading message="正在加载申请…" /></div>
 
     <!-- 申请卡片列表：与全部应用-我的申请保持一致，去掉查看详情字段 -->
     <div v-else-if="visibleRows.length" class="mobile-requests-list">
@@ -44,7 +45,7 @@
         v-for="item in visibleRows"
         :key="item.id"
         class="mobile-app-request-card"
-        @click="detail = item"
+        @click="openDetail(item)"
       >
         <div class="request-card-header">
           <strong>{{ item.appName || '业务应用' }}</strong>
@@ -100,75 +101,49 @@
     </div>
 
     <p v-else class="mobile-requests-empty">暂无申请记录</p>
+    </template>
 
-    <!-- 申请详情弹窗（居中弹窗显示样式） -->
-    <div v-if="detail" class="mobile-requests-center-overlay" @click.self="detail = null">
-      <section
-        class="mobile-requests-center-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="申请详情"
-        tabindex="-1"
-      >
-        <div class="mobile-modal-head">
-          <h2>申请详情</h2>
-          <button type="button" aria-label="关闭" @click="detail = null">
-            <CloseIcon />
-          </button>
-        </div>
-        <dl class="request-detail-dl">
-          <div><dt>应用名称</dt><dd>{{ detail.appName || '-' }}</dd></div>
-          <div><dt>申请编号</dt><dd>{{ detail.requestNo || '-' }}</dd></div>
-          <div><dt>申请类型</dt><dd>{{ detail.requestType === 'ACCOUNT_OPENING' ? '账号开通申请' : '应用访问申请' }}</dd></div>
-          <div>
-            <dt>当前状态</dt>
-            <dd>
-              <span class="request-status-tag" :class="statusClass(detail.status)">
-                {{ statusText(detail.status) }}
-              </span>
-            </dd>
-          </div>
-          <div><dt>申请时间</dt><dd>{{ formatDate(detail.submittedAt) }}</dd></div>
-          <div v-if="detail.reason"><dt>申请原因</dt><dd>{{ detail.reason }}</dd></div>
-          <div v-if="detail.reviewNote"><dt>处理意见</dt><dd>{{ detail.reviewNote }}</dd></div>
-        </dl>
-        <!-- 弹窗底部操作栏：与列表中可操作按钮保持一致，无多余关闭按钮，右上角已有关闭 -->
-        <div v-if="hasCardActions(detail)" class="mobile-modal-footer">
-          <button
-            v-if="detail.status === 'PENDING' && detail.requestType === 'APPLICATION_ACCESS'"
-            type="button"
-            class="modal-action-btn action-danger"
-            @click="withdraw(detail); detail = null"
-          >
-            撤回申请
-          </button>
-          <button
-            v-else-if="detail.status === 'REJECTED' && detail.requestType === 'APPLICATION_ACCESS'"
-            type="button"
-            class="modal-action-btn action-default"
-            @click="reapply(detail)"
-          >
-            重新申请
-          </button>
-          <button
-            v-else-if="detail.status === 'APPROVED' && detail.postGrantMode === 'DIRECT'"
-            type="button"
-            class="modal-action-btn action-primary"
-            @click="enter(detail); detail = null"
-          >
-            进入应用
-          </button>
-          <button
-            v-else-if="(detail.status === 'APPROVED' && detail.postGrantMode === 'BIND') || (detail.status === 'COMPLETED' && detail.requestType === 'ACCOUNT_OPENING')"
-            type="button"
-            class="modal-action-btn action-primary"
-            @click="bind(detail); detail = null"
-          >
-            完成账号确认
-          </button>
-        </div>
-      </section>
-    </div>
+    <!-- 路由详情页：字段、顺序与PC共用请求详情定义，不再使用居中弹窗。 -->
+    <main v-else class="mobile-request-detail-page">
+      <div v-if="loading" class="mobile-requests-empty"><MobileLoading message="正在加载申请详情…" /></div>
+      <template v-else-if="detail">
+        <section class="mobile-request-detail-section">
+          <h2>申请信息</h2>
+          <dl class="mobile-request-detail-grid">
+            <div v-for="item in detailSections.application" :key="item.key" class="mobile-request-detail-field">
+              <dt>{{ item.label }}</dt>
+              <dd>
+                <span v-if="item.key === 'status'" class="request-status-tag" :class="statusClass(detail.status)">{{ item.value }}</span>
+                <template v-else>{{ item.value }}</template>
+              </dd>
+            </div>
+          </dl>
+        </section>
+        <section class="mobile-request-detail-section">
+          <h2>审核信息</h2>
+          <dl class="mobile-request-detail-grid">
+            <div v-for="item in detailSections.review" :key="item.key" class="mobile-request-detail-field">
+              <dt>{{ item.label }}</dt>
+              <dd>{{ item.value }}</dd>
+            </div>
+          </dl>
+        </section>
+      </template>
+      <div v-else class="mobile-requests-empty">
+        <p>{{ error || '该申请不存在或无权查看' }}</p>
+        <button type="button" class="mobile-request-detail-back" @click="goBack">返回申请列表</button>
+      </div>
+      <footer v-if="detail && detailActions.length" class="mobile-request-detail-footer">
+        <button
+          v-for="action in detailActions"
+          :key="action.key"
+          type="button"
+          class="modal-action-btn"
+          :class="action.theme === 'danger' ? 'action-danger' : 'action-primary'"
+          @click="performDetailAction(action.key)"
+        >{{ action.label }}</button>
+      </footer>
+    </main>
 
     <!-- 移动端应用访问提示居中模态弹窗（替代 PC 端 DialogPlugin.alert） -->
     <div
@@ -220,11 +195,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ChevronLeftIcon, CloseIcon, InfoCircleFilledIcon } from 'tdesign-icons-vue-next';
 import { DialogPlugin } from 'tdesign-vue-next';
 import { command, portal, revision } from '../services/runtime.js';
 import MobileAccountBindingModal from './MobileAccountBindingModal.vue';
+import MobileLoading from './MobileLoading.vue';
+import { requestDetailSections, requestDetailActions } from '../components/portal/request-detail.js';
 
 interface NoticeState {
   visible: boolean;
@@ -262,6 +239,15 @@ type Request = {
   reviewNote?: string;
   reason?: string;
   postGrantMode?: string;
+  userName?: string;
+  userId?: string;
+  contact?: string;
+  remark?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  handledByName?: string;
+  handledAt?: string;
+  handleNote?: string;
 };
 
 type App = {
@@ -273,19 +259,43 @@ type App = {
   externalAccountStatus?: string;
 };
 
+const route = useRoute();
 const router = useRouter();
 const loading = ref(true);
 const error = ref('');
 const rows = ref<Request[]>([]);
 const apps = ref<App[]>([]);
-const tab = ref('APPLICATION_ACCESS');
-const detail = ref<Request | null>(null);
+const tab = ref(route.query.tab === 'ACCOUNT_OPENING' ? 'ACCOUNT_OPENING' : 'APPLICATION_ACCESS');
+const isDetailPage = computed(() => Boolean(route.params.id));
+const detail = computed<Request | null>(() => rows.value.find(item => item.id === String(route.params.id || '')) || null);
+const detailSections = computed(() => requestDetailSections(detail.value));
+const detailActions = computed(() => requestDetailActions(detail.value));
 const bindingVisible = ref(false);
 const bindingApp = ref<App | null>(null);
 
 const accessRows = computed(() => rows.value.filter(item => item.requestType === 'APPLICATION_ACCESS'));
 const openingRows = computed(() => rows.value.filter(item => item.requestType === 'ACCOUNT_OPENING'));
 const visibleRows = computed(() => tab.value === 'APPLICATION_ACCESS' ? accessRows.value : openingRows.value);
+
+function openDetail(item: Request) {
+  router.push({ path: `/m/applications/${encodeURIComponent(item.id)}`, query: { tab: tab.value } });
+}
+function goBack() {
+  if (isDetailPage.value) {
+    router.push({ path: '/m/applications', query: { tab: tab.value } });
+  } else {
+    router.push('/m/profile');
+  }
+}
+function performDetailAction(action: string) {
+  const item = detail.value;
+  if (!item) return;
+  if (action === 'withdraw') void withdraw(item);
+  else if (action === 'reapply') reapply(item);
+  else if (action === 'enter') void enter(item);
+  else if (action === 'bind') bind(item);
+}
+
 
 function statusText(status: string) {
   return (
@@ -388,12 +398,14 @@ function bind(item: Request) {
 
 function reapply(item: Request) {
   const appId = item.appId;
-  detail.value = null;
   router.push({ path: '/m/apps', query: { requestAppId: appId } });
 }
 
 onMounted(load);
 watch(revision, load);
+watch(() => route.query.tab, value => {
+  tab.value = value === 'ACCOUNT_OPENING' ? 'ACCOUNT_OPENING' : 'APPLICATION_ACCESS';
+});
 </script>
 
 <style scoped src="./mobile-applications.css"></style>

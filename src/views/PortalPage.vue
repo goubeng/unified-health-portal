@@ -198,7 +198,7 @@
    <template #footer><t-button theme="primary" :loading="accessSaving" :disabled="accessSaving" @click="accessConfigRef?.saveActive()">保存配置</t-button></template>
   </t-dialog>
   <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp" @completed="handleBindingCompleted" @view-request="viewBindingRequests"/>
-  <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download"/>
+  <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download" @request-action="handleRequestDetailAction"/>
  </div>
 </template>
 
@@ -618,6 +618,16 @@ async function showDetail(row,kind=listResource.value){
  detail.value=JSON.parse(JSON.stringify(row));detailKind.value=kind;
  detailAccessProfile.value=kind==='apps'&&admin.value?JSON.parse(JSON.stringify(accessProfiles.value.find(item=>item.appId===row.id)||null)):null;
  detailVisible.value=true;
+}
+function handleRequestDetailAction({action,record}){
+  if(action==='withdraw')confirm('withdrawApplicationRequest',record,'确认撤回此应用访问申请？');
+  else if(action==='reapply')openForm('submitApplicationRequest',{appId:record.appId,appName:record.appName});
+  else if(action==='bind')bindByRequest(record);
+  else if(action==='enter')enterAppByRequest(record);
+  else if(action==='approve')confirm('approveApplicationRequest',record,'确认通过此应用访问申请？通过后仅授予门户入口资格。');
+  else if(action==='reject')openForm('rejectApplicationRequest',record);
+  else if(action==='completeOpening')confirm('completeMockAccountOpeningRequest',record,'确认目标子系统已完成账号开通？此操作仅更新门户侧处理状态。');
+  closeDetail(false);
 }
 function closeDetail(visible){detailVisible.value=visible;if(!visible)detailAccessProfile.value=null;}
 function backToAnnouncements(){router.push(admin.value?'/admin/announcements':portalPath('/announcements'));}

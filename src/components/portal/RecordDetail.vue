@@ -1,5 +1,5 @@
 <template>
-  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="isAccountOpeningDetail?'1120px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'" :footer="false" @update:visible="$emit('update:visible',$event)">
+  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="isRequestDetail?'1180px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'" :footer="isRequestDetail && requestActions.length > 0" @update:visible="$emit('update:visible',$event)">
     <template v-if="record">
       <TodoDetailContent v-if="kind==='todos'" :record="record"/>
       <article v-else-if="kind==='messages'" class="portal-message-letter">
@@ -21,16 +21,23 @@
         <div class="portal-letter-body portal-rich-content" v-html="richText(record.content)"></div>
         <h3>相关信息</h3><DetailGrid :items="metadata"/>
       </article>
-      <section v-else-if="isAccountOpeningDetail" class="portal-generic-detail portal-account-opening-detail">
+      <section v-else-if="isRequestDetail" class="portal-generic-detail portal-my-request-detail">
         <h3 class="portal-detail-section-title">申请信息</h3>
-        <dl class="portal-detail-grid portal-account-opening-grid">
-          <div v-for="item in openingApplicationDetails" :key="item.key" class="portal-detail-item" :class="item.layout">
+        <dl class="portal-detail-grid portal-my-request-grid">
+          <div v-for="item in requestSections.application" :key="item.key" class="portal-detail-item" :class="item.layout">
             <dt>{{item.label}}</dt>
-            <dd><t-tag v-if="item.key==='status'" :theme="theme(record.status)" variant="light">{{label(record.status,'account_opening_status')}}</t-tag><template v-else>{{item.value}}</template></dd>
+            <dd>
+              <t-tag v-if="item.key==='status'" :theme="theme(record.status)" variant="light">{{item.value}}</t-tag>
+              <template v-else>{{item.value}}</template>
+            </dd>
           </div>
         </dl>
-        <h3 class="portal-detail-section-title">处理信息</h3>
-        <DetailGrid :items="openingProcessingDetails"/>
+        <h3 class="portal-detail-section-title">审核信息</h3>
+        <dl class="portal-detail-grid portal-my-request-grid portal-my-request-review-grid">
+          <div v-for="item in requestSections.review" :key="item.key" class="portal-detail-item" :class="item.layout">
+            <dt>{{item.label}}</dt><dd>{{item.value}}</dd>
+          </div>
+        </dl>
       </section>
       <template v-else>
         <div class="portal-generic-detail">
@@ -57,6 +64,11 @@
       </template>
       <div v-for="file in record.attachments||[]" :key="file.id" class="attachment"><span>{{file.name}}</span><t-button variant="text" @click="$emit('download',file)">下载附件</t-button></div>
     </template>
+    <template v-if="isRequestDetail && requestActions.length" #footer>
+      <div class="portal-my-request-footer">
+        <t-button v-for="action in requestActions" :key="action.key" :theme="action.theme" :variant="action.theme==='danger'?'outline':'base'" @click="emit('request-action',{action:action.key,record})">{{action.label}}</t-button>
+      </div>
+    </template>
   </t-dialog>
 </template>
 <script setup>
@@ -65,8 +77,9 @@ import {Icon} from 'tdesign-icons-vue-next';
 import DetailGrid from './DetailGrid.vue';
 import TodoDetailContent from './TodoDetailContent.vue';
 import {text,label,date,titles,display,richText,theme} from './presentation.js';
+import {requestDetailSections,requestDetailActions} from './request-detail.js';
 const props=defineProps({visible:Boolean,record:Object,kind:String,receiver:String,accessProfile:{type:Object,default:null},showConnection:{type:Boolean,default:false}});
-defineEmits(['update:visible','download']);
+const emit=defineEmits(['update:visible','download','request-action']);
 const auditTitles={
   'logs:login':'登录/认证日志详情',
   'logs:access':'应用访问日志详情',
@@ -81,11 +94,13 @@ const auditEventLabels={
   'logs:api':'接口事件',
   'logs:error':'异常类型'
 };
+const isRequestDetail=computed(()=>['myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(props.kind));
+const requestSections=computed(()=>requestDetailSections({...props.record,requestType:props.kind==='accountOpeningRequests'?'ACCOUNT_OPENING':props.kind==='applicationRequests'?'APPLICATION_ACCESS':props.record?.requestType}));
+const requestActions=computed(()=>requestDetailActions(props.record,props.kind));
 const isAuditLog=computed(()=>String(props.kind||'').startsWith('logs:'));
 const isMonitorException=computed(()=>props.kind==='monitorException');
-const isAccountOpeningDetail=computed(()=>props.kind==='accountOpeningRequests'||props.kind==='myApplicationRequests'&&props.record?.requestType==='ACCOUNT_OPENING');
 const showBasicSectionTitle=computed(()=>props.kind==='apps'&&props.showConnection);
-const dialogTitle=computed(()=>isMonitorException.value?'接入异常详情':isAccountOpeningDetail.value?'子系统账号开通申请详情':props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':props.kind==='myApplicationRequests'?'申请详情':auditTitles[props.kind]||'详情');
+const dialogTitle=computed(()=>isMonitorException.value?'接入异常详情':props.kind==='todos'?'待办详情':props.kind==='messages'?'消息详情':props.kind==='announcements'?'公告详情':props.kind==='apps'?'应用详情':isRequestDetail.value?'申请详情':auditTitles[props.kind]||'详情');
 const detailTitle=(key)=>{
  const overrides={
   apps:{name:'应用名称',code:'应用编码',enabled:'启用状态'},
@@ -102,23 +117,6 @@ const detailTitle=(key)=>{
  return titles[key]||key;
 };
 const details=computed(()=>Object.entries(props.record||{}).filter(([key,value])=>titles[key]&&(key==='permissions'||key==='roleIds'||typeof value!=='object'||value===null)).map(([key,value])=>({key,label:detailTitle(key),value:display(key,value,props.kind==='myApplicationRequests'&&props.record?.requestType==='ACCOUNT_OPENING'?'accountOpeningRequests':props.kind),wide:['content','description','summary','remark','reason','reviewNote','handleNote','permissions','roleIds'].includes(key)})));
-const openingApplicationDetails=computed(()=>{
- const row=props.record||{};
- return [
-  ['requestNo','申请编号','is-third'],['submittedAt','申请时间','is-third'],['status','状态','is-third'],
-  ['userName','申请人','is-half'],['appName','来源应用','is-half'],
-  ['userId','统一身份标识','is-half'],['contact','联系方式','is-half'],
-  ['reason','申请原因','is-wide'],['remark','备注','is-wide']
- ].map(([key,labelText,layout])=>({key,label:labelText,layout,value:display(key,row[key],'accountOpeningRequests')}));
-});
-const openingProcessingDetails=computed(()=>{
- const row=props.record||{};
- return [
-  {key:'handledByName',label:'处理人',value:text(row.handledByName)||'-'},
-  {key:'handledAt',label:'处理时间',value:date(row.handledAt)},
-  {key:'handleNote',label:'处理说明',value:text(row.handleNote)||'-',wide:true}
- ];
-});
 const monitorExceptionDetails=computed(()=>{
   const row=props.record||{},kind=row.kind||'',service=row.services?.[kind]||{};
   const runtimeState=service.runtimeStatus||service.status||row.status||'ABNORMAL';

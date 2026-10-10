@@ -40,29 +40,27 @@ const router = useRouter();
 const tabs = [
   { path: '/m/home', label: '首页', iconName: 'home' as NavIconName },
   { path: '/m/todos', label: '待办事项', iconName: 'todo' as NavIconName },
-  { path: '/m/messages', label: '消息', iconName: 'message' as NavIconName },
+  { path: '/m/messages', label: '消息中心', iconName: 'message' as NavIconName },
   { path: '/m/apps', label: '全部应用', iconName: 'apps' as NavIconName },
   { path: '/m/profile', label: '我的', iconName: 'profile' as NavIconName },
 ] as const;
 
 const isDetailView = computed(() => {
-  return (route.path === '/m/messages' && Boolean(route.query.messageId))
-    || (route.path.startsWith('/m/announcements/') && route.query.from === 'messages');
+  return route.path === '/m/messages' && Boolean(route.query.messageId);
 });
 
 // “我的申请”由顶部返回按钮导航，列表与申请详情弹窗均不需要底部主导航。
-const isApplicationsList = computed(() => route.path === '/m/applications');
+const isApplicationsList = computed(() => route.path === '/m/applications' || route.path.startsWith('/m/applications/'));
 
 const activeTab = computed(() => {
   const path = route.path;
-  if (path.startsWith('/m/announcements')) return route.query.from === 'messages' ? '/m/messages' : '/m/home';
+  if (path.startsWith('/m/announcements')) return '/m/home';
   if (path.startsWith('/m/applications')) return '/m/profile';
   return tabs.find((item) => path === item.path)?.path || '/m/home';
 });
 
 const pendingTodoCount = ref(0);
 const unreadMessageCount = ref(0);
-const unreadAnnouncementCount = ref(0);
 
 async function refreshBadges() {
   try {
@@ -70,7 +68,6 @@ async function refreshBadges() {
     if (result.ok && result.data) {
       pendingTodoCount.value = Number(result.data.todoCount) || 0;
       unreadMessageCount.value = Number(result.data.unreadCount) || 0;
-      unreadAnnouncementCount.value = Number(result.data.unreadAnnouncementCount) || 0;
     }
   } catch {
     // 忽略网络或服务异常
@@ -82,7 +79,7 @@ function hasBadge(path: string): boolean {
     return pendingTodoCount.value > 0;
   }
   if (path === '/m/messages') {
-    return unreadMessageCount.value > 0 || unreadAnnouncementCount.value > 0;
+    return unreadMessageCount.value > 0;
   }
   return false;
 }

@@ -1704,3 +1704,17 @@
   .monitor-visual-legend{width:100%;margin-left:0;justify-content:flex-start}
 }
 .app-status-switch-line{display:flex;align-items:center;gap:8px;min-height:32px;color:#1f2329;font-size:13px}
+
+/* 申请详情采用三列申请信息+分区审核信息，专属样式不影响其他详情弹窗。 */
+.portal-record-detail-dialog:has(.portal-my-request-detail){max-width:calc(100vw - 40px)}
+.portal-record-detail-dialog .portal-my-request-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-third{grid-column:span 1}
+.portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-half{grid-column:span 1}
+.portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-wide{grid-column:1/-1}
+.portal-record-detail-dialog .portal-my-request-review-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.portal-record-detail-dialog .portal-my-request-detail>.portal-detail-section-title:not(:first-child){margin-top:20px!important}
+.portal-record-detail-dialog .portal-my-request-footer{display:flex;justify-content:flex-end;align-items:center;gap:10px;width:100%}
+@media(max-width:860px){
+  .portal-record-detail-dialog .portal-my-request-grid,.portal-record-detail-dialog .portal-my-request-review-grid{grid-template-columns:1fr}
+  .portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-third,.portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-half{grid-column:1/-1}
+}

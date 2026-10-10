@@ -29,7 +29,7 @@
 
     <!-- 错误与加载提示 -->
     <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
-    <div v-if="loading" class="mobile-list-empty">正在加载待办…</div>
+    <div v-if="loading" class="mobile-list-empty"><MobileLoading message="正在加载待办…" /></div>
     <div v-else-if="!filtered.length" class="mobile-list-empty">暂无符合条件的待办</div>
 
     <!-- 待办列表：扁平无多层嵌套 -->
@@ -78,6 +78,7 @@ import { Button as TMobileButton, Input as TMobileInput } from 'tdesign-mobile-v
 import { CalendarIcon } from 'tdesign-icons-vue-next';
 import { command, portal, revision, loadDictionaryLookups } from '../services/runtime.js';
 import { date, label, text } from '../components/portal/presentation.js';
+import MobileLoading from './MobileLoading.vue';
 
 interface Todo {
   id: string;

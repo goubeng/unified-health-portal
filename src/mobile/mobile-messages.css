@@ -28,33 +28,6 @@
   line-height: 1.25;
 }
 
-/* 两个消息分类页签位于品牌蓝页头内，使用白色下划线区分当前项。 */
-.mobile-message-tabs {
-  display: flex;
-  width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
-}
-
-.mobile-message-tabs button {
-  flex: 1;
-  min-width: 0;
-  min-height: 40px;
-  padding: 9px 12px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 14px;
-  font-weight: var(--mobile-font-weight-medium);
-  cursor: pointer;
-}
-
-.mobile-message-tabs button.active {
-  border-bottom-color: #ffffff;
-  color: #ffffff;
-  font-weight: var(--mobile-font-weight-semibold);
-}
-
 /* 操作栏：筛选 与 清除未读 */
 .mobile-message-action-bar {
   display: flex;

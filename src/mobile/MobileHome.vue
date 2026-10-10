@@ -7,7 +7,7 @@
     </section>
 
     <div v-if="error" class="mobile-home-error" role="alert">{{ error }}<MobileButton size="small" variant="text" @click="load">重试</MobileButton></div>
-    <div v-if="loading" class="mobile-home-loading">正在加载服务内容…</div>
+    <div v-if="loading" class="mobile-home-loading"><MobileLoading message="正在加载服务内容…" /></div>
 
     <template v-else>
       <section class="mobile-home-section mobile-home-section--first">
@@ -148,6 +148,7 @@ import {
 import { command, portal, revision } from '../services/runtime.js';
 import { date } from '../components/portal/presentation.js';
 import CategoryAppIcon from './CategoryAppIcon.vue';
+import MobileLoading from './MobileLoading.vue';
 import noticeMegaphone from '../assets/mobile-home/notice-megaphone.png';
 import nopicSvg from '../assets/nopic.svg';
 

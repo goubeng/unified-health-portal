@@ -26,7 +26,7 @@
     <div v-if="error" class="mobile-apps-error" role="alert">
       {{ error }} <button type="button" @click="load">重新加载</button>
     </div>
-    <div v-if="loading" class="mobile-apps-loading">正在加载数据…</div>
+    <div v-if="loading" class="mobile-apps-loading"><MobileLoading message="正在加载数据…" /></div>
 
     <!-- 全部应用视图（左右分栏主体） -->
     <div v-else class="mobile-apps-body">
@@ -194,6 +194,7 @@ import {
 import { command, portal, revision } from '../services/runtime.js';
 import MobileAccountBindingModal from './MobileAccountBindingModal.vue';
 import CategoryAppIcon from './CategoryAppIcon.vue';
+import MobileLoading from './MobileLoading.vue';
 import { useMobileDialog } from './useMobileDialog';
 
 interface NoticeState {

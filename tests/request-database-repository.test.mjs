@@ -40,6 +40,7 @@ test('normalized reload restores request lifecycle and grant while preserving un
  const state=await loadRequestState(async sql=>{assert.match(sql,/application_access_request/);return JSON.stringify(physical);},{...seed,customMarker:'keep'});
  assert.equal(state.applicationRequests[0].id,'MOCK_REQ_1');
  assert.equal(state.applicationRequests[0].reviewedBy,'MOCK_ADMIN');
+ assert.equal(state.applicationRequests[0].reviewNote,'通过');
  assert.equal(state.applicationRequests[0].userName,'林晓');
  assert.equal(state.applicationGrants[0].id,'MOCK_GRANT_1');
  assert.deepEqual(state.accountOpeningRequests,[]);
