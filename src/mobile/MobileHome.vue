@@ -61,10 +61,11 @@
         <div class="mobile-home-section-head"><div><h2>待办事项 <span v-if="pendingTodoCount > 0" class="todo-badge">{{ pendingTodoCount }}</span></h2></div><button type="button" @click="go('/m/todos')">查看全部</button></div>
         <div v-if="pendingTodos.length" class="mobile-home-feed">
           <button v-for="item in pendingTodos.slice(0, FEED_PREVIEW_LIMIT)" :key="item.id" type="button" @click="go('/m/todos')">
-            <span class="mobile-home-feed-dot"></span>
             <span class="mobile-home-feed-copy">
               <span class="mobile-home-feed-top">
+                <span class="mobile-home-feed-dot" aria-hidden="true"></span>
                 <strong>{{ item.title }}</strong>
+                <ChevronRightIcon class="mobile-home-feed-arrow" aria-hidden="true" />
               </span>
               <small class="mobile-home-feed-meta">
                 <span class="feed-meta-item meta-app">
@@ -76,7 +77,6 @@
                 </span>
               </small>
             </span>
-            <ChevronRightIcon />
           </button>
         </div>
         <div v-else class="mobile-home-todo-empty">
