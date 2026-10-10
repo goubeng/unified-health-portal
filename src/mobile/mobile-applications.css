@@ -208,7 +208,7 @@
   height: var(--mobile-action-compact-height);
   padding: 0 var(--mobile-action-padding-inline);
   border: 1px solid #d2dbe5;
-  border-radius: 14px;
+  border-radius: var(--mobile-action-pill-radius);
   background: #ffffff;
   color: #5b6f82;
   font-size: 12px;
@@ -334,7 +334,7 @@
 .modal-action-btn {
   width: 100%;
   height: var(--mobile-action-primary-height);
-  border-radius: 999px;
+  border-radius: var(--mobile-action-pill-radius);
   font-size: 13.5px;
   font-weight: var(--mobile-font-weight-medium);
   cursor: pointer;

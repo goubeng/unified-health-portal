@@ -22,6 +22,7 @@
   --mobile-action-primary-height: 44px;
   --mobile-action-icon-size: 40px;
   --mobile-action-padding-inline: 12px;
+  --mobile-action-pill-radius: 999px;
   /* 消息中心与待办事项列表卡片共用的文字层级。 */
   --mobile-list-card-title-size: 15px;
   --mobile-list-card-title-color: #1a2d48;
@@ -195,6 +196,18 @@ body:has(.mobile-message-detail-toolbar) .mobile-shell__navigation {
 .mobile-shell :is(.modal-action-btn, .mobile-submit-btn, .mobile-notice-confirm-btn, .m-btn, .filter-reset-btn, .filter-submit-btn) {
   box-sizing: border-box;
   min-height: var(--mobile-action-primary-height);
+}
+
+/* 各页面已有业务按钮共用胶囊圆角，保留原有按钮状态、颜色与事件。 */
+.mobile-shell :is(.action-btn-mini, .app-btn-pill, .todo-process-btn, .modal-action-btn, .mobile-submit-btn, .mobile-notice-confirm-btn, .m-btn) {
+  border-radius: var(--mobile-action-pill-radius);
+}
+
+/* 仅首页软化底部导航与浅蓝页面背景的衔接，其他二级页导航不变。 */
+.mobile-shell:has(.mobile-home) .mobile-shell__navigation {
+  border-top: 1px solid rgba(221, 234, 250, .72);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -5px 18px rgba(27, 85, 149, .045);
 }
 
 /* 导航和弹窗图标按钮统一40px触控热区，保留原图标大小。 */

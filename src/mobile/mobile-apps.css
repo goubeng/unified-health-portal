@@ -262,7 +262,7 @@
   min-width: 56px;
   height: var(--mobile-action-compact-height);
   padding: 0 var(--mobile-action-padding-inline);
-  border-radius: 13px;
+  border-radius: var(--mobile-action-pill-radius);
   font-size: 12px;
   font-weight: var(--mobile-font-weight-medium);
   border: 0;

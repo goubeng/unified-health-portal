@@ -233,5 +233,5 @@
   padding: 0 var(--mobile-action-padding-inline) !important;
   font-size: 12.5px !important;
   font-weight: var(--mobile-font-weight-semibold) !important;
-  border-radius: 999px !important;
+  border-radius: var(--mobile-action-pill-radius) !important;
 }

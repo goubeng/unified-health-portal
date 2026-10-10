@@ -4,7 +4,22 @@
 .mobile-home {
   --home-brand: #0052d9;
   --home-ink: #14274c;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: linear-gradient(180deg, #eaf5ff 0%, #f5f9ff 42%, #f7fbff 72%, #eef6ff 100%);
+}
+/* 底部非常淡的双层波纹；纯 CSS 绘制，不增加图片资源和交互遮挡。 */
+.mobile-home::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 175px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(115% 83% at 8% 117%, rgba(80, 164, 239, .105) 0 66%, transparent 67%),
+    radial-gradient(100% 76% at 100% 126%, rgba(118, 188, 250, .105) 0 69%, transparent 70%);
 }
 /* 应用入口：固定图标轨道，分类 SVG 与文字分别居中。 */
 .mobile-home-app-grid { gap: 8px; align-items: stretch; }
@@ -14,11 +29,30 @@
   align-content: center;
   justify-items: center;
   align-items: center;
-  min-height: 99px;
-  gap: 4px;
-  padding: 8px 3px 7px;
+  min-height: 104px;
+  gap: 6px;
+  padding: 9px 3px 8px;
   border: 1px solid rgba(229,238,250,.66);
   border-radius: 13px;
+  position: relative;
+  overflow: hidden;
+}
+/* 极淡的斜向光影，只增强卡片质感，不叠加新的彩色底纹。 */
+.mobile-home-app-grid button::before {
+  content: '';
+  position: absolute;
+  right: -15px;
+  bottom: -29px;
+  width: 78%;
+  height: 62px;
+  transform: rotate(-17deg);
+  border-radius: 48% 0 0 0;
+  background: rgba(112, 168, 228, .055);
+  pointer-events: none;
+}
+.mobile-home-app-grid button > * {
+  position: relative;
+  z-index: 1;
 }
 .mobile-home-app-grid .mobile-home-app-icon {
   display: flex;
@@ -136,9 +170,11 @@
   object-fit: contain;
   object-position: center;
   transform: translateX(7px);
+  /* 保留原PNG与淡蓝背景的自然融合，减小中央细节被遮罩冲淡的问题。 */
+  filter: contrast(1.045) saturate(1.05);
   mix-blend-mode: multiply;
-  -webkit-mask-image: radial-gradient(ellipse 65% 70% at 50% 52%, #000 48%, rgba(0,0,0,.95) 66%, transparent 100%);
-  mask-image: radial-gradient(ellipse 65% 70% at 50% 52%, #000 48%, rgba(0,0,0,.95) 66%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 74% 78% at 50% 52%, #000 62%, rgba(0,0,0,.94) 75%, transparent 100%);
+  mask-image: radial-gradient(ellipse 74% 78% at 50% 52%, #000 62%, rgba(0,0,0,.94) 75%, transparent 100%);
 }
 .mobile-home-notice-card .notice-megaphone-fallback {
   width: 95px;
@@ -206,23 +242,23 @@
 }
 .mobile-home-section--todos .mobile-home-feed button {
   min-height: 66px;
-  padding: 13px 10px;
-  border: 1px solid #eaf2fc;
+  padding: 12px 10px;
+  border: 1px solid rgba(226, 239, 252, .75);
   border-radius: 12px;
-  background: linear-gradient(110deg, #f2f8ff, #f9fbff);
+  background: linear-gradient(110deg, #f5f9ff, #fbfdff);
 }
-.mobile-home-section--todos .mobile-home-feed button:first-child { border-top: 1px solid #eaf2fc; }
+.mobile-home-section--todos .mobile-home-feed button:first-child { border-top: 1px solid rgba(226, 239, 252, .75); }
 .mobile-home-section--todos .mobile-home-feed-top strong { font-size: 13px; }
 @media (min-width: 420px) {
-  .mobile-home-app-grid button { min-height: 101px; }
+  .mobile-home-app-grid button { min-height: 108px; }
   .mobile-home-app-grid button > .mobile-home-app-name { font-size: 12px; }
   .mobile-home-notice-card .notice-row-title { font-size: 13px; }
 }
 @media (max-width: 350px) {
   /* 窄屏稍微降低Banner放大倍率，减少医院主体被裁切的风险。 */
-  .mobile-home-hero::before { background-size: 116% auto; }
+  .mobile-home-hero::before { background-size: 114% auto; background-position: 66% 48%; }
   .mobile-home-app-grid { gap: 5px; }
-  .mobile-home-app-grid button { min-height: 94px; padding: 7px 2px 6px; grid-template-rows: 44px minmax(0, 2.8em); }
+  .mobile-home-app-grid button { min-height: 99px; padding: 7px 2px 6px; grid-template-rows: 44px minmax(0, 2.8em); }
   .mobile-home-app-grid .mobile-home-app-icon { width: 44px; height: 44px; }
   .mobile-home-app-grid .mobile-home-app-icon :deep(.category-app-icon) { flex-basis: 38px; width: 38px; height: 38px; }
   .mobile-home-app-grid button > .mobile-home-app-name { font-size: 12px; }
