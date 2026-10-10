@@ -1,5 +1,5 @@
 /* 仅移动端首页使用，独立于业务逻辑。视觉主色：#0052d9。
- * 素材位于 src/assets/mobile-home/；未上传 PNG 时保留现有 SVG 回退。
+ * 应用图标由 CategoryAppIcon.vue 渲染分类 SVG，公告插画保留 PNG。
  */
 .mobile-home {
   --home-brand: #0052d9;
@@ -127,13 +127,6 @@
   border-radius: 14px;
   overflow: visible;
   background: transparent;
-}
-.mobile-home-app-icon img {
-  display: block;
-  width: 55px;
-  height: 55px;
-  max-width: none;
-  object-fit: contain;
 }
 .mobile-home-app-grid button > span:last-child,
 .mobile-home-app-name {
@@ -318,7 +311,6 @@
   .mobile-home-app-grid { gap: 5px; }
   .mobile-home-app-grid button { min-height: 95px; padding: 8px 2px; }
   .mobile-home-app-icon { width: 41px; height: 41px; }
-  .mobile-home-app-icon img { width: 49px; height: 49px; }
   .mobile-home-app-grid button > span:last-child { font-size: 10.5px; }
   .mobile-home-notice-card .notice-badge { flex-basis: 68px; width: 68px; margin-right: 7px; }
   .mobile-home-notice-card .notice-badge img,

@@ -14,8 +14,7 @@
         <div v-if="mine.length" class="mobile-home-app-grid">
           <button v-for="app in mine.slice(0, APP_PREVIEW_LIMIT)" :key="app.id" type="button" @click="openApp(app)">
             <div class="mobile-home-app-icon">
-              <img v-if="homeAppPng(app.category)" :src="homeAppPng(app.category)" alt="" loading="lazy" />
-              <CategoryAppIcon v-else :category="app.category" />
+              <CategoryAppIcon :category="app.category" />
             </div>
             <span class="mobile-home-app-name">{{ app.name }}</span>
           </button>
@@ -140,6 +139,7 @@ import {
 import { command, portal, revision } from '../services/runtime.js';
 import { date } from '../components/portal/presentation.js';
 import CategoryAppIcon from './CategoryAppIcon.vue';
+import noticeMegaphone from '../assets/mobile-home/notice-megaphone.png';
 import nopicSvg from '../assets/nopic.svg';
 
 interface NoticeState {
@@ -177,24 +177,7 @@ type PortalRow = {
   businessType?: string;
 };
 type Overview = { todoCount?: number; unreadCount?: number; unreadAnnouncementCount?: number };
-// 动态发现用户后续上传的 PNG；未上传时仍可构建，应用继续显示项目现有分类 SVG。
-const MOBILE_HOME_PNG = import.meta.glob<string>('../assets/mobile-home/*.png', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-});
-const noticeMegaphone = MOBILE_HOME_PNG['../assets/mobile-home/notice-megaphone.png'] || '';
-const HOME_APP_ICON_NAMES: Record<string, string> = {
-  '公众服务': 'app-heart.png',
-  '政务协同': 'app-hospital.png',
-  '培训考试': 'app-training.png',
-  '行业监管': 'app-compliance.png',
-};
-function homeAppPng(category?: string): string | undefined {
-  const filename = HOME_APP_ICON_NAMES[(category || '').trim()];
-  return filename ? MOBILE_HOME_PNG[`../assets/mobile-home/${filename}`] : undefined;
-}
-
+// 应用分类图标直接复用 CategoryAppIcon.vue 的内联 SVG；公告插画保留 PNG。
 const APP_PREVIEW_LIMIT = 8;
 const FEED_PREVIEW_LIMIT = 3;
 const NOTICE_LINE_HEIGHT_PX = 35;

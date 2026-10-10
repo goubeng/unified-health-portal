@@ -6,7 +6,7 @@
   --home-ink: #14274c;
   background: linear-gradient(180deg, #eaf5ff 0%, #f5f9ff 42%, #f7fbff 72%, #eef6ff 100%);
 }
-/* 应用入口：固定图标轨道，图片与文字分别居中。 */
+/* 应用入口：固定图标轨道，分类 SVG 与文字分别居中。 */
 .mobile-home-app-grid { gap: 8px; align-items: stretch; }
 .mobile-home-app-grid button {
   display: grid;
@@ -33,22 +33,16 @@
   padding: 0;
   line-height: 0;
 }
-.mobile-home-app-grid .mobile-home-app-icon img {
-  display: block;
-  flex: none;
-  width: 60px;
-  height: 60px;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  object-fit: contain;
-  object-position: center;
-}
 .mobile-home-app-grid .mobile-home-app-icon :deep(.category-app-icon) {
-  flex: none;
-  width: 48px;
-  height: 48px;
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
   margin: auto;
+  border-radius: 14px;
+}
+.mobile-home-app-grid .mobile-home-app-icon :deep(.svg-icon) {
+  width: 25px;
+  height: 25px;
 }
 .mobile-home-app-grid button > .mobile-home-app-name {
   display: -webkit-box;
@@ -211,7 +205,7 @@
   .mobile-home-app-grid { gap: 5px; }
   .mobile-home-app-grid button { min-height: 103px; padding: 7px 2px 6px; grid-template-rows: 53px minmax(0, 2.8em); }
   .mobile-home-app-grid .mobile-home-app-icon { width: 53px; height: 53px; }
-  .mobile-home-app-grid .mobile-home-app-icon img { width: 57px; height: 57px; }
+  .mobile-home-app-grid .mobile-home-app-icon :deep(.category-app-icon) { flex-basis: 46px; width: 46px; height: 46px; }
   .mobile-home-app-grid button > .mobile-home-app-name { font-size: 10.5px; }
   .mobile-home-notice-card .notice-badge { flex-basis: 86px; width: 86px; margin-right: 8px; }
   .mobile-home-notice-card .notice-badge img { width: 94px; height: 88px; }
