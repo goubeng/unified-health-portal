@@ -6,7 +6,7 @@
    <span class="brand">卫健XC统一门户</span><span class="portal-caption" :class="{admin}">{{admin?'平台管理端':'用户端门户'}}</span>
    <div class="topbar-actions">
     <PortalTooltip v-if="can(actor,'any')" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><SwapIcon size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
-    <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="消息中心" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
+    <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="我的消息" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="我的消息" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
     <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
      <button class="account-entry" :aria-expanded="accountOpen" aria-label="用户菜单"><span class="avatar">{{displayName(actor).slice(0,1)}}</span><span class="user-name">{{displayName(actor)}}</span><ChevronDownIcon/></button>
      <template #content><div class="account-popover">
@@ -76,7 +76,7 @@ const menu=computed(()=>{
  return [...new Set(list.map(x=>x.group))].map(name=>({name,pages:list.filter(x=>x.group===name)}));
 });
 const userMenu=computed(()=>{
- const order=['home','todos','messages','announcements','apps','myApplicationRequests','profile'];
+ const order=['home','todos','announcements','apps','myApplicationRequests','messages','profile'];
  const list=pages.filter(p=>!p.hidden&&p.path.startsWith('/portal')&&!p.path.includes(':')&&can(actor.value,p.scope));
  return order.map(resource=>list.find(p=>p.resource===resource)).filter(Boolean);
 });

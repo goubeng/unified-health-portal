@@ -11,15 +11,15 @@
         <nav class="public-portal-nav" aria-label="公众门户导航">
           <button class="active" type="button">首页</button>
           <button type="button" @click="go('todos')">待办任务</button>
-          <button type="button" @click="go('messages')">消息中心</button>
           <button type="button" @click="go('announcements')">通知公告</button>
           <button type="button" @click="go('apps')">应用中心</button>
           <button type="button" @click="go('applications')">我的申请</button>
+          <button type="button" @click="go('messages')">我的消息</button>
         </nav>
 
         <div class="public-portal-user-area">
           <t-badge size="small" :count="overview.unreadCount || 0" :max-count="99" :show-zero="false">
-            <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="go('messages')">
+            <button class="public-portal-icon-button" type="button" aria-label="我的消息" @click="go('messages')">
               <MailIcon size="16px" />
             </button>
           </t-badge>
@@ -78,7 +78,7 @@
 
           <article class="public-portal-card public-portal-feed-card">
             <div class="public-portal-section-head">
-              <h2><span class="feed-title-icon message"><MailIcon /></span> 消息中心 <span class="feed-count">（<b>{{ overview.unreadCount ?? homeMessages.length }}</b>）</span></h2>
+              <h2><span class="feed-title-icon message"><MailIcon /></span> 我的消息 <span class="feed-count">（<b>{{ overview.unreadCount ?? homeMessages.length }}</b>）</span></h2>
               <button type="button" @click="go('messages')">查看全部 <ChevronRightIcon size="16px" /></button>
             </div>
             <button v-for="item in homeMessages.slice(0,5)" :key="item.id" class="public-portal-message-row" type="button" @click="openMessage(item)">
