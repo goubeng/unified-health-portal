@@ -48,10 +48,6 @@
           </button>
         </div>
 
-        <!-- 胶囊搜索框 -->
-        <div class="mobile-message-search">
-          <TMobileInput v-model="keyword" placeholder="搜索消息标题" clearable />
-        </div>
       </header>
 
       <!-- 消息列表主体区域（已去掉未读/已读/全部Tab，默认展示全部） -->
@@ -265,7 +261,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Button as TMobileButton, Input as TMobileInput } from 'tdesign-mobile-vue';
+import { Button as TMobileButton } from 'tdesign-mobile-vue';
 import {
   ChevronLeftIcon,
   DeleteIcon,
@@ -337,7 +333,6 @@ const router = useRouter();
 const rows = ref<Message[]>([]);
 const loading = ref(true);
 const error = ref('');
-const keyword = ref('');
 
 const activeFilters = ref<FilterState>({
   readStatus: '',
@@ -378,19 +373,13 @@ const hasActiveFilter = computed(() => {
 
 const filtered = computed(() => {
   const now = Date.now();
-  const kw = keyword.value.trim().toLowerCase();
-
   return rows.value
     .filter(item => {
-      // 1. 标题搜索
-      if (kw && !text(item.title).toLowerCase().includes(kw)) {
-        return false;
-      }
-      // 2. 阅读状态筛选
+      // 1. 阅读状态筛选
       if (activeFilters.value.readStatus && item.status !== activeFilters.value.readStatus) {
         return false;
       }
-      // 3. 消息类型筛选
+      // 2. 消息类型筛选
       if (activeFilters.value.messageType) {
         const isSecurity = isSecurityMessage(item);
         if (activeFilters.value.messageType === 'SECURITY' && !isSecurity) {
@@ -400,7 +389,7 @@ const filtered = computed(() => {
           return false;
         }
       }
-      // 4. 时间范围筛选
+      // 3. 时间范围筛选
       if (activeFilters.value.timeRange) {
         const days = TIME_FILTER_DAYS[activeFilters.value.timeRange];
         if (days) {

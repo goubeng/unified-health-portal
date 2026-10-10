@@ -33,7 +33,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0;
+  /* 标题与筛选栏间距由原6px增加至12px，其他页仍沿用公共6px。 */
+  margin-top: var(--mobile-hero-row-gap);
 }
 
 /* 筛选按钮（胶囊样式，高度统一 30px） */
@@ -67,7 +68,10 @@
 }
 
 .mobile-filter-trigger-btn .trigger-icon {
-  font-size: 14px;
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+  flex: none;
 }
 
 /* 清除未读操作（参考图右侧：文重细，橡皮擦图标） */
@@ -158,11 +162,6 @@
   white-space: nowrap;
   flex: none;
   cursor: pointer;
-}
-
-.mobile-message-search {
-  width: 100%;
-  box-sizing: border-box;
 }
 
 /* 列表主体 */

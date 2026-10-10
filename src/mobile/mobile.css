@@ -112,7 +112,6 @@
 /* 全局搜索组件胶囊化覆盖：圆润胶囊形态，精致投影，提示文字缩小 */
 .mobile-todo-search .t-input,
 .mobile-apps-search-wrap .t-input,
-.mobile-message-search .t-input,
 .mobile-capsule-input .t-input {
   border-radius: 999px !important;
   background: #ffffff !important;
@@ -125,7 +124,6 @@
 
 .mobile-todo-search .t-input:focus-within,
 .mobile-apps-search-wrap .t-input:focus-within,
-.mobile-message-search .t-input:focus-within,
 .mobile-capsule-input .t-input:focus-within {
   border-color: #0052d9 !important;
   box-shadow: 0 4px 16px rgba(0, 82, 217, 0.14) !important;
@@ -133,7 +131,6 @@
 
 .mobile-todo-search .t-input__inner,
 .mobile-apps-search-wrap .t-input__inner,
-.mobile-message-search .t-input__inner,
 .mobile-capsule-input .t-input__inner {
   font-size: 13px !important;
 }
@@ -141,11 +138,9 @@
 /* 胶囊搜索框提示文字缩小，保持精致 */
 .mobile-todo-search input::placeholder,
 .mobile-apps-search-wrap input::placeholder,
-.mobile-message-search input::placeholder,
 .mobile-capsule-input input::placeholder,
 .mobile-todo-search .t-input__placeholder,
 .mobile-apps-search-wrap .t-input__placeholder,
-.mobile-message-search .t-input__placeholder,
 .mobile-capsule-input .t-input__placeholder {
   font-size: 12.5px !important;
   color: #9cb0c2 !important;
