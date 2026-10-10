@@ -257,7 +257,7 @@
 @media (max-width: 350px) {
   /* 窄屏稍微降低Banner放大倍率，减少医院主体被裁切的风险。 */
   /* 较小屏幕保持背景完全覆盖，缩小放大倍率给标题留出空间。 */
-  .mobile-home-hero::before { transform: scaleX(-1) scale(1.14); background-position: 80% 48%; }
+  .mobile-home-hero::before { transform: scaleX(-1) scale(1.22); background-position: 80% 48%; }
   .mobile-home-hero h1 { font-size: 24px; }
   .mobile-home-app-grid { gap: 5px; }
   .mobile-home-app-grid button { min-height: 99px; padding: 7px 2px 6px; grid-template-rows: 44px minmax(0, 2.8em); }
