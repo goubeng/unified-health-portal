@@ -13,9 +13,9 @@
         <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/apps')">全部应用</button></div>
         <div v-if="mine.length" class="mobile-home-app-grid">
           <button v-for="app in mine.slice(0, APP_PREVIEW_LIMIT)" :key="app.id" type="button" @click="openApp(app)">
-            <span class="mobile-home-app-icon">
+            <div class="mobile-home-app-icon">
               <CategoryAppIcon :category="app.category" />
-            </span>
+            </div>
             <span class="mobile-home-app-name">{{ app.name }}</span>
           </button>
         </div>
