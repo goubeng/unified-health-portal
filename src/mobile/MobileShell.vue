@@ -1,9 +1,9 @@
 <template>
-  <div class="mobile-shell">
+  <div class="mobile-shell" :class="{ 'mobile-shell--applications-list': isApplicationsList }">
     <main class="mobile-shell__content">
       <router-view :key="route.path + '|' + actor?.id" />
     </main>
-    <nav v-if="!isDetailView" class="mobile-shell__navigation" aria-label="移动端主导航">
+    <nav v-if="!isDetailView && !isApplicationsList" class="mobile-shell__navigation" aria-label="移动端主导航">
       <MobileTabBar
         :value="activeTab"
         :fixed="false"
@@ -48,6 +48,9 @@ const tabs = [
 const isDetailView = computed(() => {
   return route.path === '/m/messages' && Boolean(route.query.messageId);
 });
+
+// “我的申请”由顶部返回按钮导航，列表与申请详情弹窗均不需要底部主导航。
+const isApplicationsList = computed(() => route.path === '/m/applications');
 
 const activeTab = computed(() => {
   const path = route.path;

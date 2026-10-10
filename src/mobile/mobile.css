@@ -75,6 +75,11 @@
   padding-bottom: calc(var(--mobile-nav-bar-height) + env(safe-area-inset-bottom));
 }
 
+/* 我的申请列表页不显示主导航，仅保留设备安全区，避免无意义的大块底部留白。 */
+.mobile-shell--applications-list .mobile-shell__content {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 .mobile-shell__navigation {
   position: fixed;
   left: 50%;
