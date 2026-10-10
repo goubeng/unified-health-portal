@@ -104,12 +104,12 @@
               >
                 <span>{{ opt.label }}</span>
                 <span v-if="draftFilters.readStatus === opt.value" class="filter-checked-corner" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M0 0H24L0 24V0Z" fill="#0052d9" />
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M20 0V20H0L20 0Z" fill="#0052d9" />
                     <path
-                      d="M4.5 9.5L7.5 12.5L14 6"
+                      d="M9.5 13.5L12.5 16.5L17.5 11"
                       stroke="#ffffff"
-                      stroke-width="2"
+                      stroke-width="1.8"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
@@ -133,12 +133,12 @@
               >
                 <span>{{ opt.label }}</span>
                 <span v-if="draftFilters.messageType === opt.value" class="filter-checked-corner" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M0 0H24L0 24V0Z" fill="#0052d9" />
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M20 0V20H0L20 0Z" fill="#0052d9" />
                     <path
-                      d="M4.5 9.5L7.5 12.5L14 6"
+                      d="M9.5 13.5L12.5 16.5L17.5 11"
                       stroke="#ffffff"
-                      stroke-width="2"
+                      stroke-width="1.8"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
@@ -162,12 +162,12 @@
               >
                 <span>{{ opt.label }}</span>
                 <span v-if="draftFilters.timeRange === opt.value" class="filter-checked-corner" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M0 0H24L0 24V0Z" fill="#0052d9" />
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M20 0V20H0L20 0Z" fill="#0052d9" />
                     <path
-                      d="M4.5 9.5L7.5 12.5L14 6"
+                      d="M9.5 13.5L12.5 16.5L17.5 11"
                       stroke="#ffffff"
-                      stroke-width="2"
+                      stroke-width="1.8"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
