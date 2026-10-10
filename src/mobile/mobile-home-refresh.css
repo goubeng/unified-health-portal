@@ -328,9 +328,16 @@
   overflow: hidden;
 }
 .mobile-home-section--todos .feed-meta-item.meta-app {
-  max-width: 55%;
+  max-width: 100%;
   min-width: 0;
   flex: 0 1 auto;
+  color: var(--mobile-list-card-source-color);
+}
+/* 来源系统与接收日期各占一行，图标与文字保持相同的灰蓝色层级。 */
+.mobile-home-section--todos .feed-meta-item.meta-app .meta-icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
   color: var(--mobile-list-card-source-color);
 }
 .mobile-home-section--todos .feed-meta-item.meta-time {
