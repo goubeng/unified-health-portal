@@ -1,0 +1,331 @@
+/* 仅移动端首页使用，独立于业务逻辑。视觉主色：#0052d9。
+ * 素材位于 src/assets/mobile-home/；未上传 PNG 时保留现有 SVG 回退。
+ */
+.mobile-home {
+  --home-brand: #0052d9;
+  --home-ink: #14274c;
+  --home-muted: #71819c;
+  padding: 0 13px 30px;
+  min-height: calc(100dvh - 64px);
+  color: var(--home-ink);
+  background: linear-gradient(180deg, #eaf5ff 0%, #f5f9ff 40%, #f6faff 70%, #eef6ff 100%);
+}
+/* 背景图复用项目现有医院图片，翻转图片层，不影响真实可访问文本。 */
+.mobile-home-hero {
+  isolation: isolate;
+  margin: 0 -13px;
+  min-height: 166px;
+  padding: 22px 22px 33px;
+  background-image: linear-gradient(90deg, rgba(230,243,255,.70), rgba(246,251,255,.07));
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+}
+.mobile-home-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('../assets/login-health3-bg-3840x2160.png') 0 48% / cover no-repeat;
+  transform: scaleX(-1);
+}
+.mobile-home-hero::after {
+  height: 34px;
+  background: linear-gradient(180deg, rgba(238,249,255,0), #eaf5ff 96%);
+}
+.mobile-home-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--home-brand);
+  text-shadow: 0 1px 7px #fff;
+}
+.mobile-home-hero h1 {
+  font-size: clamp(21px, 5.6vw, 26px);
+  line-height: 1.3;
+  letter-spacing: .3px;
+  color: #0c2b61;
+  text-shadow: 0 1px 9px rgba(255,255,255,.96);
+}
+/* 白色政务风卡片，以结构与层次为主，不叠加彩色大面积背景。 */
+.mobile-home-section {
+  margin-bottom: 12px;
+  padding: 16px 13px 15px;
+  background: rgba(255,255,255,.97);
+  border: 1px solid rgba(255,255,255,.98);
+  border-radius: 18px;
+  box-shadow: 0 7px 22px rgba(15,72,143,.045);
+}
+.mobile-home-section--first {
+  margin-top: -15px;
+  box-shadow: 0 9px 22px rgba(13,77,158,.075);
+}
+.mobile-home-section-head { margin-bottom: 13px; }
+.mobile-home-section-head h2 {
+  position: relative;
+  padding-left: 13px;
+  font-size: 17px;
+  line-height: 25px;
+  font-weight: 700;
+  color: var(--home-ink);
+}
+.mobile-home-section-head h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 4px;
+  height: 17px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #08b7fb, var(--home-brand));
+}
+.mobile-home-section-head > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0 4px 5px;
+  color: #667b9d;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mobile-home-section-head > button .section-view-all-arrow {
+  width: 13px;
+  height: 13px;
+  color: #7184a2;
+}
+/* 应用区的标题和路由不变，只调整表面和图片承载空间。 */
+.mobile-home-app-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+.mobile-home-app-grid button {
+  gap: 7px;
+  min-height: 99px;
+  padding: 9px 3px 7px;
+  border: 1px solid rgba(235,241,250,.65);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff9f5, #fffdfb);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.mobile-home-app-grid button:nth-child(4n + 3) {
+  background: linear-gradient(155deg, #f1f7ff, #f9fcff);
+}
+.mobile-home-app-grid button:nth-child(4n + 4),
+.mobile-home-app-grid button:nth-child(n + 5):nth-child(-n + 7) {
+  background: linear-gradient(155deg, #f6f4ff, #fcfbff);
+}
+.mobile-home-app-grid button:nth-child(8n) {
+  background: linear-gradient(155deg, #effaf8, #f9fffd);
+}
+.mobile-home-app-grid button:active { transform: translateY(1px); }
+.mobile-home-app-icon {
+  display: grid;
+  place-items: center;
+  width: 47px;
+  height: 47px;
+  border-radius: 14px;
+  overflow: visible;
+  background: transparent;
+}
+.mobile-home-app-icon img {
+  display: block;
+  width: 55px;
+  height: 55px;
+  max-width: none;
+  object-fit: contain;
+}
+.mobile-home-app-grid button > span:last-child,
+.mobile-home-app-name {
+  height: 2.8em;
+  line-height: 1.4;
+  font-size: 11px;
+  color: #1b3154;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+/* 公告卡：左侧缩窄为扩音器 PNG，右侧两行文字享有更多宽度。 */
+.mobile-home-notice-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 86px;
+  margin-bottom: 12px;
+  padding: 7px 13px 7px 0;
+  border: 1px solid #fff;
+  border-radius: 18px;
+  background: linear-gradient(112deg, #edf7ff 0%, #fff 42%, #f7fbff 100%);
+  box-shadow: 0 5px 20px rgba(15,85,160,.055);
+  overflow: hidden;
+}
+.mobile-home-notice-card::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 180px;
+  height: 70px;
+  left: -35px;
+  bottom: -43px;
+  border-radius: 60% 85% 0 0;
+  transform: rotate(-13deg);
+  background: linear-gradient(120deg, rgba(76,167,249,.14), rgba(76,167,249,.01));
+  pointer-events: none;
+}
+.mobile-home-notice-card .notice-badge {
+  flex: 0 0 83px;
+  width: 83px;
+  min-height: 70px;
+  padding: 0;
+  margin: 0 10px 0 0;
+  border: 0;
+  border-right: 1px solid rgba(0,82,217,.17);
+  background: transparent;
+  cursor: pointer;
+}
+.mobile-home-notice-card .notice-badge img {
+  display: block;
+  width: 78px;
+  height: 76px;
+  object-fit: contain;
+}
+.mobile-home-notice-card .notice-megaphone-fallback {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 76px;
+  font-size: 38px;
+  font-style: normal;
+}
+.mobile-home-notice-card .notice-slider {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 64px;
+}
+.mobile-home-notice-card .notice-row {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 0 0 1px;
+  border: 0;
+  border-bottom: 1px solid rgba(0,82,217,.06);
+}
+.mobile-home-notice-card .notice-row:last-child { border-bottom: 0; }
+.mobile-home-notice-card .notice-row-title {
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 32px;
+  color: #15294b;
+}
+.mobile-home-notice-card .notice-row-arrow {
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  color: #637ea5;
+}
+.mobile-home-notice-card .notice-empty { height: 64px; font-size: 13px; }
+/* 待办区仍使用真实接口数据与原有点击动作。 */
+.mobile-home-section--todos {
+  min-height: 108px;
+  padding: 15px 12px 12px;
+}
+.mobile-home-section--todos .mobile-home-section-head {
+  margin: 0 0 12px 2px;
+}
+.mobile-home-section--todos .todo-badge {
+  min-width: 18px;
+  height: 18px;
+  margin-left: 5px;
+  padding: 0 6px;
+  vertical-align: 1px;
+  border-radius: 99px;
+  background: #e34d59;
+  font-size: 11px;
+}
+.mobile-home-section--todos .mobile-home-feed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 7px;
+}
+.mobile-home-section--todos .mobile-home-feed button {
+  min-width: 0;
+  min-height: 60px;
+  gap: 9px;
+  padding: 12px 9px;
+  border: 1px solid #f0f6fd;
+  border-radius: 13px;
+  background: linear-gradient(115deg, #f4f9ff, #f9fbfe);
+  text-align: left;
+}
+.mobile-home-section--todos .mobile-home-feed button:first-child { border-top: 1px solid #f0f6fd; }
+.mobile-home-section--todos .mobile-home-feed button:active { background: #eaf3ff; }
+.mobile-home-section--todos .mobile-home-feed-copy { gap: 5px; }
+.mobile-home-section--todos .mobile-home-feed-dot {
+  width: 7px;
+  height: 7px;
+  background: #ffa618;
+  box-shadow: 0 0 0 2px rgba(255,166,24,.12);
+}
+.mobile-home-section--todos .mobile-home-feed-top strong {
+  color: #15294b;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mobile-home-section--todos .mobile-home-feed-meta {
+  flex-wrap: nowrap;
+  gap: 8px;
+  color: #7f8fab;
+  font-size: 11px;
+  overflow: hidden;
+}
+.mobile-home-section--todos .feed-meta-item.meta-app {
+  max-width: 55%;
+  min-width: 0;
+  flex: 0 1 auto;
+  color: #72819b;
+}
+.mobile-home-section--todos .feed-meta-item.meta-time {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: #8495ad;
+}
+.mobile-home-section--todos .feed-meta-item.meta-time span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mobile-home-section--todos .feed-meta-item.meta-time .meta-icon {
+  flex: none;
+  color: #8ea7ca;
+}
+.mobile-home-section--todos .mobile-home-feed button > svg {
+  width: 15px;
+  height: 15px;
+  color: #697d9b;
+}
+@media (min-width: 420px) {
+  .mobile-home { padding-right: 16px; padding-left: 16px; }
+  .mobile-home-hero { margin-right: -16px; margin-left: -16px; }
+  .mobile-home-app-grid button { min-height: 105px; }
+  .mobile-home-app-grid button > span:last-child { font-size: 12px; }
+  .mobile-home-notice-card .notice-row-title { font-size: 13px; }
+}
+@media (max-width: 350px) {
+  .mobile-home-app-grid { gap: 5px; }
+  .mobile-home-app-grid button { min-height: 95px; padding: 8px 2px; }
+  .mobile-home-app-icon { width: 41px; height: 41px; }
+  .mobile-home-app-icon img { width: 49px; height: 49px; }
+  .mobile-home-app-grid button > span:last-child { font-size: 10.5px; }
+  .mobile-home-notice-card .notice-badge { flex-basis: 68px; width: 68px; margin-right: 7px; }
+  .mobile-home-notice-card .notice-badge img,
+  .mobile-home-notice-card .notice-megaphone-fallback { width: 63px; height: 68px; }
+  .mobile-home-notice-card .notice-row-title { font-size: 12px; }
+  .mobile-home-section--todos .mobile-home-feed-meta { font-size: 10.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-home-app-grid button { transition: none; }
+}
