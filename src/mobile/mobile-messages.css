@@ -37,12 +37,13 @@
   margin-top: var(--mobile-hero-row-gap);
 }
 
-/* 筛选按钮（胶囊样式，高度统一 30px） */
+/* 筛选按钮单独使用30px高度，其余业务操作保留36px规范。 */
 .mobile-filter-trigger-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: var(--mobile-action-compact-height);
+  height: var(--mobile-message-filter-height);
+  min-height: var(--mobile-message-filter-height);
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
@@ -581,10 +582,10 @@
   background: #0052d9;
 }
 
-/* 标题：大字号，加粗，符合单列垂直排版规范 */
+/* 消息详情正文标题使用20px页级字号，正文内容大小不变。 */
 .message-card-title {
   margin: 8px 0 14px;
-  font-size: 18px;
+  font-size: var(--mobile-font-size-page-title);
   font-weight: var(--mobile-font-weight-semibold);
   color: #112033;
   line-height: 1.45;

@@ -23,6 +23,8 @@
   --mobile-card-border: #edf2f7;
   --mobile-card-shadow: 0 4px 14px rgba(16, 54, 99, 0.04);
   --mobile-action-compact-height: 36px;
+  /* 仅消息中心顶部筛选按钮使用紧凑高度，不受全局业务按钮36px最小高度影响。 */
+  --mobile-message-filter-height: 30px;
   --mobile-action-primary-height: 44px;
   --mobile-action-icon-size: 40px;
   --mobile-action-padding-inline: 12px;
@@ -212,8 +214,8 @@ body:has(.mobile-message-detail-toolbar) .mobile-shell__navigation {
   box-shadow: var(--mobile-card-shadow);
 }
 
-/* 二级页列表与页头的紧凑型业务操作，统一至少36px可点击高度。 */
-.mobile-shell :is(.todo-process-btn, .app-btn-pill, .action-btn-mini, .banner-view-btn, .mobile-back-list-btn, .mobile-filter-trigger-btn, .mobile-clear-unread-btn) {
+/* 其他紧凑业务操作保留至少36px触控高度；消息筛选按钮按独立变量收紧。 */
+.mobile-shell :is(.todo-process-btn, .app-btn-pill, .action-btn-mini, .banner-view-btn, .mobile-back-list-btn, .mobile-clear-unread-btn) {
   box-sizing: border-box;
   min-height: var(--mobile-action-compact-height);
 }

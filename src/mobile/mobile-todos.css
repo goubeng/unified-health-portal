@@ -117,7 +117,8 @@
 }
 
 .mobile-card-top strong {
-  font-size: var(--mobile-list-card-title-size);
+  /* 待办首行标题比公共列表卡片提高一级，保持摘要及状态标签字号不变。 */
+  font-size: var(--mobile-font-size-section-title);
   line-height: 1.4;
   color: var(--mobile-list-card-title-color);
   flex: 1;
