@@ -1,6 +1,6 @@
 <template>
-  <div class="mobile-notices">
-    <header class="mobile-notices-head"><button type="button" aria-label="返回" @click="back"><ChevronLeftIcon /></button><h1>{{ selected ? '公告详情' : '通知公告' }}</h1></header>
+  <div class="mobile-notices" :class="{ 'mobile-notices--embedded': props.embedded }">
+    <header v-if="!props.embedded" class="mobile-notices-head"><button type="button" aria-label="返回" @click="back"><ChevronLeftIcon /></button><h1>{{ selected ? '公告详情' : '通知公告' }}</h1></header>
     <div v-if="error" class="mobile-notices-error" role="alert">{{ error }} <button type="button" @click="load">重新加载</button></div>
     <p v-if="loading" class="mobile-notices-empty">正在加载公告…</p>
     <template v-else-if="selected">
@@ -12,7 +12,7 @@
       </article>
     </template>
     <template v-else>
-      <p class="mobile-notices-intro">及时了解平台通知与服务信息</p>
+      <p v-if="!props.embedded" class="mobile-notices-intro">及时了解平台通知与服务信息</p>
       <div v-if="notices.length" class="mobile-notices-list"><button v-for="item in notices" :key="item.id" type="button" @click="open(item)"><span class="mobile-notices-date"><strong>{{ day(item.publishedAt) }}</strong><small>{{ month(item.publishedAt) }}</small></span><span class="mobile-notices-copy"><strong>{{ item.title }}</strong><small>{{ item.type || '通知' }} · {{ formatDate(item.publishedAt) }}</small></span><span v-if="item.readStatus === 'UNREAD'" class="mobile-notice-unread-dot" aria-label="未读"></span><ChevronRightIcon /></button></div>
       <p v-else class="mobile-notices-empty">暂无通知公告</p>
     </template>
@@ -28,14 +28,26 @@ import { richText } from '../components/portal/presentation.js';
 
 type Attachment = { id?: string; name: string; data?: string };
 type Notice = { id: string; title: string; type?: string; scope?: string; content?: string; publishedAt?: string; readStatus?: string; attachments?: Attachment[] };
+const props = defineProps<{ embedded?: boolean }>();
 const route = useRoute();
 const router = useRouter();
 const loading = ref(true);
 const error = ref('');
 const notices = ref<Notice[]>([]);
 const selected = computed(() => notices.value.find(item => item.id === route.params.id) || null);
-function back() { router.push(selected.value ? '/m/announcements' : '/m/home'); }
-function open(item: Notice) { router.push(`/m/announcements/${encodeURIComponent(item.id)}`); }
+function back() {
+  if (route.params.id && route.query.from === 'messages') {
+    router.push({ path: '/m/messages', query: { tab: 'announcements' } });
+    return;
+  }
+  router.push(selected.value ? '/m/announcements' : '/m/home');
+}
+function open(item: Notice) {
+  router.push({
+    path: `/m/announcements/${encodeURIComponent(item.id)}`,
+    query: props.embedded ? { from: 'messages' } : {},
+  });
+}
 function formatDate(value?: string) { const time = Date.parse(value || ''); return Number.isFinite(time) ? new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(time) : '暂无时间'; }
 function day(value?: string) { const time = Date.parse(value || ''); return Number.isFinite(time) ? String(new Date(time).getDate()).padStart(2, '0') : '--'; }
 function month(value?: string) { const time = Date.parse(value || ''); return Number.isFinite(time) ? `${new Date(time).getMonth() + 1}月` : '--'; }

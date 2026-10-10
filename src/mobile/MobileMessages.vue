@@ -5,56 +5,79 @@
       <header class="mobile-message-hero">
         <!-- 标题行 -->
         <div class="mobile-message-title-row">
-          <h1>消息中心</h1>
+          <h1>消息</h1>
         </div>
 
-        <!-- 操作栏：筛选 与 清除未读 -->
-        <div class="mobile-message-action-bar">
+        <!-- 站内信 / 通知公告切换，保留原有消息详情路由。 -->
+        <div class="mobile-message-tabs" role="tablist" aria-label="消息分类">
           <button
+            id="mobile-inbox-tab"
             type="button"
-            class="mobile-filter-trigger-btn"
-            :class="{ 'has-filter': hasActiveFilter }"
-            @click="openFilterDrawer"
-          >
-            <span>筛选</span>
-            <FilterIcon class="trigger-icon" />
-          </button>
+            role="tab"
+            :aria-selected="activeMessageTab === 'inbox'"
+            aria-controls="mobile-inbox-panel"
+            :class="{ active: activeMessageTab === 'inbox' }"
+            @click="switchTab('inbox')"
+          >站内信</button>
           <button
+            id="mobile-announcements-tab"
             type="button"
-            class="mobile-clear-unread-btn"
-            :disabled="unreadCount === 0"
-            @click="markAll"
-          >
-            <!-- 橡皮擦线框图标（参考图） -->
-            <svg class="eraser-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
-              <path d="M22 21H7" />
-              <path d="m5 11 9 9" />
-            </svg>
-            <span>清除未读</span>
-          </button>
+            role="tab"
+            :aria-selected="activeMessageTab === 'announcements'"
+            aria-controls="mobile-announcements-panel"
+            :class="{ active: activeMessageTab === 'announcements' }"
+            @click="switchTab('announcements')"
+          >通知公告</button>
         </div>
 
-        <!-- 未读重要提醒卡片提示条（参考图范式） -->
-        <div v-if="unreadCount > 0" class="mobile-unread-alert-banner">
-          <div class="banner-icon-badge" aria-hidden="true">
-            <span>!</span>
+        <template v-if="activeMessageTab === 'inbox'">
+          <!-- 操作栏：筛选 与 清除未读 -->
+          <div class="mobile-message-action-bar">
+            <button
+              type="button"
+              class="mobile-filter-trigger-btn"
+              :class="{ 'has-filter': hasActiveFilter }"
+              @click="openFilterDrawer"
+            >
+              <span>筛选</span>
+              <FilterIcon class="trigger-icon" />
+            </button>
+            <button
+              type="button"
+              class="mobile-clear-unread-btn"
+              :disabled="unreadCount === 0"
+              @click="markAll"
+            >
+              <!-- 橡皮擦线框图标（参考图） -->
+              <svg class="eraser-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+                <path d="M22 21H7" />
+                <path d="m5 11 9 9" />
+              </svg>
+              <span>清除未读</span>
+            </button>
           </div>
-          <p class="banner-text">
-            您有 <strong class="banner-count">{{ unreadCount }}</strong> 条重要提醒尚未阅读，请及时查看并办理相关业务
-          </p>
-          <button type="button" class="banner-view-btn" @click="quickFilterUnread">
-            去查看
-          </button>
-        </div>
 
+          <!-- 未读重要提醒卡片提示条（参考图范式） -->
+          <div v-if="unreadCount > 0" class="mobile-unread-alert-banner">
+            <div class="banner-icon-badge" aria-hidden="true">
+              <span>!</span>
+            </div>
+            <p class="banner-text">
+              您有 <strong class="banner-count">{{ unreadCount }}</strong> 条重要提醒尚未阅读，请及时查看并办理相关业务
+            </p>
+            <button type="button" class="banner-view-btn" @click="quickFilterUnread">
+              去查看
+            </button>
+          </div>
+        </template>
       </header>
 
-      <!-- 消息列表主体区域（已去掉未读/已读/全部Tab，默认展示全部） -->
-      <div class="mobile-message-body-wrap">
+      <!-- 站内信列表沿用原有筛选和未读状态逻辑。 -->
+      <div v-if="activeMessageTab === 'inbox'" id="mobile-inbox-panel" role="tabpanel" aria-labelledby="mobile-inbox-tab" class="mobile-message-body-wrap">
         <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
-        <div v-if="loading" class="mobile-list-empty">正在加载消息…</div>
-        <div v-else-if="!filtered.length" class="mobile-list-empty">暂无符合条件的消息</div>
+        <div v-if="loading" class="mobile-list-empty">正在加载站内信…</div>
+        <div v-else-if="!filtered.length" class="mobile-list-empty">暂无符合条件的站内信</div>
 
         <!-- 消息卡片列表：无多选框，卡片不超屏，未读右侧红点 -->
         <div v-else class="mobile-message-list">
@@ -85,6 +108,11 @@
             </div>
           </article>
         </div>
+      </div>
+
+      <!-- 公告页签直接复用原公告列表的数据读取、已读标记及详情入口。 -->
+      <div v-if="activeMessageTab === 'announcements'" id="mobile-announcements-panel" role="tabpanel" aria-labelledby="mobile-announcements-tab">
+        <MobileAnnouncements embedded />
       </div>
 
       <!-- 筛选抽屉弹窗（半屏抽屉） -->
@@ -171,18 +199,18 @@
         <button type="button" class="mobile-nav-back-btn" aria-label="返回" @click="back">
           <ChevronLeftIcon />
         </button>
-        <strong>消息详情</strong>
+        <strong>站内信详情</strong>
         <div class="mobile-nav-placeholder" aria-hidden="true"></div>
       </header>
 
       <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
 
       <div v-if="loading && !active" class="mobile-detail-loading">
-        正在加载消息详情…
+        正在加载站内信详情…
       </div>
       <div v-else-if="!active" class="mobile-detail-notfound">
-        <p>未找到该消息或已被删除</p>
-        <button type="button" class="mobile-back-list-btn" @click="back">返回消息中心</button>
+        <p>未找到该站内信或已被删除</p>
+        <button type="button" class="mobile-back-list-btn" @click="back">返回站内信</button>
       </div>
 
       <!-- 消息信纸卡片主体（去掉圆角，垂直正常流排版） -->
@@ -247,7 +275,7 @@
           <button
             type="button"
             class="toolbar-delete-btn"
-            aria-label="删除此条消息"
+            aria-label="删除此条站内信"
             @click="removeSingle(active.id)"
           >
             <DeleteIcon />
@@ -272,6 +300,7 @@ import {
 import { DialogPlugin } from 'tdesign-vue-next';
 import { command, portal, revision, loadDictionaryLookups } from '../services/runtime.js';
 import { date, label, text } from '../components/portal/presentation.js';
+import MobileAnnouncements from './MobileAnnouncements.vue';
 
 function showAppNotice(body: string, header = '应用访问') {
   DialogPlugin.alert({
@@ -301,8 +330,8 @@ interface FilterState {
 
 const READ_STATUS_OPTIONS = [
   { value: '', label: '全部' },
-  { value: 'READ', label: '已读消息' },
-  { value: 'UNREAD', label: '未读消息' },
+  { value: 'READ', label: '已读站内信' },
+  { value: 'UNREAD', label: '未读站内信' },
 ] as const;
 
 const MESSAGE_TYPE_OPTIONS = [
@@ -330,6 +359,12 @@ const MILLISECONDS_PER_DAY = 86_400_000;
 
 const route = useRoute();
 const router = useRouter();
+
+type MessageTab = 'inbox' | 'announcements';
+const activeMessageTab = computed<MessageTab>(() =>
+  route.query.tab === 'announcements' ? 'announcements' : 'inbox'
+);
+
 const rows = ref<Message[]>([]);
 const loading = ref(true);
 const error = ref('');
@@ -451,6 +486,15 @@ function back() {
   router.replace('/m/messages');
 }
 
+function switchTab(nextTab: MessageTab) {
+  if (activeMessageTab.value === nextTab) return;
+  showFilterDrawer.value = false;
+  router.push({
+    path: '/m/messages',
+    query: nextTab === 'announcements' ? { tab: 'announcements' } : {},
+  });
+}
+
 function openFilterDrawer() {
   draftFilters.value = { ...activeFilters.value };
   showFilterDrawer.value = true;
@@ -519,8 +563,8 @@ async function removeSingle(id: string) {
   const dialog = DialogPlugin.confirm({
     placement: 'center',
     theme: 'danger',
-    header: '删除消息',
-    body: '确认删除此条消息吗？',
+    header: '删除站内信',
+    body: '确认删除此条站内信吗？',
     confirmBtn: { content: '确认删除', theme: 'danger' },
     onConfirm: async () => {
       dialog.hide();
