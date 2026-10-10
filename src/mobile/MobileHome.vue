@@ -10,11 +10,12 @@
 
     <template v-else>
       <section class="mobile-home-section mobile-home-section--first">
-        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/apps')">全部应用</button></div>
+        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/apps')">全部应用 <ChevronRightIcon class="section-view-all-arrow" /></button></div>
         <div v-if="mine.length" class="mobile-home-app-grid">
           <button v-for="app in mine.slice(0, APP_PREVIEW_LIMIT)" :key="app.id" type="button" @click="openApp(app)">
             <div class="mobile-home-app-icon">
-              <CategoryAppIcon :category="app.category" />
+              <img v-if="homeAppPng(app.category)" :src="homeAppPng(app.category)" alt="" loading="lazy" />
+              <CategoryAppIcon v-else :category="app.category" />
             </div>
             <span class="mobile-home-app-name">{{ app.name }}</span>
           </button>
@@ -24,11 +25,8 @@
 
       <section class="mobile-home-notice-card" aria-label="最新公告">
         <button type="button" class="notice-badge" aria-label="查看全部通知公告" @click="go('/m/announcements')">
-          <span class="notice-badge-top">最新</span>
-          <span class="notice-badge-bottom">
-            <span class="notice-badge-text">公告</span>
-            <i class="notice-badge-highlight" aria-hidden="true"></i>
-          </span>
+          <img v-if="noticeMegaphone" :src="noticeMegaphone" alt="" />
+          <span v-else class="notice-megaphone-fallback" aria-hidden="true">📣</span>
         </button>
 
         <div
@@ -59,8 +57,8 @@
         </div>
       </section>
 
-      <section class="mobile-home-section">
-        <div class="mobile-home-section-head"><div><h2>待办事项 <span v-if="pendingTodoCount > 0" class="todo-badge">{{ pendingTodoCount }}</span></h2></div><button type="button" @click="go('/m/todos')">查看全部</button></div>
+      <section class="mobile-home-section mobile-home-section--todos">
+        <div class="mobile-home-section-head"><div><h2>待办事项 <span v-if="pendingTodoCount > 0" class="todo-badge">{{ pendingTodoCount }}</span></h2></div><button type="button" @click="go('/m/todos')">查看全部 <ChevronRightIcon class="section-view-all-arrow" /></button></div>
         <div v-if="pendingTodos.length" class="mobile-home-feed">
           <button v-for="item in pendingTodos.slice(0, FEED_PREVIEW_LIMIT)" :key="item.id" type="button" @click="go('/m/todos')">
             <span class="mobile-home-feed-dot"></span>
@@ -179,9 +177,27 @@ type PortalRow = {
   businessType?: string;
 };
 type Overview = { todoCount?: number; unreadCount?: number; unreadAnnouncementCount?: number };
+// 动态发现用户后续上传的 PNG；未上传时仍可构建，应用继续显示项目现有分类 SVG。
+const MOBILE_HOME_PNG = import.meta.glob<string>('../assets/mobile-home/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+const noticeMegaphone = MOBILE_HOME_PNG['../assets/mobile-home/notice-megaphone.png'] || '';
+const HOME_APP_ICON_NAMES: Record<string, string> = {
+  '公众服务': 'app-heart.png',
+  '政务协同': 'app-hospital.png',
+  '培训考试': 'app-training.png',
+  '行业监管': 'app-compliance.png',
+};
+function homeAppPng(category?: string): string | undefined {
+  const filename = HOME_APP_ICON_NAMES[(category || '').trim()];
+  return filename ? MOBILE_HOME_PNG[`../assets/mobile-home/${filename}`] : undefined;
+}
+
 const APP_PREVIEW_LIMIT = 8;
 const FEED_PREVIEW_LIMIT = 3;
-const NOTICE_LINE_HEIGHT_PX = 28;
+const NOTICE_LINE_HEIGHT_PX = 32;
 const NOTICE_VISIBLE_ROWS = 2;
 const NOTICE_SCROLL_INTERVAL_MS = 3500;
 
@@ -397,3 +413,4 @@ watch(revision, load);
   background: #0043b3;
 }
 </style>
+<style scoped src="./mobile-home-refresh.css"></style>
