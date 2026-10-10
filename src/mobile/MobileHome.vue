@@ -1,10 +1,8 @@
 <template>
   <div class="mobile-home">
     <section class="mobile-home-hero">
-      <div class="mobile-home-hero-identity">
-        <span class="mobile-home-portal-tag">公众门户</span>
-        <p class="mobile-home-kicker">卫健 XC · 便民服务</p>
-      </div>
+      <span class="mobile-home-portal-tag">公众门户</span>
+      <p class="mobile-home-kicker">卫健 XC · 便民服务</p>
       <h1>健康服务，一站直达</h1>
     </section>
 
