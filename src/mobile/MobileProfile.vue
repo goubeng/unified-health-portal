@@ -4,7 +4,7 @@
     <p v-if="error" class="mobile-profile-error" role="alert">{{ error }}</p>
     <section class="mobile-profile-card"><h2>我的服务</h2><button class="mobile-profile-link" type="button" @click="router.push('/m/applications')"><span>我的申请</span><ChevronRightIcon class="mobile-profile-link-arrow" /></button></section>
     <section class="mobile-profile-card"><h2>个人资料</h2><dl><div><dt>登录账号</dt><dd>{{ text(profile?.account||actor?.account)||'-' }}</dd></div><div><dt>身份来源</dt><dd>{{ source(profile||actor) }}</dd></div><div><dt>用户类别</dt><dd>{{ label(profile?.userType||actor?.userType) }}</dd></div><div><dt>姓名</dt><dd>{{ text(profile?.name||actor?.name)||'-' }}</dd></div><div><dt>所属单位</dt><dd>{{ text(profile?.orgName||actor?.orgName)||'-' }}</dd></div><div><dt>手机号</dt><dd>{{ text(profile?.phone||actor?.phone)||'-' }}</dd></div><div><dt>邮箱</dt><dd>{{ text(profile?.email||actor?.email)||'-' }}</dd></div></dl></section>
-    <TMobileButton block variant="outline" theme="default" :loading="exiting" @click="exit">退出登录</TMobileButton>
+    <TMobileButton class="mobile-profile-logout" block variant="outline" theme="danger" :loading="exiting" @click="exit">退出登录</TMobileButton>
   </section>
 </template>
 
