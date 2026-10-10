@@ -8,7 +8,7 @@ export const businessDictionaryCatalog=[
  {code:'application_request_status',name:'应用申请状态',sortOrder:14,items:[['PENDING','待审核'],['APPROVED','已通过'],['REJECTED','已驳回'],['WITHDRAWN','已撤回']]},
  {code:'account_opening_status',name:'账号开通状态',sortOrder:15,items:[['PENDING','待处理'],['PROCESSING','处理中'],['COMPLETED','已完成']]},
  {code:'mapping_status',name:'账号关联状态',sortOrder:16,items:[['UNBOUND','未关联'],['VERIFYING','验证中'],['REVIEWING','待审核'],['BOUND','已关联'],['FAILED','关联失败'],['CONFLICT','关联冲突']]},
- {code:'announcement_status',name:'公告状态',sortOrder:17,items:[['DRAFT','草稿'],['PUBLISHED','已发布'],['WITHDRAWN','已撤回'],['SCHEDULED','定时发布（展示）','DISABLED'],['EXPIRED','已过期（展示）','DISABLED']]},
+ {code:'announcement_status',name:'公告状态',sortOrder:17,items:[['DRAFT','草稿'],['PUBLISHED','已发布'],['WITHDRAWN','已撤回'],['SCHEDULED','定时发布','DISABLED'],['EXPIRED','已过期（展示）','DISABLED']]},
  {code:'announcement_scope',name:'公告适用范围',sortOrder:18,items:[['ALL','全部用户'],['CITIZEN','公众用户'],['GOV','政务用户']]},
  {code:'publish_mode',name:'公告发布方式',sortOrder:19,items:[['IMMEDIATE','立即发布'],['SCHEDULED','定时发布']]}
 ];
