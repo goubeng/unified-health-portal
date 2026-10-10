@@ -12,7 +12,12 @@
         @change="navigate"
       >
         <MobileTabBarItem v-for="item in tabs" :key="item.path" :value="item.path">
-          <template #icon><NavIcon :name="item.iconName" /></template>
+          <template #icon>
+            <span class="nav-tab-icon-wrap">
+              <NavIcon :name="item.iconName" />
+              <span v-if="hasBadge(item.path)" class="nav-badge-dot" aria-label="未读提示"></span>
+            </span>
+          </template>
           {{ item.label }}
         </MobileTabBarItem>
       </MobileTabBar>
@@ -21,11 +26,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { TabBar as MobileTabBar, TabBarItem as MobileTabBarItem } from 'tdesign-mobile-vue';
 import NavIcon, { type NavIconName } from './NavIcon.vue';
 import { mobileActor as actor } from './mobileActor';
+import { portal, revision } from '../services/runtime.js';
 import './mobile.css';
 
 const route = useRoute();
@@ -50,7 +56,61 @@ const activeTab = computed(() => {
   return tabs.find((item) => path === item.path)?.path || '/m/home';
 });
 
+const pendingTodoCount = ref(0);
+const unreadMessageCount = ref(0);
+
+async function refreshBadges() {
+  try {
+    const result = await portal.read('home');
+    if (result.ok && result.data) {
+      pendingTodoCount.value = Number(result.data.todoCount) || 0;
+      unreadMessageCount.value = Number(result.data.unreadCount) || 0;
+    }
+  } catch {
+    // 忽略网络或服务异常
+  }
+}
+
+function hasBadge(path: string): boolean {
+  if (path === '/m/todos') {
+    return pendingTodoCount.value > 0;
+  }
+  if (path === '/m/messages') {
+    return unreadMessageCount.value > 0;
+  }
+  return false;
+}
+
 function navigate(path: string | number) {
   if (typeof path === 'string' && path !== route.path) router.push(path);
 }
+
+onMounted(refreshBadges);
+watch(revision, refreshBadges);
+watch(() => actor.value?.id, refreshBadges);
+watch(() => route.path, refreshBadges);
 </script>
+
+<style scoped>
+.nav-tab-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.nav-badge-dot {
+  position: absolute;
+  top: -1px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e34d59;
+  border: 1.5px solid #ffffff;
+  box-sizing: content-box;
+  pointer-events: none;
+}
+</style>
