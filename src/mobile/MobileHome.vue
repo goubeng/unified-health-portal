@@ -197,7 +197,7 @@ function homeAppPng(category?: string): string | undefined {
 
 const APP_PREVIEW_LIMIT = 8;
 const FEED_PREVIEW_LIMIT = 3;
-const NOTICE_LINE_HEIGHT_PX = 32;
+const NOTICE_LINE_HEIGHT_PX = 35;
 const NOTICE_VISIBLE_ROWS = 2;
 const NOTICE_SCROLL_INTERVAL_MS = 3500;
 
@@ -414,3 +414,5 @@ watch(revision, load);
 }
 </style>
 <style scoped src="./mobile-home-refresh.css"></style>
+
+<style scoped src="./mobile-home-detail.css"></style>

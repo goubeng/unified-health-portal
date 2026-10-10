@@ -1,0 +1,219 @@
+/* 移动端首页二次视觉还原：#0052d9 政务蓝、浅蓝白底、细线分隔。
+ * 当前 notice-megaphone.png 内嵌淡蓝背景，通过混合模式和遮罩自然融合，
+ * 无需重新上传图片。此文件只供 MobileHome.vue 使用。 */
+.mobile-home {
+  --home-brand: #0052d9;
+  --home-ink: #14274c;
+  background: linear-gradient(180deg, #eaf5ff 0%, #f5f9ff 42%, #f7fbff 72%, #eef6ff 100%);
+}
+/* 应用入口：固定图标轨道，图片与文字分别居中。 */
+.mobile-home-app-grid { gap: 8px; align-items: stretch; }
+.mobile-home-app-grid button {
+  display: grid;
+  grid-template-rows: 56px minmax(0, 2.8em);
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  min-height: 105px;
+  gap: 4px;
+  padding: 8px 3px 7px;
+  border: 1px solid rgba(229,238,250,.66);
+  border-radius: 13px;
+}
+.mobile-home-app-grid .mobile-home-app-icon {
+  display: flex;
+  justify-self: center;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 57px;
+  height: 57px;
+  margin: 0 auto;
+  padding: 0;
+  line-height: 0;
+}
+.mobile-home-app-grid .mobile-home-app-icon img {
+  display: block;
+  flex: none;
+  width: 60px;
+  height: 60px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  object-fit: contain;
+  object-position: center;
+}
+.mobile-home-app-grid .mobile-home-app-icon :deep(.category-app-icon) {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  margin: auto;
+}
+.mobile-home-app-grid button > .mobile-home-app-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  width: 100%;
+  min-width: 0;
+  height: 2.8em;
+  min-height: 2.8em;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-size: 11.5px;
+  line-height: 1.4;
+  text-align: center;
+  text-overflow: ellipsis;
+}
+/* 公告：连续底色，左侧柔波纹、右侧低对比度点阵。 */
+.mobile-home-notice-card {
+  position: relative;
+  isolation: isolate;
+  min-height: 102px;
+  gap: 0;
+  margin-bottom: 13px;
+  padding: 9px 13px 9px 0;
+  border: 1px solid rgba(255,255,255,.98);
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 56% 70% at 0% 100%, rgba(90,167,245,.22) 0%, rgba(90,167,245,0) 100%),
+    radial-gradient(ellipse 45% 55% at 100% 100%, rgba(143,198,255,.17) 0%, rgba(143,198,255,0) 100%),
+    linear-gradient(105deg, #ecf7ff 0%, #f9fcff 27%, #fff 51%, #f2f9ff 100%);
+  box-shadow: 0 6px 20px rgba(16,84,160,.06);
+}
+.mobile-home-notice-card::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: -38px;
+  bottom: -43px;
+  width: 230px;
+  height: 92px;
+  border-radius: 70% 55% 0 0;
+  transform: rotate(-13deg);
+  background: linear-gradient(145deg, rgba(95,167,244,.15), rgba(159,206,255,.015));
+  pointer-events: none;
+}
+.mobile-home-notice-card::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  right: -20px;
+  bottom: -18px;
+  width: 175px;
+  height: 66px;
+  opacity: .6;
+  background-image: radial-gradient(circle, rgba(85,165,238,.26) 1.15px, transparent 1.5px);
+  background-size: 9px 9px;
+  -webkit-mask-image: radial-gradient(ellipse at 76% 72%, #000 16%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 76% 72%, #000 16%, transparent 72%);
+  pointer-events: none;
+}
+.mobile-home-notice-card > .notice-badge,
+.mobile-home-notice-card > .notice-slider {
+  position: relative;
+  z-index: 1;
+}
+.mobile-home-notice-card .notice-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 95px;
+  width: 95px;
+  height: 85px;
+  min-height: 85px;
+  margin: 0 11px 0 0;
+  padding: 0 6px 0 0;
+  border: 0;
+  background: none;
+}
+/* 分隔线在插画与文案之间，固定纵向 8px 内边距。 */
+.mobile-home-notice-card .notice-badge::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: -2px;
+  width: 1px;
+  height: calc(100% - 16px);
+  background: linear-gradient(180deg, rgba(0,82,217,.10), rgba(0,82,217,.35) 50%, rgba(0,82,217,.10));
+  pointer-events: none;
+}
+.mobile-home-notice-card .notice-badge img {
+  width: 98px;
+  height: 91px;
+  max-width: none;
+  object-fit: contain;
+  object-position: center;
+  transform: translateX(7px);
+  mix-blend-mode: multiply;
+  -webkit-mask-image: radial-gradient(ellipse 65% 70% at 50% 52%, #000 48%, rgba(0,0,0,.95) 66%, transparent 100%);
+  mask-image: radial-gradient(ellipse 65% 70% at 50% 52%, #000 48%, rgba(0,0,0,.95) 66%, transparent 100%);
+}
+.mobile-home-notice-card .notice-megaphone-fallback {
+  width: 95px;
+  height: 88px;
+  font-size: 41px;
+}
+.mobile-home-notice-card .notice-slider { height: 70px; }
+/* 公告的横线固定在两行中间，避免轮播克隆项造成重复边框。 */
+.mobile-home-notice-card .notice-slider::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(0,82,217,.105);
+  transform: translateY(-.5px);
+  pointer-events: none;
+}
+.mobile-home-notice-card .notice-row {
+  height: 35px;
+  min-height: 35px;
+  padding: 0 0 0 2px;
+  border: 0;
+}
+.mobile-home-notice-card .notice-row-title {
+  font-size: 12.5px;
+  line-height: 35px;
+  font-weight: 600;
+  color: #15294b;
+}
+.mobile-home-notice-card .notice-row-arrow {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  color: #6681a7;
+}
+.mobile-home-notice-card .notice-empty { height: 70px; }
+/* 待办卡与列表的边框/内边距统一，保持信息层级。 */
+.mobile-home-section--todos { padding: 17px 13px 13px; }
+.mobile-home-section--todos .mobile-home-section-head { margin-bottom: 14px; }
+.mobile-home-section--todos .mobile-home-feed button {
+  min-height: 66px;
+  padding: 13px 10px;
+  border: 1px solid #eaf2fc;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #f2f8ff, #f9fbff);
+}
+.mobile-home-section--todos .mobile-home-feed button:first-child { border-top: 1px solid #eaf2fc; }
+.mobile-home-section--todos .mobile-home-feed-top strong { font-size: 13px; }
+@media (min-width: 420px) {
+  .mobile-home-app-grid button { min-height: 111px; }
+  .mobile-home-app-grid button > .mobile-home-app-name { font-size: 12px; }
+  .mobile-home-notice-card .notice-row-title { font-size: 13px; }
+}
+@media (max-width: 350px) {
+  .mobile-home-app-grid { gap: 5px; }
+  .mobile-home-app-grid button { min-height: 103px; padding: 7px 2px 6px; grid-template-rows: 53px minmax(0, 2.8em); }
+  .mobile-home-app-grid .mobile-home-app-icon { width: 53px; height: 53px; }
+  .mobile-home-app-grid .mobile-home-app-icon img { width: 57px; height: 57px; }
+  .mobile-home-app-grid button > .mobile-home-app-name { font-size: 10.5px; }
+  .mobile-home-notice-card .notice-badge { flex-basis: 86px; width: 86px; margin-right: 8px; }
+  .mobile-home-notice-card .notice-badge img { width: 94px; height: 88px; }
+  .mobile-home-notice-card .notice-row-title { font-size: 12px; }
+}
