@@ -1,0 +1,720 @@
+.mobile-messages {
+  padding: 0 0 32px;
+  color: #173047;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* 顶部品牌蓝渐变区域 */
+.mobile-message-hero {
+  padding: 20px 16px 18px;
+  background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* 标题行：引用待办事项字号规范 22px */
+.mobile-message-title-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: var(--mobile-font-weight-semibold);
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+/* 操作栏：筛选 与 清除未读 */
+.mobile-message-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+}
+
+/* 筛选按钮（胶囊样式，高度统一 30px） */
+.mobile-filter-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: var(--mobile-font-weight-medium);
+  padding: 0 14px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.mobile-filter-trigger-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mobile-filter-trigger-btn.has-filter {
+  background: #ffffff;
+  color: #0052d9;
+  font-weight: var(--mobile-font-weight-semibold);
+  border-color: #ffffff;
+}
+
+.mobile-filter-trigger-btn .trigger-icon {
+  font-size: 14px;
+}
+
+/* 清除未读操作（参考图右侧：文重细，橡皮擦图标） */
+.mobile-clear-unread-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: var(--mobile-font-weight-normal);
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-clear-unread-btn:active {
+  opacity: 0.75;
+}
+
+.mobile-clear-unread-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mobile-clear-unread-btn .eraser-icon {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+}
+
+.mobile-clear-unread-btn .clear-icon {
+  font-size: 16px;
+}
+
+/* 未读重要提醒卡片横幅（参考图） */
+.mobile-unread-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 246, 255, 0.97) 100%);
+  color: #1a2d48;
+  box-shadow: 0 4px 14px rgba(0, 32, 80, 0.08);
+}
+
+.banner-icon-badge {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffaa00;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: var(--mobile-font-weight-bold);
+  flex: none;
+}
+
+.banner-text {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #273849;
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-count {
+  color: #e34d59;
+  font-weight: var(--mobile-font-weight-bold);
+  font-size: 14px;
+}
+
+.banner-view-btn {
+  border: none;
+  border-radius: 999px;
+  background: #0052d9;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: var(--mobile-font-weight-medium);
+  padding: 5px 12px;
+  white-space: nowrap;
+  flex: none;
+  cursor: pointer;
+}
+
+.mobile-message-search {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 列表主体 */
+.mobile-message-body-wrap {
+  padding: 14px 16px 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.mobile-inline-error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff1ef;
+  color: #ba3e38;
+  font-size: 13px;
+}
+
+.mobile-list-empty {
+  padding: 58px 0;
+  text-align: center;
+  color: #91a2af;
+  font-size: 14px;
+}
+
+/* 消息列表：严格充满容器宽度，禁止溢出 */
+.mobile-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-message-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 15px 14px;
+  box-shadow: 0 4px 14px rgba(16, 54, 99, 0.04);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-message-card:active {
+  background-color: #f9fbfd;
+}
+
+/* 分类图标：参考图黄色小喇叭与蓝色小盾牌 */
+.mobile-message-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 11px;
+  background: #fef7e8;
+  color: #f5a623;
+  margin-top: 1px;
+}
+
+.mobile-message-icon.icon-shield {
+  background: #ecf3fe;
+  color: #0052d9;
+}
+
+.mobile-message-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 主体内容：自适应截断，防止撑开屏幕 */
+.mobile-message-main {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-message-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.mobile-message-title {
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: var(--mobile-font-weight-semibold);
+  color: #1a2d48;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-message-date {
+  font-size: 12px;
+  color: #8c9fae;
+  flex: none;
+  white-space: nowrap;
+}
+
+.mobile-message-row-mid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+  width: 100%;
+  min-width: 0;
+}
+
+.mobile-message-excerpt {
+  margin: 0;
+  color: #6b8092;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 未读红点（参考图：在摘要右侧显示） */
+.mobile-message-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e34d59;
+  flex: none;
+  box-shadow: 0 0 0 2px rgba(227, 77, 89, 0.15);
+}
+
+.mobile-message-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: #9cb0c2;
+}
+
+/* 筛选抽屉弹窗（参考图半屏面板设计：居中且锁定480px避免超屏） */
+.mobile-filter-drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.mobile-filter-drawer-panel {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 18px 28px;
+  max-height: 82vh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-section-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--mobile-font-weight-semibold);
+  color: #1d2129;
+}
+
+/* 网格选项按钮：每排 3 个（参考图布局） */
+.filter-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.filter-option-btn {
+  position: relative;
+  overflow: hidden;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #f2f3f5;
+  color: #4e5969;
+  font-size: 13.5px;
+  font-weight: var(--mobile-font-weight-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.filter-option-btn:active {
+  background: #e5e6eb;
+}
+
+/* 激活选中态：浅蓝底、品牌蓝字、边框、右下角三角打勾 */
+.filter-option-btn.active {
+  background: #ecf2fe;
+  color: #0052d9;
+  font-weight: var(--mobile-font-weight-semibold);
+  border-color: #bad3fb;
+}
+
+.filter-checked-corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 16px 16px;
+  border-color: transparent transparent #0052d9 transparent;
+}
+
+.filter-checked-corner svg {
+  position: absolute;
+  right: -16px;
+  bottom: -15px;
+  width: 9px;
+  height: 9px;
+  color: #ffffff;
+}
+
+/* 底部重置与确定操作栏 */
+.filter-actions-footer {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.filter-reset-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 999px;
+  border: 1.5px solid #0052d9;
+  background: #ffffff;
+  color: #0052d9;
+  font-size: 15px;
+  font-weight: var(--mobile-font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.filter-reset-btn:active {
+  background: #f2f6ff;
+}
+
+.filter-submit-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: #0052d9;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: var(--mobile-font-weight-semibold);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 82, 217, 0.28);
+  transition: background-color 0.15s ease;
+}
+
+.filter-submit-btn:active {
+  background: #0043b3;
+}
+
+/* 消息详情页面（信函风格 + 底部上一封/下一封与删除工具栏） */
+.mobile-message-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+  margin: 0;
+  padding: 0 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #edf1f6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.mobile-message-detail-head strong {
+  font-size: 17px;
+  font-weight: var(--mobile-font-weight-semibold);
+  color: #1a2d48;
+  text-align: center;
+  flex: 1;
+}
+
+/* TD移动端规范导航按钮（无文字，默认24px图标，触控热区良好） */
+.mobile-nav-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #24344d;
+  cursor: pointer;
+  padding: 0;
+  flex: none;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-nav-back-btn:active {
+  background-color: #f0f3f8;
+}
+
+.mobile-nav-back-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav-placeholder {
+  width: 36px;
+  height: 36px;
+  flex: none;
+}
+
+.mobile-detail-loading,
+.mobile-detail-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 16px;
+  color: #8b9baa;
+  font-size: 14px;
+  text-align: center;
+  gap: 12px;
+}
+
+.mobile-back-list-btn {
+  border: 1px solid #c9d8e8;
+  background: #ffffff;
+  color: #0052d9;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: var(--mobile-font-weight-medium);
+  cursor: pointer;
+}
+
+/* 消息详情主体：保留默认背景色，增加与边缘14px间距 */
+.mobile-message-detail-body {
+  padding: 14px 14px calc(70px + env(safe-area-inset-bottom, 0px));
+  background: #f4f7fb;
+  min-height: calc(100dvh - 50px);
+  box-sizing: border-box;
+}
+
+.mobile-message-detail-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 0; /* 用户明确要求：去掉圆角显示 */
+  border: 1px solid #eef2f7;
+  box-shadow: 0 4px 18px rgba(16, 44, 80, 0.05);
+  padding: 24px 20px 28px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部系统蓝条：保持截图中的蓝色装饰线 */
+.message-card-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #0052d9;
+}
+
+/* 标题：大字号，加粗，符合单列垂直排版规范 */
+.message-card-title {
+  margin: 8px 0 14px;
+  font-size: 18px;
+  font-weight: var(--mobile-font-weight-semibold);
+  color: #112033;
+  line-height: 1.45;
+  letter-spacing: 0.2px;
+}
+
+/* 信头元信息（时间、应用等） */
+.message-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e8edf3;
+  font-size: 12.5px;
+  color: #7b8e9f;
+}
+
+/* 消息类型标签：与“我的申请”保持完全一致的徽章样式，字号统一提升至 12px 粗体 */
+.meta-type-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: var(--mobile-font-weight-semibold);
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.meta-type-tag.is-business {
+  background: #ecf2fe;
+  color: #0052d9;
+}
+
+.meta-type-tag.is-security {
+  background: #fff0ee;
+  color: #d1493b;
+}
+
+.meta-app {
+  color: #0052d9;
+  font-weight: var(--mobile-font-weight-medium);
+}
+
+/* 正文：行距舒展，字迹清晰，垂直自上向下正常流动 */
+.message-card-content {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: #283a4d;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 180px;
+}
+
+.message-card-actions {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f3f6;
+}
+
+/* 底部操作栏（复刻截图底栏）：左侧上一封/下一封，右侧删除垃圾桶图标 */
+.mobile-message-detail-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: var(--mobile-max-width, 480px);
+  transform: translateX(-50%);
+  height: calc(52px + env(safe-area-inset-bottom, 0px));
+  padding: 0 16px env(safe-area-inset-bottom, 0px);
+  background: #ffffff;
+  border-top: 1px solid #ebeff5;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+.toolbar-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 上一封 / 下一封 按钮：保持本系统的蓝色配色 #0052d9 */
+.toolbar-nav-btn {
+  border: 0;
+  background: transparent;
+  color: #0052d9;
+  font-size: 14.5px;
+  font-weight: var(--mobile-font-weight-medium);
+  cursor: pointer;
+  padding: 6px 0;
+  transition: opacity 0.15s ease;
+}
+
+.toolbar-nav-btn:active {
+  opacity: 0.7;
+}
+
+.toolbar-nav-btn.disabled,
+.toolbar-nav-btn:disabled {
+  color: #a4b4c4;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 删除图标按钮：无文字，纯图标，大小 22px，TD移动端规范配色与交互 */
+.toolbar-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #4b5b76;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.toolbar-delete-btn:active {
+  color: #e34d59;
+  background-color: #fff1f0;
+}
+
+.toolbar-delete-btn svg {
+  width: 22px;
+  height: 22px;
+}

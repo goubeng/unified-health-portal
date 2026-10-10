@@ -1,5 +1,18 @@
 .mobile-shell {
   --mobile-brand: #0052d9;
+  /* 移动端文字层级：正文400 / 交互500 / 业务标题600 / 品牌重点700 */
+  --mobile-font-weight-normal: 400;
+  --mobile-font-weight-medium: 500;
+  --mobile-font-weight-semibold: 600;
+  --mobile-font-weight-bold: 700;
+  --mobile-font-size-caption: 12px;
+  --mobile-font-size-body: 14px;
+  --mobile-font-size-section-title: 16px;
+  --mobile-font-size-page-title: 20px;
+  --mobile-ink: #24344d;
+  --mobile-ink-muted: #728198;
+  --mobile-border: #edf2f7;
+  --mobile-card-radius: 16px;
   --td-brand-color: #0052d9;
   --td-brand-color-active: #0043b3;
   --td-brand-color-focus: #ecf2fe;
@@ -10,6 +23,7 @@
   --mobile-max-width: 480px;
   --td-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   font-family: var(--td-font-family);
+  font-weight: var(--mobile-font-weight-normal);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   width: 100%;
@@ -120,3 +134,26 @@ body:has(.mobile-message-detail-toolbar) .mobile-shell__navigation {
   display: none !important;
 }
 
+
+/* 底部主导航统一样式 */
+.mobile-shell__navigation .nav-tab-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-shell__navigation .nav-badge-dot {
+  position: absolute;
+  top: -1px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e34d59;
+  border: 1.5px solid #ffffff;
+  box-sizing: content-box;
+  pointer-events: none;
+}

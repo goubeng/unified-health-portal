@@ -91,26 +91,4 @@ watch(() => actor.value?.id, refreshBadges);
 watch(() => route.path, refreshBadges);
 </script>
 
-<style scoped>
-.nav-tab-icon-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-}
 
-.nav-badge-dot {
-  position: absolute;
-  top: -1px;
-  right: -3px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #e34d59;
-  border: 1.5px solid #ffffff;
-  box-sizing: content-box;
-  pointer-events: none;
-}
-</style>

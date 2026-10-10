@@ -1,0 +1,237 @@
+.mobile-todos {
+  padding: 0 0 32px;
+  color: #173047;
+}
+
+/* 头部品牌蓝渐变区域：三段式结构，严格统一 gap: 12px 与 padding: 20px 16px 18px */
+.mobile-todos-header {
+  padding: 20px 16px 18px;
+  background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.mobile-todos-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.mobile-todos-title-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: var(--mobile-font-weight-semibold);
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.mobile-todos-subtitle {
+  margin: 0;
+  height: 30px;
+  line-height: 30px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+}
+
+.todo-highlight-num {
+  font-weight: var(--mobile-font-weight-bold);
+  font-size: 18px;
+  color: #ffe600;
+  margin: 0 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.mobile-todo-search {
+  width: 100%;
+}
+
+/* 筛选 Tab 按钮 */
+.mobile-todo-filters {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px 8px;
+  overflow: auto;
+}
+
+.mobile-todo-filters button {
+  flex: none;
+  border: 0;
+  border-radius: 18px;
+  background: #edf3f7;
+  color: #5a7287;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: var(--mobile-font-weight-medium);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.mobile-todo-filters button.active {
+  background: #ecf2fe;
+  color: #0052d9;
+  font-weight: var(--mobile-font-weight-semibold);
+}
+
+.mobile-inline-error {
+  margin: 10px 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff1ef;
+  color: #ba3e38;
+  font-size: 13px;
+}
+
+.mobile-list-empty {
+  padding: 58px 0;
+  text-align: center;
+  color: #91a2af;
+  font-size: 14px;
+}
+
+/* 待办列表 */
+.mobile-todo-list {
+  display: grid;
+  gap: 12px;
+  padding: 6px 16px;
+}
+
+.mobile-todo-card {
+  background: #ffffff;
+  border: 1px solid #edf2f6;
+  border-radius: 16px;
+  padding: 15px 15px 12px;
+  box-shadow: 0 4px 14px rgba(18, 52, 95, 0.04);
+}
+
+.mobile-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mobile-card-top strong {
+  font-size: 15px;
+  line-height: 1.45;
+  color: #172d42;
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--mobile-font-weight-semibold);
+}
+
+/* 状态标签：与“我的申请”保持完全一致的徽章样式，字号统一提升至 12px 粗体 */
+.todo-status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: var(--mobile-font-weight-semibold);
+  background: #eef2f6;
+  color: #6a7e92;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.todo-status-tag.is-pending {
+  background: #fef5e7;
+  color: #c97914;
+}
+
+.todo-status-tag.is-success {
+  background: #e7f7ee;
+  color: #109459;
+}
+
+.todo-status-tag.is-default {
+  background: #eef2f6;
+  color: #6a7e92;
+}
+
+.mobile-card-summary {
+  margin: 6px 0 0;
+  color: #6b8090;
+  font-size: 13px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 3 个指标在分隔线上方：统一中性灰配色，不单独使用蓝色 */
+.mobile-card-meta-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #718598;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meta-item.meta-app {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta-item.meta-app span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-item.meta-time {
+  margin-left: 0;
+}
+
+.meta-item svg,
+.meta-icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: #8c9fae;
+}
+
+/* 按钮“去处理”显示在分隔线下面，右对齐 */
+.mobile-card-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f3f6;
+}
+
+.todo-process-btn {
+  height: 28px !important;
+  padding: 0 14px !important;
+  font-size: 12.5px !important;
+  font-weight: var(--mobile-font-weight-semibold) !important;
+  border-radius: 999px !important;
+}
