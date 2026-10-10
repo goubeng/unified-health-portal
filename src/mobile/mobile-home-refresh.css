@@ -100,21 +100,10 @@
 .mobile-home-section-head { margin-bottom: 13px; }
 .mobile-home-section-head h2 {
   position: relative;
-  padding-left: 13px;
   font-size: 17px;
   line-height: 25px;
   font-weight: var(--mobile-font-weight-bold);
   color: var(--home-ink);
-}
-.mobile-home-section-head h2::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 5px;
-  width: 4px;
-  height: 17px;
-  border-radius: 4px;
-  background: linear-gradient(180deg, #08b7fb, var(--home-brand));
 }
 .mobile-home-section-head > button {
   display: inline-flex;

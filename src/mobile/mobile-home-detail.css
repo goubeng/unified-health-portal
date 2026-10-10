@@ -21,6 +21,52 @@
     radial-gradient(115% 83% at 8% 117%, rgba(80, 164, 239, .105) 0 66%, transparent 67%),
     radial-gradient(100% 76% at 100% 126%, rgba(118, 188, 250, .105) 0 69%, transparent 70%);
 }
+/* 应用横向划动容器与分页结构 */
+.mobile-home-apps-wrapper {
+  position: relative;
+  width: 100%;
+}
+.mobile-home-apps-scroll-wrap {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+.mobile-home-apps-scroll-wrap::-webkit-scrollbar {
+  display: none;
+}
+.mobile-home-app-page {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  box-sizing: border-box;
+}
+.mobile-home-apps-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+.mobile-home-apps-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4e2f3;
+  transition: all .25s ease;
+}
+.mobile-home-apps-dot.active {
+  width: 14px;
+  border-radius: 4px;
+  background: #0052d9;
+}
+
 /* 应用入口：固定图标轨道，分类 SVG 与文字分别居中。 */
 .mobile-home-app-grid { gap: 8px; align-items: stretch; }
 .mobile-home-app-grid button {

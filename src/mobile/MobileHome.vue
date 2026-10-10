@@ -11,16 +11,36 @@
 
     <template v-else>
       <section class="mobile-home-section mobile-home-section--first">
-        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/apps')">全部应用</button></div>
-        <div v-if="mine.length" class="mobile-home-app-grid">
-          <button v-for="app in mine.slice(0, APP_PREVIEW_LIMIT)" :key="app.id" type="button" @click="openApp(app)">
-            <div class="mobile-home-app-icon">
-              <CategoryAppIcon :category="app.category" />
+        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/applications')">我的申请</button></div>
+        <div v-if="mine.length" class="mobile-home-apps-wrapper">
+          <div
+            class="mobile-home-apps-scroll-wrap"
+            @scroll.passive="handleAppScroll"
+          >
+            <div
+              v-for="(page, pageIdx) in appPages"
+              :key="pageIdx"
+              class="mobile-home-app-page"
+            >
+              <div class="mobile-home-app-grid">
+                <button v-for="app in page" :key="app.id" type="button" @click="openApp(app)">
+                  <div class="mobile-home-app-icon">
+                    <CategoryAppIcon :category="app.category" />
+                  </div>
+                  <span class="mobile-home-app-name">{{ app.name }}</span>
+                </button>
+              </div>
             </div>
-            <span class="mobile-home-app-name">{{ app.name }}</span>
-          </button>
+          </div>
+          <div v-if="appPages.length > 1" class="mobile-home-apps-dots" aria-hidden="true">
+            <span
+              v-for="(_, idx) in appPages"
+              :key="idx"
+              :class="['mobile-home-apps-dot', { active: currentAppPage === idx }]"
+            />
+          </div>
         </div>
-        <p v-else class="mobile-home-empty">暂无可用应用，前往全部应用看看</p>
+        <p v-else class="mobile-home-empty">暂无可用应用</p>
       </section>
 
       <section class="mobile-home-notice-card" aria-label="最新公告">
@@ -188,7 +208,7 @@ type PortalRow = {
 };
 type Overview = { todoCount?: number; unreadCount?: number; unreadAnnouncementCount?: number };
 // 应用分类图标直接复用 CategoryAppIcon.vue 的内联 SVG；公告插画保留 PNG。
-const APP_PREVIEW_LIMIT = 8;
+const APP_PAGE_SIZE = 8;
 const FEED_PREVIEW_LIMIT = 3;
 const NOTICE_LINE_HEIGHT_PX = 35;
 const NOTICE_VISIBLE_ROWS = 2;
@@ -199,11 +219,30 @@ const loading = ref(true);
 const error = ref('');
 const overview = ref<Overview>({});
 const mine = ref<PortalRow[]>([]);
+const currentAppPage = ref(0);
 const pendingTodos = ref<PortalRow[]>([]);
 const announcements = ref<PortalRow[]>([]);
 const noticeScrollOffset = ref(0);
 const noticeTransitionEnabled = ref(true);
 let noticeTimer: ReturnType<typeof setInterval> | null = null;
+
+const appPages = computed<PortalRow[][]>(() => {
+  if (!mine.value.length) return [];
+  const pages: PortalRow[][] = [];
+  for (let i = 0; i < mine.value.length; i += APP_PAGE_SIZE) {
+    pages.push(mine.value.slice(i, i + APP_PAGE_SIZE));
+  }
+  return pages;
+});
+
+function handleAppScroll(event: Event) {
+  const target = event.target as HTMLElement | null;
+  if (!target || target.clientWidth <= 0) return;
+  const pageIndex = Math.round(target.scrollLeft / target.clientWidth);
+  if (currentAppPage.value !== pageIndex) {
+    currentAppPage.value = pageIndex;
+  }
+}
 
 const pendingTodoCount = computed(() => overview.value.todoCount ?? pendingTodos.value.length);
 
@@ -262,6 +301,7 @@ async function load() {
     mine.value = [...(apps || [])].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     pendingTodos.value = newest((todos || []).filter((item: PortalRow) => item.status === 'PENDING'), 'receivedAt');
     announcements.value = newest(notices || [], 'publishedAt');
+    currentAppPage.value = 0;
     noticeScrollOffset.value = 0;
     noticeTransitionEnabled.value = false;
     startNoticeScroll();
