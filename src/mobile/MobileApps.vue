@@ -4,12 +4,11 @@
     <header class="mobile-apps-topbar">
       <div class="mobile-apps-title-row">
         <h1>全部应用</h1>
-      </div>
-
-      <!-- 标题下方、搜索框上方：全部应用数量与已关联数量统计 -->
-      <div class="mobile-apps-hero-stats">
-        <span class="hero-stat-pill">全部应用 {{ apps.length }}</span>
-        <span class="hero-stat-pill is-bound">已关联 {{ totalBoundCount }}</span>
+        <!-- 标题右侧的纯文字统计，底部对齐，不再占据独立一行 -->
+        <div class="mobile-apps-title-stats" aria-label="应用数量统计">
+          <span>共 <strong>{{ apps.length }}</strong> 个</span>
+          <span>已关联 <strong>{{ totalBoundCount }}</strong> 个</span>
+        </div>
       </div>
 
       <div class="mobile-apps-search-wrap">

@@ -20,14 +20,17 @@
 
 .mobile-apps-title-row {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0;
+  min-width: 0;
   line-height: 1.25;
 }
 
 /* 标题行：引用待办事项字号规范 22px */
 .mobile-apps-title-row h1 {
+  flex: none;
   margin: 0;
   font-size: var(--mobile-hero-title-size);
   font-weight: var(--mobile-font-weight-semibold);
@@ -36,33 +39,30 @@
   line-height: 1.25;
 }
 
-/* 标题下方、搜索框上方：全部应用数量与已关联数量统计胶囊（高度与消息中心筛选保持一致 30px） */
-.mobile-apps-hero-stats {
+/* 应用数量以文字形式显示在标题右侧，两组数据与标题底部对齐。 */
+.mobile-apps-title-stats {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 30px;
-  margin: 0;
+  flex: none;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 1px;
+  color: rgba(255, 255, 255, .84);
+  font-size: var(--mobile-font-size-caption);
+  font-weight: var(--mobile-font-weight-normal);
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
-.hero-stat-pill {
-  display: inline-flex;
-  align-items: center;
-  height: 30px;
-  box-sizing: border-box;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+.mobile-apps-title-stats strong {
   color: #ffffff;
-  font-size: 13px;
-  font-weight: var(--mobile-font-weight-medium);
-  backdrop-filter: blur(4px);
+  font-weight: var(--mobile-font-weight-semibold);
 }
 
-.hero-stat-pill.is-bound {
-  background: rgba(255, 255, 255, 0.24);
-  border-color: rgba(255, 255, 255, 0.38);
+/* 窄屏仍保持同一行，不压缩标题字号或文字到12px以下。 */
+@media (max-width: 350px) {
+  .mobile-apps-title-row { gap: 5px; }
+  .mobile-apps-title-stats { gap: 6px; }
 }
 
 .mobile-apps-search-wrap {
