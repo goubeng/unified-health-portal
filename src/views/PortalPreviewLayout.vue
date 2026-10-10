@@ -87,7 +87,7 @@
 <script setup>
 import {computed,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,NotificationIcon} from 'tdesign-icons-vue-next';
+import {ArrowLeftIcon,ChevronDownIcon,ChevronRightIcon,MailIcon} from 'tdesign-icons-vue-next';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {actor,logout,portal,revision} from '../services/runtime.js';
 import {can} from '../config/pages.js';
