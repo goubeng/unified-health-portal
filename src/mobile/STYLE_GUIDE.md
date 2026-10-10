@@ -53,3 +53,9 @@
 
 - Banner在原文案“卫健 XC · 便民服务”与“健康服务，一站直达”之外，同一辅助标题行增加“公众门户”小标识；继续使用原医院背景图与既有定位、比例，不改路由和业务。
 - “我的应用”卡片保留现有淡色渐变背景、38px 分类SVG和交互效果，移除每个卡片的边框线；默认、窄屏和大屏统一无边框。
+
+## 底部主导航统一布局
+
+- 全移动端底部导航通过 `mobile.css` 维护，不在页面级 CSS 再定义不同高度。
+- TDesign `TabBarItem` 高度为56px，上下外边距各8px，导航内容区合计72px（不含 `safe-area-inset-bottom`）；图标保持24px，图标与文字间距5px，文字字号12px。
+- `mobile-shell__content` 与导航栏统一引用 `--mobile-nav-bar-height`，为滚动内容保留足够的底部空间。iOS安全区仍由TDesign的 `safe-area-inset-bottom` 控制。

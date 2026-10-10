@@ -41,6 +41,12 @@
   --mobile-gradient-header: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
   --mobile-surface: #f4f7fb;
   --mobile-max-width: 480px;
+  /* 主导航尺寸集中控制：56px单项 + 上下各8px，底部安全区另计。 */
+  --mobile-nav-item-height: 56px;
+  --mobile-nav-item-margin-y: 8px;
+  --mobile-nav-icon-label-gap: 5px;
+  --mobile-nav-label-line-height: 18px;
+  --mobile-nav-bar-height: calc(var(--mobile-nav-item-height) + var(--mobile-nav-item-margin-y) + var(--mobile-nav-item-margin-y));
   --td-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   font-family: var(--td-font-family);
   font-weight: var(--mobile-font-weight-normal);
@@ -61,7 +67,8 @@
 .mobile-shell__content {
   flex: 1;
   min-width: 0;
-  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  /* 与实际固定底栏同高，确保最后一行内容不会被导航遮挡。 */
+  padding-bottom: calc(var(--mobile-nav-bar-height) + env(safe-area-inset-bottom));
 }
 
 .mobile-shell__navigation {
@@ -81,6 +88,21 @@
 .mobile-shell__navigation .t-tab-bar {
   max-width: var(--mobile-max-width);
   margin-inline: auto;
+}
+
+/* TDesign TabBar 仅覆盖尺寸与排版，保留原有选中态、图标及安全区逻辑。 */
+.mobile-shell__navigation .t-tab-bar-item {
+  height: var(--mobile-nav-item-height);
+  margin: var(--mobile-nav-item-margin-y) 0;
+}
+
+.mobile-shell__navigation .t-tab-bar-item__content {
+  row-gap: var(--mobile-nav-icon-label-gap);
+}
+
+.mobile-shell__navigation .t-tab-bar-item__text {
+  font-size: var(--mobile-font-size-caption);
+  line-height: var(--mobile-nav-label-line-height);
 }
 
 /* 全局搜索组件胶囊化覆盖：圆润胶囊形态，精致投影，提示文字缩小 */
