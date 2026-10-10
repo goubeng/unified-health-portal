@@ -121,9 +121,9 @@
 }
 
 .mobile-card-top strong {
-  font-size: 15px;
-  line-height: 1.45;
-  color: #172d42;
+  font-size: var(--mobile-list-card-title-size);
+  line-height: 1.4;
+  color: var(--mobile-list-card-title-color);
   flex: 1;
   min-width: 0;
   font-weight: var(--mobile-font-weight-semibold);
@@ -161,9 +161,10 @@
 
 .mobile-card-summary {
   margin: 6px 0 0;
-  color: #6b8090;
-  font-size: 13px;
-  line-height: 1.5;
+  color: var(--mobile-list-card-summary-color);
+  font-size: var(--mobile-list-card-summary-size);
+  font-weight: var(--mobile-font-weight-normal);
+  line-height: var(--mobile-list-card-summary-line-height);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -171,7 +172,7 @@
   overflow: hidden;
 }
 
-/* 3 个指标在分隔线上方：统一中性灰配色，不单独使用蓝色 */
+/* 来源、时间与消息中心的列表卡片共用同一字号、字重与中性灰层级。 */
 .mobile-card-meta-list {
   display: flex;
   align-items: center;
@@ -180,7 +181,6 @@
   min-width: 0;
   width: 100%;
   margin-top: 10px;
-  font-size: 12px;
   overflow: hidden;
 }
 
@@ -188,9 +188,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #718598;
   white-space: nowrap;
   flex-shrink: 0;
+  font-weight: var(--mobile-font-weight-normal);
 }
 
 .meta-item.meta-app {
@@ -198,6 +198,8 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--mobile-list-card-source-color);
+  font-size: var(--mobile-list-card-source-size);
 }
 
 .meta-item.meta-app span {
@@ -208,6 +210,8 @@
 
 .meta-item.meta-time {
   margin-left: 0;
+  color: var(--mobile-list-card-time-color);
+  font-size: var(--mobile-list-card-time-size);
 }
 
 .meta-item svg,
@@ -215,7 +219,7 @@
   width: 13px;
   height: 13px;
   flex: none;
-  color: #8c9fae;
+  color: var(--mobile-list-card-time-color);
 }
 
 /* 按钮“去处理”显示在分隔线下面，右对齐 */
