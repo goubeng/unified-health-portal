@@ -603,29 +603,30 @@ watch(revision, load);
   height: 38px;
   flex: none;
   border-radius: 11px;
-  background: linear-gradient(135deg, #ff9f43, #ff7638);
+  background: transparent;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(255, 118, 56, 0.18);
+  /* 由内部 CategoryAppIcon 统一绘制投影，外层不再重复叠加。 */
+  box-shadow: none;
 }
 
 .app-item-icon.tone-0 {
   background: linear-gradient(135deg, #ff9f43, #ff7638);
-  box-shadow: 0 3px 8px rgba(255, 118, 56, 0.18);
+  box-shadow: none;
 }
 
 .app-item-icon.tone-1 {
   background: linear-gradient(135deg, #2ecc71, #10ac84);
-  box-shadow: 0 3px 8px rgba(16, 172, 132, 0.18);
+  box-shadow: none;
 }
 
 .app-item-icon.tone-2 {
   background: linear-gradient(135deg, #48dbfb, #0abde3);
-  box-shadow: 0 3px 8px rgba(10, 189, 227, 0.18);
+  box-shadow: none;
 }
 
 .app-item-icon.tone-3 {
   background: linear-gradient(135deg, #9b59b6, #8e44ad);
-  box-shadow: 0 3px 8px rgba(142, 68, 173, 0.18);
+  box-shadow: none;
 }
 
 .app-item-icon svg {

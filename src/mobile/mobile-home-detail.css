@@ -60,6 +60,8 @@
   line-height: 1.4;
   text-align: center;
   text-overflow: ellipsis;
+  font-weight: 600;
+  color: #1b3154;
 }
 /* 公告：连续底色，左侧柔波纹、右侧低对比度点阵。 */
 .mobile-home-notice-card {
@@ -124,17 +126,7 @@
   border: 0;
   background: none;
 }
-/* 分隔线在插画与文案之间，固定纵向 8px 内边距。 */
-.mobile-home-notice-card .notice-badge::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  right: -2px;
-  width: 1px;
-  height: calc(100% - 16px);
-  background: linear-gradient(180deg, rgba(0,82,217,.10), rgba(0,82,217,.35) 50%, rgba(0,82,217,.10));
-  pointer-events: none;
-}
+/* 插画和公告文案之间只保留留白，不增加竖向分隔线。 */
 .mobile-home-notice-card .notice-badge img {
   width: 98px;
   height: 91px;
@@ -152,23 +144,25 @@
   font-size: 41px;
 }
 .mobile-home-notice-card .notice-slider { height: 70px; }
-/* 公告的横线固定在两行中间，避免轮播克隆项造成重复边框。 */
-.mobile-home-notice-card .notice-slider::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background: rgba(0,82,217,.105);
-  transform: translateY(-.5px);
-  pointer-events: none;
-}
+/* 将分隔线绑定到公告条目：与滚动轨道同步移动，不在容器上叠加固定线。 */
 .mobile-home-notice-card .notice-row {
+  position: relative;
   height: 35px;
   min-height: 35px;
   padding: 0 0 0 2px;
   border: 0;
+}
+.mobile-home-notice-card .notice-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(0, 82, 217, 0.10);
+  transform: scaleY(.5);
+  transform-origin: center bottom;
+  pointer-events: none;
 }
 .mobile-home-notice-card .notice-row-title {
   font-size: 12.5px;
@@ -187,6 +181,27 @@
 /* 待办卡与列表的边框/内边距统一，保持信息层级。 */
 .mobile-home-section--todos { padding: 17px 13px 13px; }
 .mobile-home-section--todos .mobile-home-section-head { margin-bottom: 14px; }
+.mobile-home-section--todos .mobile-home-section-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.mobile-home-section--todos .todo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0 5px;
+  border-radius: 999px;
+  line-height: 1;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
 .mobile-home-section--todos .mobile-home-feed button {
   min-height: 66px;
   padding: 13px 10px;

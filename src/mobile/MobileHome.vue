@@ -10,7 +10,7 @@
 
     <template v-else>
       <section class="mobile-home-section mobile-home-section--first">
-        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/apps')">全部应用 <ChevronRightIcon class="section-view-all-arrow" /></button></div>
+        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/apps')">全部应用</button></div>
         <div v-if="mine.length" class="mobile-home-app-grid">
           <button v-for="app in mine.slice(0, APP_PREVIEW_LIMIT)" :key="app.id" type="button" @click="openApp(app)">
             <div class="mobile-home-app-icon">
@@ -57,7 +57,7 @@
       </section>
 
       <section class="mobile-home-section mobile-home-section--todos">
-        <div class="mobile-home-section-head"><div><h2>待办事项 <span v-if="pendingTodoCount > 0" class="todo-badge">{{ pendingTodoCount }}</span></h2></div><button type="button" @click="go('/m/todos')">查看全部 <ChevronRightIcon class="section-view-all-arrow" /></button></div>
+        <div class="mobile-home-section-head"><div><h2>待办事项 <span v-if="pendingTodoCount > 0" class="todo-badge">{{ pendingTodoCount }}</span></h2></div><button type="button" @click="go('/m/todos')">查看全部</button></div>
         <div v-if="pendingTodos.length" class="mobile-home-feed">
           <button v-for="item in pendingTodos.slice(0, FEED_PREVIEW_LIMIT)" :key="item.id" type="button" @click="go('/m/todos')">
             <span class="mobile-home-feed-dot"></span>
