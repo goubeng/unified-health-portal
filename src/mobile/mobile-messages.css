@@ -398,32 +398,28 @@
   background: #e5e6eb;
 }
 
-/* 激活选中态：浅蓝底、品牌蓝字、边框、右下角三角打勾 */
+/* 激活选中态：浅蓝底、品牌蓝字、边框高亮、左上角三角打勾徽标（参考TDesign卡片多选框规范） */
 .filter-option-btn.active {
   background: #ecf2fe;
   color: #0052d9;
   font-weight: var(--mobile-font-weight-semibold);
-  border-color: #bad3fb;
+  border-color: #0052d9;
 }
 
 .filter-checked-corner {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 16px 16px;
-  border-color: transparent transparent #0052d9 transparent;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  line-height: 0;
+  pointer-events: none;
 }
 
 .filter-checked-corner svg {
-  position: absolute;
-  right: -16px;
-  bottom: -15px;
-  width: 9px;
-  height: 9px;
-  color: #ffffff;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* 底部重置与确定操作栏 */

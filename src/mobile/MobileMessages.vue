@@ -103,9 +103,16 @@
                 @click="draftFilters.readStatus = opt.value"
               >
                 <span>{{ opt.label }}</span>
-                <span v-if="draftFilters.readStatus === opt.value" class="filter-checked-corner">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                <span v-if="draftFilters.readStatus === opt.value" class="filter-checked-corner" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M0 0H24L0 24V0Z" fill="#0052d9" />
+                    <path
+                      d="M4.5 9.5L7.5 12.5L14 6"
+                      stroke="#ffffff"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </span>
               </button>
@@ -125,9 +132,16 @@
                 @click="draftFilters.messageType = opt.value"
               >
                 <span>{{ opt.label }}</span>
-                <span v-if="draftFilters.messageType === opt.value" class="filter-checked-corner">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                <span v-if="draftFilters.messageType === opt.value" class="filter-checked-corner" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M0 0H24L0 24V0Z" fill="#0052d9" />
+                    <path
+                      d="M4.5 9.5L7.5 12.5L14 6"
+                      stroke="#ffffff"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </span>
               </button>
@@ -147,9 +161,16 @@
                 @click="draftFilters.timeRange = opt.value"
               >
                 <span>{{ opt.label }}</span>
-                <span v-if="draftFilters.timeRange === opt.value" class="filter-checked-corner">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                <span v-if="draftFilters.timeRange === opt.value" class="filter-checked-corner" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M0 0H24L0 24V0Z" fill="#0052d9" />
+                    <path
+                      d="M4.5 9.5L7.5 12.5L14 6"
+                      stroke="#ffffff"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </span>
               </button>

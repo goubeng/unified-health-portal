@@ -31,3 +31,15 @@ test('mobile messages return to a single inbox list without announcements tab', 
   assert.match(messages, /quickFilterUnread/);
   assert.doesNotMatch(notices, /props\.embedded/);
 });
+
+test('mobile messages filter checkbox options render a top-left corner badge with visible checkmark', () => {
+  const messages = read('src/mobile/MobileMessages.vue');
+  const css = read('src/mobile/mobile-messages.css');
+  assert.match(messages, /class="filter-checked-corner"/);
+  assert.match(messages, /stroke="#ffffff"/);
+  assert.match(messages, /stroke-linecap="round"/);
+  assert.match(css, /\.filter-checked-corner\s*\{[^}]*top:\s*0/);
+  assert.match(css, /\.filter-checked-corner\s*\{[^}]*left:\s*0/);
+  assert.match(css, /\.filter-option-btn\.active\s*\{[^}]*border-color:\s*#0052d9/);
+});
+
