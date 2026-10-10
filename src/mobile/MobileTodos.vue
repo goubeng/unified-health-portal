@@ -1,11 +1,13 @@
 <template>
   <section class="mobile-todos">
-    <!-- 头部品牌蓝渐变区域（无多余赘述，大方利落） -->
+    <!-- 头部品牌蓝渐变区域：保持原版文字提示，间距严格统一 gap:12px 与 padding:20px 16px 18px -->
     <header class="mobile-todos-header">
-      <div class="mobile-todos-title-bar">
+      <div class="mobile-todos-title-row">
         <h1>待办事项</h1>
-        <p class="mobile-todos-subtitle">您当前有 <strong class="todo-highlight-num">{{ pendingCount }}</strong> 条事项待处理</p>
       </div>
+      <p class="mobile-todos-subtitle">
+        您当前有 <strong class="todo-highlight-num">{{ pendingCount }}</strong> 条事项待处理
+      </p>
       <div class="mobile-todo-search">
         <TMobileInput v-model="keyword" placeholder="搜索待办标题" clearable />
       </div>
@@ -35,13 +37,9 @@
       <article v-for="item in filtered" :key="item.id" class="mobile-todo-card">
         <div class="mobile-card-top">
           <strong>{{ text(item.title) || '-' }}</strong>
-          <TMobileTag
-            :theme="item.status === 'PENDING' ? 'warning' : item.status === 'COMPLETED' ? 'success' : 'default'"
-            variant="light"
-            size="small"
-          >
+          <span class="todo-status-tag" :class="statusClass(item.status)">
             {{ label(item.status, 'todo_status') }}
-          </TMobileTag>
+          </span>
         </div>
 
         <p v-if="text(item.summary)" class="mobile-card-summary">{{ text(item.summary) }}</p>
@@ -49,11 +47,10 @@
         <!-- 指标在分隔线上方：来源系统与发布时间 -->
         <div class="mobile-card-meta-list">
           <span class="meta-item meta-app">
-            <AppIcon class="meta-icon" />
             <span>{{ text(item.appName) || '统一门户' }}</span>
           </span>
           <span class="meta-item meta-time">
-            <TimeIcon class="meta-icon" />
+            <CalendarIcon class="meta-icon" />
             <span>{{ date(item.receivedAt) }}</span>
           </span>
         </div>
@@ -71,8 +68,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { Button as TMobileButton, Input as TMobileInput, Tag as TMobileTag } from 'tdesign-mobile-vue';
-import { AppIcon, TimeIcon } from 'tdesign-icons-vue-next';
+import { Button as TMobileButton, Input as TMobileInput } from 'tdesign-mobile-vue';
+import { CalendarIcon } from 'tdesign-icons-vue-next';
 import { command, portal, revision, loadDictionaryLookups } from '../services/runtime.js';
 import { date, label, text } from '../components/portal/presentation.js';
 
@@ -129,6 +126,12 @@ async function process(item: Todo) {
   window.alert(text(result.data?.message) || '已打开待办');
 }
 
+function statusClass(st: string) {
+  if (st === 'PENDING') return 'is-pending';
+  if (st === 'COMPLETED') return 'is-success';
+  return 'is-default';
+}
+
 onMounted(() => {
   loadDictionaryLookups();
   load();
@@ -143,7 +146,7 @@ watch(revision, load);
   color: #173047;
 }
 
-/* 头部品牌蓝渐变区域 */
+/* 头部品牌蓝渐变区域：三段式结构，严格统一 gap: 12px 与 padding: 20px 16px 18px */
 .mobile-todos-header {
   padding: 20px 16px 18px;
   background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
@@ -151,15 +154,18 @@ watch(revision, load);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-sizing: border-box;
 }
 
-.mobile-todos-title-bar {
+.mobile-todos-title-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0;
+  line-height: 1.25;
 }
 
-.mobile-todos-title-bar h1 {
+.mobile-todos-title-row h1 {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
@@ -170,9 +176,12 @@ watch(revision, load);
 
 .mobile-todos-subtitle {
   margin: 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.88);
-  line-height: 1.4;
+  height: 30px;
+  line-height: 30px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
 }
 
 .todo-highlight-num {
@@ -261,6 +270,36 @@ watch(revision, load);
   flex: 1;
   min-width: 0;
   font-weight: 600;
+}
+
+/* 状态标签：与“我的申请”保持完全一致的徽章样式，字号统一提升至 12px 粗体 */
+.todo-status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #eef2f6;
+  color: #6a7e92;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.todo-status-tag.is-pending {
+  background: #fef5e7;
+  color: #c97914;
+}
+
+.todo-status-tag.is-success {
+  background: #e7f7ee;
+  color: #109459;
+}
+
+.todo-status-tag.is-default {
+  background: #eef2f6;
+  color: #6a7e92;
 }
 
 .mobile-card-summary {

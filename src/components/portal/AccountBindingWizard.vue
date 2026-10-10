@@ -1,9 +1,10 @@
 <template>
   <t-dialog
+    class="account-binding-dialog"
     :visible="visible"
     placement="center"
     :header="`应用访问 · ${text(app?.name)||'应用'}`"
-    width="680px"
+    :width="DIALOG_MAX_WIDTH"
     :footer="false"
     :close-on-overlay-click="false"
     @update:visible="updateVisible"
@@ -13,7 +14,7 @@
         <section v-if="busy" class="binding-stage" style="min-height:160px"></section>
 
         <section v-else class="binding-stage binding-result">
-          <t-alert :theme="resultTheme" :message="resultTitle">
+          <t-alert class="wizard-alert" :theme="resultTheme" :message="resultTitle">
             {{resultDescription}}
           </t-alert>
 
@@ -64,6 +65,8 @@ import {computed,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {command} from '../../services/runtime.js';
 import {text} from './presentation.js';
+
+const DIALOG_MAX_WIDTH = 'min(calc(100vw - 24px), 420px)';
 
 const props=defineProps({visible:Boolean,app:{type:Object,default:null}});
 const emit=defineEmits(['update:visible','completed','view-request']);
@@ -196,3 +199,116 @@ watch(()=>props.app?.id,async()=>{
   await evaluate();
 });
 </script>
+
+<style>
+/* 弹窗居中与防溢出样式保障（覆盖PC端与移动端） */
+.account-binding-dialog.t-dialog__wrap .t-dialog,
+.account-binding-dialog.t-dialog,
+body .account-binding-dialog .t-dialog {
+  width: min(calc(100vw - 24px), 420px) !important;
+  max-width: min(calc(100vw - 24px), 420px) !important;
+  box-sizing: border-box !important;
+  border-radius: 14px !important;
+  margin-inline: auto !important;
+}
+
+.account-binding-dialog .t-dialog__position {
+  padding: 12px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.account-binding-dialog .t-dialog__header {
+  padding: 18px 20px 12px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #1a2d48 !important;
+}
+
+.account-binding-dialog .t-dialog__body {
+  padding: 10px 20px 20px !important;
+}
+
+.account-binding-dialog .t-dialog__close {
+  top: 14px !important;
+  right: 14px !important;
+}
+
+/* 提示信息样式全面优化：清晰浅底高对比度文字，解决文字看不清的问题 */
+.account-binding-dialog .wizard-alert {
+  padding: 12px 14px !important;
+  border-radius: 8px !important;
+  line-height: 1.6 !important;
+  font-size: 13.5px !important;
+  box-sizing: border-box !important;
+}
+
+.account-binding-dialog .wizard-alert.t-alert--info {
+  background-color: #f0f6ff !important;
+  border: 1px solid #cde0fc !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--info .t-alert__icon {
+  color: #0052d9 !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--info :is(.t-alert__message, .t-alert__description, .t-alert__content) {
+  color: #173868 !important;
+  font-weight: 400 !important;
+}
+
+.account-binding-dialog .wizard-alert.t-alert--warning {
+  background-color: #fef8ee !important;
+  border: 1px solid #f9dfaf !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--warning .t-alert__icon {
+  color: #ed7b2f !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--warning :is(.t-alert__message, .t-alert__description, .t-alert__content) {
+  color: #7a4608 !important;
+  font-weight: 400 !important;
+}
+
+.account-binding-dialog .wizard-alert.t-alert--success {
+  background-color: #f0f9f3 !important;
+  border: 1px solid #c1ebd0 !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--success .t-alert__icon {
+  color: #0b9356 !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--success :is(.t-alert__message, .t-alert__description, .t-alert__content) {
+  color: #116035 !important;
+  font-weight: 400 !important;
+}
+
+.account-binding-dialog .wizard-alert.t-alert--error {
+  background-color: #fff1f0 !important;
+  border: 1px solid #fecbc7 !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--error .t-alert__icon {
+  color: #e34d59 !important;
+}
+.account-binding-dialog .wizard-alert.t-alert--error :is(.t-alert__message, .t-alert__description, .t-alert__content) {
+  color: #9c2620 !important;
+  font-weight: 400 !important;
+}
+
+.account-binding-dialog .binding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .account-binding-dialog .binding-actions {
+    justify-content: stretch;
+  }
+  .account-binding-dialog .binding-actions .t-button {
+    flex: 1 1 auto;
+    min-width: 100px;
+  }
+}
+</style>

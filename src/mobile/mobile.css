@@ -2,7 +2,7 @@
   --mobile-brand: #0052d9;
   --td-brand-color: #0052d9;
   --td-brand-color-active: #0043b3;
-  --td-brand-color-focus: #0052d9;
+  --td-brand-color-focus: #ecf2fe;
   --td-brand-color-hover: #1e6ceb;
   --td-brand-color-light: #ecf2fe;
   --mobile-gradient-header: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
@@ -91,3 +91,32 @@
   color: #9cb0c2 !important;
   letter-spacing: 0.2px;
 }
+
+/* 移动端弹窗兜底规范：居中显示，紧凑页边距，宽度严格受限于移动端视口（最大340px避免溢出） */
+body:has(.mobile-shell) .t-dialog,
+body:has(.mobile-apps) .t-dialog,
+body:has(.mobile-requests) .t-dialog,
+body:has([class*="mobile-"]) .t-dialog {
+  width: min(calc(100vw - 28px), 340px) !important;
+  max-width: min(calc(100vw - 28px), 340px) !important;
+  box-sizing: border-box !important;
+  border-radius: 16px !important;
+  margin-inline: auto !important;
+}
+
+body:has(.mobile-shell) .t-dialog__position,
+body:has(.mobile-apps) .t-dialog__position,
+body:has(.mobile-requests) .t-dialog__position,
+body:has([class*="mobile-"]) .t-dialog__position {
+  padding: 14px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 消息详情页面隐藏底部主导航，避免遮挡上一封/下一封与删除底栏 */
+body:has(.mobile-message-detail-toolbar) .mobile-shell__navigation {
+  display: none !important;
+}
+

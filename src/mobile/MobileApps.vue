@@ -1,37 +1,21 @@
 <template>
   <div class="mobile-apps">
-    <!-- 顶部标题栏：带全部应用与我的申请两个Tab页签，胶囊搜索框，无圆角直连 -->
+    <!-- 顶部标题栏：全部应用标题，胶囊搜索框，无圆角直连 -->
     <header class="mobile-apps-topbar">
       <div class="mobile-apps-title-row">
-        <nav class="mobile-apps-tabs-nav" aria-label="应用与申请分类">
-          <button
-            type="button"
-            class="top-tab-btn"
-            :class="{ active: currentTab === 'ALL_APPS' }"
-            :aria-selected="currentTab === 'ALL_APPS'"
-            @click="switchTab('ALL_APPS')"
-          >
-            <span>全部应用</span>
-            <span v-if="currentTab === 'ALL_APPS'" class="top-tab-indicator" aria-hidden="true"></span>
-          </button>
-          <button
-            type="button"
-            class="top-tab-btn"
-            :class="{ active: currentTab === 'MY_REQUESTS' }"
-            :aria-selected="currentTab === 'MY_REQUESTS'"
-            @click="switchTab('MY_REQUESTS')"
-          >
-            <span>我的申请</span>
-            <span v-if="myRequests.length" class="top-tab-badge">{{ myRequests.length }}</span>
-            <span v-if="currentTab === 'MY_REQUESTS'" class="top-tab-indicator" aria-hidden="true"></span>
-          </button>
-        </nav>
+        <h1>全部应用</h1>
+      </div>
+
+      <!-- 标题下方、搜索框上方：全部应用数量与已关联数量统计 -->
+      <div class="mobile-apps-hero-stats">
+        <span class="hero-stat-pill">全部应用 {{ apps.length }}</span>
+        <span class="hero-stat-pill is-bound">已关联 {{ totalBoundCount }}</span>
       </div>
 
       <div class="mobile-apps-search-wrap">
         <TMobileInput
           v-model="keyword"
-          :placeholder="currentTab === 'ALL_APPS' ? '搜索应用名称或编码' : '搜索申请应用名称或编号'"
+          placeholder="搜索应用名称或编码"
           clearable
           :maxlength="MAX_SEARCH_LENGTH"
         />
@@ -44,8 +28,8 @@
     </div>
     <div v-if="loading" class="mobile-apps-loading">正在加载数据…</div>
 
-    <!-- Tab 1: 全部应用视图（左右分栏主体） -->
-    <div v-else-if="currentTab === 'ALL_APPS'" class="mobile-apps-body">
+    <!-- 全部应用视图（左右分栏主体） -->
+    <div v-else class="mobile-apps-body">
       <!-- 左侧分类侧边栏 -->
       <aside class="mobile-apps-sidebar" aria-label="应用分类">
         <button
@@ -71,15 +55,15 @@
 
         <div v-if="currentApps.length" class="apps-item-list">
           <div
-            v-for="(app, index) in currentApps"
+            v-for="app in currentApps"
             :key="app.id"
             class="app-item-row"
             :class="{ disabled: app.enabled === false }"
             @click="handleAppClick(app)"
           >
-            <!-- 左侧彩色圆角应用图标 -->
-            <div class="app-item-icon" :class="`tone-${index % APP_TONE_COUNT}`">
-              <AppIcon />
+            <!-- 左侧按应用类型专属绘制的彩色矢量 SVG 图标 -->
+            <div class="app-item-icon">
+              <CategoryAppIcon :category="app.category" />
             </div>
 
             <!-- 中间纯净应用名称（缩小1号） -->
@@ -109,7 +93,7 @@
                 v-else-if="isProgressAction(app)"
                 type="button"
                 class="app-btn-pill pill-progress"
-                @click.stop="switchTab('MY_REQUESTS')"
+                @click.stop="takeAction(app)"
               >
                 进度
               </button>
@@ -131,97 +115,70 @@
       </main>
     </div>
 
-    <!-- Tab 2: 我的申请视图（申请记录列表） -->
-    <div v-else class="mobile-apps-requests-body">
-      <div v-if="filteredRequests.length" class="requests-item-list">
-        <article
-          v-for="item in filteredRequests"
-          :key="item.id"
-          class="mobile-app-request-card"
-          @click="openRequestDetail(item)"
-        >
-          <div class="request-card-header">
-            <strong>{{ item.appName || '业务应用' }}</strong>
-            <span class="request-status-tag" :class="statusClass(item.status)">
-              {{ statusText(item.status) }}
-            </span>
-          </div>
-          <div class="request-card-info">
-            <span class="info-type">{{ item.requestType === 'ACCOUNT_OPENING' ? '账号开通申请' : '应用访问申请' }}</span>
-            <span class="info-date">{{ formatRequestDate(item.submittedAt) }}</span>
-          </div>
-          <div v-if="item.requestNo" class="request-card-no">申请编号：{{ item.requestNo }}</div>
-          <div v-if="item.reviewNote" class="request-card-note">处理意见：{{ item.reviewNote }}</div>
-
-          <div v-if="item.status === 'PENDING' && item.requestType === 'APPLICATION_ACCESS'" class="request-card-footer">
-            <div class="request-quick-actions" @click.stop>
-              <button
-                type="button"
-                class="action-btn-mini"
-                @click="withdrawRequest(item)"
-              >
-                撤回申请
-              </button>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <div v-else class="requests-empty-view">
-        <p>{{ keyword ? '未找到匹配的申请记录' : '暂无申请记录' }}</p>
-      </div>
-    </div>
-
-    <!-- 申请使用弹窗 -->
+    <!-- 申请使用弹窗（移动端标准居中卡片规范） -->
     <div v-if="requestApp" class="mobile-apps-overlay" @click.self="closeDialog">
       <section ref="requestSheet" class="mobile-apps-sheet" role="dialog" aria-modal="true" aria-label="申请使用应用" tabindex="-1">
-        <div class="mobile-apps-sheet-head">
+        <header class="mobile-apps-sheet-head">
           <h2>申请使用 · {{ requestApp.name }}</h2>
           <button type="button" aria-label="关闭" @click="closeDialog"><CloseIcon /></button>
+        </header>
+        <div class="mobile-apps-sheet-fields">
+          <label>申请原因 <span>*</span><textarea v-model.trim="requestReason" rows="3" placeholder="请填写申请使用原因"></textarea></label>
+          <label>联系方式<input v-model.trim="requestContact" type="text" placeholder="选填" /></label>
+          <label>备注<textarea v-model.trim="requestRemark" rows="2" placeholder="选填"></textarea></label>
+          <p v-if="requestError" class="mobile-apps-error" role="alert">{{ requestError }}</p>
         </div>
-        <label>申请原因 <span>*</span><textarea v-model.trim="requestReason" rows="4" placeholder="请填写申请使用原因"></textarea></label>
-        <label>联系方式<input v-model.trim="requestContact" type="text" placeholder="选填" /></label>
-        <label>备注<textarea v-model.trim="requestRemark" rows="2" placeholder="选填"></textarea></label>
-        <p v-if="requestError" class="mobile-apps-error" role="alert">{{ requestError }}</p>
-        <MobileButton block :loading="saving" @click="submitRequest">提交申请</MobileButton>
+        <footer class="mobile-apps-sheet-footer">
+          <MobileButton block :loading="saving" theme="primary" class="mobile-submit-btn" @click="submitRequest">提交申请</MobileButton>
+        </footer>
       </section>
     </div>
 
-    <!-- 申请详情居中弹窗 -->
-    <div v-if="requestDetail" class="mobile-apps-center-overlay" @click.self="closeRequestDetail">
-      <section class="mobile-apps-center-modal" role="dialog" aria-modal="true" aria-label="申请详情" tabindex="-1">
-        <div class="mobile-modal-head">
-          <h2>申请详情</h2>
-          <button type="button" aria-label="关闭" @click="closeRequestDetail"><CloseIcon /></button>
-        </div>
-        <dl class="request-detail-dl">
-          <div><dt>应用名称</dt><dd>{{ requestDetail.appName || '-' }}</dd></div>
-          <div><dt>申请编号</dt><dd>{{ requestDetail.requestNo || '-' }}</dd></div>
-          <div><dt>申请类型</dt><dd>{{ requestDetail.requestType === 'ACCOUNT_OPENING' ? '账号开通申请' : '应用访问申请' }}</dd></div>
-          <div>
-            <dt>当前状态</dt>
-            <dd><span class="request-status-tag" :class="statusClass(requestDetail.status)">{{ statusText(requestDetail.status) }}</span></dd>
-          </div>
-          <div><dt>申请时间</dt><dd>{{ formatRequestDate(requestDetail.submittedAt) }}</dd></div>
-          <div v-if="requestDetail.reason"><dt>申请原因</dt><dd>{{ requestDetail.reason }}</dd></div>
-          <div v-if="requestDetail.reviewNote"><dt>处理意见</dt><dd>{{ requestDetail.reviewNote }}</dd></div>
-        </dl>
-        <div class="mobile-modal-footer">
+    <!-- 移动端应用访问提示居中模态弹窗（替代 PC 端 DialogPlugin.alert） -->
+    <div
+      v-if="noticeModal.visible"
+      class="mobile-notice-overlay"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="noticeModal.header"
+      @click.self="closeAppNotice"
+    >
+      <section class="mobile-notice-card">
+        <header class="mobile-notice-head">
+          <h3 class="mobile-notice-title">{{ noticeModal.header }}</h3>
           <button
-            v-if="requestDetail.status === 'PENDING' && requestDetail.requestType === 'APPLICATION_ACCESS'"
             type="button"
-            class="modal-btn-withdraw"
-            @click="withdrawRequest(requestDetail); closeRequestDetail()"
+            class="mobile-notice-close-btn"
+            aria-label="关闭"
+            @click="closeAppNotice"
           >
-            撤回申请
+            <CloseIcon />
           </button>
-          <button type="button" class="modal-btn-close" @click="closeRequestDetail">关闭</button>
+        </header>
+        <div class="mobile-notice-body">
+          <div class="mobile-notice-info-card">
+            <InfoCircleFilledIcon class="notice-info-icon" />
+            <p class="notice-info-text">{{ noticeModal.body }}</p>
+          </div>
         </div>
+        <footer class="mobile-notice-footer">
+          <button
+            type="button"
+            class="mobile-notice-confirm-btn"
+            @click="closeAppNotice"
+          >
+            知道了
+          </button>
+        </footer>
       </section>
     </div>
 
-    <!-- 账号关联向导 -->
-    <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp || undefined" @completed="load" />
+    <!-- 移动端专属账号关联向导居中弹窗 -->
+    <MobileAccountBindingModal
+      v-model:visible="bindingVisible"
+      :app="bindingApp || undefined"
+      @completed="load"
+    />
   </div>
 </template>
 
@@ -229,10 +186,39 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Button as MobileButton, Input as TMobileInput } from 'tdesign-mobile-vue';
-import { AppIcon, ChevronRightIcon, CloseIcon } from 'tdesign-icons-vue-next';
+import {
+  ChevronRightIcon,
+  CloseIcon,
+  InfoCircleFilledIcon,
+} from 'tdesign-icons-vue-next';
 import { command, portal, revision } from '../services/runtime.js';
-import AccountBindingWizard from '../components/portal/AccountBindingWizard.vue';
+import MobileAccountBindingModal from './MobileAccountBindingModal.vue';
+import CategoryAppIcon from './CategoryAppIcon.vue';
 import { useMobileDialog } from './useMobileDialog';
+
+interface NoticeState {
+  visible: boolean;
+  header: string;
+  body: string;
+}
+
+const noticeModal = ref<NoticeState>({
+  visible: false,
+  header: '应用访问',
+  body: '',
+});
+
+function showAppNotice(body: string, header = '应用访问') {
+  noticeModal.value = {
+    visible: true,
+    header,
+    body,
+  };
+}
+
+function closeAppNotice() {
+  noticeModal.value.visible = false;
+}
 
 type App = {
   id: string;
@@ -249,22 +235,7 @@ type App = {
   externalAccountStatus?: string;
 };
 
-type ApplicationRequest = {
-  id: string;
-  version: number;
-  appId: string;
-  appName?: string;
-  requestNo?: string;
-  requestType: string;
-  status: string;
-  submittedAt?: string;
-  reviewNote?: string;
-  reason?: string;
-  postGrantMode?: string;
-};
-
 const ALL_CATEGORY = '全部';
-const APP_TONE_COUNT = 4;
 const MAX_SEARCH_LENGTH = 50;
 
 const route = useRoute();
@@ -272,9 +243,7 @@ const router = useRouter();
 const loading = ref(true);
 const error = ref('');
 const apps = ref<App[]>([]);
-const myRequests = ref<ApplicationRequest[]>([]);
 const keyword = ref('');
-const currentTab = ref<'ALL_APPS' | 'MY_REQUESTS'>('ALL_APPS');
 const currentCategory = ref(ALL_CATEGORY);
 const requestApp = ref<App | null>(null);
 const requestSheet = ref<HTMLElement | null>(null);
@@ -283,15 +252,6 @@ const { closeDialog } = useMobileDialog({
   open: computed(() => Boolean(requestApp.value)),
   element: computed(() => requestSheet.value),
   close: () => { requestApp.value = null; },
-});
-
-const requestDetail = ref<ApplicationRequest | null>(null);
-const requestDetailSheet = ref<HTMLElement | null>(null);
-
-const { closeDialog: closeRequestDetail } = useMobileDialog({
-  open: computed(() => Boolean(requestDetail.value)),
-  element: computed(() => requestDetailSheet.value),
-  close: () => { requestDetail.value = null; },
 });
 
 const requestReason = ref('');
@@ -321,6 +281,8 @@ function isAppBound(app: App): boolean {
   return true;
 }
 
+const totalBoundCount = computed(() => apps.value.filter(isAppBound).length);
+
 const currentApps = computed(() => {
   const term = keyword.value.trim().toLocaleLowerCase();
   const list = apps.value.filter(app => {
@@ -339,44 +301,13 @@ const currentApps = computed(() => {
   });
 });
 
-const filteredRequests = computed(() => {
-  const term = keyword.value.trim().toLocaleLowerCase();
-  return myRequests.value.filter(req => {
-    if (!term) return true;
-    return `${req.appName || ''} ${req.requestNo || ''}`.toLocaleLowerCase().includes(term);
-  }).sort((a, b) => (Date.parse(b.submittedAt || '') || 0) - (Date.parse(a.submittedAt || '') || 0));
-});
-
 const currentCategoryTitle = computed(() => {
   if (keyword.value.trim()) return '搜索结果';
   return currentCategory.value === ALL_CATEGORY ? '全部应用' : currentCategory.value;
 });
 
-function switchTab(tab: 'ALL_APPS' | 'MY_REQUESTS') {
-  currentTab.value = tab;
-  keyword.value = '';
-}
-
 function selectCategory(item: string) {
   currentCategory.value = item;
-}
-
-function statusText(status: string): string {
-  return ({ PENDING: '待处理', APPROVED: '已通过', REJECTED: '已驳回', WITHDRAWN: '已撤回', PROCESSING: '处理中', COMPLETED: '已完成', FAILED: '处理失败' } as Record<string, string>)[status] || status;
-}
-
-function statusClass(status: string): string {
-  return ['REJECTED', 'FAILED'].includes(status) ? 'is-error' : ['PENDING', 'PROCESSING'].includes(status) ? 'is-pending' : 'is-success';
-}
-
-function formatRequestDate(value?: string): string {
-  if (!value) return '暂无时间';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }
 
 async function read(resource: string) {
@@ -389,9 +320,8 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    const [all, requests] = await Promise.all([read('apps'), read('myApplicationRequests')]);
+    const all = await read('apps');
     apps.value = [...(all || [])].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    myRequests.value = requests || [];
 
     if (currentCategory.value !== ALL_CATEGORY && !apps.value.some(app => app.category === currentCategory.value)) {
       currentCategory.value = ALL_CATEGORY;
@@ -420,11 +350,15 @@ async function takeAction(app: App) {
 
   if (action === 'ENTER') {
     if (app.ssoRuntimeStatus !== 'NORMAL') {
-      window.alert('应用入口暂不可用，请稍后重试');
+      showAppNotice('应用入口暂不可用，请稍后重试', '应用访问提示');
       return;
     }
     const result = await command('enterApp', { id: app.id });
-    window.alert(result.ok ? result.data.message : result.error.message);
+    if (result.ok) {
+      showAppNotice(result.data.message, '应用访问');
+    } else {
+      showAppNotice(result.error.message, '应用访问提示');
+    }
     return;
   }
 
@@ -438,27 +372,13 @@ async function takeAction(app: App) {
   }
 
   if (isProgressAction(app)) {
-    switchTab('MY_REQUESTS');
+    router.push('/m/applications');
   }
 }
 
 function handleAppClick(app: App) {
   if (app.enabled === false) return;
   takeAction(app);
-}
-
-function openRequestDetail(item: ApplicationRequest) {
-  requestDetail.value = item;
-}
-
-async function withdrawRequest(item: ApplicationRequest) {
-  if (!window.confirm('确认撤回此应用访问申请？')) return;
-  const result = await command('withdrawApplicationRequest', { id: item.id, version: item.version });
-  if (!result.ok) {
-    window.alert(result.error.message);
-    return;
-  }
-  await load();
 }
 
 async function submitRequest() {
@@ -482,7 +402,7 @@ async function submitRequest() {
     }
     requestApp.value = null;
     await load();
-    window.alert('申请已提交，可在“我的申请”查看进度');
+    showAppNotice('申请已提交，可在“我的申请”查看进度', '申请提交成功');
   } catch (cause) {
     requestError.value = cause instanceof Error ? cause.message : '提交失败';
   } finally {
@@ -503,73 +423,63 @@ watch(revision, load);
   overflow: hidden;
 }
 
-/* 顶部栏：蓝渐变、Tab页签、无圆角平直连接 */
+/* 顶部栏：蓝渐变、三段式布局，间距严格统一为 gap: 12px 与 padding: 20px 16px 18px */
 .mobile-apps-topbar {
   flex: none;
   background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
-  padding: 16px 16px 14px;
+  padding: 20px 16px 18px;
   color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
 }
 
 .mobile-apps-title-row {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  margin-bottom: 12px;
+  margin: 0;
+  line-height: 1.25;
 }
 
-/* 顶部 Tab 页签：全部应用 vs 我的申请 */
-.mobile-apps-tabs-nav {
+/* 标题行：引用待办事项字号规范 22px */
+.mobile-apps-title-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+/* 标题下方、搜索框上方：全部应用数量与已关联数量统计胶囊（高度与消息中心筛选保持一致 30px） */
+.mobile-apps-hero-stats {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 8px;
+  height: 30px;
+  margin: 0;
 }
 
-.top-tab-btn {
-  position: relative;
+.hero-stat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 17px;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 13px;
   font-weight: 500;
-  padding: 4px 0 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
 }
 
-.top-tab-btn.active {
-  color: #ffffff;
-  font-size: 19px;
-  font-weight: 700;
-}
-
-.top-tab-indicator {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 3px;
-  border-radius: 2px;
-  background: #ffffff;
-}
-
-.top-tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 5px;
-  border-radius: 8px;
-  background: #e34d59;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
+.hero-stat-pill.is-bound {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.38);
 }
 
 .mobile-apps-search-wrap {
@@ -810,250 +720,32 @@ watch(revision, load);
   font-size: 13px;
 }
 
-/* Tab 2: 我的申请视图样式 */
-.mobile-apps-requests-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  background: #f7f9fc;
-  padding: 14px 16px 24px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.requests-item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.mobile-app-request-card {
-  background: #ffffff;
-  border: 1px solid #edf2f6;
-  border-radius: 16px;
-  padding: 14px 15px;
-  box-shadow: 0 3px 12px rgba(18, 52, 95, 0.04);
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.mobile-app-request-card:active {
-  background-color: #f9fbfd;
-}
-
-.request-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.request-card-header strong {
-  font-size: 15px;
-  color: #192d47;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.request-status-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  background: #eef2f6;
-  color: #6a7e92;
-}
-
-.request-status-tag.is-success {
-  background: #e7f7ee;
-  color: #109459;
-}
-
-.request-status-tag.is-pending {
-  background: #fef5e7;
-  color: #c97914;
-}
-
-.request-status-tag.is-error {
-  background: #fff0ee;
-  color: #d1493b;
-}
-
-.request-card-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 12px;
-  color: #8c9fae;
-}
-
-.info-type {
-  color: #556c80;
-}
-
-.request-card-no {
-  margin-top: 5px;
-  font-size: 11.5px;
-  color: #9cb0c2;
-}
-
-.request-card-note {
-  margin-top: 6px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: #f8fafc;
-  color: #586e82;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.request-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #f1f4f8;
-}
-
-.view-detail-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 12px;
-  color: #0052d9;
-}
-
-.view-detail-hint .arrow-icon {
-  width: 13px;
-  height: 13px;
-}
-
-.action-btn-mini {
-  padding: 3px 10px;
-  border: 1px solid #d2dbe5;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #5b6f82;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.requests-empty-view {
-  padding: 60px 0;
-  text-align: center;
-  color: #93a4b6;
-  font-size: 14px;
-}
-
-/* 弹窗通用样式 */
+/* 申请使用居中模态弹窗样式 */
 .mobile-apps-overlay {
   position: fixed;
   inset: 0;
   z-index: 3000;
-  background: rgba(12, 32, 58, 0.45);
+  background: rgba(12, 32, 58, 0.52);
+  backdrop-filter: blur(2px);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .mobile-apps-sheet {
   box-sizing: border-box;
   width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  max-height: 82vh;
+  max-width: min(calc(100vw - 24px), 420px);
+  max-height: 85vh;
   overflow-y: auto;
-  padding: 20px 20px max(24px, env(safe-area-inset-bottom));
-  border-radius: 22px 22px 0 0;
+  padding: 20px 18px 18px;
+  border-radius: 16px;
   background: #ffffff;
-}
-
-/* 居中模态弹窗样式（申请详情） */
-.mobile-apps-center-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  background: rgba(12, 32, 58, 0.5);
-  backdrop-filter: blur(2px);
+  box-shadow: 0 16px 36px rgba(12, 32, 58, 0.18);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.mobile-apps-center-modal {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 360px;
-  max-height: 82vh;
-  overflow-y: auto;
-  padding: 22px 20px 20px;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
-}
-
-.mobile-modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.mobile-modal-head h2 {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: #182e49;
-}
-
-.mobile-modal-head button {
-  border: 0;
-  background: none;
-  color: #8b9baa;
-  cursor: pointer;
-  padding: 4px;
-}
-
-.mobile-modal-head svg {
-  width: 20px;
-  height: 20px;
-}
-
-.mobile-modal-footer {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.modal-btn-withdraw {
-  flex: 1;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid #e34d59;
-  background: #ffffff;
-  color: #e34d59;
-  font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.modal-btn-close {
-  flex: 1;
-  height: 38px;
-  border-radius: 999px;
-  border: none;
-  background: #0052d9;
-  color: #ffffff;
-  font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
+  flex-direction: column;
 }
 
 .mobile-apps-sheet-head {
@@ -1065,9 +757,13 @@ watch(revision, load);
 
 .mobile-apps-sheet-head h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16.5px;
   font-weight: 600;
-  color: #182e49;
+  color: #172b4d;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-apps-sheet-head button {
@@ -1075,12 +771,27 @@ watch(revision, load);
   background: none;
   color: #8b9baa;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
+  margin: -6px -6px 0 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-apps-sheet-head button:active {
+  background-color: #f1f4f8;
+  color: #243b55;
 }
 
 .mobile-apps-sheet-head svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
+}
+
+.mobile-apps-sheet-fields {
+  display: flex;
+  flex-direction: column;
 }
 
 .mobile-apps-sheet label {
@@ -1104,27 +815,141 @@ watch(revision, load);
   border-radius: 8px;
   border: 1px solid #dbe2ea;
   font-size: 13px;
+  background: #fbfcfe;
 }
 
-.request-detail-dl div {
+.mobile-apps-sheet input:focus,
+.mobile-apps-sheet textarea:focus {
+  border-color: #0052d9;
+  outline: none;
+  background: #ffffff;
+}
+
+.mobile-apps-sheet-footer {
+  margin-top: 8px;
+}
+
+.mobile-submit-btn {
+  height: 40px !important;
+  border-radius: 999px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* 移动端应用访问提示居中模态弹窗样式 */
+.mobile-notice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3100;
+  background: rgba(12, 32, 58, 0.52);
+  backdrop-filter: blur(2px);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  padding: 12px 0;
-  border-top: 1px solid #edf1f6;
-  font-size: 14px;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
-.request-detail-dl dt {
-  color: #8596a7;
-  flex: none;
+.mobile-notice-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(calc(100vw - 24px), 420px);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 20px 18px 18px;
+  box-shadow: 0 16px 36px rgba(12, 32, 58, 0.18);
+  display: flex;
+  flex-direction: column;
 }
 
-.request-detail-dl dd {
+.mobile-notice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mobile-notice-title {
   margin: 0;
-  text-align: right;
-  color: #1a2d48;
+  font-size: 16px;
+  font-weight: 600;
+  color: #172b4d;
+}
+
+.mobile-notice-close-btn {
+  border: 0;
+  background: none;
+  color: #8b9baa;
+  cursor: pointer;
+  padding: 6px;
+  margin: -6px -6px 0 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-notice-close-btn:active {
+  background-color: #f1f4f8;
+  color: #243b55;
+}
+
+.mobile-notice-close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.mobile-notice-body {
+  margin-bottom: 14px;
+}
+
+.mobile-notice-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f0f6ff;
+  border: 1px solid #cde0fc;
+}
+
+.notice-info-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #0052d9;
+  margin-top: 1px;
+}
+
+.notice-info-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #173f7a;
+}
+
+.mobile-notice-footer {
+  display: flex;
+}
+
+.mobile-notice-confirm-btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 999px;
+  border: none;
+  background: #0052d9;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-notice-confirm-btn:active {
+  background: #0043b3;
 }
 
 .mobile-apps-error {

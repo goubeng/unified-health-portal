@@ -1,11 +1,11 @@
 <template>
   <section class="mobile-messages">
-    <template v-if="!active">
+    <template v-if="!isDetailMode">
       <!-- 顶部品牌渐变蓝头部 -->
       <header class="mobile-message-hero">
         <!-- 标题行 -->
         <div class="mobile-message-title-row">
-          <h1>消息</h1>
+          <h1>消息中心</h1>
         </div>
 
         <!-- 操作栏：筛选 与 清除未读 -->
@@ -169,37 +169,95 @@
       </div>
     </template>
 
-    <!-- 消息详情页面 -->
+    <!-- 消息详情页面（信函风格 + 底部上一封/下一封与删除工具栏） -->
     <template v-else>
       <header class="mobile-message-detail-head">
-        <button type="button" class="mobile-nav-back-btn" @click="back">
-          <ChevronLeftIcon /><span>返回</span>
+        <button type="button" class="mobile-nav-back-btn" aria-label="返回" @click="back">
+          <ChevronLeftIcon />
         </button>
         <strong>消息详情</strong>
-        <button type="button" class="mobile-nav-delete-btn" @click="removeSingle(active.id)">
-          <DeleteIcon /><span>删除</span>
-        </button>
+        <div class="mobile-nav-placeholder" aria-hidden="true"></div>
       </header>
+
       <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
-      <article class="mobile-message-detail">
-        <h1>{{ text(active.title) || '-' }}</h1>
-        <p class="mobile-message-detail-date">{{ date(active.receivedAt) }}</p>
-        <dl>
-          <div><dt>接收对象</dt><dd>{{ text(actor?.name) || '当前登录用户' }}</dd></div>
-          <div><dt>来源应用</dt><dd>{{ text(active.appName) || '统一门户' }}</dd></div>
-          <div><dt>消息类型</dt><dd>{{ label(active.messageType || 'BUSINESS', 'message_type') }}</dd></div>
-          <div>
-            <dt>阅读状态</dt>
-            <dd>
-              <TMobileTag :theme="active.status === 'UNREAD' ? 'warning' : 'success'" variant="light">
-                {{ label(active.status, 'message_read_status') }}
-              </TMobileTag>
-            </dd>
+
+      <div v-if="loading && !active" class="mobile-detail-loading">
+        正在加载消息详情…
+      </div>
+      <div v-else-if="!active" class="mobile-detail-notfound">
+        <p>未找到该消息或已被删除</p>
+        <button type="button" class="mobile-back-list-btn" @click="back">返回消息中心</button>
+      </div>
+
+      <!-- 消息信纸卡片主体（去掉圆角，垂直正常流排版） -->
+      <template v-else>
+        <main class="mobile-message-detail-body">
+          <article class="mobile-message-detail-card">
+            <!-- 顶部系统蓝色装饰横条 -->
+            <div class="message-card-accent-bar" aria-hidden="true"></div>
+
+            <!-- 消息大标题 -->
+            <h1 class="message-card-title">{{ text(active.title) || '-' }}</h1>
+
+            <!-- 消息信头元信息（优先显示消息标签，再显示发送日期） -->
+            <div class="message-card-meta">
+              <span
+                v-if="active.messageType"
+                class="meta-type-tag"
+                :class="isSecurityMessage(active) ? 'is-security' : 'is-business'"
+              >
+                {{ label(active.messageType || 'BUSINESS', 'message_type') }}
+              </span>
+              <span v-if="active.appName" class="meta-app">{{ text(active.appName) }}</span>
+              <span class="meta-date">{{ date(active.receivedAt) }}</span>
+            </div>
+
+            <!-- 消息正文 -->
+            <div class="message-card-content">
+              {{ text(active.content) || '暂无正文内容' }}
+            </div>
+
+            <!-- 业务入口按钮（若有关联业务） -->
+            <div v-if="active.appId" class="message-card-actions">
+              <TMobileButton block theme="primary" variant="base" @click="openBusiness">
+                前往相关业务
+              </TMobileButton>
+            </div>
+          </article>
+        </main>
+
+        <!-- 底部固定工具栏：左侧上一封/下一封，右侧删除图标 -->
+        <footer class="mobile-message-detail-toolbar">
+          <div class="toolbar-nav-group">
+            <button
+              type="button"
+              class="toolbar-nav-btn"
+              :class="{ disabled: !hasPrev }"
+              :disabled="!hasPrev"
+              @click="goPrev"
+            >
+              上一封
+            </button>
+            <button
+              type="button"
+              class="toolbar-nav-btn"
+              :class="{ disabled: !hasNext }"
+              :disabled="!hasNext"
+              @click="goNext"
+            >
+              下一封
+            </button>
           </div>
-        </dl>
-        <div class="mobile-message-body">{{ text(active.content) || '暂无正文' }}</div>
-        <TMobileButton v-if="active.appId" block theme="primary" @click="openBusiness">查看关联业务</TMobileButton>
-      </article>
+          <button
+            type="button"
+            class="toolbar-delete-btn"
+            aria-label="删除此条消息"
+            @click="removeSingle(active.id)"
+          >
+            <DeleteIcon />
+          </button>
+        </footer>
+      </template>
     </template>
   </section>
 </template>
@@ -207,7 +265,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Button as TMobileButton, Input as TMobileInput, Tag as TMobileTag } from 'tdesign-mobile-vue';
+import { Button as TMobileButton, Input as TMobileInput } from 'tdesign-mobile-vue';
 import {
   ChevronLeftIcon,
   DeleteIcon,
@@ -215,9 +273,18 @@ import {
   NotificationIcon,
   SecuredIcon,
 } from 'tdesign-icons-vue-next';
+import { DialogPlugin } from 'tdesign-vue-next';
 import { command, portal, revision, loadDictionaryLookups } from '../services/runtime.js';
-import { mobileActor as actor } from './mobileActor';
 import { date, label, text } from '../components/portal/presentation.js';
+
+function showAppNotice(body: string, header = '应用访问') {
+  DialogPlugin.alert({
+    placement: 'center',
+    header,
+    body,
+    confirmBtn: '知道了',
+  });
+}
 
 interface Message {
   id: string;
@@ -286,7 +353,19 @@ const draftFilters = ref<FilterState>({
 
 const showFilterDrawer = ref(false);
 
-const active = computed(() => rows.value.find(item => item.id === String(route.query.messageId || '')) || null);
+const selectedMessage = ref<Message | null>(null);
+
+const isDetailMode = computed(() => {
+  return Boolean(selectedMessage.value || route.query.messageId);
+});
+
+const active = computed(() => {
+  if (selectedMessage.value) return selectedMessage.value;
+  const msgId = String(route.query.messageId || '');
+  if (!msgId) return null;
+  return rows.value.find((item) => item.id === msgId) || null;
+});
+
 const unreadCount = computed(() => rows.value.filter(item => item.status === 'UNREAD').length);
 
 const hasActiveFilter = computed(() => {
@@ -365,13 +444,21 @@ async function load() {
   rows.value = result.ok ? result.data : [];
   error.value = result.ok ? '' : text(result.error?.message);
   loading.value = false;
+  if (route.query.messageId) {
+    const found = rows.value.find((item) => item.id === String(route.query.messageId));
+    if (found) {
+      selectedMessage.value = found;
+    }
+  }
 }
 
 function open(item: Message) {
+  selectedMessage.value = item;
   router.push({ path: '/m/messages', query: { messageId: item.id } });
 }
 
 function back() {
+  selectedMessage.value = null;
   router.replace('/m/messages');
 }
 
@@ -413,24 +500,71 @@ async function markAll() {
   }
 }
 
-async function removeSingle(id: string) {
-  if (!window.confirm('确认删除此条消息吗？')) return;
-  const result = await command('deleteMessages', { ids: [id] });
-  if (!result.ok) {
-    error.value = text(result.error?.message);
-    return;
+const currentIndex = computed(() => {
+  if (!active.value) return -1;
+  return filtered.value.findIndex(item => item.id === active.value?.id);
+});
+
+const hasPrev = computed(() => currentIndex.value > 0);
+const hasNext = computed(() => currentIndex.value >= 0 && currentIndex.value < filtered.value.length - 1);
+
+function goPrev() {
+  if (!hasPrev.value) return;
+  const prevMsg = filtered.value[currentIndex.value - 1];
+  if (prevMsg) {
+    selectedMessage.value = prevMsg;
+    router.replace({ path: '/m/messages', query: { messageId: prevMsg.id } });
   }
-  back();
+}
+
+function goNext() {
+  if (!hasNext.value) return;
+  const nextMsg = filtered.value[currentIndex.value + 1];
+  if (nextMsg) {
+    selectedMessage.value = nextMsg;
+    router.replace({ path: '/m/messages', query: { messageId: nextMsg.id } });
+  }
+}
+
+async function removeSingle(id: string) {
+  const dialog = DialogPlugin.confirm({
+    placement: 'center',
+    theme: 'danger',
+    header: '删除消息',
+    body: '确认删除此条消息吗？',
+    confirmBtn: { content: '确认删除', theme: 'danger' },
+    onConfirm: async () => {
+      dialog.hide();
+      const nextTarget = hasNext.value
+        ? filtered.value[currentIndex.value + 1]
+        : hasPrev.value
+        ? filtered.value[currentIndex.value - 1]
+        : null;
+
+      const result = await command('deleteMessages', { ids: [id] });
+      if (!result.ok) {
+        showAppNotice(text(result.error?.message) || '删除失败', '提示');
+        return;
+      }
+      await load();
+      if (nextTarget) {
+        selectedMessage.value = nextTarget;
+        router.replace({ path: '/m/messages', query: { messageId: nextTarget.id } });
+      } else {
+        back();
+      }
+    },
+  });
 }
 
 async function openBusiness() {
   if (!active.value?.appId) return;
   const result = await command('enterApp', { id: active.value.appId });
   if (!result.ok) {
-    error.value = text(result.error?.message);
+    showAppNotice(text(result.error?.message) || '打开业务失败', '提示');
     return;
   }
-  window.alert(text(result.data?.message) || '已打开关联业务');
+  showAppNotice(text(result.data?.message) || '已完成业务系统单点登录会话准备', '应用访问');
 }
 
 onMounted(() => {
@@ -439,6 +573,21 @@ onMounted(() => {
 });
 
 watch(revision, load);
+
+watch(
+  () => route.query.messageId,
+  (newId) => {
+    if (!newId) {
+      selectedMessage.value = null;
+    } else if (rows.value.length > 0) {
+      const found = rows.value.find((item) => item.id === String(newId));
+      if (found) {
+        selectedMessage.value = found;
+      }
+    }
+  },
+  { immediate: true }
+);
 
 watch(active, async item => {
   if (!item || item.status !== 'UNREAD' || markingId === item.id) return;
@@ -470,10 +619,10 @@ watch(active, async item => {
   box-sizing: border-box;
 }
 
-/* 标题行 */
+/* 标题行：引用待办事项字号规范 22px */
 .mobile-message-title-row h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.5px;
   color: #ffffff;
@@ -488,18 +637,20 @@ watch(active, async item => {
   margin-top: 2px;
 }
 
-/* 筛选按钮（胶囊样式，参考图左侧） */
+/* 筛选按钮（胶囊样式，高度统一 30px） */
 .mobile-filter-trigger-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  height: 30px;
+  box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  padding: 5px 14px;
+  padding: 0 14px;
   cursor: pointer;
   backdrop-filter: blur(4px);
   transition: all 0.2s ease;
@@ -917,96 +1068,255 @@ watch(active, async item => {
   background: #0043b3;
 }
 
-/* 详情头部与正文 */
+/* 消息详情页面（信函风格 + 底部上一封/下一封与删除工具栏） */
 .mobile-message-detail-head {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  display: flex;
   align-items: center;
-  margin: 0 0 16px;
-  padding: 16px;
+  justify-content: space-between;
+  height: 50px;
+  margin: 0;
+  padding: 0 12px;
   background: #ffffff;
-  border-bottom: 1px solid #edf1f5;
+  border-bottom: 1px solid #edf1f6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .mobile-message-detail-head strong {
-  text-align: center;
   font-size: 17px;
+  font-weight: 600;
+  color: #1a2d48;
+  text-align: center;
+  flex: 1;
 }
 
+/* TD移动端规范导航按钮（无文字，默认24px图标，触控热区良好） */
 .mobile-nav-back-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   border: 0;
+  border-radius: 8px;
   background: transparent;
+  color: #24344d;
+  cursor: pointer;
+  padding: 0;
+  flex: none;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-nav-back-btn:active {
+  background-color: #f0f3f8;
+}
+
+.mobile-nav-back-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav-placeholder {
+  width: 36px;
+  height: 36px;
+  flex: none;
+}
+
+.mobile-detail-loading,
+.mobile-detail-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 16px;
+  color: #8b9baa;
+  font-size: 14px;
+  text-align: center;
+  gap: 12px;
+}
+
+.mobile-back-list-btn {
+  border: 1px solid #c9d8e8;
+  background: #ffffff;
   color: #0052d9;
-  font-size: 14px;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 
-.mobile-nav-delete-btn {
+/* 消息详情主体：保留默认背景色，增加与边缘14px间距 */
+.mobile-message-detail-body {
+  padding: 14px 14px calc(70px + env(safe-area-inset-bottom, 0px));
+  background: #f4f7fb;
+  min-height: calc(100dvh - 50px);
+  box-sizing: border-box;
+}
+
+.mobile-message-detail-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 0; /* 用户明确要求：去掉圆角显示 */
+  border: 1px solid #eef2f7;
+  box-shadow: 0 4px 18px rgba(16, 44, 80, 0.05);
+  padding: 24px 20px 28px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部系统蓝条：保持截图中的蓝色装饰线 */
+.message-card-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #0052d9;
+}
+
+/* 标题：大字号，加粗，符合单列垂直排版规范 */
+.message-card-title {
+  margin: 8px 0 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #112033;
+  line-height: 1.45;
+  letter-spacing: 0.2px;
+}
+
+/* 信头元信息（时间、应用等） */
+.message-card-meta {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  border: 0;
-  background: transparent;
-  color: #e34d59;
-  font-size: 14px;
-  cursor: pointer;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e8edf3;
+  font-size: 12.5px;
+  color: #7b8e9f;
 }
 
-.mobile-message-detail {
-  padding: 0 16px;
-}
-
-.mobile-message-detail h1 {
-  margin: 0 0 8px;
-  font-size: 18px;
-  line-height: 1.4;
-  color: #173047;
-}
-
-.mobile-message-detail-date {
-  margin: 0 0 16px;
+/* 消息类型标签：与“我的申请”保持完全一致的徽章样式，字号统一提升至 12px 粗体 */
+.meta-type-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5px 8px;
+  border-radius: 4px;
   font-size: 12px;
-  color: #8c9fae;
+  font-weight: 600;
+  line-height: 1.3;
+  flex-shrink: 0;
 }
 
-.mobile-message-detail dl {
-  margin: 0 0 16px;
-  padding: 12px 14px;
-  background: #f8fafc;
-  border-radius: 10px;
-  display: grid;
-  gap: 8px;
+.meta-type-tag.is-business {
+  background: #ecf2fe;
+  color: #0052d9;
 }
 
-.mobile-message-detail dl div {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
+.meta-type-tag.is-security {
+  background: #fff0ee;
+  color: #d1493b;
 }
 
-.mobile-message-detail dt {
-  color: #6a7f92;
-}
-
-.mobile-message-detail dd {
-  margin: 0;
-  color: #173047;
+.meta-app {
+  color: #0052d9;
   font-weight: 500;
 }
 
-.mobile-message-body {
-  margin: 0 0 24px;
-  padding: 14px;
-  background: #ffffff;
-  border: 1px solid #edf1f5;
-  border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #273849;
+/* 正文：行距舒展，字迹清晰，垂直自上向下正常流动 */
+.message-card-content {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: #283a4d;
   white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 180px;
+}
+
+.message-card-actions {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f3f6;
+}
+
+/* 底部操作栏（复刻截图底栏）：左侧上一封/下一封，右侧删除垃圾桶图标 */
+.mobile-message-detail-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: var(--mobile-max-width, 480px);
+  transform: translateX(-50%);
+  height: calc(52px + env(safe-area-inset-bottom, 0px));
+  padding: 0 16px env(safe-area-inset-bottom, 0px);
+  background: #ffffff;
+  border-top: 1px solid #ebeff5;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+.toolbar-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 上一封 / 下一封 按钮：保持本系统的蓝色配色 #0052d9 */
+.toolbar-nav-btn {
+  border: 0;
+  background: transparent;
+  color: #0052d9;
+  font-size: 14.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: opacity 0.15s ease;
+}
+
+.toolbar-nav-btn:active {
+  opacity: 0.7;
+}
+
+.toolbar-nav-btn.disabled,
+.toolbar-nav-btn:disabled {
+  color: #a4b4c4;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 删除图标按钮：无文字，纯图标，大小 22px，TD移动端规范配色与交互 */
+.toolbar-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #4b5b76;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.toolbar-delete-btn:active {
+  color: #e34d59;
+  background-color: #fff1f0;
+}
+
+.toolbar-delete-btn svg {
+  width: 22px;
+  height: 22px;
 }
 </style>

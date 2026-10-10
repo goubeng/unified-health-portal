@@ -7,12 +7,28 @@
       <h1>我的申请</h1>
     </header>
 
-    <div class="mobile-requests-tabs">
-      <button type="button" :class="{ active: tab === 'APPLICATION_ACCESS' }" @click="tab = 'APPLICATION_ACCESS'">
-        应用访问申请 <span>{{ accessRows.length }}</span>
+    <div class="mobile-requests-tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="requests-tab-btn"
+        :class="{ active: tab === 'APPLICATION_ACCESS' }"
+        :aria-selected="tab === 'APPLICATION_ACCESS'"
+        @click="tab = 'APPLICATION_ACCESS'"
+      >
+        <span class="tab-title">应用访问申请<span class="tab-count">({{ accessRows.length }})</span></span>
+        <span v-if="tab === 'APPLICATION_ACCESS'" class="tab-indicator" aria-hidden="true"></span>
       </button>
-      <button type="button" :class="{ active: tab === 'ACCOUNT_OPENING' }" @click="tab = 'ACCOUNT_OPENING'">
-        账号开通申请 <span>{{ openingRows.length }}</span>
+      <button
+        type="button"
+        role="tab"
+        class="requests-tab-btn"
+        :class="{ active: tab === 'ACCOUNT_OPENING' }"
+        :aria-selected="tab === 'ACCOUNT_OPENING'"
+        @click="tab = 'ACCOUNT_OPENING'"
+      >
+        <span class="tab-title">账号开通申请<span class="tab-count">({{ openingRows.length }})</span></span>
+        <span v-if="tab === 'ACCOUNT_OPENING'" class="tab-indicator" aria-hidden="true"></span>
       </button>
     </div>
 
@@ -116,30 +132,123 @@
           <div v-if="detail.reason"><dt>申请原因</dt><dd>{{ detail.reason }}</dd></div>
           <div v-if="detail.reviewNote"><dt>处理意见</dt><dd>{{ detail.reviewNote }}</dd></div>
         </dl>
-        <div class="mobile-modal-footer">
+        <!-- 弹窗底部操作栏：与列表中可操作按钮保持一致，无多余关闭按钮，右上角已有关闭 -->
+        <div v-if="hasCardActions(detail)" class="mobile-modal-footer">
           <button
             v-if="detail.status === 'PENDING' && detail.requestType === 'APPLICATION_ACCESS'"
             type="button"
-            class="modal-btn-withdraw"
+            class="modal-action-btn action-danger"
             @click="withdraw(detail); detail = null"
           >
             撤回申请
           </button>
-          <button type="button" class="modal-btn-close" @click="detail = null">关闭</button>
+          <button
+            v-else-if="detail.status === 'REJECTED' && detail.requestType === 'APPLICATION_ACCESS'"
+            type="button"
+            class="modal-action-btn action-default"
+            @click="reapply(detail)"
+          >
+            重新申请
+          </button>
+          <button
+            v-else-if="detail.status === 'APPROVED' && detail.postGrantMode === 'DIRECT'"
+            type="button"
+            class="modal-action-btn action-primary"
+            @click="enter(detail); detail = null"
+          >
+            进入应用
+          </button>
+          <button
+            v-else-if="(detail.status === 'APPROVED' && detail.postGrantMode === 'BIND') || (detail.status === 'COMPLETED' && detail.requestType === 'ACCOUNT_OPENING')"
+            type="button"
+            class="modal-action-btn action-primary"
+            @click="bind(detail); detail = null"
+          >
+            完成账号确认
+          </button>
         </div>
       </section>
     </div>
 
-    <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp || undefined" @completed="load" />
+    <!-- 移动端应用访问提示居中模态弹窗（替代 PC 端 DialogPlugin.alert） -->
+    <div
+      v-if="noticeModal.visible"
+      class="mobile-notice-overlay"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="noticeModal.header"
+      @click.self="closeAppNotice"
+    >
+      <section class="mobile-notice-card">
+        <header class="mobile-notice-head">
+          <h3 class="mobile-notice-title">{{ noticeModal.header }}</h3>
+          <button
+            type="button"
+            class="mobile-notice-close-btn"
+            aria-label="关闭"
+            @click="closeAppNotice"
+          >
+            <CloseIcon />
+          </button>
+        </header>
+        <div class="mobile-notice-body">
+          <div class="mobile-notice-info-card">
+            <InfoCircleFilledIcon class="notice-info-icon" />
+            <p class="notice-info-text">{{ noticeModal.body }}</p>
+          </div>
+        </div>
+        <footer class="mobile-notice-footer">
+          <button
+            type="button"
+            class="mobile-notice-confirm-btn"
+            @click="closeAppNotice"
+          >
+            知道了
+          </button>
+        </footer>
+      </section>
+    </div>
+
+    <!-- 移动端专属账号关联向导居中弹窗 -->
+    <MobileAccountBindingModal
+      v-model:visible="bindingVisible"
+      :app="bindingApp || undefined"
+      @completed="load"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { ChevronLeftIcon, CloseIcon } from 'tdesign-icons-vue-next';
+import { ChevronLeftIcon, CloseIcon, InfoCircleFilledIcon } from 'tdesign-icons-vue-next';
+import { DialogPlugin } from 'tdesign-vue-next';
 import { command, portal, revision } from '../services/runtime.js';
-import AccountBindingWizard from '../components/portal/AccountBindingWizard.vue';
+import MobileAccountBindingModal from './MobileAccountBindingModal.vue';
+
+interface NoticeState {
+  visible: boolean;
+  header: string;
+  body: string;
+}
+
+const noticeModal = ref<NoticeState>({
+  visible: false,
+  header: '应用访问',
+  body: '',
+});
+
+function showAppNotice(body: string, header = '应用访问') {
+  noticeModal.value = {
+    visible: true,
+    header,
+    body,
+  };
+}
+
+function closeAppNotice() {
+  noticeModal.value.visible = false;
+}
 
 type Request = {
   id: string;
@@ -234,33 +343,53 @@ async function load() {
 }
 
 async function withdraw(item: Request) {
-  if (!window.confirm('确认撤回此应用访问申请？')) return;
-  const result = await command('withdrawApplicationRequest', { id: item.id, version: item.version });
-  if (!result.ok) {
-    window.alert(result.error.message);
-    return;
-  }
-  await load();
+  const dialog = DialogPlugin.confirm({
+    placement: 'center',
+    theme: 'danger',
+    header: '撤回申请',
+    body: '确认撤回此应用访问申请？',
+    confirmBtn: { content: '确认撤回', theme: 'danger' },
+    onConfirm: async () => {
+      dialog.hide();
+      const result = await command('withdrawApplicationRequest', { id: item.id, version: item.version });
+      if (!result.ok) {
+        showAppNotice(result.error.message, '撤回失败');
+        return;
+      }
+      await load();
+      showAppNotice('申请已撤回', '撤回成功');
+    },
+  });
 }
 
 async function enter(item: Request) {
   const app = apps.value.find(entry => entry.id === item.appId);
   if (!app) {
-    window.alert('应用信息不存在，请刷新后重试');
+    showAppNotice('应用信息不存在，请刷新后重试', '应用访问提示');
     return;
   }
   const result = await command('enterApp', { id: app.id });
-  window.alert(result.ok ? result.data.message : result.error.message);
+  if (result.ok) {
+    showAppNotice(result.data.message, '应用访问');
+  } else {
+    showAppNotice(result.error.message, '应用访问提示');
+  }
 }
 
 function bind(item: Request) {
   const app = apps.value.find(entry => entry.id === item.appId);
   if (!app) {
-    window.alert('应用信息不存在，请刷新后重试');
+    showAppNotice('应用信息不存在，请刷新后重试', '应用访问提示');
     return;
   }
   bindingApp.value = app;
   bindingVisible.value = true;
+}
+
+function reapply(item: Request) {
+  const appId = item.appId;
+  detail.value = null;
+  router.push({ path: '/m/apps', query: { requestAppId: appId } });
 }
 
 onMounted(load);
@@ -286,54 +415,87 @@ watch(revision, load);
 }
 
 .mobile-requests-head button {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   border: 0;
-  background: none;
-  color: #355577;
+  border-radius: 8px;
+  background: transparent;
+  color: #24344d;
   cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-requests-head button:active {
+  background-color: #f0f3f8;
 }
 
 .mobile-requests-head svg {
-  width: 21px;
-  height: 21px;
+  width: 24px;
+  height: 24px;
 }
 
 .mobile-requests-head h1 {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a2d48;
+}
+
+/* 选项卡栏：纯白平铺、文字括号数量、底部居中系统蓝下划线，完美还原截图 */
+.mobile-requests-tabs {
+  display: flex;
+  margin: 0 -16px 14px;
+  padding: 0 4px;
+  background: #ffffff;
+  border-bottom: 1px solid #edf1f6;
+  position: relative;
+}
+
+.requests-tab-btn {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: #4e5f73;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.requests-tab-btn.active {
+  color: #1a2d48;
   font-weight: 600;
 }
 
-.mobile-requests-tabs {
-  display: flex;
-  gap: 10px;
-  margin: 16px 0;
+.tab-title {
+  display: inline-flex;
+  align-items: center;
 }
 
-.mobile-requests-tabs button {
-  flex: 1;
-  padding: 10px 6px;
-  border: 0;
-  border-radius: 11px;
-  background: #edf2f7;
-  color: #5d758d;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.tab-count {
+  margin-left: 2px;
 }
 
-.mobile-requests-tabs button.active {
-  background: #ecf2fe;
-  color: #0052d9;
-  font-weight: 700;
-}
-
-.mobile-requests-tabs span {
-  margin-left: 3px;
+/* 底部居中系统蓝指示条 */
+.tab-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 58px;
+  height: 2.5px;
+  background: #0052d9;
+  border-radius: 2px 2px 0 0;
 }
 
 .mobile-requests-list {
@@ -345,7 +507,7 @@ watch(revision, load);
 /* 申请卡片：与全部应用-我的申请完全统一的卡片布局 */
 .mobile-app-request-card {
   border: 1px solid #edf2f7;
-  border-radius: 14px;
+  border-radius: 16px;
   background: #ffffff;
   padding: 15px 16px;
   box-shadow: 0 4px 14px rgba(16, 54, 99, 0.04);
@@ -373,12 +535,15 @@ watch(revision, load);
 .request-status-tag {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  justify-content: center;
+  padding: 2.5px 8px;
   border-radius: 4px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
+  line-height: 1.3;
   background: #eef2f6;
   color: #6a7e92;
+  flex-shrink: 0;
 }
 
 .request-status-tag.is-success {
@@ -494,18 +659,18 @@ watch(revision, load);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 12px;
   box-sizing: border-box;
 }
 
 .mobile-requests-center-modal {
   box-sizing: border-box;
   width: 100%;
-  max-width: 360px;
-  max-height: 82vh;
+  max-width: min(calc(100vw - 24px), 420px);
+  max-height: 85vh;
   overflow-y: auto;
-  padding: 22px 20px 20px;
-  border-radius: 18px;
+  padding: 20px 18px 18px;
+  border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
 }
@@ -562,39 +727,161 @@ watch(revision, load);
 
 .mobile-modal-footer {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
-.modal-btn-withdraw {
-  flex: 1;
+.modal-action-btn {
+  width: 100%;
   height: 38px;
   border-radius: 999px;
-  border: 1px solid #e34d59;
-  background: #ffffff;
-  color: #e34d59;
   font-size: 13.5px;
   font-weight: 500;
   cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.modal-btn-close {
-  flex: 1;
-  height: 38px;
+.modal-action-btn.action-danger {
+  border: 1px solid #e34d59;
+  background: #ffffff;
+  color: #e34d59;
+}
+
+.modal-action-btn.action-danger:active {
+  background: #fff5f5;
+}
+
+.modal-action-btn.action-default {
+  border: 1px solid #dcdfe6;
+  background: #ffffff;
+  color: #344054;
+}
+
+.modal-action-btn.action-primary {
+  border: none;
+  background: #0052d9;
+  color: #ffffff;
+}
+
+.modal-action-btn.action-primary:active {
+  background: #0043b3;
+}
+
+/* 移动端应用访问提示居中模态弹窗样式 */
+.mobile-notice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3100;
+  background: rgba(12, 32, 58, 0.52);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.mobile-notice-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(calc(100vw - 24px), 420px);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 20px 18px 18px;
+  box-shadow: 0 16px 36px rgba(12, 32, 58, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-notice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mobile-notice-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #172b4d;
+}
+
+.mobile-notice-close-btn {
+  border: 0;
+  background: none;
+  color: #8b9baa;
+  cursor: pointer;
+  padding: 6px;
+  margin: -6px -6px 0 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-notice-close-btn:active {
+  background-color: #f1f4f8;
+  color: #243b55;
+}
+
+.mobile-notice-close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.mobile-notice-body {
+  margin-bottom: 14px;
+}
+
+.mobile-notice-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f0f6ff;
+  border: 1px solid #cde0fc;
+}
+
+.notice-info-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #0052d9;
+  margin-top: 1px;
+}
+
+.notice-info-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #173f7a;
+}
+
+.mobile-notice-footer {
+  display: flex;
+}
+
+.mobile-notice-confirm-btn {
+  width: 100%;
+  height: 40px;
   border-radius: 999px;
   border: none;
   background: #0052d9;
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-</style>
 
-<style>
-@media (max-width: 600px) {
-  body:has(.mobile-requests) .t-dialog { width: calc(100vw - 24px) !important; max-width: calc(100vw - 24px) !important; }
-  body:has(.mobile-requests) .binding-wizard { max-width: 100%; }
-  body:has(.mobile-requests) .binding-actions { flex-wrap: wrap; }
+.mobile-notice-confirm-btn:active {
+  background: #0043b3;
 }
 </style>
