@@ -220,7 +220,7 @@
   flex: none;
   background: #0052d9;
   color: #ffffff;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: var(--mobile-font-weight-semibold);
   padding: 2px 6px;
   border-radius: 4px;
@@ -265,7 +265,7 @@
 
 .m-btn {
   flex: 1;
-  height: 40px;
+  height: var(--mobile-action-primary-height);
   border-radius: 999px;
   font-size: 14px;
   font-weight: var(--mobile-font-weight-medium);

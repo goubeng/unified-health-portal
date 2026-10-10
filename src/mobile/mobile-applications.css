@@ -107,11 +107,7 @@
 
 /* 申请卡片：与全部应用-我的申请完全统一的卡片布局 */
 .mobile-app-request-card {
-  border: 1px solid #edf2f7;
-  border-radius: 16px;
-  background: #ffffff;
   padding: 15px 16px;
-  box-shadow: 0 4px 14px rgba(16, 54, 99, 0.04);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
@@ -168,7 +164,7 @@
   justify-content: space-between;
   margin-top: 8px;
   font-size: 12px;
-  color: #8c9fae;
+  color: var(--mobile-list-card-time-color);
 }
 
 .info-type {
@@ -177,7 +173,7 @@
 
 .request-card-no {
   margin-top: 5px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: #9cb0c2;
 }
 
@@ -206,7 +202,11 @@
 }
 
 .action-btn-mini {
-  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--mobile-action-compact-height);
+  padding: 0 var(--mobile-action-padding-inline);
   border: 1px solid #d2dbe5;
   border-radius: 14px;
   background: #ffffff;
@@ -333,7 +333,7 @@
 
 .modal-action-btn {
   width: 100%;
-  height: 38px;
+  height: var(--mobile-action-primary-height);
   border-radius: 999px;
   font-size: 13.5px;
   font-weight: var(--mobile-font-weight-medium);
@@ -468,7 +468,7 @@
 
 .mobile-notice-confirm-btn {
   width: 100%;
-  height: 40px;
+  height: var(--mobile-action-primary-height);
   border-radius: 999px;
   border: none;
   background: #0052d9;

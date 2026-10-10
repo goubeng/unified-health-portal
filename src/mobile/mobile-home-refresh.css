@@ -26,7 +26,8 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: url('../assets/login-health3-bg-3840x2160.png') 0 48% / cover no-repeat;
+  /* 保持右侧主体锚点，仅放大医院建筑，不增加Banner高度或拉伸图片。 */
+  background: url('../assets/login-health3-bg-3840x2160.png') 0 48% / 125% auto no-repeat;
   transform: scaleX(-1);
 }
 .mobile-home-hero::after {
@@ -132,8 +133,9 @@
 .mobile-home-app-name {
   height: 2.8em;
   line-height: 1.4;
-  font-size: 11px;
-  color: #1b3154;
+  font-size: 12px;
+  color: #405471;
+  font-weight: var(--mobile-font-weight-medium);
   overflow-wrap: anywhere;
   word-break: break-all;
 }
@@ -235,7 +237,7 @@
   vertical-align: 1px;
   border-radius: 99px;
   background: #e34d59;
-  font-size: 11px;
+  font-size: 12px;
 }
 .mobile-home-section--todos .mobile-home-feed {
   display: grid;
@@ -270,21 +272,21 @@
 .mobile-home-section--todos .mobile-home-feed-meta {
   flex-wrap: nowrap;
   gap: 8px;
-  color: #7f8fab;
-  font-size: 11px;
+  color: var(--mobile-list-card-source-color);
+  font-size: var(--mobile-list-card-source-size);
   overflow: hidden;
 }
 .mobile-home-section--todos .feed-meta-item.meta-app {
   max-width: 55%;
   min-width: 0;
   flex: 0 1 auto;
-  color: #72819b;
+  color: var(--mobile-list-card-source-color);
 }
 .mobile-home-section--todos .feed-meta-item.meta-time {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
-  color: #8495ad;
+  color: var(--mobile-list-card-time-color);
 }
 .mobile-home-section--todos .feed-meta-item.meta-time span {
   overflow: hidden;
@@ -293,7 +295,7 @@
 }
 .mobile-home-section--todos .feed-meta-item.meta-time .meta-icon {
   flex: none;
-  color: #8ea7ca;
+  color: var(--mobile-list-card-time-color);
 }
 .mobile-home-section--todos .mobile-home-feed button > svg {
   width: 15px;
@@ -311,12 +313,12 @@
   .mobile-home-app-grid { gap: 5px; }
   .mobile-home-app-grid button { min-height: 95px; padding: 8px 2px; }
   .mobile-home-app-icon { width: 41px; height: 41px; }
-  .mobile-home-app-grid button > span:last-child { font-size: 10.5px; }
+  .mobile-home-app-grid button > span:last-child { font-size: 12px; }
   .mobile-home-notice-card .notice-badge { flex-basis: 68px; width: 68px; margin-right: 7px; }
   .mobile-home-notice-card .notice-badge img,
   .mobile-home-notice-card .notice-megaphone-fallback { width: 63px; height: 68px; }
   .mobile-home-notice-card .notice-row-title { font-size: 12px; }
-  .mobile-home-section--todos .mobile-home-feed-meta { font-size: 10.5px; }
+  .mobile-home-section--todos .mobile-home-feed-meta { font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .mobile-home-app-grid button { transition: none; }

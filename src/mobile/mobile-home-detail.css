@@ -58,12 +58,12 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.4;
   text-align: center;
   text-overflow: ellipsis;
-  font-weight: var(--mobile-font-weight-semibold);
-  color: #1b3154;
+  font-weight: var(--mobile-font-weight-medium);
+  color: #405471;
 }
 /* 公告：连续底色，左侧柔波纹、右侧低对比度点阵。 */
 .mobile-home-notice-card {
@@ -199,7 +199,7 @@
   padding: 0 4px;
   border-radius: 999px;
   line-height: 1;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: var(--mobile-font-weight-semibold);
   font-variant-numeric: tabular-nums;
   vertical-align: middle;
@@ -219,11 +219,13 @@
   .mobile-home-notice-card .notice-row-title { font-size: 13px; }
 }
 @media (max-width: 350px) {
+  /* 窄屏稍微降低Banner放大倍率，减少医院主体被裁切的风险。 */
+  .mobile-home-hero::before { background-size: 116% auto; }
   .mobile-home-app-grid { gap: 5px; }
   .mobile-home-app-grid button { min-height: 94px; padding: 7px 2px 6px; grid-template-rows: 44px minmax(0, 2.8em); }
   .mobile-home-app-grid .mobile-home-app-icon { width: 44px; height: 44px; }
   .mobile-home-app-grid .mobile-home-app-icon :deep(.category-app-icon) { flex-basis: 38px; width: 38px; height: 38px; }
-  .mobile-home-app-grid button > .mobile-home-app-name { font-size: 10.5px; }
+  .mobile-home-app-grid button > .mobile-home-app-name { font-size: 12px; }
   .mobile-home-notice-card .notice-badge { flex-basis: 86px; width: 86px; margin-right: 8px; }
   .mobile-home-notice-card .notice-badge img { width: 94px; height: 88px; }
   .mobile-home-notice-card .notice-row-title { font-size: 12px; }

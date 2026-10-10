@@ -9,20 +9,29 @@
   --mobile-font-size-body: 14px;
   --mobile-font-size-section-title: 16px;
   --mobile-font-size-page-title: 20px;
+  --mobile-hero-title-size: 22px;
   --mobile-ink: #24344d;
   --mobile-ink-muted: #728198;
   --mobile-border: #edf2f7;
   --mobile-card-radius: 16px;
+  /* 业务卡片与操作按钮：页面复用这些变量，不另建一套。 */
+  --mobile-card-bg: #ffffff;
+  --mobile-card-border: #edf2f7;
+  --mobile-card-shadow: 0 4px 14px rgba(16, 54, 99, 0.04);
+  --mobile-action-compact-height: 36px;
+  --mobile-action-primary-height: 44px;
+  --mobile-action-icon-size: 40px;
+  --mobile-action-padding-inline: 12px;
   /* 消息中心与待办事项列表卡片共用的文字层级。 */
   --mobile-list-card-title-size: 15px;
   --mobile-list-card-title-color: #1a2d48;
   --mobile-list-card-summary-size: 13px;
   --mobile-list-card-summary-color: #6b8092;
   --mobile-list-card-summary-line-height: 1.45;
-  --mobile-list-card-source-size: 11.5px;
+  --mobile-list-card-source-size: 12px;
   --mobile-list-card-source-color: #9cb0c2;
   --mobile-list-card-time-size: 12px;
-  --mobile-list-card-time-color: #8c9fae;
+  --mobile-list-card-time-color: #9cb0c2;
   --td-brand-color: #0052d9;
   --td-brand-color-active: #0043b3;
   --td-brand-color-focus: #ecf2fe;
@@ -166,4 +175,31 @@ body:has(.mobile-message-detail-toolbar) .mobile-shell__navigation {
   border: 1.5px solid #ffffff;
   box-sizing: content-box;
   pointer-events: none;
+}
+
+/* 二级页共用卡片皮肤；各页面仅保留布局、内容与业务状态差异。 */
+.mobile-shell :is(.mobile-todo-card, .mobile-message-card, .mobile-app-request-card, .mobile-profile-card) {
+  background: var(--mobile-card-bg);
+  border: 1px solid var(--mobile-card-border);
+  border-radius: var(--mobile-card-radius);
+  box-shadow: var(--mobile-card-shadow);
+}
+
+/* 二级页列表与页头的紧凑型业务操作，统一至少36px可点击高度。 */
+.mobile-shell :is(.todo-process-btn, .app-btn-pill, .action-btn-mini, .banner-view-btn, .mobile-back-list-btn, .mobile-filter-trigger-btn, .mobile-clear-unread-btn) {
+  box-sizing: border-box;
+  min-height: var(--mobile-action-compact-height);
+}
+
+/* 弹窗主要操作与表单提交按钮，统一至少44px可点击高度。 */
+.mobile-shell :is(.modal-action-btn, .mobile-submit-btn, .mobile-notice-confirm-btn, .m-btn, .filter-reset-btn, .filter-submit-btn) {
+  box-sizing: border-box;
+  min-height: var(--mobile-action-primary-height);
+}
+
+/* 导航和弹窗图标按钮统一40px触控热区，保留原图标大小。 */
+.mobile-shell :is(.mobile-requests-head button, .mobile-nav-back-btn, .toolbar-delete-btn, .mobile-notice-close-btn, .mobile-binding-close-btn, .mobile-modal-head button) {
+  box-sizing: border-box;
+  min-width: var(--mobile-action-icon-size);
+  min-height: var(--mobile-action-icon-size);
 }

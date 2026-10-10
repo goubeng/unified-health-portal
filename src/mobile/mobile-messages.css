@@ -10,7 +10,7 @@
 /* 顶部品牌蓝渐变区域 */
 .mobile-message-hero {
   padding: 20px 16px 18px;
-  background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  background: var(--mobile-gradient-header);
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -21,7 +21,7 @@
 /* 标题行：引用待办事项字号规范 22px */
 .mobile-message-title-row h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--mobile-hero-title-size);
   font-weight: var(--mobile-font-weight-semibold);
   letter-spacing: 0.5px;
   color: #ffffff;
@@ -41,7 +41,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 30px;
+  height: var(--mobile-action-compact-height);
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
@@ -145,6 +145,9 @@
 }
 
 .banner-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 999px;
   background: #0052d9;
@@ -198,11 +201,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  border: 1px solid #edf2f7;
-  border-radius: 16px;
-  background: #ffffff;
   padding: 15px 14px;
-  box-shadow: 0 4px 14px rgba(16, 54, 99, 0.04);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -539,6 +538,9 @@
 }
 
 .mobile-back-list-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #c9d8e8;
   background: #ffffff;
   color: #0052d9;
@@ -600,7 +602,7 @@
   padding-bottom: 14px;
   border-bottom: 1px dashed #e8edf3;
   font-size: 12.5px;
-  color: #7b8e9f;
+  color: var(--mobile-list-card-time-color);
 }
 
 /* 消息类型标签：与“我的申请”保持完全一致的徽章样式，字号统一提升至 12px 粗体 */
@@ -627,8 +629,8 @@
 }
 
 .meta-app {
-  color: #0052d9;
-  font-weight: var(--mobile-font-weight-medium);
+  color: var(--mobile-list-card-source-color);
+  font-weight: var(--mobile-font-weight-normal);
 }
 
 /* 正文：行距舒展，字迹清晰，垂直自上向下正常流动 */
@@ -701,8 +703,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: var(--mobile-action-icon-size);
+  height: var(--mobile-action-icon-size);
   border: 0;
   border-radius: 8px;
   background: transparent;

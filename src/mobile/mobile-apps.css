@@ -9,7 +9,7 @@
 /* 顶部栏：蓝渐变、三段式布局，间距严格统一为 gap: 12px 与 padding: 20px 16px 18px */
 .mobile-apps-topbar {
   flex: none;
-  background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  background: var(--mobile-gradient-header);
   padding: 20px 16px 18px;
   color: #ffffff;
   display: flex;
@@ -29,7 +29,7 @@
 /* 标题行：引用待办事项字号规范 22px */
 .mobile-apps-title-row h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--mobile-hero-title-size);
   font-weight: var(--mobile-font-weight-semibold);
   letter-spacing: 0.5px;
   color: #ffffff;
@@ -250,7 +250,7 @@
   border-radius: 4px;
   background: #f1f4f8;
   color: #8596a6;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: var(--mobile-font-weight-medium);
   border: 1px solid #e2e8f0;
 }
@@ -259,9 +259,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  height: 26px;
-  padding: 0 10px;
+  min-width: 56px;
+  height: var(--mobile-action-compact-height);
+  padding: 0 var(--mobile-action-padding-inline);
   border-radius: 13px;
   font-size: 12px;
   font-weight: var(--mobile-font-weight-medium);
@@ -414,7 +414,7 @@
 }
 
 .mobile-submit-btn {
-  height: 40px !important;
+  height: var(--mobile-action-primary-height) !important;
   border-radius: 999px !important;
   font-size: 14px !important;
   font-weight: var(--mobile-font-weight-medium) !important;
@@ -518,7 +518,7 @@
 
 .mobile-notice-confirm-btn {
   width: 100%;
-  height: 40px;
+  height: var(--mobile-action-primary-height);
   border-radius: 999px;
   border: none;
   background: #0052d9;

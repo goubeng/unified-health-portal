@@ -6,7 +6,7 @@
 /* 头部品牌蓝渐变区域：三段式结构，严格统一 gap: 12px 与 padding: 20px 16px 18px */
 .mobile-todos-header {
   padding: 20px 16px 18px;
-  background: linear-gradient(135deg, #0052d9 0%, #1e6beb 58%, #4489f7 100%);
+  background: var(--mobile-gradient-header);
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -24,7 +24,7 @@
 
 .mobile-todos-title-row h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--mobile-hero-title-size);
   font-weight: var(--mobile-font-weight-semibold);
   letter-spacing: 0.5px;
   color: #ffffff;
@@ -106,11 +106,7 @@
 }
 
 .mobile-todo-card {
-  background: #ffffff;
-  border: 1px solid #edf2f6;
-  border-radius: 16px;
   padding: 15px 15px 12px;
-  box-shadow: 0 4px 14px rgba(18, 52, 95, 0.04);
 }
 
 .mobile-card-top {
@@ -233,8 +229,8 @@
 }
 
 .todo-process-btn {
-  height: 28px !important;
-  padding: 0 14px !important;
+  height: var(--mobile-action-compact-height) !important;
+  padding: 0 var(--mobile-action-padding-inline) !important;
   font-size: 12.5px !important;
   font-weight: var(--mobile-font-weight-semibold) !important;
   border-radius: 999px !important;
