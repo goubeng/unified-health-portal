@@ -103,8 +103,8 @@
 
 ## 个人中心退出登录按钮
 
-- “我的”页面退出登录按钮改为TDesign `theme="danger"` + `variant="outline"`，红色文字及1px红色描边、白色背景、胶囊圆角；按下时使用浅红底。
-- 保持原有整行按钮宽度、加载状态与退出登录操作，不影响其他页面按钮或退出流程。
+- “我的”页面退出登录按钮使用 TDesign Mobile `theme="danger"`、`variant="outline"`、`shape="round"` 和 `block` 标准属性，不再覆盖边框、颜色、圆角及按下状态。
+- TDesign Mobile 1.16.2 的 `--td-button-border-width` 默认是2px（此前本页手写覆盖为1px）；恢复由组件主题管理危险色线框及交互态。保留整行按钮宽度、加载状态与退出登录操作，不影响其他页面按钮。
 
 ## 首页公告与待办标题字号调整
 
