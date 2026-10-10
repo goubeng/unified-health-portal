@@ -245,7 +245,7 @@
 .mobile-home-notice-card .notice-row:last-child { border-bottom: 0; }
 .mobile-home-notice-card .notice-row-title {
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: var(--mobile-font-weight-medium);
   line-height: 32px;
   color: #15294b;
@@ -314,7 +314,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #15294b;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: var(--mobile-font-weight-bold);
 }
 .mobile-home-section--todos .mobile-home-feed-meta {
@@ -366,7 +366,7 @@
   .mobile-home-hero { margin-right: -16px; margin-left: -16px; }
   .mobile-home-app-grid button { min-height: 105px; }
   .mobile-home-app-grid button > span:last-child { font-size: 12px; }
-  .mobile-home-notice-card .notice-row-title { font-size: 13px; }
+  .mobile-home-notice-card .notice-row-title { font-size: 14px; }
 }
 @media (max-width: 350px) {
   .mobile-home-app-grid { gap: 5px; }
@@ -376,7 +376,7 @@
   .mobile-home-notice-card .notice-badge { flex-basis: 68px; width: 68px; margin-right: 7px; }
   .mobile-home-notice-card .notice-badge img,
   .mobile-home-notice-card .notice-megaphone-fallback { width: 63px; height: 68px; }
-  .mobile-home-notice-card .notice-row-title { font-size: 12px; }
+  .mobile-home-notice-card .notice-row-title { font-size: 13px; }
   .mobile-home-section--todos .mobile-home-feed-meta { font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
