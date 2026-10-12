@@ -11,7 +11,7 @@ test('移动端全部应用页头统计位于标题下方，右侧显示我的�
   assert.match(titleRow, /<div class="mobile-apps-title-group">\s*<h1>全部应用<\/h1>\s*<div class="mobile-apps-title-stats"/);
   assert.match(titleRow, /共 <strong>\{\{ apps\.length \}\}<\/strong> 个/);
   assert.match(titleRow, /已关联 <strong>\{\{ totalBoundCount \}\}<\/strong> 个/);
-  assert.match(titleRow, /class="mobile-apps-my-requests-link"[\s\S]*?@click="router\.push\('\/m\/applications'\)"/);
+  assert.match(titleRow, /class="mobile-apps-my-requests-link"[\s\S]*?@click="router\.push\(\{ path: '\/m\/applications', query: \{ from: 'apps' \} \}\)"/);
   assert.match(titleRow, /<FileIcon class="mobile-apps-my-requests-icon"/);
   assert.match(titleRow, /<span>我的申请<\/span>/);
   assert.match(css, /\.mobile-apps-title-group\s*\{[^}]*flex-direction:\s*column/);
@@ -25,5 +25,5 @@ test('全部应用搜索与分类交互保留原有功能', () => {
   assert.match(vue, /v-for="item in displayCategories"/);
   assert.match(vue, /@click="selectCategory\(item\)"/);
   assert.match(vue, /function isAppBound\(app: App\)/);
-  assert.match(vue, /router\.push\('\/m\/applications'\)/);
+  assert.match(vue, /router\.push\(\{ path: '\/m\/applications', query: \{ from: 'apps' \} \}\)/);
 });

@@ -34,7 +34,17 @@
 
     <!-- 待办列表：扁平无多层嵌套 -->
     <div v-else class="mobile-todo-list">
-      <article v-for="item in filtered" :key="item.id" class="mobile-todo-card">
+      <article
+        v-for="item in filtered"
+        :key="item.id"
+        class="mobile-todo-card"
+        role="button"
+        tabindex="0"
+        :aria-label="`查看待办详情：${text(item.title) || '待办事项'}`"
+        @click="openDetail(item)"
+        @keydown.enter.self.prevent="openDetail(item)"
+        @keydown.space.self.prevent="openDetail(item)"
+      >
         <div class="mobile-card-top">
           <strong>{{ text(item.title) || '-' }}</strong>
           <span class="todo-status-tag" :class="statusClass(item.status)">
@@ -63,22 +73,64 @@
 
         <!-- 分隔线下方：按钮“去处理” -->
         <div v-if="item.status === 'PENDING'" class="mobile-card-actions-row">
-          <TMobileButton size="small" theme="primary" class="todo-process-btn" @click="process(item)">
+          <TMobileButton size="small" theme="primary" class="todo-process-btn" @click.stop="process(item)">
             去处理
           </TMobileButton>
         </div>
       </article>
+    </div>
+
+    <!-- 与PC待办详情字段一致的移动端居中弹窗。 -->
+    <div v-if="active" class="mobile-todo-detail-overlay" @click.self="closeDetail">
+      <section
+        ref="detailDialog"
+        class="mobile-todo-detail-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-todo-detail-title"
+        tabindex="-1"
+      >
+        <header class="mobile-todo-detail-header">
+          <h2 id="mobile-todo-detail-title">待办详情</h2>
+          <button type="button" class="mobile-todo-detail-close" aria-label="关闭待办详情" @click="closeDetail">
+            <CloseIcon aria-hidden="true" />
+          </button>
+        </header>
+        <div class="mobile-todo-detail-content">
+          <h3>{{ text(active.title) || '-' }}</h3>
+          <dl class="mobile-todo-detail-meta">
+            <div><dt>来源应用</dt><dd>{{ text(active.appName) || '-' }}</dd></div>
+            <div><dt>业务类型</dt><dd>{{ label(active.businessType, 'todo_task_type') }}</dd></div>
+            <div><dt>接收时间</dt><dd>{{ date(active.receivedAt) }}</dd></div>
+            <div>
+              <dt>状态</dt>
+              <dd><span class="todo-status-tag" :class="statusClass(active.status)">{{ label(active.status, 'todo_status') }}</span></dd>
+            </div>
+          </dl>
+          <div class="mobile-todo-detail-description">
+            <h4>待办说明</h4>
+            <p>{{ text(active.summary) || '-' }}</p>
+          </div>
+          <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
+        </div>
+        <footer class="mobile-todo-detail-footer">
+          <TMobileButton variant="outline" theme="default" @click="closeDetail">关闭</TMobileButton>
+          <TMobileButton v-if="active.status === 'PENDING'" theme="primary" @click="process(active)">去处理</TMobileButton>
+        </footer>
+      </section>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Button as TMobileButton, Input as TMobileInput } from 'tdesign-mobile-vue';
-import { CalendarIcon } from 'tdesign-icons-vue-next';
+import { CalendarIcon, CloseIcon } from 'tdesign-icons-vue-next';
 import { command, portal, revision, loadDictionaryLookups } from '../services/runtime.js';
 import { date, label, text } from '../components/portal/presentation.js';
 import MobileLoading from './MobileLoading.vue';
+import { useMobileDialog } from './useMobileDialog';
 
 interface Todo {
   id: string;
@@ -96,7 +148,17 @@ const filters = [
   { value: 'COMPLETED', label: '已完成' },
 ];
 
+const route = useRoute();
+const router = useRouter();
 const rows = ref<Todo[]>([]);
+const selectedId = ref<string | null>(null);
+const detailDialog = ref<HTMLElement | null>(null);
+const active = computed<Todo | null>(() => rows.value.find(item => item.id === selectedId.value) || null);
+useMobileDialog({
+  open: computed(() => Boolean(active.value)),
+  element: computed(() => detailDialog.value),
+  close: () => closeDetail(),
+});
 const loading = ref(true);
 const error = ref('');
 const keyword = ref('');
@@ -109,6 +171,20 @@ const filtered = computed(() =>
     .filter(row => (!status.value || row.status === status.value) && (!keyword.value.trim() || text(row.title).toLowerCase().includes(keyword.value.trim().toLowerCase())))
     .sort((a, b) => (Date.parse(b.receivedAt || '') || 0) - (Date.parse(a.receivedAt || '') || 0))
 );
+
+function openDetail(item: Todo) {
+  selectedId.value = item.id;
+  error.value = '';
+}
+
+function closeDetail() {
+  selectedId.value = null;
+  if (route.query.todoId) {
+    const query = { ...route.query };
+    delete query.todoId;
+    void router.replace({ path: '/m/todos', query });
+  }
+}
 
 let requestVersion = 0;
 
@@ -145,6 +221,13 @@ onMounted(() => {
 });
 
 watch(revision, load);
+watch([() => route.query.todoId, () => rows.value.length], () => {
+  const id = typeof route.query.todoId === 'string' ? route.query.todoId : '';
+  if (id) {
+    const row = rows.value.find(item => item.id === id);
+    if (row) selectedId.value = row.id;
+  }
+}, { immediate: true });
 </script>
 
 <style scoped src="./mobile-todos.css"></style>

@@ -15,7 +15,7 @@
           type="button"
           class="mobile-apps-my-requests-link"
           aria-label="查看我的申请"
-          @click="router.push('/m/applications')"
+          @click="router.push({ path: '/m/applications', query: { from: 'apps' } })"
         >
           <FileIcon class="mobile-apps-my-requests-icon" aria-hidden="true" />
           <span>我的申请</span>

@@ -139,7 +139,7 @@
   .mobile-home-section--first .mobile-home-section-actions { gap: 3px; }
   .mobile-home-section--first .mobile-home-section-actions .mobile-home-my-requests-link { padding-right: 8px; padding-left: 8px; }
 }
-/* 首页“我的申请”采用浅蓝色轻量胶囊，仅保留文字与右箭头。 */
+/* 首页“我的申请”采用浅蓝色轻量胶囊与小型文件图标；全部应用继续为灰蓝文字链接。 */
 .mobile-home-section--first .mobile-home-section-actions .mobile-home-my-requests-link {
   display: inline-flex;
   flex: none;
@@ -162,13 +162,20 @@
   white-space: nowrap;
   transition: background-color .15s ease, border-color .15s ease;
 }
-.mobile-home-section--first .mobile-home-my-requests-link .my-requests-arrow {
+.mobile-home-section--first .mobile-home-my-requests-link .my-requests-icon {
   display: block;
   flex: none;
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   color: currentColor;
-  opacity: .75;
+  opacity: .85;
+}
+.mobile-home-section--first .mobile-home-actions-divider {
+  display: block;
+  flex: 0 0 1px;
+  width: 1px;
+  height: 13px;
+  background: #cbd7e8;
 }
 .mobile-home-section--first .mobile-home-my-requests-link:active {
   background: #e3eeff;

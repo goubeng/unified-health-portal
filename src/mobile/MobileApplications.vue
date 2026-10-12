@@ -276,15 +276,16 @@ const bindingApp = ref<App | null>(null);
 const accessRows = computed(() => rows.value.filter(item => item.requestType === 'APPLICATION_ACCESS'));
 const openingRows = computed(() => rows.value.filter(item => item.requestType === 'ACCOUNT_OPENING'));
 const visibleRows = computed(() => tab.value === 'APPLICATION_ACCESS' ? accessRows.value : openingRows.value);
+const returnOriginQuery = computed(() => route.query.from === 'apps' ? { from: 'apps' } : {});
 
 function openDetail(item: Request) {
-  router.push({ path: `/m/applications/${encodeURIComponent(item.id)}`, query: { tab: tab.value } });
+  router.push({ path: `/m/applications/${encodeURIComponent(item.id)}`, query: { ...returnOriginQuery.value, tab: tab.value } });
 }
 function goBack() {
   if (isDetailPage.value) {
-    router.push({ path: '/m/applications', query: { tab: tab.value } });
+    router.push({ path: '/m/applications', query: { ...returnOriginQuery.value, tab: tab.value } });
   } else {
-    router.push('/m/profile');
+    router.push(route.query.from === 'apps' ? '/m/apps' : '/m/profile');
   }
 }
 function performDetailAction(action: string) {

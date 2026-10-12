@@ -28,24 +28,25 @@ test('移动端首页我的应用区域并排显示我的申请和全部应用�
 
   // 我的应用标题旁操作按钮应为我的申请，并跳转到 /m/applications
   assert.match(homeVue, /class="mobile-home-my-requests-link"[^>]*@click="go\('\/m\/applications'\)"/);
-  assert.doesNotMatch(homeVue, /<FileIcon class="my-requests-icon"/);
-  assert.doesNotMatch(homeVue, /  FileIcon,/);
-  assert.match(homeVue, /<ChevronRightIcon class="my-requests-arrow"/);
+  assert.match(homeVue, /<FileIcon class="my-requests-icon"/);
+  assert.match(homeVue, /<span class="mobile-home-actions-divider" aria-hidden="true"><\/span>/);
   const homeCss = read('src/mobile/mobile-home-refresh.css');
   assert.match(homeCss, /\.mobile-home-section--first \.mobile-home-section-actions \.mobile-home-my-requests-link\s*\{/);
   assert.match(homeCss, /\.mobile-home-section-head > button,\s*\.mobile-home-section--first \.mobile-home-section-actions \.mobile-home-all-apps-link\s*\{/);
   assert.match(homeCss, /background:\s*#edf4ff/);
   assert.match(homeCss, /border:\s*1px solid #c9dcff/);
   assert.match(homeCss, /color:\s*var\(--home-brand\)/);
-  assert.match(homeCss, /\.my-requests-arrow\s*\{[^}]*width:\s*9px/);
+  assert.match(homeCss, /\.my-requests-icon\s*\{[^}]*width:\s*11px/);
+  assert.match(homeCss, /\.mobile-home-actions-divider\s*\{[^}]*width:\s*1px/);
   assert.match(homeCss, /height:\s*30px/);
   assert.match(homeCss, /min-height:\s*30px/);
-  assert.doesNotMatch(homeCss, /\.my-requests-icon/);
+  assert.doesNotMatch(homeVue, /class="my-requests-arrow"/);
   assert.match(homeVue, /class="mobile-home-section-actions"/);
   assert.match(homeVue, /class="mobile-home-all-apps-link"[^>]*@click="go\('\/m\/apps'\)">全部应用<\/button>/);
   const actions = homeVue.split('class="mobile-home-section-actions"')[1]?.split('</div>')[0] || '';
   assert.ok(actions.indexOf('mobile-home-my-requests-link') < actions.indexOf('mobile-home-all-apps-link'));
   assert.match(homeVue, /<button type="button" @click="go\('\/m\/todos'\)">查看全部<\/button>/);
+  assert.match(homeVue, /todoId=\$\{encodeURIComponent\(item.id\)\}/);
 });
 
 test('移动端首页我的应用和待办事项标题去掉了前导蓝色竖线', () => {

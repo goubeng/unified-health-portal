@@ -15,9 +15,10 @@
           <div><h2>我的应用</h2></div>
           <div class="mobile-home-section-actions">
             <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications')">
+              <FileIcon class="my-requests-icon" aria-hidden="true" />
               <span>我的申请</span>
-              <ChevronRightIcon class="my-requests-arrow" aria-hidden="true" />
             </button>
+            <span class="mobile-home-actions-divider" aria-hidden="true"></span>
             <button type="button" class="mobile-home-all-apps-link" aria-label="查看全部应用" @click="go('/m/apps')">全部应用</button>
           </div>
         </div>
@@ -89,7 +90,7 @@
       <section class="mobile-home-section mobile-home-section--todos">
         <div class="mobile-home-section-head"><div><h2>待办事项 <span v-if="pendingTodoCount > 0" class="todo-badge">{{ pendingTodoCount }}</span></h2></div><button type="button" @click="go('/m/todos')">查看全部</button></div>
         <div v-if="pendingTodos.length" class="mobile-home-feed">
-          <button v-for="item in pendingTodos.slice(0, FEED_PREVIEW_LIMIT)" :key="item.id" type="button" @click="go('/m/todos')">
+          <button v-for="item in pendingTodos.slice(0, FEED_PREVIEW_LIMIT)" :key="item.id" type="button" @click="go(`/m/todos?todoId=${encodeURIComponent(item.id)}`)">
             <span class="mobile-home-feed-copy">
               <span class="mobile-home-feed-top">
                 <span class="mobile-home-feed-dot" aria-hidden="true"></span>
@@ -172,6 +173,7 @@ import {
   CalendarIcon,
   ChevronRightIcon,
   CloseIcon,
+  FileIcon,
   InfoCircleFilledIcon,
 } from 'tdesign-icons-vue-next';
 import { command, portal, revision } from '../services/runtime.js';

@@ -49,7 +49,7 @@ const isDetailView = computed(() => {
   return route.path === '/m/messages' && Boolean(route.query.messageId);
 });
 
-// “我的申请”由顶部返回按钮导航，列表与申请详情弹窗均不需要底部主导航。
+// “我的申请”列表及独立申请详情页均由顶部返回按钮导航，不需要底部主导航。
 const isApplicationsList = computed(() => route.path === '/m/applications' || route.path.startsWith('/m/applications/'));
 
 const activeTab = computed(() => {
