@@ -18,7 +18,13 @@ test('移动端待办卡片与首页待办可打开PC字段一致的详情弹窗
   assert.match(todo, /class="mobile-todo-detail-dialog"/);
   assert.match(todo, /role="dialog"/);
   assert.match(todo, /aria-modal="true"/);
-  assert.match(todo, /v-if="active\.status === 'PENDING'"/);
+  assert.match(todo, /<footer v-if="active\.status === 'PENDING'" class="mobile-todo-detail-footer">/);
+  assert.match(todo, /<TMobileButton block theme="primary" class="mobile-todo-detail-process-btn" @click="process\(active\)">去处理<\/TMobileButton>/);
+  assert.doesNotMatch(todo, /<TMobileButton[^>]*@click="closeDetail">关闭<\/TMobileButton>/);
+  assert.match(todo, /aria-label="关闭待办详情" @click="closeDetail"/);
+  assert.match(style, /\.mobile-todo-detail-process-btn\s*\{[^}]*height:\s*var\(--mobile-action-primary-height\)/);
+  assert.match(style, /\.mobile-todo-detail-process-btn\s*\{[^}]*border-radius:\s*var\(--mobile-action-pill-radius\)/);
+  assert.match(style, /\.mobile-todo-detail-overlay\s*\{[^}]*backdrop-filter:\s*blur\(2px\)/);
   assert.match(todo, /@click\.stop="process\(item\)"/);
   assert.match(todo, /useMobileDialog/);
   assert.match(todo, /function openDetail\(item: Todo\)/);

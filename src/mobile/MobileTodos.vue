@@ -113,9 +113,8 @@
           </div>
           <p v-if="error" class="mobile-inline-error" role="alert">{{ error }}</p>
         </div>
-        <footer class="mobile-todo-detail-footer">
-          <TMobileButton variant="outline" theme="default" @click="closeDetail">关闭</TMobileButton>
-          <TMobileButton v-if="active.status === 'PENDING'" theme="primary" @click="process(active)">去处理</TMobileButton>
+        <footer v-if="active.status === 'PENDING'" class="mobile-todo-detail-footer">
+          <TMobileButton block theme="primary" class="mobile-todo-detail-process-btn" @click="process(active)">去处理</TMobileButton>
         </footer>
       </section>
     </div>
