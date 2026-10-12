@@ -198,7 +198,7 @@
    <template #footer><t-button theme="primary" :loading="accessSaving" :disabled="accessSaving" @click="accessConfigRef?.saveActive()">保存配置</t-button></template>
   </t-dialog>
   <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp" :app-center="isAppCenter" @completed="handleBindingCompleted" @view-request="viewBindingRequests"/>
-  <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :app-center="isAppCenter" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" :show-status-history="admin&&detailKind==='apps'&&can(actor,'monitor:view')" :history-rows="monitorHistory" @update:visible="closeDetail" @download="download" @request-action="handleRequestDetailAction"/>
+  <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :app-center="isAppCenter" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download" @request-action="handleRequestDetailAction"/>
  </div>
 </template>
 
@@ -290,7 +290,6 @@ async function load(){
   if(needsAppCatalog)tasks.apps=read(isAdmin?'adminApps':'apps');
   if(can(actor.value,'application:view'))tasks.categories=read('categories');
   if(isAdmin&&key==='apps'&&can(actor.value,'integration:view'))tasks.accessProfiles=read('access');
-  if(isAdmin&&key==='apps'&&can(actor.value,'monitor:view'))tasks.monitorHistory=read('monitorHistory');
   if(home){
    tasks.overview=read(key);
    if(!isAdmin){for(const name of ['mine','todos','messages','announcements'])tasks[name]=read(name);}
