@@ -87,3 +87,23 @@ test('趋势卡片和登录日志查询项均只在登录日志页显示',()=>{
  assert.match(api,/repository\.auditDayCounts\(startAt,endAt\)/);
  assert.match(api,/resource\.startsWith\('auditVisitTrend\?'\)/);
 });
+
+test('五类日志查询均对应实际列表字段，避免来源应用和结果条件重复',()=>{
+ const logs=readFileSync(new URL('../src/components/portal/LogManagement.vue',import.meta.url),'utf8');
+ assert.match(logs,/const showAppFilter=computed\(\(\)=>\['access','api'\]\.includes\(props\.kind\)\)/);
+ assert.match(logs,/v-if="kind!=='error'".*登录结果/);
+ assert.match(logs,/access:\['userName','account','requestId'\]/);
+ assert.match(logs,/api:\['interfaceName','requestId','errorMessage'\]/);
+ assert.match(logs,/operation:\['actor','moduleName','pageName','actionName','requestId'\]/);
+ assert.match(logs,/error:\['errorCode','errorMessage','moduleName','requestId','resolutionNote'\]/);
+ assert.match(logs,/access:'用户 \/ 账号 \/ 请求ID'/);
+ assert.match(logs,/api:'接口 \/ 请求ID \/ 错误信息'/);
+ assert.match(logs,/const eventOptions=computed/);
+ assert.match(logs,/const identitySourceOptions=computed/);
+ assert.match(logs,/const authTypeOptions=computed/);
+ assert.match(logs,/\(!eventType\.value\|\|loginActionText\(row\)===eventType\.value\)/);
+ assert.match(logs,/\(!identitySource\.value\|\|row\.identitySource===identitySource\.value\)/);
+ assert.match(logs,/\(!authType\.value\|\|row\.authType===authType\.value\)/);
+ assert.match(logs,/watch\(\[keyword,appName,status,resolutionStatus,eventType,identitySource,authType,pageSize\]/);
+});
+
