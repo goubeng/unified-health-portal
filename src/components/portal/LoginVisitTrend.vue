@@ -83,12 +83,15 @@ function render(){
 async function load(){
  const version=++requestVersion;
  const range=activeRange.value;
- if(!Array.isArray(range)||range.length!==2||!range[0]||!range[1])return;
+ if(!Array.isArray(range)||range.length!==2||!range[0]||!range[1]){
+  loading.value=false;error.value=period.value==='custom'?'请选择完整的开始日期和结束日期':'';
+  rows.value=[];await nextTick();render();return;
+ }
  let startDate,endDate;
  try{
   [startDate,endDate]=range;
   validateVisitTrendRange(startDate,endDate,now.value);
- }catch(cause){error.value=cause.message;rows.value=[];await nextTick();render();return;}
+ }catch(cause){loading.value=false;error.value=cause.message;rows.value=[];await nextTick();render();return;}
  loading.value=true;error.value='';
  const query=new URLSearchParams({startDate,endDate}).toString();
  try{
