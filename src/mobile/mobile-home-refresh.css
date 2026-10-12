@@ -120,45 +120,42 @@
   height: 13px;
   color: #7184a2;
 }
-/* “我的应用”右侧独立高强调入口：蓝底白字胶囊，与普通“查看全部”链接区分。 */
+/* 首页“我的申请”采用浅蓝色轻量胶囊，仅保留文字与右箭头，不影响其他分区入口。 */
 .mobile-home-section--first .mobile-home-section-head > .mobile-home-my-requests-link {
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   min-height: 36px;
-  padding: 0 11px;
-  border: 1px solid var(--home-brand);
-  border-radius: 999px;
-  background: var(--home-brand);
-  color: #ffffff;
+  padding: 0 12px;
+  border: 1px solid #c9dcff;
+  border-radius: var(--mobile-action-pill-radius);
+  background: #edf4ff;
+  color: var(--home-brand);
   font-size: 12px;
-  font-weight: var(--mobile-font-weight-semibold);
+  font-weight: var(--mobile-font-weight-medium);
   line-height: 1.4;
-  box-shadow: 0 3px 9px rgba(0, 82, 217, .15);
+  box-shadow: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color .15s ease, transform .15s ease;
-}
-.mobile-home-section--first .mobile-home-my-requests-link :is(.my-requests-icon, .my-requests-arrow) {
-  display: block;
-  flex: none;
-  width: 14px;
-  height: 14px;
-  color: currentColor;
+  transition: background-color .15s ease, border-color .15s ease;
 }
 .mobile-home-section--first .mobile-home-my-requests-link .my-requests-arrow {
-  width: 12px;
-  height: 12px;
+  display: block;
+  flex: none;
+  width: 11px;
+  height: 11px;
+  color: currentColor;
+  opacity: .75;
 }
 .mobile-home-section--first .mobile-home-my-requests-link:active {
-  background: #0043b3;
-  transform: translateY(1px);
+  background: #e3eeff;
+  border-color: #b7d0ff;
 }
 .mobile-home-section--first .mobile-home-my-requests-link:focus-visible {
-  outline: 2px solid var(--home-brand);
-  outline-offset: 3px;
+  outline: 2px solid rgba(0, 82, 217, .26);
+  outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .mobile-home-section--first .mobile-home-my-requests-link { transition: none; }

@@ -14,7 +14,6 @@
         <div class="mobile-home-section-head">
           <div><h2>我的应用</h2></div>
           <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications')">
-            <FileIcon class="my-requests-icon" aria-hidden="true" />
             <span>我的申请</span>
             <ChevronRightIcon class="my-requests-arrow" aria-hidden="true" />
           </button>
@@ -170,7 +169,6 @@ import {
   CalendarIcon,
   ChevronRightIcon,
   CloseIcon,
-  FileIcon,
   InfoCircleFilledIcon,
 } from 'tdesign-icons-vue-next';
 import { command, portal, revision } from '../services/runtime.js';
