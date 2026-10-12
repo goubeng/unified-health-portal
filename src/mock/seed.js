@@ -118,7 +118,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
    status:i<8?'UNREAD':'READ',readAt:i<8?null:at(-1),deleted:false,deletedAt:null,receivedAt:at(-i-1),url:portal?null:app.url});
  }));
  const announcementRows=[
-  ['关于门户服务使用安排的通知','请通过应用中心查看服务入口，业务办理要求以来源系统说明为准。','ALL','PUBLISHED','IMMEDIATE',null,null],
+  ['关于门户服务使用安排的通知','请通过全部应用查看服务入口，业务办理要求以来源系统说明为准。','ALL','PUBLISHED','IMMEDIATE',null,null],
   ['关于完善应用接入资料的通知','请整理应用目录、责任分工与接口字段，提交接入资料核验。','GOV','DRAFT',null,null,null],
   ['公众服务事项办理指引','请在办事前核对材料清单，关注待办与消息中的办理要求。','CITIZEN','PUBLISHED','IMMEDIATE',null,null],
   ['卫生健康统计报送安排','请核对本期统计报表，并在规定期限内完成报送。','GOV','DRAFT','SCHEDULED',at(720),null],
@@ -191,7 +191,7 @@ export function createSeed(now = new Date('2026-09-18T00:00:00.000Z')) {
  const accountOpeningRequests=[
   row('MOCK_OPEN_PENDING',{createdAt:at(-12),updatedAt:at(-12),requestNo:'OPEN-20260917-00001',userId:'MOCK_USER_1',userName:'林晓',appId:requestApp6.id,appName:requestApp6.name,reason:'首次使用该业务系统，申请开通子系统账号',contact:'门户内联系',remark:'请按统一身份信息创建账号',status:'PENDING',submittedAt:at(-12),handledBy:null,handledAt:null,handleNote:null}),
   row('MOCK_OPEN_PROCESSING',{createdAt:at(-22),updatedAt:at(-8),requestNo:'OPEN-20260917-00002',userId:'MOCK_USER_2',userName:'陈宁',appId:requestApp6.id,appName:requestApp6.name,reason:'业务经办需要使用该系统，申请开通账号',contact:'卫生健康业务处',remark:'已有政务身份，请核对后开通',status:'PROCESSING',submittedAt:at(-22),handledBy:'MOCK_ADMIN',handledAt:null,handleNote:'已转目标子系统管理员处理'}),
-  row('MOCK_OPEN_COMPLETED',{createdAt:at(-38),updatedAt:at(-4),requestNo:'OPEN-20260916-00001',userId:'MOCK_EDITOR',userName:'郑颖',appId:requestApp6.id,appName:requestApp6.name,reason:'信息发布工作需要使用目标系统',contact:'门户运行保障中心',remark:'',status:'COMPLETED',submittedAt:at(-38),handledBy:'MOCK_ADMIN',handledAt:at(-4),handleNote:'子系统账号已开通，可返回应用中心完成账号关联'})
+  row('MOCK_OPEN_COMPLETED',{createdAt:at(-38),updatedAt:at(-4),requestNo:'OPEN-20260916-00001',userId:'MOCK_EDITOR',userName:'郑颖',appId:requestApp6.id,appName:requestApp6.name,reason:'信息发布工作需要使用目标系统',contact:'门户运行保障中心',remark:'',status:'COMPLETED',submittedAt:at(-38),handledBy:'MOCK_ADMIN',handledAt:at(-4),handleNote:'子系统账号已开通，可返回全部应用完成账号关联'})
  ];
  const mappingVerificationEvents=[];
  const users=structuredClone(actors).map((user,index)=>({...user,firstLoginAt:at(-240+index*8),lastLoginAt:at(-index-1),lockedUntil:null,mustChangePassword:user.authType==='LOCAL'?false:null}));

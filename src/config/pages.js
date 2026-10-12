@@ -52,8 +52,8 @@ export const scopesFromPermissions=input=>Object.keys(legacyScopePermissions).fi
 const p=(id,path,title,group,resource,permission=null)=>({id,path,title,group,resource,permission,scope:permission});
 export const pages=[
  p('PG-001','/login','统一登录','登录','login'),p('PG-002','/auth/result','认证结果','登录','auth'),
- p('PG-101','/portal/home','首页','个人事务','home'),{...p('PG-102','/portal/apps/mine','应用中心','应用中心','mine'),hidden:true},p('PG-103','/portal/apps/all','应用中心','应用中心','apps'),
- p('PG-104','/portal/todos','待办任务','个人事务','todos'),p('PG-109','/portal/applications','我的申请','个人事务','myApplicationRequests'),p('PG-105','/portal/messages','我的消息','个人事务','messages'),p('PG-106','/portal/announcements','通知公告','个人事务','announcements'),p('PG-107','/portal/announcements/:id','公告详情','个人事务','announcementDetail'),p('PG-108','/portal/profile','个人中心','个人事务','profile'),
+ p('PG-101','/portal/home','首页','个人事务','home'),{...p('PG-102','/portal/apps/mine','全部应用','全部应用','mine'),hidden:true},p('PG-103','/portal/apps/all','全部应用','全部应用','apps'),
+ p('PG-104','/portal/todos','待办事项','个人事务','todos'),p('PG-109','/portal/applications','我的申请','个人事务','myApplicationRequests'),p('PG-105','/portal/messages','消息中心','个人事务','messages'),p('PG-106','/portal/announcements','通知公告','个人事务','announcements'),p('PG-107','/portal/announcements/:id','公告详情','个人事务','announcementDetail'),p('PG-108','/portal/profile','个人中心','个人事务','profile'),
 
  p('PG-201','/admin/home','管理首页','工作台','adminHome','any'),
  p('PG-220','/admin/announcements','通知公告管理','工作台','announcements','announcement:view'),p('PG-235','/admin/announcements/:id','公告详情','工作台','announcementDetail','announcement:view'),

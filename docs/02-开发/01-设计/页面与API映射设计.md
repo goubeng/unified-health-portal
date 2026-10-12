@@ -2,7 +2,7 @@
 
 > 适用基线：V20260921-01（目标设计）。本文件描述前端页面与后端能力的目标映射，不代表当前接口已实现。
 
-> **现行实现核对（2026-10-01）：**第 2～6 节中的 `/api/auth/*`、`/api/admin/*` 等路径和“当前形态=Mock”是历史目标/替换清单，并非当前实际请求路径或数据源。现行前端默认走 `/api/portal/session`、`/api/portal/read`、`/api/portal/command` 等本地 API，`npm run dev` 使用 DATABASE Repository；显式 `dev:mock` 才为内存模式。登录仍是模拟身份，外部 SSO/子系统正式接入未完成；运行监控当前可读取接入状态迁移历史。
+> **现行实现核对（2026-10-12）：**第 2～6 节中的 `/api/auth/*`、`/api/admin/*` 等路径和“当前形态=Mock”是历史目标/替换清单，并非当前实际请求路径或数据源。现行前端默认走 `/api/portal/session`、`/api/portal/read`、`/api/portal/command` 等本地 API，`npm run dev` 使用 DATABASE Repository；显式 `dev:mock` 才为内存模式。登录仍是模拟身份，外部 SSO/子系统正式接入未完成；运行监控当前可读取接入状态迁移历史。
 
 ### 当前可调用映射（与以下目标 API 表分开）
 
@@ -11,7 +11,7 @@
 | 模拟身份选择、当前会话、退出 | `POST/GET /api/portal/session`、`POST /api/portal/logout` | 按已有用户 ID 选择身份；不校验真实账号密码 |
 | 用户端及管理端列表/详情 | `GET /api/portal/read?resource=...` | 按 `src/services/portal.js` 的资源名和权限读取；数据库模式由 Repository 装载 |
 | 用户与管理操作 | `POST /api/portal/command` | body 为 `action`、`payload`；动作服务端校验权限与状态 |
-| 运行监控和状态历史 | `read` 的 `monitor`、`monitorHistory`；`command` 的 `recordMonitorObservation` | 后者要求 `monitor:check`；人工观测不等于自动健康检测 |
+| 运行监控和状态历史 | `read` 的 `monitor`、`monitorHistory` | `monitor:view` 只读；按应用查看“接入运行状态 / 状态变更记录”，不再提供 `recordMonitorObservation` / `monitor:check` 写入 |
 | 待办/消息本地接收 | `POST /api/portal/ingest/{appId}/todos|messages` | Bearer 凭据引用；不是正式 `/api/integration/v1/*` |
 | 本地接入 OpenAPI | `GET /api/portal/contracts/public` 或 `/api/portal/contracts/{TODO|MESSAGE}/{appId}` | 仅演示接收器契约，不是正式生产规范 |
 
@@ -32,7 +32,7 @@
 | `/api/todos/*` | 当前访问主体待办 |
 | `/api/messages/*` | 当前访问主体消息 |
 | `/api/announcements/*` | 用户端公告 |
-| `/api/apps/*` | 用户端应用中心 |
+| `/api/apps/*` | 用户端全部应用 |
 | `/api/admin/*` | 管理端 |
 | `/api/integration/v1/*` | 子系统接入 |
 
@@ -62,7 +62,7 @@
 | 标记已读 | `PATCH /api/messages/{id}/read` | 当前用户状态 |
 | 批量已读 | `POST /api/messages/batch-read` | 当前用户状态 |
 | 公告列表 | `GET /api/announcements` | 仅返回当前有效公告 |
-| 应用中心 | `GET /api/apps` | 应用 + 当前用户访问能力 |
+| 全部应用 | `GET /api/apps` | 应用 + 当前用户访问能力 |
 | 我的应用 | `GET /api/apps/my` | 已具备入口资格/映射 |
 | 应用映射 | `GET /api/apps/{id}/mapping` | 当前访问主体映射 |
 | 发起关联 | `POST /api/apps/{id}/mapping-requests` | 关联/开户注册流程 |
@@ -77,7 +77,7 @@
 | 角色管理 | `/api/admin/roles` | 门户 RBAC |
 | 应用列表 | `/api/admin/applications` | 应用自身启停 |
 | 连接配置 | `/api/admin/applications/{id}/integrations` | SSO/TODO/MESSAGE 独立配置 |
-| 运行监控 | `/api/admin/integrations/monitor` | 运行状态只读、可重新检测 |
+| 运行监控（正式目标） | `/api/admin/integrations/monitor` | 未来由真实探测器触发重新检测；**当前并未实现此目标端点/自动检测按钮** |
 | 身份与子系统映射 | `/api/admin/app-mappings` | 访问主体与子系统账号关系 |
 | 公告管理 | `/api/admin/announcements` | 草稿/发布/撤回 |
 | 日志审计 | `/api/admin/audit/*` | 登录、认证、操作、接口 |
