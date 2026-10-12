@@ -133,12 +133,13 @@ export function createPortalApi({repository=null,env=process.env}={}){
     if(path==='/api/portal/read'&&req.method==='GET'){
      const resource=url.searchParams.get('resource')||'';const result=await service.read(resource);
      if(result.ok&&resource.startsWith('logs:'))result.data=await repository.logs(resource.slice(5));
-     if(result.ok&&repository.mode==='DATABASE'&&resource.startsWith('auditVisitTrend?')&&repository.auditDayCounts){
-      const query=new URLSearchParams(resource.slice('auditVisitTrend?'.length));
+     if(result.ok&&repository.mode==='DATABASE'&&(resource.startsWith('auditVisitTrend?')||resource.startsWith('auditApiTrend?'))&&repository.auditDayCounts){
+      const apiTrend=resource.startsWith('auditApiTrend?');
+      const query=new URLSearchParams(resource.slice(apiTrend?'auditApiTrend?'.length:'auditVisitTrend?'.length));
       const startDate=query.get('startDate'),endDate=query.get('endDate');
       const {startAt,endAt}=visitTrendBounds(startDate,endDate);
       const counts=await repository.auditDayCounts(startAt,endAt);
-      result.data=visitTrendSeries(startDate,endDate,counts.map(item=>({date:item.day,count:item.access})));
+      result.data=visitTrendSeries(startDate,endDate,counts.map(item=>({date:item.day,count:Number(apiTrend?item.api:item.access)||0})));
      }
      if(result.ok&&repository.mode==='DATABASE'&&repository.auditDayCounts&&['auditTrends','adminHome'].includes(resource)){
       const days=await auditWindow();
