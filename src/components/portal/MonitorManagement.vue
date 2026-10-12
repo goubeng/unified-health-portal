@@ -2,7 +2,6 @@
   <section class="portal-list monitor-management">
     <Teleport to="#page-header-actions">
       <div class="monitor-header-view-switch" role="group" aria-label="运行监控视图切换">
-        <t-button v-if="canCheck" variant="outline" theme="primary" @click="openObservation()">录入检测结果</t-button>
         <t-button
           :theme="viewMode==='table'?'primary':'default'"
           :variant="viewMode==='table'?'base':'outline'"
@@ -120,18 +119,6 @@
       <EmptyState v-else description="暂无符合条件的运行监控记录"/>
     </section>
 
-    <section class="panel monitor-history-panel">
-      <div class="section-head"><h2>接入状态变更记录</h2><span>共 {{historyRows.length}} 条</span></div>
-      <t-table row-key="id" :data="pagedHistory" :columns="historyColumns" hover table-layout="fixed" size="medium">
-        <template #empty><EmptyState description="暂无状态变更记录；既有状态快照不补造历史"/></template>
-        <template #occurredAt="{row}">{{date(row.occurredAt)}}</template>
-        <template #fromStatus="{row}"><StatusTag :value="row.fromStatus"/></template>
-        <template #toStatus="{row}"><StatusTag :value="row.toStatus"/></template>
-        <template #reason="{row}"><TableCellTooltip :text="text(row.reason)||'-'"/></template>
-      </t-table>
-      <t-pagination v-model="historyPage" :page-size="10" :total="historyRows.length" :page-size-options="[10]" show-jumper/>
-    </section>
-
     <t-dialog
       v-model:visible="detailVisible"
       placement="center"
@@ -139,8 +126,9 @@
       width="min(1180px, calc(100vw - 48px))"
       :footer="false"
     >
-      <t-table
-        v-if="detail"
+      <t-tabs v-if="detail" v-model="detailTab" class="monitor-app-detail-tabs">
+        <t-tab-panel value="status" label="接入运行状态">
+          <t-table
         row-key="kind"
         :data="detailRows"
         :columns="detailColumns"
@@ -159,14 +147,12 @@
         <template #runStatus="{row}">
           <StatusTag :value="row.runStatus"/>
         </template>
-      </t-table>
-    </t-dialog>
-    <t-dialog v-model:visible="observationVisible" placement="center" header="录入检测结果" width="560px" :confirm-btn="{content:'保存',loading:observationSaving}" :close-on-overlay-click="false" @confirm="saveObservation">
-      <div v-if="observationError" role="alert" class="error-note">{{observationError}}</div>
-      <div class="form-field"><label>应用 <span class="portal-required">*</span></label><t-select v-model="observation.appId" filterable :options="observationApps" placeholder="请选择应用" @change="observation.kind=''"/></div>
-      <div class="form-field"><label>接入服务 <span class="portal-required">*</span></label><t-select v-model="observation.kind" :options="observationKinds" placeholder="请选择接入服务"/></div>
-      <div class="form-field"><label>检测结果 <span class="portal-required">*</span></label><t-select v-model="observation.status" :options="observationStatuses" placeholder="请选择检测结果"/></div>
-      <div class="form-field"><label>{{observation.status==='ABNORMAL'?'异常原因':'检测说明'}} <span v-if="observation.status==='ABNORMAL'" class="portal-required">*</span></label><t-textarea v-model="observation.reason" :autosize="{minRows:3,maxRows:6}" :maxlength="500"/></div>
+          </t-table>
+        </t-tab-panel>
+        <t-tab-panel value="history" label="状态变更记录">
+          <MonitorHistoryTable :rows="historyRows" :app-id="detail.appId"/>
+        </t-tab-panel>
+      </t-tabs>
     </t-dialog>
   </section>
 </template>
@@ -174,36 +160,17 @@
 <script setup>
 import {computed,defineComponent,h,ref,watch} from 'vue';
 import {Tag} from 'tdesign-vue-next';
-import {MessagePlugin} from 'tdesign-vue-next';
 import {AppIcon,LinkIcon,TaskIcon,MailIcon} from 'tdesign-icons-vue-next';
 import EmptyState from './EmptyState.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
 import {date,label,text,theme,dictionaryOptions} from './presentation.js';
-import {command} from '../../services/runtime.js';
+import MonitorHistoryTable from './MonitorHistoryTable.vue';
 
-const props=defineProps({rows:{type:Array,default:()=>[]},historyRows:{type:Array,default:()=>[]},canCheck:{type:Boolean,default:false}});
-const emit=defineEmits(['saved']);
+const props=defineProps({rows:{type:Array,default:()=>[]},historyRows:{type:Array,default:()=>[]}});
 const keyword=ref(''),ssoStatus=ref(''),todoStatus=ref(''),messageStatus=ref(''),viewMode=ref('table'),page=ref(1),pageSize=ref(10);
-const historyPage=ref(1),observationVisible=ref(false),observationSaving=ref(false),observationError=ref('');
-const observation=ref({appId:'',kind:'',status:'',reason:''});
-const observationApps=computed(()=>props.rows.filter(row=>row.appEnabled&&Object.values(row.services||{}).some(service=>service.enabled==='ENABLED'&&service.configStatus==='CONFIGURED')).map(row=>({value:row.appId,label:row.appName})));
-const observationKinds=computed(()=>{
-  const app=props.rows.find(row=>row.appId===observation.value.appId);
-  return kinds.filter(kind=>app?.services?.[kind]?.enabled==='ENABLED'&&app?.services?.[kind]?.configStatus==='CONFIGURED').map(value=>({value,label:value}));
-});
-const observationStatuses=[{value:'NORMAL',label:'正常'},{value:'ABNORMAL',label:'异常'}];
-const pagedHistory=computed(()=>props.historyRows.slice((historyPage.value-1)*10,historyPage.value*10));
-const historyColumns=[
-  {colKey:'occurredAt',title:'发生时间',width:170},
-  {colKey:'appName',title:'应用名称',minWidth:220,ellipsis:true},
-  {colKey:'kind',title:'接入服务',width:100},
-  {colKey:'fromStatus',title:'原状态',width:110},
-  {colKey:'toStatus',title:'新状态',width:110},
-  {colKey:'reason',title:'原因/说明',minWidth:220,ellipsis:true}
-];
 const defaultTableSort=()=>({sortBy:'lastCheckedAt',descending:true});
 const tableSort=ref(defaultTableSort());
-const detailVisible=ref(false),detail=ref(null),kinds=['SSO','TODO','MESSAGE'];
+const detailVisible=ref(false),detail=ref(null),detailTab=ref('status'),kinds=['SSO','TODO','MESSAGE'];
 const statusOptions=computed(()=>dictionaryOptions('runtime_status',['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED']));
 const monitorHealthTones={SSO:'blue',TODO:'green',MESSAGE:'purple'};
 const monitorHealthIcons={SSO:LinkIcon,TODO:TaskIcon,MESSAGE:MailIcon};
@@ -286,20 +253,7 @@ function handleSortChange(sort){
   page.value=1;
 }
 function reset(){keyword.value='';ssoStatus.value='';todoStatus.value='';messageStatus.value='';tableSort.value=defaultTableSort();page.value=1;}
-function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
-function openObservation(){observation.value={appId:'',kind:'',status:'',reason:''};observationError.value='';observationVisible.value=true;}
-async function saveObservation(){
-  const payload={...observation.value,reason:observation.value.reason.trim()};
-  if(!payload.appId||!payload.kind||!payload.status||(payload.status==='ABNORMAL'&&!payload.reason)){observationError.value='请填写应用、接入服务、检测结果及必填的异常原因';return;}
-  observationSaving.value=true;observationError.value='';
-  try{
-    const result=await command('recordMonitorObservation',payload);
-    if(!result.ok){observationError.value=result.error?.message||'保存失败';return;}
-    observationVisible.value=false;MessagePlugin.success('检测结果已记录');emit('saved');
-  }catch(error){observationError.value=error.message||'保存失败';}
-  finally{observationSaving.value=false;}
-}
+function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailTab.value='status';detailVisible.value=true;}
 watch([keyword,ssoStatus,todoStatus,messageStatus,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
-watch(()=>props.historyRows.length,()=>{historyPage.value=Math.min(historyPage.value,Math.max(1,Math.ceil(props.historyRows.length/10)));});
 </script>
