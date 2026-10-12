@@ -1,10 +1,11 @@
 <template>
   <t-dialog
     class="account-binding-dialog"
+    :class="{'account-binding-dialog--app-center':appCenter}"
     :visible="visible"
     placement="center"
     :header="`应用访问 · ${text(app?.name)||'应用'}`"
-    :width="DIALOG_MAX_WIDTH"
+    :width="appCenter?APP_CENTER_DIALOG_MAX_WIDTH:DIALOG_MAX_WIDTH"
     :footer="false"
     :close-on-overlay-click="false"
     @update:visible="updateVisible"
@@ -67,8 +68,9 @@ import {command} from '../../services/runtime.js';
 import {text} from './presentation.js';
 
 const DIALOG_MAX_WIDTH = 'min(calc(100vw - 24px), 420px)';
+const APP_CENTER_DIALOG_MAX_WIDTH = 'min(calc(100vw - 48px), 560px)';
 
-const props=defineProps({visible:Boolean,app:{type:Object,default:null}});
+const props=defineProps({visible:Boolean,app:{type:Object,default:null},appCenter:{type:Boolean,default:false}});
 const emit=defineEmits(['update:visible','completed','view-request']);
 
 const busy=ref(false),error=ref('');
@@ -300,6 +302,23 @@ body .account-binding-dialog .t-dialog {
   gap: 10px;
   margin-top: 18px;
   flex-wrap: wrap;
+}
+
+/* 仅PC应用中心来源：扩展账号关联对话框，并统一标题、正文距边框留白。 */
+.account-binding-dialog.account-binding-dialog--app-center.t-dialog__wrap .t-dialog,
+.account-binding-dialog.account-binding-dialog--app-center.t-dialog,
+body .account-binding-dialog.account-binding-dialog--app-center .t-dialog {
+  width: min(calc(100vw - 48px), 560px) !important;
+  max-width: min(calc(100vw - 48px), 560px) !important;
+}
+.account-binding-dialog.account-binding-dialog--app-center .t-dialog__header {
+  padding: 22px 28px 14px !important;
+}
+.account-binding-dialog.account-binding-dialog--app-center .t-dialog__body {
+  padding: 12px 28px 28px !important;
+}
+.account-binding-dialog.account-binding-dialog--app-center .t-dialog__close {
+  right: 20px !important;
 }
 
 @media (max-width: 640px) {

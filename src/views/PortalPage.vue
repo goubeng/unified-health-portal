@@ -184,7 +184,7 @@
    </section>
    </template>
   </t-loading>
-  <t-dialog v-model:visible="formVisible" placement="center" :header="formTitle" :width="formAction==='saveAnnouncement'?'min(1180px, calc(100vw - 48px))':formAction==='saveApp'?'min(1080px, calc(100vw - 48px))':'720px'" :confirm-btn="{content:formAction==='bind'?'核验并关联':formAction==='submitApplicationRequest'?'提交申请':formAction==='rejectApplicationRequest'?'确认驳回':'保存',loading:saving,disabled:saving}" :close-on-overlay-click="false" @confirm="saveForm">
+  <t-dialog v-model:visible="formVisible" :class="{'portal-pc-app-request-dialog':isAppCenter&&formAction==='submitApplicationRequest'}" placement="center" :header="formTitle" :width="formAction==='saveAnnouncement'?'min(1180px, calc(100vw - 48px))':formAction==='saveApp'?'min(1080px, calc(100vw - 48px))':isAppCenter&&formAction==='submitApplicationRequest'?'min(860px, calc(100vw - 48px))':'720px'" :confirm-btn="{content:formAction==='bind'?'核验并关联':formAction==='submitApplicationRequest'?'提交申请':formAction==='rejectApplicationRequest'?'确认驳回':'保存',loading:saving,disabled:saving}" :close-on-overlay-click="false" @confirm="saveForm">
    <p v-if="formAction==='bind'" class="inline-note">当前应用已在此账号的可见范围内。请输入已开通的子系统账号，提交后查看关联结果。</p>
    <p v-if="formAction==='submitApplicationRequest'" class="inline-note">申请应用：{{text(form.appName)}}。申请通过后，如目标系统还需要完成账号确认，门户会提示下一步操作。</p>
    <p v-if="formAction==='rejectApplicationRequest'" class="inline-note">请填写驳回原因。驳回后用户可在“我的申请”中查看并重新申请。</p>
@@ -197,8 +197,8 @@
    <AccessConfigDetail ref="accessConfigRef" :profile="accessProfile" @save="saveAccessIntegration"/>
    <template #footer><t-button theme="primary" :loading="accessSaving" :disabled="accessSaving" @click="accessConfigRef?.saveActive()">保存配置</t-button></template>
   </t-dialog>
-  <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp" @completed="handleBindingCompleted" @view-request="viewBindingRequests"/>
-  <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download" @request-action="handleRequestDetailAction"/>
+  <AccountBindingWizard v-model:visible="bindingVisible" :app="bindingApp" :app-center="isAppCenter" @completed="handleBindingCompleted" @view-request="viewBindingRequests"/>
+  <RecordDetail :visible="detailVisible" :record="detail" :kind="detailKind" :app-center="isAppCenter" :receiver="actor?.name" :access-profile="detailAccessProfile" :show-connection="admin&&detailKind==='apps'" @update:visible="closeDetail" @download="download" @request-action="handleRequestDetailAction"/>
  </div>
 </template>
 

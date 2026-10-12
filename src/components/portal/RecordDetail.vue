@@ -1,5 +1,5 @@
 <template>
-  <t-dialog class="portal-record-detail-dialog" placement="center" :visible="visible" :header="dialogTitle" :width="isRequestDetail?'1180px':kind==='messages'?'1120px':kind==='todos'?'900px':'920px'" :footer="isRequestDetail && requestActions.length > 0" @update:visible="$emit('update:visible',$event)">
+  <t-dialog class="portal-record-detail-dialog" :class="{'portal-pc-app-detail-dialog':appCenter&&kind==='apps'}" placement="center" :visible="visible" :header="dialogTitle" :width="isRequestDetail?'1180px':kind==='messages'?'1120px':kind==='todos'?'900px':kind==='apps'&&appCenter?'min(1080px, calc(100vw - 48px))':'920px'" :footer="isRequestDetail && requestActions.length > 0" @update:visible="$emit('update:visible',$event)">
     <template v-if="record">
       <TodoDetailContent v-if="kind==='todos'" :record="record"/>
       <article v-else-if="kind==='messages'" class="portal-message-letter">
@@ -78,7 +78,7 @@ import DetailGrid from './DetailGrid.vue';
 import TodoDetailContent from './TodoDetailContent.vue';
 import {text,label,date,titles,display,richText,theme} from './presentation.js';
 import {requestDetailSections,requestDetailActions} from './request-detail.js';
-const props=defineProps({visible:Boolean,record:Object,kind:String,receiver:String,accessProfile:{type:Object,default:null},showConnection:{type:Boolean,default:false}});
+const props=defineProps({visible:Boolean,record:Object,kind:String,receiver:String,appCenter:{type:Boolean,default:false},accessProfile:{type:Object,default:null},showConnection:{type:Boolean,default:false}});
 const emit=defineEmits(['update:visible','download','request-action']);
 const auditTitles={
   'logs:login':'登录/认证日志详情',
