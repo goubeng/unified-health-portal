@@ -58,6 +58,21 @@ export function visitTrendSeries(startDate,endDate,rows,now=new Date()){
  return days;
 }
 
+/** 按北京时间统计每日接口调用次数，与管理首页 API 趋势的计数口径一致（包含成功与失败）。 */
+export function apiTrendFromLogs(startDate,endDate,logs,now=new Date()){
+ const days=visitTrendDays(startDate,endDate,now);
+ const byDate=new Map(days.map(item=>[item.date,item]));
+ const cutoff=new Date(now).getTime();
+ for(const log of logs||[]){
+  if(String(log?.kind||'').toLowerCase()!=='api')continue;
+  const time=Date.parse(log.createdAt);
+  if(!Number.isFinite(time)||time>cutoff)continue;
+  const day=byDate.get(chinaDayKey(time));
+  if(day)day.count++;
+ }
+ return days;
+}
+
 export function visitTrendFromLogs(startDate,endDate,logs,now=new Date()){
  const days=visitTrendDays(startDate,endDate,now);
  const byDate=new Map(days.map(x=>[x.date,x]));
