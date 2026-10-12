@@ -40,33 +40,7 @@
         </dl>
       </section>
       <template v-else>
-        <t-tabs v-if="showStatusHistory" v-model="appTab" class="portal-app-detail-tabs">
-          <t-tab-panel value="info" label="应用信息">
-            <div class="portal-generic-detail">
-              <h3 class="portal-detail-section-title">基本信息</h3>
-              <DetailGrid :items="appDetails">
-                <template #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
-                <template #aggregateRuntimeStatus="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
-              </DetailGrid>
-              <section class="portal-app-connection-detail">
-                <h3 class="portal-detail-section-title">连接信息</h3>
-                <div class="portal-connection-table">
-                  <div class="portal-connection-row is-head"><span>接入类型</span><span>接入方式</span><span>配置状态</span><span>启用状态</span></div>
-                  <div v-for="item in connectionRows" :key="item.kind" class="portal-connection-row">
-                    <strong>{{item.kind}}</strong>
-                    <span>{{item.mode}}</span>
-                    <span><t-tag :theme="theme(item.status)" variant="light">{{label(item.status)}}</t-tag></span>
-                    <span><t-tag :theme="theme(item.enabledState)" variant="light">{{label(item.enabledState,'enable_status')}}</t-tag></span>
-                  </div>
-                </div>
-              </section>
-            </div>
-          </t-tab-panel>
-          <t-tab-panel value="history" label="状态变更记录">
-            <MonitorHistoryTable :rows="historyRows" :app-id="record.id"/>
-          </t-tab-panel>
-        </t-tabs>
-        <div v-else class="portal-generic-detail">
+        <div class="portal-generic-detail">
           <h3 v-if="showBasicSectionTitle" class="portal-detail-section-title">基本信息</h3>
           <DetailGrid :items="kind==='apps'?appDetails:(isMonitorException?monitorExceptionDetails:(isAuditLog?auditDetails:details))">
             <template v-if="kind==='apps'||isMonitorException" #enabled="{item}"><t-tag :theme="theme(item.state)" variant="light">{{item.value}}</t-tag></template>
@@ -98,18 +72,14 @@
   </t-dialog>
 </template>
 <script setup>
-import {computed,ref,watch} from 'vue';
+import {computed} from 'vue';
 import {Icon} from 'tdesign-icons-vue-next';
 import DetailGrid from './DetailGrid.vue';
 import TodoDetailContent from './TodoDetailContent.vue';
-import MonitorHistoryTable from './MonitorHistoryTable.vue';
 import {text,label,date,titles,display,richText,theme} from './presentation.js';
 import {requestDetailSections,requestDetailActions} from './request-detail.js';
-const props=defineProps({visible:Boolean,record:Object,kind:String,receiver:String,appCenter:{type:Boolean,default:false},accessProfile:{type:Object,default:null},showConnection:{type:Boolean,default:false},showStatusHistory:{type:Boolean,default:false},historyRows:{type:Array,default:()=>[]}});
+const props=defineProps({visible:Boolean,record:Object,kind:String,receiver:String,appCenter:{type:Boolean,default:false},accessProfile:{type:Object,default:null},showConnection:{type:Boolean,default:false}});
 const emit=defineEmits(['update:visible','download','request-action']);
-const appTab=ref('info');
-watch(()=>props.record?.id,()=>{appTab.value='info';});
-watch(()=>props.visible,value=>{if(value)appTab.value='info';});
 const auditTitles={
   'logs:login':'登录/认证日志详情',
   'logs:access':'应用访问日志详情',
