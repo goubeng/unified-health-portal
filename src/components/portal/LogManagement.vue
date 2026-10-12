@@ -1,6 +1,6 @@
 <template>
   <section class="portal-list log-management">
-    <LoginVisitTrend v-if="kind==='login'"/>
+    <LoginVisitTrend v-if="kind==='login'||kind==='api'" :key="kind" :kind="kind"/>
     <t-form layout="inline" class="portal-query list-toolbar">
       <t-form-item class="portal-query-keyword query-width-keyword" label="关键词">
         <t-input v-model="keyword" clearable :placeholder="keywordPlaceholder"/>
