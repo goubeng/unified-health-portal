@@ -1719,9 +1719,7 @@
   .portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-third,.portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-half{grid-column:1/-1}
 }
 
-/* PC管理端：应用详情和运行监控详情的 Tab 导航与正文/表格保持统一间距。
- * 只影响两个详情弹窗的内容区域，不改变 Tab 高度和其他页面布局。 */
-.portal-record-detail-dialog .portal-app-detail-tabs > .t-tabs__content,
+/* PC管理端运行监控详情：保留 Tab 导航与状态/历史表格之间的统一间距。 */
 .monitor-app-detail-tabs > .t-tabs__content {
   padding-top: 20px !important;
 }
