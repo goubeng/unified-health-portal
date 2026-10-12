@@ -80,7 +80,8 @@
 | 运行监控（正式目标） | `/api/admin/integrations/monitor` | 未来由真实探测器触发重新检测；**当前并未实现此目标端点/自动检测按钮** |
 | 身份与子系统映射 | `/api/admin/app-mappings` | 访问主体与子系统账号关系 |
 | 公告管理 | `/api/admin/announcements` | 草稿/发布/撤回 |
-| 日志审计 | `/api/admin/audit/*` | 登录、认证、操作、接口 |
+| 日志审计（正式目标） | `/api/admin/audit/*` | 登录、认证、应用访问、操作、接口和异常日志的统一检索 |
+| 访问趋势（现行） | `GET /api/portal/read?resource=auditVisitTrend%3FstartDate%3DYYYY-MM-DD%26endDate%3DYYYY-MM-DD` | `audit:view` 权限；按北京时间范围每日聚合成功进入门户次数，数据库直接聚合审计事件，不读取受限的日志列表 |
 
 ## 6. 历史 Mock → 正式后端替换重点（以下“当前形态”指原设计时点）
 
