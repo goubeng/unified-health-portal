@@ -91,13 +91,12 @@
         tabindex="-1"
       >
         <header class="mobile-todo-detail-header">
-          <h2 id="mobile-todo-detail-title">待办详情</h2>
+          <h2 id="mobile-todo-detail-title">{{ text(active.title) || '-' }}</h2>
           <button type="button" class="mobile-todo-detail-close" aria-label="关闭待办详情" @click="closeDetail">
             <CloseIcon aria-hidden="true" />
           </button>
         </header>
         <div class="mobile-todo-detail-content">
-          <h3>{{ text(active.title) || '-' }}</h3>
           <dl class="mobile-todo-detail-meta">
             <div><dt>来源应用</dt><dd>{{ text(active.appName) || '-' }}</dd></div>
             <div><dt>业务类型</dt><dd>{{ label(active.businessType, 'todo_task_type') }}</dd></div>

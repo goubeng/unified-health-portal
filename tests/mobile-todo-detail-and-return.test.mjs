@@ -16,6 +16,10 @@ test('移动端待办卡片与首页待办可打开PC字段一致的详情弹窗
   assert.match(pc, /record\.summary/);
   assert.match(todo, /active\.summary/);
   assert.match(todo, /class="mobile-todo-detail-dialog"/);
+  assert.match(todo, /<h2 id="mobile-todo-detail-title">\{\{ text\(active\.title\) \|\| '-' \}\}<\/h2>/);
+  assert.doesNotMatch(todo, /<h2 id="mobile-todo-detail-title">待办详情<\/h2>/);
+  assert.doesNotMatch(todo, /<h3>\{\{ text\(active\.title\)/);
+  assert.match(style, /\.mobile-todo-detail-header h2\s*\{[^}]*overflow-wrap:\s*anywhere/);
   assert.match(todo, /role="dialog"/);
   assert.match(todo, /aria-modal="true"/);
   assert.match(todo, /<footer v-if="active\.status === 'PENDING'" class="mobile-todo-detail-footer">/);
