@@ -32,7 +32,7 @@
 | `/api/todos/*` | 当前访问主体待办 |
 | `/api/messages/*` | 当前访问主体消息 |
 | `/api/announcements/*` | 用户端公告 |
-| `/api/apps/*` | 用户端应用中心 |
+| `/api/apps/*` | 用户端全部应用 |
 | `/api/admin/*` | 管理端 |
 | `/api/integration/v1/*` | 子系统接入 |
 
@@ -62,7 +62,7 @@
 | 标记已读 | `PATCH /api/messages/{id}/read` | 当前用户状态 |
 | 批量已读 | `POST /api/messages/batch-read` | 当前用户状态 |
 | 公告列表 | `GET /api/announcements` | 仅返回当前有效公告 |
-| 应用中心 | `GET /api/apps` | 应用 + 当前用户访问能力 |
+| 全部应用 | `GET /api/apps` | 应用 + 当前用户访问能力 |
 | 我的应用 | `GET /api/apps/my` | 已具备入口资格/映射 |
 | 应用映射 | `GET /api/apps/{id}/mapping` | 当前访问主体映射 |
 | 发起关联 | `POST /api/apps/{id}/mapping-requests` | 关联/开户注册流程 |
