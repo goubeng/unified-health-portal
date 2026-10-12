@@ -55,7 +55,11 @@ const isApplicationsList = computed(() => route.path === '/m/applications' || ro
 const activeTab = computed(() => {
   const path = route.path;
   if (path.startsWith('/m/announcements')) return '/m/home';
-  if (path.startsWith('/m/applications')) return '/m/profile';
+  if (path.startsWith('/m/applications')) {
+    if (route.query.from === 'apps') return '/m/apps';
+    if (route.query.from === 'home') return '/m/home';
+    return '/m/profile';
+  }
   return tabs.find((item) => path === item.path)?.path || '/m/home';
 });
 

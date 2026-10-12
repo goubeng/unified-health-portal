@@ -14,7 +14,7 @@
         <div class="mobile-home-section-head">
           <div><h2>我的应用</h2></div>
           <div class="mobile-home-section-actions">
-            <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications')">
+            <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications?from=home')">
               <FileIcon class="my-requests-icon" aria-hidden="true" />
               <span>我的申请</span>
             </button>

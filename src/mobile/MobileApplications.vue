@@ -276,7 +276,7 @@ const bindingApp = ref<App | null>(null);
 const accessRows = computed(() => rows.value.filter(item => item.requestType === 'APPLICATION_ACCESS'));
 const openingRows = computed(() => rows.value.filter(item => item.requestType === 'ACCOUNT_OPENING'));
 const visibleRows = computed(() => tab.value === 'APPLICATION_ACCESS' ? accessRows.value : openingRows.value);
-const returnOriginQuery = computed(() => route.query.from === 'apps' ? { from: 'apps' } : {});
+const returnOriginQuery = computed(() => ['apps', 'home'].includes(String(route.query.from || '')) ? { from: String(route.query.from) } : {});
 
 function openDetail(item: Request) {
   router.push({ path: `/m/applications/${encodeURIComponent(item.id)}`, query: { ...returnOriginQuery.value, tab: tab.value } });
@@ -285,7 +285,7 @@ function goBack() {
   if (isDetailPage.value) {
     router.push({ path: '/m/applications', query: { ...returnOriginQuery.value, tab: tab.value } });
   } else {
-    router.push(route.query.from === 'apps' ? '/m/apps' : '/m/profile');
+    router.push(route.query.from === 'apps' ? '/m/apps' : route.query.from === 'home' ? '/m/home' : '/m/profile');
   }
 }
 function performDetailAction(action: string) {

@@ -1,5 +1,5 @@
 <template>
-  <t-dialog class="portal-record-detail-dialog" :class="{'portal-pc-app-detail-dialog':appCenter&&kind==='apps'}" placement="center" :visible="visible" :header="dialogTitle" :width="isRequestDetail?'1180px':kind==='messages'?'1120px':kind==='todos'?'900px':kind==='apps'&&appCenter?'min(1080px, calc(100vw - 48px))':'920px'" :footer="isRequestDetail && requestActions.length > 0" @update:visible="$emit('update:visible',$event)">
+  <t-dialog class="portal-record-detail-dialog" :class="{'portal-pc-app-detail-dialog':appCenter&&kind==='apps'}" placement="center" :visible="visible" :header="dialogTitle" :width="isRequestDetail?'1180px':kind==='messages'?'1120px':kind==='todos'?'900px':kind==='apps'&&appCenter?'min(960px, calc(100vw - 48px))':'920px'" :footer="isRequestDetail && requestActions.length > 0" @update:visible="$emit('update:visible',$event)">
     <template v-if="record">
       <TodoDetailContent v-if="kind==='todos'" :record="record"/>
       <article v-else-if="kind==='messages'" class="portal-message-letter">

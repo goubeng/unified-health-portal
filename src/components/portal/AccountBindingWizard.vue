@@ -203,14 +203,14 @@ watch(()=>props.app?.id,async()=>{
 </script>
 
 <style>
-/* 弹窗居中与防溢出样式保障（覆盖PC端与移动端） */
+/* PC账号关联弹窗统一桌面直角边框；APP端使用独立的MobileAccountBindingModal。 */
 .account-binding-dialog.t-dialog__wrap .t-dialog,
 .account-binding-dialog.t-dialog,
 body .account-binding-dialog .t-dialog {
   width: min(calc(100vw - 24px), 420px) !important;
   max-width: min(calc(100vw - 24px), 420px) !important;
   box-sizing: border-box !important;
-  border-radius: 14px !important;
+  border-radius: 0 !important;
   margin-inline: auto !important;
 }
 
@@ -223,14 +223,14 @@ body .account-binding-dialog .t-dialog {
 }
 
 .account-binding-dialog .t-dialog__header {
-  padding: 18px 20px 12px !important;
+  padding: 18px 20px 8px !important;
   font-size: 16px !important;
   font-weight: 600 !important;
   color: #1a2d48 !important;
 }
 
 .account-binding-dialog .t-dialog__body {
-  padding: 10px 20px 20px !important;
+  padding: 8px 20px 20px !important;
 }
 
 .account-binding-dialog .t-dialog__close {
@@ -312,13 +312,13 @@ body .account-binding-dialog.account-binding-dialog--app-center .t-dialog {
   max-width: min(calc(100vw - 48px), 560px) !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__header {
-  padding: 22px 28px 14px !important;
+  padding: 18px 20px 8px !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__body {
-  padding: 12px 28px 28px !important;
+  padding: 8px 20px 20px !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__close {
-  right: 20px !important;
+  right: 16px !important;
 }
 
 @media (max-width: 640px) {

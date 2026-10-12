@@ -41,13 +41,18 @@ test('移动端待办卡片与首页待办可打开PC字段一致的详情弹窗
 
 test('移动端我的页面移除申请入口，全部应用申请返回来源正确', () => {
   const profile = read('src/mobile/MobileProfile.vue');
+  const home = read('src/mobile/MobileHome.vue');
+  const shell = read('src/mobile/MobileShell.vue');
   const apps = read('src/mobile/MobileApps.vue');
   const applications = read('src/mobile/MobileApplications.vue');
   assert.doesNotMatch(profile, /我的服务|mobile-profile-link/);
   assert.match(profile, /个人资料/);
   assert.match(profile, /退出登录/);
   assert.match(apps, /query: \{ from: 'apps' \}/);
+  assert.match(home, /go\('\/m\/applications\?from=home'\)/);
+  assert.match(shell, /route\.query\.from === 'home'/);
+  assert.match(applications, /\['apps', 'home'\]\.includes/);
   assert.match(applications, /route\.query\.from === 'apps'/);
   assert.match(applications, /\.\.\.returnOriginQuery\.value, tab: tab\.value/);
-  assert.match(applications, /router\.push\(route\.query\.from === 'apps' \? '\/m\/apps' : '\/m\/profile'\)/);
+  assert.match(applications, /router\.push\(route\.query\.from === 'apps' \? '\/m\/apps' : route\.query\.from === 'home' \? '\/m\/home' : '\/m\/profile'\)/);
 });
