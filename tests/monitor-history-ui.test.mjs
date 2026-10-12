@@ -8,12 +8,14 @@ const detail=readFileSync(new URL('../src/components/portal/RecordDetail.vue',im
 const history=readFileSync(new URL('../src/components/portal/MonitorHistoryTable.vue',import.meta.url),'utf8');
 const service=readFileSync(new URL('../src/services/portal.js',import.meta.url),'utf8');
 
-test('状态变更记录按照应用呈现于运行监控及管理端应用详情页签',()=>{
+test('状态变更记录只在运行监控详情页签显示，应用列表详情直接展示应用信息',()=>{
  assert.match(page,/tasks\.monitorHistory=read\('monitorHistory'\)/);
- assert.match(page,/isAdmin&&key==='apps'&&can\(actor\.value,'monitor:view'\)/);
+ assert.doesNotMatch(page,/:show-status-history=/);
+ assert.doesNotMatch(page,/isAdmin&&key==='apps'&&can\(actor\.value,'monitor:view'\)/);
  assert.match(monitor,/<t-tab-panel value="history" label="状态变更记录">/);
- assert.match(detail,/<t-tab-panel value="history" label="状态变更记录">/);
- assert.match(detail,/:app-id="record\.id"/);
+ assert.doesNotMatch(detail,/<t-tabs|状态变更记录|MonitorHistoryTable/);
+ assert.match(detail,/<div class="portal-generic-detail">/);
+ assert.match(detail,/v-if="showConnection&&kind==='apps'"/);
  assert.match(history,/String\(row\.appId\)===String\(props\.appId\)/);
  for(const field of ['occurredAt','kind','fromStatus','toStatus','reason'])assert.match(history,new RegExp(`colKey:'${field}'`));
  assert.doesNotMatch(monitor,/monitor-history-panel/);
