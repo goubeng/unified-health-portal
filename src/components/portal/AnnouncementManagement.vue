@@ -81,6 +81,8 @@
               enable-time-picker
               format="YYYY-MM-DD HH:mm:ss"
               value-type="YYYY-MM-DD HH:mm:ss"
+              :disable-date="disablePastPublishDate"
+              :disable-time="disablePastPublishTime"
               placeholder="请选择未来发布时间"
             />
           </div>
@@ -111,7 +113,7 @@
         </t-radio-group>
         <div v-if="publishMode==='SCHEDULED'" class="form-field">
           <label>定时发布时间 <span class="portal-required">*</span></label>
-          <t-date-picker v-model="scheduledPublishAt" enable-time-picker format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择未来时间"/>
+          <t-date-picker v-model="scheduledPublishAt" enable-time-picker format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" :disable-date="disablePastPublishDate" :disable-time="disablePastPublishTime" placeholder="请选择未来时间"/>
         </div>
       </div>
     </t-dialog>
@@ -141,6 +143,7 @@ import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
 import AnnouncementEditPage from './AnnouncementEditPage.vue';
 import {date,dateOnly,label,text,dictionaryOptions} from './presentation.js';
+import {disablePastPublishDate,disablePastPublishTime,isFuturePublishTime} from '../../utils/announcementSchedule.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},typeItems:{type:Array,default:()=>[]}});
@@ -241,6 +244,7 @@ async function saveAndPublish(){
   if(!form.title?.trim()){formError.value='请填写公告标题';return;}
   if(!String(form.content||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/gi,' ').trim()){formError.value='请填写公告正文';return;}
   if(form.publishMode==='SCHEDULED'&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
+  if(form.publishMode==='SCHEDULED'&&!isFuturePublishTime(form.scheduledPublishAt)){formError.value='定时发布时间必须晚于当前时间';return;}
   saving.value=true;formError.value='';
   try{
     const attachments=await normalizeFiles(uploadFiles.value,form.attachments||[]);
@@ -264,6 +268,7 @@ async function saveAndPublish(){
 async function submitAnnouncement(){
   if(!submitRow.value||saving.value)return;
   if(publishMode.value==='SCHEDULED'&&!scheduledPublishAt.value){formError.value='请选择定时发布时间';return;}
+  if(publishMode.value==='SCHEDULED'&&!isFuturePublishTime(scheduledPublishAt.value)){formError.value='定时发布时间必须晚于当前时间';return;}
   saving.value=true;formError.value='';
   const result=await command('submitAnnouncement',{
     id:submitRow.value.id,version:submitRow.value.version,publishMode:publishMode.value,
