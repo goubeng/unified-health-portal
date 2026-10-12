@@ -314,25 +314,28 @@ body .account-binding-dialog.account-binding-dialog--app-center .t-dialog {
   padding: 24px 28px !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__header {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
   margin: 0 0 16px !important;
-  padding: 0 28px 0 0 !important;
+  padding: 0 !important;
+}
+.account-binding-dialog.account-binding-dialog--app-center .t-dialog__header-content {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__body {
   padding: 0 !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__close {
-  top: 20px !important;
-  right: 22px !important;
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
 }
 @media (max-width: 720px) {
   .account-binding-dialog.account-binding-dialog--app-center.t-dialog__wrap .t-dialog,
   .account-binding-dialog.account-binding-dialog--app-center.t-dialog,
   body .account-binding-dialog.account-binding-dialog--app-center .t-dialog {
     padding: 18px !important;
-  }
-  .account-binding-dialog.account-binding-dialog--app-center .t-dialog__close {
-    top: 14px !important;
-    right: 12px !important;
   }
 }
 
