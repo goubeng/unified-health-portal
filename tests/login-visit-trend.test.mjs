@@ -53,11 +53,12 @@ test('按审计权限读取登录访问趋势，普通用户无权查看',async(
  const admin=state.users.find(x=>x.id==='MOCK_ADMIN');
  const user=state.users.find(x=>x.id==='MOCK_USER_1');
  assert(admin&&user);
- const resource='auditVisitTrend?startDate=2026-10-10&endDate=2026-10-12';
+ const [startDate,endDate]=visitTrendPreset('7d');
+ const resource=`auditVisitTrend?startDate=${startDate}&endDate=${endDate}`;
  const service=createPortalService({kind:'mock',read:()=>structuredClone(state)},()=>admin);
  const result=await service.read(resource);
  assert.equal(result.ok,true);
- assert.equal(result.data.length,3);
+ assert.equal(result.data.length,7);
  const unauthorized=createPortalService({kind:'mock',read:()=>structuredClone(state)},()=>user);
  assert.equal((await unauthorized.read(resource)).ok,false);
 });
