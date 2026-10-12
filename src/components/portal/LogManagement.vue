@@ -109,7 +109,7 @@ const keywordPlaceholder=computed(()=>({
 }[props.kind]||'关键词'));
 
 const searchFields=computed(()=>({
-  login:['userName','account','requestId','failureReason','actionName'],access:['userName','account','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
+  login:['userName','account','requestId','failureReason'],access:['userName','account','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
   api:['interfaceName','requestId','errorMessage'],error:['errorCode','errorMessage','moduleName','requestId','resolutionNote']
 }[props.kind]||['description','requestId']));
 const compareLogRows=(a,b,key)=>{
@@ -124,7 +124,7 @@ const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
   const result=props.rows.filter(row=>{
     const matchesKeyword=!term||searchFields.value.some(key=>auditText(row[key]).toLowerCase().includes(term));
-    return matchesKeyword&&(!appName.value||row.appName===appName.value)&&(!status.value||row.status===status.value)&&(!resolutionStatus.value||row.resolutionStatus===resolutionStatus.value)
+    return matchesKeyword&&(!showAppFilter.value||!appName.value||row.appName===appName.value)&&(props.kind==='error'||!status.value||row.status===status.value)&&(!resolutionStatus.value||row.resolutionStatus===resolutionStatus.value)
       &&(props.kind!=='login'||(!eventType.value||loginActionText(row)===eventType.value)&&(!identitySource.value||row.identitySource===identitySource.value)&&(!authType.value||row.authType===authType.value));
   });
   const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
@@ -209,5 +209,6 @@ async function resolveError(){
   resolveVisible.value=false;MessagePlugin.success('异常已处理');emit('saved');
 }
 watch([keyword,appName,status,resolutionStatus,eventType,identitySource,authType,pageSize],()=>{page.value=1;});
+watch(()=>props.kind,reset);
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 </script>
