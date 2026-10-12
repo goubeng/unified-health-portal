@@ -11,7 +11,7 @@ test('V20260921-01 uses resource action permissions as frontend authority',()=>{
   const service=read('src/services/portal.js');
 
   assert(pages.includes('rolePermissionGroups'));
-  for(const code of ['application:view','admin-user:assign-role','announcement:publish','integration:test','monitor:check']){
+  for(const code of ['application:view','admin-user:assign-role','announcement:publish','integration:test','monitor:view']){
     assert(pages.includes(code),'缺少权限码 '+code);
   }
   assert(roles.includes('selectedPermissions'));

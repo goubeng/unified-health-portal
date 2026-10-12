@@ -103,7 +103,7 @@
       </div>
       <div v-if="filtered.length" class="monitor-visual-grid">
         <button v-for="row in filtered" :key="row.id" type="button" class="monitor-visual-card" @click="openDetail(row)">
-          <span class="monitor-visual-name" :title="text(row.appName)">{{text(row.appName)}}</span>
+          <span class="monitor-visual-name">{{text(row.appName)}}</span>
           <span class="monitor-visual-status-grid">
             <t-tag
               v-for="kind in kinds"

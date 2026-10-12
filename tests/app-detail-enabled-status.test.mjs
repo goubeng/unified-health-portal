@@ -7,7 +7,7 @@ const source=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
 test('application enabled boolean is mapped to a Chinese status tag',()=>{
  assert.match(source,/row\.enabled===true\?'ENABLED':row\.enabled===false\?'DISABLED':'UNCONFIGURED'/);
  assert.match(source,/\{key:'enabled',label:'启用状态',value:label\(enabledState,'enable_status'\),state:enabledState\}/);
- assert.match(source,/<template v-if="kind==='apps'" #enabled="\{item\}"><t-tag :theme="theme\(item\.state\)" variant="light">\{\{item\.value\}\}<\/t-tag><\/template>/);
+ assert.match(source,/<template v-if="kind==='apps'(\|\|isMonitorException)?" #enabled="\{item\}"><t-tag :theme="theme\(item\.state\)" variant="light">\{\{item\.value\}\}<\/t-tag><\/template>/);
 });
 
 test('each connection enabled state uses the same Chinese status label and tag',()=>{

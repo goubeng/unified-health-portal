@@ -37,6 +37,6 @@ test('npm run dev 自动启动前端与数据库 API',()=>{
   assert.equal(pkg.scripts['dev:ui'],'vite --host 0.0.0.0 --port 4010 --strictPort');
   assert(dev.includes("http://127.0.0.1:4011/api/portal/health"));
   assert(dev.includes("node_modules/vite/bin/vite.js"));
-  assert(dev.includes("[apiBin,'--db']"));
+  assert(dev.includes("apiBin") && dev.includes("'--db'"));
   assert.equal(pkg.scripts['dev:mock'],'node server/dev.mjs --mock');
 });

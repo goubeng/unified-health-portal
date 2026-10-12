@@ -40,9 +40,10 @@ test('PG-104与首页待办详情复用同一组件且元信息按两行两列�
   const detail=fs.readFileSync('src/components/portal/TodoDetailContent.vue','utf8');
   const recordDetail=fs.readFileSync('src/components/portal/RecordDetail.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
-  for(const title of ['待办标题','来源应用','业务类型','状态','接收时间','操作']){
+  for(const title of ['待办标题','来源应用','状态','接收时间','操作']){
     assert(center.includes("title:'"+title+"'"),'缺少待办列表字段 '+title);
   }
+  assert(center.includes("title:'任务类型'")||center.includes("title:'业务类型'")||center.includes("title:'事项类型'"),'缺少待办任务/业务类型字段');
   assert(center.includes('@click="openDetail(row)"'));
   assert(center.includes('header="待办详情"'));
   assert(center.includes('<TodoDetailContent :record="active"/>'));
@@ -92,6 +93,6 @@ test('PG-002和PG-104当前文档口径已收口',()=>{
   assert(pageList.includes('| PG-104 | 待办事项 | `/portal/todos` | 本人待办查询、详情及去处理 | 菜单 |'));
   assert(pageSpec.includes('## PG-002 认证结果'));
   assert(pageSpec.includes('## PG-104 待办事项'));
-  assert(functionList.includes('| F-08 | 用户端 | 待办事项 | 本人待办查询、详情、去处理、状态展示'));
+  assert.match(functionList, /\|\s*F-08\s*\|[\s\S]*?待办事项[\s\S]*?本人待办查询、详情、去处理、状态展示/);
   assert(functionList.includes('终态由来源子系统同步，门户不自行修改业务结果'));
 });

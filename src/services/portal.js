@@ -6,6 +6,7 @@ import {integrationFields,integrationOptionalFields,terminalStatuses} from '../c
 import {validateLocalPassword} from '../config/password-policy.js';
 import {auditActionNames,auditActionPages} from '../config/audit-activity.js';
 import {countRowsByChinaDay} from '../utils/chinaCalendar.mjs';
+import {isSystemDictionaryType} from '../config/dictionary-catalog.js';
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const own=(x,a)=>x.userId===a.id;
@@ -319,20 +320,26 @@ export function createPortalService(provider,getActor){
      d.organizations=d.organizations.filter(org=>org.id!==x.id);result={id:x.id};
     }else if(action==='saveDictionaryType'){
      if(!p.code?.trim()||!p.name?.trim())fail('VALIDATION_ERROR','字典编码与名称为必填');
+     if(p.status&&!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','请选择有效的启用状态');
      if((d.dictTypes||[]).some(type=>type.code===p.code.trim()&&type.id!==p.id))fail('VALIDATION_ERROR','字典编码已存在');
      const current=p.id?requireRow(d.dictTypes,p.id,p.version):null;
-     if(current?.systemLocked&&(p.code!==current.code||p.systemLocked===false))fail('INVALID_TRANSITION','系统受控字典不允许修改编码或解除锁定');
-     const x=current||{id:id(),version:0,createdAt:now,systemLocked:false};
-     Object.assign(x,{code:p.code.trim(),name:p.name.trim(),description:p.description?.trim()||'',status:p.status||'ENABLED',sortOrder:Number(p.sortOrder)||0});
+     const isLocked=Boolean(current?.systemLocked||isSystemDictionaryType(p.code?.trim()));
+     if(isLocked&&(p.code!==current?.code||p.systemLocked===false))fail('INVALID_TRANSITION','系统受控字典不允许修改编码或解除锁定');
+     if(isLocked&&p.status==='DISABLED')fail('INVALID_TRANSITION','系统受控字典类型不可停用');
+     const x=current||{id:id(),version:0,createdAt:now,systemLocked:isLocked};
+     Object.assign(x,{code:p.code.trim(),name:p.name.trim(),description:p.description?.trim()||'',status:p.status||'ENABLED',sortOrder:Number(p.sortOrder)||0,systemLocked:isLocked});
      stamp(x);if(!current)d.dictTypes.push(x);result=x;
     }else if(action==='saveDictionaryItem'){
      if(!p.typeCode?.trim()||!p.label?.trim()||!p.value?.trim())fail('VALIDATION_ERROR','字典类型、标签和值为必填');
+     if(p.status&&!['ENABLED','DISABLED'].includes(p.status))fail('VALIDATION_ERROR','请选择有效的启用状态');
      const type=(d.dictTypes||[]).find(item=>item.code===p.typeCode);if(!type)fail('VALIDATION_ERROR','字典类型不存在');
      if((d.dictItems||[]).some(item=>item.typeCode===p.typeCode&&item.value===p.value.trim()&&item.id!==p.id))fail('VALIDATION_ERROR','同一字典类型下值不能重复');
      const current=p.id?requireRow(d.dictItems,p.id,p.version):null;
-     if(type.systemLocked&&!current)fail('INVALID_TRANSITION','系统受控字典不能新增代码未支持的值');
-     if(current&&current.typeCode!==p.typeCode&&(current.systemLocked||type.systemLocked))fail('INVALID_TRANSITION','系统受控字典项不允许转移分类');
+     const isTypeLocked=Boolean(type.systemLocked||isSystemDictionaryType(p.typeCode));
+     if(isTypeLocked&&!current)fail('INVALID_TRANSITION','系统受控字典不能新增代码未支持的值');
+     if(current&&current.typeCode!==p.typeCode&&(current.systemLocked||isTypeLocked))fail('INVALID_TRANSITION','系统受控字典项不允许转移分类');
      if(current?.systemLocked&&p.value!==current.value)fail('INVALID_TRANSITION','系统受控字典值不可修改');
+     if((current?.systemLocked||isTypeLocked)&&p.status==='DISABLED')fail('INVALID_TRANSITION','系统受控字典项不可停用');
      if(current?.typeCode==='todo_task_type'&&p.value!==current.value&&(d.todos||[]).some(todo=>todo.businessType===current.value))fail('INVALID_TRANSITION','该待办任务类型仍被待办引用，不能修改编码');
      if(current?.typeCode==='todo_task_type'&&p.typeCode!==current.typeCode&&(d.todos||[]).some(todo=>todo.businessType===current.value))fail('INVALID_TRANSITION','该待办任务类型仍被待办引用，不能转移分类');
      const x=current||{id:id(),version:0,createdAt:now,systemLocked:Boolean(type.systemLocked)};

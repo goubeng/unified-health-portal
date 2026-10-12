@@ -11,7 +11,7 @@ const SUPER_PERMISSIONS=[
  'announcement:view','announcement:edit','announcement:publish',
  'admin-user:view','admin-user:enable','admin-user:create','admin-user:assign-role','admin-user:reset-password',
  'organization:view','organization:edit','dictionary:view','dictionary:edit',
- 'monitor:view','monitor:check','audit:view','audit:resolve',
+ 'monitor:view','audit:view','audit:resolve',
  'role:view','role:edit','settings:view','settings:edit','system:super'
 ];
 const PORTAL_ADMIN_PERMISSIONS=[
@@ -21,7 +21,7 @@ const PORTAL_ADMIN_PERMISSIONS=[
  'announcement:view','announcement:edit','announcement:publish',
  'admin-user:view','admin-user:enable',
  'organization:view','organization:edit','dictionary:view','dictionary:edit',
- 'monitor:view','monitor:check','audit:view','audit:resolve'
+ 'monitor:view','audit:view','audit:resolve'
 ];
 
 export const actors = [

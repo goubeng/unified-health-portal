@@ -1,5 +1,5 @@
 <template>
-  <div class="category-app-icon" :class="iconToneClass" :title="category || '应用'">
+  <div class="category-app-icon" :class="iconToneClass">
     <!-- 1. 公众服务：爱心与医疗守护十字（便民健康服务） -->
     <svg
       v-if="matchedCategory === '公众服务'"

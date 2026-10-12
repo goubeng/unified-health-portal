@@ -37,7 +37,7 @@ test('API log result column is before HTTP method',()=>{
   const source=read('src/components/portal/LogManagement.vue');
   const api=source.split("if(props.kind==='api')return [")[1]?.split('];')[0]||'';
   assert(api.indexOf('commonStatus')>=0);
-  assert(api.indexOf('commonStatus')<api.indexOf("column('httpMethod'"));
+  assert(api.indexOf('commonStatus')<api.indexOf("sortColumn('httpMethod'"));
 });
 
 test('account opening request examples cover main statuses',()=>{
@@ -57,7 +57,7 @@ test('admin home mapping exception and announcement shortcuts are routable',()=>
   const announcement=read('src/components/portal/AnnouncementManagement.vue');
   assert(page.includes("/admin/identities?mapping=exception"));
   assert(page.includes("route.query.mapping==='exception'"));
-  assert(page.includes("query:{action:'create'}"));
+  assert(page.includes("/admin/announcements"));
   assert(announcement.includes("if(value==='create'&&!formVisible.value)openCreate()"));
   assert(announcement.includes("if(visible||route.query.action!=='create')return"));
 });

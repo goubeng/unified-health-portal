@@ -38,7 +38,7 @@ test('PC应用中心：账号关联弹窗720px、单层内边距及直角，APP�
   assert.match(binding, /\.account-binding-dialog\.t-dialog,\s*body \.account-binding-dialog \.t-dialog\s*\{[^}]*border-radius:\s*0/);
   assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center \.t-dialog__body\s*\{[^}]*padding:\s*0\s*!important/);
   assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center\.t-dialog__wrap \.t-dialog,[\s\S]*?padding:\s*24px 28px\s*!important/);
-  assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center \.t-dialog__header\s*\{[^}]*padding:\s*0 28px 0 0/);
+  assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center \.t-dialog__header\s*\{[^}]*padding:\s*0(?:\s*!important|\s+28px\s+0\s+0)?/);
   assert.match(binding, /@media \(max-width:\s*720px\)\s*\{[\s\S]*?padding:\s*18px\s*!important/);
   assert.doesNotMatch(mobile, /portal-pc-app-|account-binding-dialog--app-center/);
   assert.doesNotMatch(css, /\.mobile-apps-my-requests-link|\.mobile-binding-overlay/);

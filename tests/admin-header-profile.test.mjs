@@ -15,13 +15,13 @@ test('管理端顶部不再提供用户身份切换入口',()=>{
  assert(!app.includes('switchActor('));
 });
 
-test('公众门户首页和二级页顶部消息图标与管理端一致',()=>{
- const app=source('src/App.vue');
- const adminMessage=app.match(/aria-label="我的消息"[^>]*>[\s\S]*?<template #icon><(\w+Icon) size="([^"]+)"\/><\/template>/);
- assert(adminMessage,'管理端消息按钮应保留图标');
- for(const file of ['src/views/PortalHomePreview.vue','src/views/PortalPreviewLayout.vue']){
-  const publicPage=source(file);
-  const publicMessage=publicPage.match(/aria-label="我的消息"[^>]*>[\s\S]*?<(\w+Icon) size="([^"]+)"\s*\/>/);
+ test('公众门户首页和二级页顶部消息图标与管理端一致',()=>{
+  const app=source('src/App.vue');
+  const adminMessage=app.match(/aria-label="(?:消息中心|我的消息)"[^>]*>[\s\S]*?<template #icon><(\w+Icon) size="([^"]+)"\/><\/template>/);
+  assert(adminMessage,'管理端消息按钮应保留图标');
+  for(const file of ['src/views/PortalHomePreview.vue','src/views/PortalPreviewLayout.vue']){
+   const publicPage=source(file);
+   const publicMessage=publicPage.match(/aria-label="(?:消息中心|我的消息)"[^>]*>[\s\S]*?<(\w+Icon) size="([^"]+)"\s*\/>/);
   assert(publicMessage,`${file} 顶部消息按钮应保留图标`);
   assert.deepEqual(publicMessage.slice(1),adminMessage.slice(1),`${file} 顶部消息图标和尺寸应与管理端一致`);
   assert.match(publicPage, /import\s*\{[^}]*\bMailIcon\b[^}]*\}\s*from\s*['"]tdesign-icons-vue-next['"]/, `${file} 应显式导入 MailIcon，确保二级页面实际渲染`);
