@@ -56,3 +56,20 @@ test('移动端首页我的应用和待办事项标题去掉了前导蓝色竖�
   assert.doesNotMatch(refreshCss, /\.mobile-home-section-head h2::before/);
   assert.doesNotMatch(refreshCss, /\.mobile-home-section-head h2\s*\{[^}]*padding-left:\s*13px/);
 });
+
+test('移动端首页应用访问弹窗遮罩覆盖底部导航，不受首页层叠上下文限制', () => {
+  const home = read('src/mobile/MobileHome.vue');
+  const homeDetails = read('src/mobile/mobile-home-detail.css');
+  const homeBase = read('src/mobile/mobile-home-base.css');
+  const shell = read('src/mobile/MobileShell.vue');
+  const mobileCss = read('src/mobile/mobile.css');
+  // 首页保留isolation卡片背景与视觉层级，应用提示弹窗应Teleport到导航同层的外部容器。
+  assert.match(homeDetails, /\.mobile-home\s*\{[^}]*isolation:\s*isolate/);
+  assert.match(home, /<Teleport to="\.mobile-shell">\s*<div\s+v-if="noticeModal\.visible"\s+class="mobile-notice-overlay"/);
+  assert.match(home, /<\/div>\s*<\/Teleport>\s*<\/div>\s*<\/template>/);
+  assert.match(homeBase, /\.mobile-notice-overlay\s*\{[^}]*z-index:\s*3100/);
+  assert.match(mobileCss, /\.mobile-shell__navigation\s*\{[^}]*z-index:\s*20/);
+  assert.match(shell, /<div class="mobile-shell"/);
+  assert.match(home, /@click\.self="noticeModal\.visible = false"/);
+  assert.match(home, /@click="noticeModal\.visible = false"/);
+});

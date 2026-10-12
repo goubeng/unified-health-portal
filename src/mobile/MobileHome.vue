@@ -124,7 +124,8 @@
       </section>
     </template>
 
-    <!-- 移动端应用访问提示居中模态弹窗 -->
+    <!-- 弹窗挂载到移动Shell根层，避开首页isolation层叠上下文，遮罩覆盖底部导航。 -->
+    <Teleport to=".mobile-shell">
     <div
       v-if="noticeModal.visible"
       class="mobile-notice-overlay"
@@ -162,6 +163,7 @@
         </footer>
       </section>
     </div>
+    </Teleport>
   </div>
 </template>
 
