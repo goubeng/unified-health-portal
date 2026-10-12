@@ -43,6 +43,8 @@ let clockTimer=null;
 
 const currentRows=computed(()=>metric.value==='api'?props.apiRows:props.accessRows);
 const currentSeriesName=computed(()=>metric.value==='api'?'接口调用量':'门户访问量');
+const currentLineColor=computed(()=>metric.value==='api'?'#7C3AED':'#0D9488');
+const currentAreaColor=computed(()=>metric.value==='api'?'rgba(124,58,237,.14)':'rgba(13,148,136,.16)');
 
 const trend=computed(()=>normalizeChinaDayCounts(currentRows.value,period.value,now.value));
 
@@ -99,9 +101,9 @@ function render(){
       symbol:'circle',
       symbolSize:5,
       data:trend.value.map(item=>item.value),
-      lineStyle:{width:2,color:'#2454ff'},
-      itemStyle:{color:'#2454ff'},
-      areaStyle:{color:'rgba(36,84,255,.10)'}
+      lineStyle:{width:2,color:currentLineColor.value},
+      itemStyle:{color:currentLineColor.value},
+      areaStyle:{color:currentAreaColor.value}
     }]
   },true);
 }
