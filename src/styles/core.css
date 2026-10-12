@@ -1242,6 +1242,41 @@
   height:260px;
   min-height:260px;
 }
+
+/* 登录/认证日志趋势：复用管理首页面积图样式，筛选栏与日志表格相互独立。 */
+.log-management>.login-visit-trend{
+  margin-bottom:16px;
+}
+.login-visit-trend-head{
+  gap:12px;
+  flex-wrap:wrap;
+}
+.login-visit-trend-presets{
+  flex-wrap:wrap;
+}
+.login-visit-trend-dates{
+  width:280px;
+  max-width:100%;
+}
+.login-visit-trend-chart-wrap{
+  position:relative;
+}
+.login-visit-trend-loading{
+  position:absolute;
+  right:20px;
+  top:12px;
+  color:#86909c;
+  font-size:12px;
+  pointer-events:none;
+}
+@media(max-width:900px){
+  .login-visit-trend-head,.login-visit-trend-head .admin-trend-controls{
+    align-items:flex-start;
+  }
+  .login-visit-trend-head .admin-trend-controls{
+    justify-content:flex-start;
+  }
+}
 @media(max-width:1100px){
   .admin-home-trend-grid{grid-template-columns:1fr}
   .admin-home-bottom-grid{grid-template-columns:1fr}
