@@ -10,16 +10,16 @@
 
         <nav class="public-portal-nav" aria-label="公众门户导航">
           <button type="button" :class="{active:isActive('home')}" @click="go('/home')">首页</button>
-          <button type="button" :class="{active:isActive('todos')}" @click="go('/todos')">待办任务</button>
+          <button type="button" :class="{active:isActive('todos')}" @click="go('/todos')">待办事项</button>
           <button type="button" :class="{active:isActive('announcements')}" @click="go('/announcements')">通知公告</button>
-          <button type="button" :class="{active:isActive('apps')}" @click="go('/apps/all')">应用中心</button>
+          <button type="button" :class="{active:isActive('apps')}" @click="go('/apps/all')">全部应用</button>
           <button type="button" :class="{active:isActive('applications')}" @click="go('/applications')">我的申请</button>
-          <button type="button" :class="{active:isActive('messages')}" @click="go('/messages')">我的消息</button>
+          <button type="button" :class="{active:isActive('messages')}" @click="go('/messages')">消息中心</button>
         </nav>
 
         <div class="public-portal-user-area">
           <t-badge size="small" :count="unread" :max-count="99" :show-zero="false">
-            <button class="public-portal-icon-button" type="button" aria-label="我的消息" @click="go('/messages')">
+            <button class="public-portal-icon-button" type="button" aria-label="消息中心" @click="go('/messages')">
               <MailIcon size="16px" />
             </button>
           </t-badge>
@@ -110,16 +110,16 @@ const portalBase=computed(()=>isPreviewRoute.value?'/portal-preview':'/portal');
 const displayName=computed(()=>(actor.value?.name||'用户').replace(/\s*·\s*演示$|演示|模拟/g,'').trim());
 const pageTitle=computed(()=>route.meta.resource==='messages'&&route.query.messageId?'消息详情':route.meta.resource==='announcementDetail'?'公告详情':route.meta.title||'');
 const showBack=computed(()=>route.meta.resource==='announcementDetail'||(route.meta.resource==='messages'&&Boolean(route.query.messageId)));
-const breadcrumbParent=computed(()=>route.meta.resource==='announcementDetail'?'通知公告':route.meta.resource==='messages'?'我的消息':'');
+const breadcrumbParent=computed(()=>route.meta.resource==='announcementDetail'?'通知公告':route.meta.resource==='messages'?'消息中心':'');
 const isAppCenterPage=computed(()=>['apps','mine'].includes(route.meta.resource));
 const isAnnouncementListPage=computed(()=>route.meta.resource==='announcements');
 const isMessageListPage=computed(()=>route.meta.resource==='messages'&&!route.query.messageId);
 const bannerInfo=computed(()=>{
   const resource=route.meta.resource;
-  if(resource==='todos')return {title:'待办任务',subtitle:'集中处理来自各业务系统的待办事项',image:todoBanner};
-  if(resource==='messages'&&!route.query.messageId)return {title:'我的消息',subtitle:'集中查看业务消息与系统通知',image:messageBanner};
+  if(resource==='todos')return {title:'待办事项',subtitle:'集中处理来自各业务系统的待办事项',image:todoBanner};
+  if(resource==='messages'&&!route.query.messageId)return {title:'消息中心',subtitle:'集中查看业务消息与系统通知',image:messageBanner};
   if(resource==='announcements')return {title:'通知公告',subtitle:'及时了解平台通知与重要信息',image:announcementBanner};
-  if(['apps','mine'].includes(resource))return {title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner};
+  if(['apps','mine'].includes(resource))return {title:'全部应用',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner};
   if(resource==='myApplicationRequests')return {title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:applicationsBanner};
   if(resource==='profile')return {title:'个人中心',subtitle:'查看账号信息与个人资料',image:profileBanner};
   return null;
