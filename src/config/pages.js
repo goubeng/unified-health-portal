@@ -19,7 +19,7 @@ export const rolePermissionGroups=[
   {name:'字典管理',actions:[['dictionary:view','查看'],['dictionary:edit','维护']]}
  ]},
  {key:'monitor',menu:'运行监控',description:'SSO / TODO / MESSAGE 接入运行',pages:[
-  {name:'运行监控',actions:[['monitor:view','查看'],['monitor:check','重新检测']]}
+  {name:'运行监控',actions:[['monitor:view','查看']]}
  ]},
  {key:'audit',menu:'日志审计',description:'登录、访问、操作、接口与异常日志',pages:[
   {name:'日志审计',actions:[['audit:view','查看'],['audit:resolve','异常处理']]}
