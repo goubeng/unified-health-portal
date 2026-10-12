@@ -28,7 +28,7 @@
         <template #serial="{rowIndex}">{{(page-1)*pageSize+rowIndex+1}}</template>
         <template #title="{row}"><TableCellTooltip :text="text(row.title)"><button class="portal-field-link" @click="$emit('detail',row)">{{text(row.title)}}</button></TableCellTooltip></template>
         <template #scope="{row}">{{label(row.scope,'announcement_scope')}}</template>
-        <template #status="{row}"><t-tag :theme="statusTheme(displayStatus(row))" variant="light">{{label(displayStatus(row),'announcement_status')}}</t-tag></template>
+        <template #status="{row}"><t-tag :theme="statusTheme(displayStatus(row))" variant="light">{{announcementStatusLabel(displayStatus(row))}}</t-tag></template>
         <template #publishAt="{row}">
           <span v-if="displayStatus(row)==='SCHEDULED'">{{date(row.scheduledPublishAt)}}</span>
           <span v-else>{{date(row.publishedAt)}}</span>
@@ -158,7 +158,9 @@ const typeOptions=computed(()=>{
   return items.length?items.map(item=>({value:item.label,label:item.label})):[{value:'通知',label:'通知'},{value:'提示',label:'提示'}];
 });
 const scopeOptions=computed(()=>dictionaryOptions('announcement_scope',['ALL','CITIZEN','GOV']));
-const statusOptions=computed(()=>dictionaryOptions('announcement_status',['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'],{includeDisabled:true}));
+const announcementStatusLabel=value=>value==='SCHEDULED'?'定时发布':label(value,'announcement_status');
+const statusOptions=computed(()=>dictionaryOptions('announcement_status',['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'],{includeDisabled:true})
+  .map(option=>option.value==='SCHEDULED'?{...option,label:announcementStatusLabel(option.value)}:option));
 const publishModeOptions=computed(()=>dictionaryOptions('publish_mode',['IMMEDIATE','SCHEDULED']));
 const displayStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const statusTheme=value=>value==='PUBLISHED'?'success':value==='SCHEDULED'?'warning':['WITHDRAWN','EXPIRED'].includes(value)?'default':'primary';
@@ -167,7 +169,7 @@ const publishTimestamp=row=>Date.parse(displayStatus(row)==='SCHEDULED'?row.sche
 const compareAnnouncement=(a,b,key)=>{
   if(key==='publishAt')return publishTimestamp(a)-publishTimestamp(b);
   if(key==='updatedAt')return (Date.parse(a.updatedAt||a.createdAt)||0)-(Date.parse(b.updatedAt||b.createdAt)||0);
-  if(key==='status')return label(displayStatus(a),'announcement_status').localeCompare(label(displayStatus(b),'announcement_status'),'zh-CN',{numeric:true,sensitivity:'base'});
+  if(key==='status')return announcementStatusLabel(displayStatus(a)).localeCompare(announcementStatusLabel(displayStatus(b)),'zh-CN',{numeric:true,sensitivity:'base'});
   const av=key==='title'?text(a.title):text(a[key]);
   const bv=key==='title'?text(b.title):text(b[key]);
   return av.localeCompare(bv,'zh-CN',{numeric:true,sensitivity:'base'});
