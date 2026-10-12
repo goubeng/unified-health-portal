@@ -17,7 +17,7 @@
       <t-form-item v-if="kind==='login'" class="portal-query-select query-width-status" label="认证类型">
         <t-select v-model="authType" clearable placeholder="全部" :options="authTypeOptions"/>
       </t-form-item>
-      <t-form-item class="portal-query-select query-width-status" :label="kind==='login'?'登录结果':'结果'">
+      <t-form-item v-if="kind!=='error'" class="portal-query-select query-width-status" :label="kind==='login'?'登录结果':'结果'">
         <t-select v-model="status" clearable placeholder="全部" :options="resultOptions"/>
       </t-form-item>
       <t-form-item v-if="kind==='error'" class="portal-query-select query-width-status" label="处理状态">
@@ -92,7 +92,7 @@ const severityTheme=value=>{
   if(['WARNING','WARN','MEDIUM'].includes(normalized))return 'warning';
   return 'default';
 };
-const showAppFilter=computed(()=>props.kind!=='login');
+const showAppFilter=computed(()=>['access','api'].includes(props.kind));
 const loginActionText=row=>auditText(row.actionName||label(row.name)||(row.kind==='login'?'登录':row.name)||'-');
 const loginActionTheme=row=>{
   const val=loginActionText(row);
@@ -105,12 +105,12 @@ const eventOptions=computed(()=>[...new Set(props.rows.map(row=>loginActionText(
 const identitySourceOptions=computed(()=>[...new Set(props.rows.map(row=>row.identitySource).filter(Boolean))].map(value=>({value,label:label(value)})));
 const authTypeOptions=computed(()=>[...new Set(props.rows.map(row=>row.authType).filter(Boolean))].map(value=>({value,label:value==='LOCAL'?'本地账号':value==='EXTERNAL'?'外部身份':value})));
 const keywordPlaceholder=computed(()=>({
-  login:'登录用户 / 账号 / 请求ID',access:'用户 / 应用 / 请求ID',operation:'操作人 / 模块 / 动作',api:'接口 / 应用 / 请求ID',error:'错误编码 / 异常信息 / 请求ID'
+  login:'登录用户 / 账号 / 请求ID',access:'用户 / 账号 / 请求ID',operation:'操作人 / 模块 / 页面 / 动作 / 请求ID',api:'接口 / 请求ID / 错误信息',error:'错误编码 / 异常信息 / 模块 / 请求ID'
 }[props.kind]||'关键词'));
 
 const searchFields=computed(()=>({
-  login:['userName','account','requestId','failureReason','actionName'],access:['userName','account','appName','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
-  api:['appName','interfaceName','requestId','errorMessage'],error:['errorCode','errorMessage','moduleName','requestId','resolutionNote']
+  login:['userName','account','requestId','failureReason','actionName'],access:['userName','account','requestId'],operation:['actor','moduleName','pageName','actionName','requestId'],
+  api:['interfaceName','requestId','errorMessage'],error:['errorCode','errorMessage','moduleName','requestId','resolutionNote']
 }[props.kind]||['description','requestId']));
 const compareLogRows=(a,b,key)=>{
   if(key==='createdAt')return (Date.parse(a.createdAt)||0)-(Date.parse(b.createdAt)||0);
