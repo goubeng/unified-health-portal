@@ -1,5 +1,6 @@
 <template>
   <section class="portal-list log-management">
+    <LoginVisitTrend v-if="kind==='login'"/>
     <t-form layout="inline" class="portal-query list-toolbar">
       <t-form-item class="portal-query-keyword query-width-keyword" label="关键词">
         <t-input v-model="keyword" clearable :placeholder="keywordPlaceholder"/>
@@ -7,7 +8,16 @@
       <t-form-item v-if="showAppFilter" class="portal-query-select query-width-source" label="来源应用">
         <t-select v-model="appName" clearable filterable placeholder="全部" :options="appOptions"/>
       </t-form-item>
-      <t-form-item class="portal-query-select query-width-status" label="结果">
+      <t-form-item v-if="kind==='login'" class="portal-query-select query-width-status" label="事件类型">
+        <t-select v-model="eventType" clearable filterable placeholder="全部" :options="eventOptions"/>
+      </t-form-item>
+      <t-form-item v-if="kind==='login'" class="portal-query-select query-width-status" label="身份来源">
+        <t-select v-model="identitySource" clearable filterable placeholder="全部" :options="identitySourceOptions"/>
+      </t-form-item>
+      <t-form-item v-if="kind==='login'" class="portal-query-select query-width-status" label="认证类型">
+        <t-select v-model="authType" clearable placeholder="全部" :options="authTypeOptions"/>
+      </t-form-item>
+      <t-form-item class="portal-query-select query-width-status" :label="kind==='login'?'登录结果':'结果'">
         <t-select v-model="status" clearable placeholder="全部" :options="resultOptions"/>
       </t-form-item>
       <t-form-item v-if="kind==='error'" class="portal-query-select query-width-status" label="处理状态">
@@ -61,13 +71,14 @@ import {MessagePlugin} from 'tdesign-vue-next';
 import EmptyState from './EmptyState.vue';
 import DetailGrid from './DetailGrid.vue';
 import TableCellTooltip from './TableCellTooltip.vue';
+import LoginVisitTrend from './LoginVisitTrend.vue';
 import {date,label} from './presentation.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({rows:{type:Array,default:()=>[]},kind:{type:String,default:'operation'}});
 const auditText=value=>String(value??'').trim();
 const emit=defineEmits(['saved']);
-const keyword=ref(''),appName=ref(''),status=ref(''),resolutionStatus=ref(''),page=ref(1),pageSize=ref(10);
+const keyword=ref(''),appName=ref(''),status=ref(''),resolutionStatus=ref(''),eventType=ref(''),identitySource=ref(''),authType=ref(''),page=ref(1),pageSize=ref(10);
 const defaultTableSort=()=>({sortBy:'createdAt',descending:true});
 const tableSort=ref(defaultTableSort());
 const detailVisible=ref(false),detail=ref(null),resolveVisible=ref(false),resolveRow=ref(null),resolutionNote=ref(''),formError=ref(''),saving=ref(false);
@@ -90,6 +101,9 @@ const loginActionTheme=row=>{
   return 'primary';
 };
 const appOptions=computed(()=>[...new Set(props.rows.map(row=>row.appName).filter(Boolean))].map(value=>({value,label:value})));
+const eventOptions=computed(()=>[...new Set(props.rows.map(row=>loginActionText(row)).filter(x=>x&&x!=='-'))].sort((a,b)=>a.localeCompare(b,'zh-CN')).map(value=>({value,label:value})));
+const identitySourceOptions=computed(()=>[...new Set(props.rows.map(row=>row.identitySource).filter(Boolean))].map(value=>({value,label:label(value)})));
+const authTypeOptions=computed(()=>[...new Set(props.rows.map(row=>row.authType).filter(Boolean))].map(value=>({value,label:value==='LOCAL'?'本地账号':value==='EXTERNAL'?'外部身份':value})));
 const keywordPlaceholder=computed(()=>({
   login:'登录用户 / 账号 / 请求ID',access:'用户 / 应用 / 请求ID',operation:'操作人 / 模块 / 动作',api:'接口 / 应用 / 请求ID',error:'错误编码 / 异常信息 / 请求ID'
 }[props.kind]||'关键词'));
@@ -110,7 +124,8 @@ const filtered=computed(()=>{
   const term=keyword.value.trim().toLowerCase();
   const result=props.rows.filter(row=>{
     const matchesKeyword=!term||searchFields.value.some(key=>auditText(row[key]).toLowerCase().includes(term));
-    return matchesKeyword&&(!appName.value||row.appName===appName.value)&&(!status.value||row.status===status.value)&&(!resolutionStatus.value||row.resolutionStatus===resolutionStatus.value);
+    return matchesKeyword&&(!appName.value||row.appName===appName.value)&&(!status.value||row.status===status.value)&&(!resolutionStatus.value||row.resolutionStatus===resolutionStatus.value)
+      &&(props.kind!=='login'||(!eventType.value||loginActionText(row)===eventType.value)&&(!identitySource.value||row.identitySource===identitySource.value)&&(!authType.value||row.authType===authType.value));
   });
   const active=Array.isArray(tableSort.value)?tableSort.value[0]:tableSort.value;
   if(!active?.sortBy)return result;
@@ -182,7 +197,7 @@ function handleSortChange(sort){
   tableSort.value=next?.sortBy?{sortBy:next.sortBy,descending:!!next.descending}:defaultTableSort();
   page.value=1;
 }
-function reset(){keyword.value='';appName.value='';status.value='';resolutionStatus.value='';tableSort.value=defaultTableSort();page.value=1;}
+function reset(){keyword.value='';appName.value='';status.value='';resolutionStatus.value='';eventType.value='';identitySource.value='';authType.value='';tableSort.value=defaultTableSort();page.value=1;}
 function openDetail(row){detail.value=JSON.parse(JSON.stringify(row));detailVisible.value=true;}
 function openResolve(row){resolveRow.value=JSON.parse(JSON.stringify(row));resolutionNote.value='';formError.value='';resolveVisible.value=true;}
 async function resolveError(){
@@ -193,6 +208,6 @@ async function resolveError(){
   if(!result.ok){formError.value=result.error.message;return;}
   resolveVisible.value=false;MessagePlugin.success('异常已处理');emit('saved');
 }
-watch([keyword,appName,status,resolutionStatus,pageSize],()=>{page.value=1;});
+watch([keyword,appName,status,resolutionStatus,eventType,identitySource,authType,pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 </script>
