@@ -4,17 +4,24 @@ import {readFileSync} from 'node:fs';
 
 const page=readFileSync(new URL('../src/views/PortalPage.vue',import.meta.url),'utf8');
 const monitor=readFileSync(new URL('../src/components/portal/MonitorManagement.vue',import.meta.url),'utf8');
+const detail=readFileSync(new URL('../src/components/portal/RecordDetail.vue',import.meta.url),'utf8');
+const history=readFileSync(new URL('../src/components/portal/MonitorHistoryTable.vue',import.meta.url),'utf8');
+const service=readFileSync(new URL('../src/services/portal.js',import.meta.url),'utf8');
 
-test('运行监控加载状态历史并以监控权限显示',()=>{
+test('状态变更记录按照应用呈现于运行监控及管理端应用详情页签',()=>{
  assert.match(page,/tasks\.monitorHistory=read\('monitorHistory'\)/);
- assert.match(page,/:history-rows="monitorHistory" :can-check="can\(actor,'monitor:check'\)" @saved="load"/);
- assert.match(monitor,/接入状态变更记录/);
- for(const field of ['occurredAt','appName','kind','fromStatus','toStatus','reason'])assert.match(monitor,new RegExp(`colKey:'${field}'`));
+ assert.match(page,/isAdmin&&key==='apps'&&can\(actor\.value,'monitor:view'\)/);
+ assert.match(monitor,/<t-tab-panel value="history" label="状态变更记录">/);
+ assert.match(detail,/<t-tab-panel value="history" label="状态变更记录">/);
+ assert.match(detail,/:app-id="record\.id"/);
+ assert.match(history,/String\(row\.appId\)===String\(props\.appId\)/);
+ for(const field of ['occurredAt','kind','fromStatus','toStatus','reason'])assert.match(history,new RegExp(`colKey:'${field}'`));
+ assert.doesNotMatch(monitor,/monitor-history-panel/);
 });
 
-test('检测结果录入调用受权限约束的状态命令',()=>{
- assert.match(monitor,/v-if="canCheck"[^>]*@click="openObservation\(\)"/);
- assert.match(monitor,/command\('recordMonitorObservation',payload\)/);
- assert.match(monitor,/payload\.status==='ABNORMAL'&&!payload\.reason/);
- assert.match(monitor,/emit\('saved'\)/);
+test('不再开放人工录入检测功能，仍保留运行状态历史数据读取',()=>{
+ assert.doesNotMatch(monitor,/录入检测结果|observationVisible|saveObservation/);
+ assert.doesNotMatch(page,/:can-check=/);
+ assert.doesNotMatch(service,/recordMonitorObservation/);
+ assert.match(service,/if\(resource==='monitorHistory'\)/);
 });
