@@ -52,6 +52,8 @@
             enable-time-picker
             format="YYYY-MM-DD HH:mm:ss"
             value-type="YYYY-MM-DD HH:mm:ss"
+            :disable-date="disablePastPublishDate"
+            :disable-time="disablePastPublishTime"
             placeholder="请选择未来发布时间"
           />
         </div>
@@ -98,6 +100,7 @@ import {MessagePlugin} from 'tdesign-vue-next';
 import AnnouncementEditor from './AnnouncementEditor.vue';
 import AnnouncementDetail from './AnnouncementDetail.vue';
 import {dictionaryOptions} from './presentation.js';
+import {disablePastPublishDate,disablePastPublishTime,isFuturePublishTime} from '../../utils/announcementSchedule.js';
 import {command} from '../../services/runtime.js';
 
 const props=defineProps({
@@ -235,6 +238,7 @@ async function saveDraft(){
 async function publishDraft(){
   if(saving.value)return;
   if(form.publishMode==='SCHEDULED'&&!form.scheduledPublishAt){formError.value='请选择定时发布时间';return;}
+  if(form.publishMode==='SCHEDULED'&&!isFuturePublishTime(form.scheduledPublishAt)){formError.value='定时发布时间必须晚于当前时间';return;}
   saving.value=true;formError.value='';
   try{
     const saved=await saveBase();
