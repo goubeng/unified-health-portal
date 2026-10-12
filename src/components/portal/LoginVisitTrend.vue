@@ -1,9 +1,9 @@
 <template>
-  <section class="panel admin-trend-card login-visit-trend">
+  <section class="panel admin-trend-card login-visit-trend" :class="{'api-call-trend':isApi}">
     <div class="section-head admin-trend-head login-visit-trend-head">
-      <h2>门户访问量趋势</h2>
+      <h2>{{isApi?'接口调用趋势':'门户访问量趋势'}}</h2>
       <div class="admin-trend-controls">
-        <div class="admin-trend-range login-visit-trend-presets" aria-label="门户访问量时间范围">
+        <div class="admin-trend-range login-visit-trend-presets"  :aria-label="(isApi?'接口调用':'门户访问')+'趋势时间范围'">
           <button v-for="item in periods" :key="item.value" type="button" :class="{active:period===item.value}" :aria-pressed="period===item.value" @click="choosePeriod(item.value)">{{item.label}}</button>
         </div>
         <t-date-range-picker v-if="period==='custom'" v-model="customRange" class="login-visit-trend-dates" format="YYYY-MM-DD" value-type="YYYY-MM-DD" :disable-date="disableFutureDay" clearable :placeholder="['开始日期','结束日期']"/>
@@ -11,7 +11,7 @@
     </div>
     <p v-if="error" class="error-note" role="alert">{{error}}</p>
     <div class="login-visit-trend-chart-wrap">
-      <div ref="chartEl" class="admin-trend-chart" role="img" aria-label="按北京时间统计的每日成功门户访问量趋势"></div>
+      <div ref="chartEl" class="admin-trend-chart" role="img"  :aria-label="(isApi?'每日接口调用量':'每日成功门户访问量')+'趋势（北京时间）'"></div>
       <span v-if="loading" class="login-visit-trend-loading">正在加载访问趋势…</span>
     </div>
   </section>
@@ -28,6 +28,11 @@ import {chinaDayKey} from '../../utils/chinaCalendar.mjs';
 import {visitTrendPreset,validateVisitTrendRange} from '../../utils/portalVisitTrend.mjs';
 
 echarts.use([LineChart,GridComponent,TooltipComponent,CanvasRenderer]);
+
+const props=defineProps({kind:{type:String,default:'login'}});
+const isApi=computed(()=>props.kind==='api');
+const metricName=computed(()=>isApi.value?'接口调用量':'门户访问量');
+const resourceName=computed(()=>isApi.value?'auditApiTrend':'auditVisitTrend');
 
 const periods=[
   {label:'本月',value:'thisMonth'},
@@ -58,7 +63,7 @@ function render(){
   grid:{left:18,right:18,top:18,bottom:18,containLabel:true},
   tooltip:{trigger:'axis',confine:true,formatter:params=>{
    const point=params?.[0];if(!point)return '';
-   return `${dates[point.dataIndex]||'-'}<br/>门户访问量：${Number(point.value)||0}`;
+   return `${dates[point.dataIndex]||'-'}<br/>${metricName.value}：${Number(point.value)||0}`;
   }},
   xAxis:{
    type:'category',boundaryGap:false,data:dates.map(x=>`${Number(x.slice(5,7))}/${Number(x.slice(8,10))}`),
@@ -74,9 +79,10 @@ function render(){
    splitLine:{show:true,lineStyle:{color:'#eef0f4',type:'dashed'}}
   },
   series:[{
-   name:'门户访问量',type:'line',smooth:true,showSymbol:true,symbol:'circle',symbolSize:5,
-   data:values,lineStyle:{width:2,color:'#0D9488'},itemStyle:{color:'#0D9488'},
-   areaStyle:{color:'rgba(13,148,136,.16)'}
+   name:metricName.value,type:'line',smooth:true,showSymbol:true,symbol:'circle',symbolSize:5,
+   data:values,lineStyle:{width:2,color:isApi.value?'#7C3AED':'#0D9488'},
+   itemStyle:{color:isApi.value?'#7C3AED':'#0D9488'},
+   areaStyle:{color:isApi.value?'rgba(124,58,237,.14)':'rgba(13,148,136,.16)'}
   }]
  },true);
 }
@@ -95,9 +101,9 @@ async function load(){
  loading.value=true;error.value='';
  const query=new URLSearchParams({startDate,endDate}).toString();
  try{
-  const result=await portal.read(`auditVisitTrend?${query}`);
+  const result=await portal.read(`${resourceName.value}?${query}`);
   if(version!==requestVersion)return;
-  if(!result.ok)throw new Error(result.error?.message||'访问趋势加载失败');
+  if(!result.ok)throw new Error(result.error?.message||'趋势数据加载失败');
   rows.value=Array.isArray(result.data)?result.data:[];
  }catch(cause){
   if(version!==requestVersion)return;
