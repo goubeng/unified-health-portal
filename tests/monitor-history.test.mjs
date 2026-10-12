@@ -5,36 +5,40 @@ import {createPortalService} from '../src/services/portal.js';
 import {actors} from '../src/mock/seed.js';
 import {loadMonitorHistory,monitorHistoryMirrorSql} from '../server/monitor-history-persistence.mjs';
 
-test('接入检测按有效状态变更记录异常和恢复，同态检测不重复',async()=>{
+test('应用启停导致的接入状态变化记入历史，同态操作不重复记录',async()=>{
  const provider=createMockProvider();
  provider.transact(state=>{
   const app=state.apps[0],config=state.integrations.find(row=>row.appId===app.id&&row.kind==='SSO');
-  app.enabled=true;Object.assign(config,{enabled:'ENABLED',configStatus:'CONFIGURED',runtimeStatus:'NORMAL',updatedAt:new Date(Date.now()-1000).toISOString()});
+  app.enabled=true;
+  Object.assign(config,{enabled:'ENABLED',configStatus:'CONFIGURED',runtimeStatus:'NORMAL',updatedAt:new Date(Date.now()-1000).toISOString()});
   state.monitorSamples=(state.monitorSamples||[]).filter(row=>row.appId!==app.id||row.kind!=='SSO');
   state.monitorHistory=[];
  });
  const appId=provider.read().apps[0].id,service=createPortalService(provider,()=>actors[2]);
- assert.equal((await service.command('recordMonitorObservation',{appId,kind:'SSO',status:'ABNORMAL',reason:''})).error.code,'VALIDATION_ERROR');
- assert.equal((await service.command('recordMonitorObservation',{appId,kind:'SSO',status:'ABNORMAL',reason:'上游接口超时'})).ok,true);
- assert.equal((await service.command('recordMonitorObservation',{appId,kind:'SSO',status:'ABNORMAL',reason:'仍超时'})).ok,true);
- let history=(await service.read('monitorHistory')).data.filter(row=>row.appId===appId);
- assert.equal(history.length,1);assert.deepEqual([history[0].fromStatus,history[0].toStatus,history[0].reason],['NORMAL','ABNORMAL','上游接口超时']);
- assert.equal((await service.command('recordMonitorObservation',{appId,kind:'SSO',status:'NORMAL',reason:'接口响应恢复'})).ok,true);
- history=(await service.read('monitorHistory')).data.filter(row=>row.appId===appId);
- assert.equal(history.length,2);assert.equal(history.find(row=>row.toStatus==='NORMAL').fromStatus,'ABNORMAL');
- const monitor=(await service.read('monitor')).data.find(row=>row.appId===appId).services.SSO;
- assert.equal(monitor.status,'NORMAL');assert(monitor.lastFailureAt);assert(monitor.lastSuccessAt);
- assert.equal(provider.read().monitorSamples.find(row=>row.appId===appId&&row.kind==='SSO').lastError,null);
+ const setEnabled=async enabled=>{
+  const app=provider.read().apps.find(row=>row.id===appId);
+  const changed=await service.command('setAppStatus',{id:app.id,version:app.version,enabled});
+  assert.equal(changed.ok,true,JSON.stringify(changed));
+ };
+ await setEnabled(false);
+ let history=(await service.read('monitorHistory')).data.filter(row=>row.appId===appId&&row.kind==='SSO');
+ assert.equal(history.length,1);
+ assert.deepEqual([history[0].fromStatus,history[0].toStatus],['NORMAL','DISABLED']);
+ await setEnabled(false);
+ history=(await service.read('monitorHistory')).data.filter(row=>row.appId===appId&&row.kind==='SSO');
+ assert.equal(history.length,1);
+ await setEnabled(true);
+ history=(await service.read('monitorHistory')).data.filter(row=>row.appId===appId&&row.kind==='SSO');
+ assert.equal(history.length,2);
+ assert.equal(history.find(row=>row.toStatus==='NORMAL').fromStatus,'DISABLED');
 });
 
-test('未配置、已停用接入与无监控权限的身份不能录入或读取历史',async()=>{
+test('人工录入命令已停用，历史读取继续受监控查看权限控制',async()=>{
  const provider=createMockProvider(),appId=provider.read().apps[0].id;
- provider.transact(state=>{const config=state.integrations.find(row=>row.appId===appId&&row.kind==='SSO');config.configStatus='UNCONFIGURED';config.enabled='ENABLED';});
  const admin=createPortalService(provider,()=>actors[2]);
- assert.equal((await admin.command('recordMonitorObservation',{appId,kind:'SSO',status:'NORMAL'})).error.code,'INVALID_TRANSITION');
+ assert.equal((await admin.command('recordMonitorObservation',{appId,kind:'SSO',status:'NORMAL'})).error.code,'CAPABILITY_UNAVAILABLE');
  const citizen=createPortalService(provider,()=>actors[0]);
  assert.equal((await citizen.read('monitorHistory')).error.code,'FORBIDDEN');
- assert.equal((await citizen.command('recordMonitorObservation',{appId,kind:'SSO',status:'NORMAL'})).error.code,'FORBIDDEN');
 });
 
 test('历史物理表映射可重读，镜像仅插入新增事件',async()=>{
