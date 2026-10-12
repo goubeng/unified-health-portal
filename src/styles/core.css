@@ -1719,6 +1719,13 @@
   .portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-third,.portal-record-detail-dialog .portal-my-request-grid .portal-detail-item.is-half{grid-column:1/-1}
 }
 
+/* PC管理端：应用详情和运行监控详情的 Tab 导航与正文/表格保持统一间距。
+ * 只影响两个详情弹窗的内容区域，不改变 Tab 高度和其他页面布局。 */
+.portal-record-detail-dialog .portal-app-detail-tabs > .t-tabs__content,
+.monitor-app-detail-tabs > .t-tabs__content {
+  padding-top: 20px !important;
+}
+
 /* PC应用中心沿用桌面直角弹窗规范；TDesign正文为唯一外层留白容器。 */
 .portal-record-detail-dialog.portal-pc-app-detail-dialog,
 .portal-pc-app-request-dialog {
