@@ -3,6 +3,7 @@ import {randomUUID,randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {createPortalService} from '../src/services/portal.js';
 import {chinaDayWindow,chinaWindowBounds} from '../src/utils/chinaCalendar.mjs';
+import {visitTrendBounds,visitTrendSeries} from '../src/utils/portalVisitTrend.mjs';
 import {archiveExpired} from '../src/config/rules.js';
 import {can} from '../src/config/pages.js';
 import {createRepository,createMemoryRepository,makeEvent} from './repository.mjs';
@@ -132,6 +133,13 @@ export function createPortalApi({repository=null,env=process.env}={}){
     if(path==='/api/portal/read'&&req.method==='GET'){
      const resource=url.searchParams.get('resource')||'';const result=await service.read(resource);
      if(result.ok&&resource.startsWith('logs:'))result.data=await repository.logs(resource.slice(5));
+     if(result.ok&&repository.mode==='DATABASE'&&resource.startsWith('auditVisitTrend?')&&repository.auditDayCounts){
+      const query=new URLSearchParams(resource.slice('auditVisitTrend?'.length));
+      const startDate=query.get('startDate'),endDate=query.get('endDate');
+      const {startAt,endAt}=visitTrendBounds(startDate,endDate);
+      const counts=await repository.auditDayCounts(startAt,endAt);
+      result.data=visitTrendSeries(startDate,endDate,counts.map(item=>({date:item.day,count:item.access})));
+     }
      if(result.ok&&repository.mode==='DATABASE'&&repository.auditDayCounts&&['auditTrends','adminHome'].includes(resource)){
       const days=await auditWindow();
       if(resource==='auditTrends')result.data={access:days.map(day=>({date:day.date,count:day.access})),api:days.map(day=>({date:day.date,count:day.api}))};
