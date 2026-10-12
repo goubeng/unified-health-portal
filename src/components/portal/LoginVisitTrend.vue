@@ -75,8 +75,8 @@ function render(){
   },
   series:[{
    name:'门户访问量',type:'line',smooth:true,showSymbol:true,symbol:'circle',symbolSize:5,
-   data:values,lineStyle:{width:2,color:'#2454ff'},itemStyle:{color:'#2454ff'},
-   areaStyle:{color:'rgba(36,84,255,.10)'}
+   data:values,lineStyle:{width:2,color:'#0D9488'},itemStyle:{color:'#0D9488'},
+   areaStyle:{color:'rgba(13,148,136,.16)'}
   }]
  },true);
 }
