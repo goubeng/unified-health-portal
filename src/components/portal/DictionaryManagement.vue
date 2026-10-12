@@ -41,7 +41,7 @@
         </div>
 
         <t-alert v-if="selectedType?.systemLocked" theme="info" class="dictionary-lock-alert">
-          系统受控字典只能维护显示标签、排序和启用状态；不能新增代码未支持的状态/协议，也不能修改字典值。
+          系统受控字典只能维护显示标签和排序；不能停用、增加代码未支持的状态/协议或修改字典值。
         </t-alert>
 
         <t-form v-if="selectedType" layout="inline" class="portal-query list-toolbar dictionary-query">
@@ -87,7 +87,7 @@
       <div class="form-grid">
         <div class="form-field"><label>字典编码 <span class="portal-required">*</span></label><t-input v-model="typeForm.code" :disabled="Boolean(typeForm.systemLocked)||Boolean(typeForm.id)" placeholder="请输入唯一编码"/></div>
         <div class="form-field"><label>字典名称 <span class="portal-required">*</span></label><t-input v-model="typeForm.name"/></div>
-        <div class="form-field"><label>启用状态</label><t-switch :value="typeForm.status==='ENABLED'" @change="typeForm.status=$event?'ENABLED':'DISABLED'"/></div>
+        <div class="form-field"><label>启用状态</label><t-switch :value="typeForm.status==='ENABLED'" :disabled="Boolean(typeForm.systemLocked)" @change="typeForm.status=$event?'ENABLED':'DISABLED'"/></div>
         <div class="form-field"><label>排序</label><t-input-number v-model="typeForm.sortOrder" :decimal-places="0"/></div>
         <div class="form-field full"><label>说明</label><t-textarea v-model="typeForm.description" :autosize="{minRows:3,maxRows:5}"/></div>
       </div>
@@ -107,7 +107,7 @@
         <div class="form-field"><label>所属字典</label><t-input :value="selectedType?.name||''" disabled/></div>
         <div class="form-field"><label>显示标签 <span class="portal-required">*</span></label><t-input v-model="itemForm.label"/></div>
         <div class="form-field"><label>字典值 <span class="portal-required">*</span></label><t-input v-model="itemForm.value" :disabled="Boolean(selectedType?.systemLocked)||Boolean(itemForm.id)" placeholder="请输入稳定值"/></div>
-        <div class="form-field"><label>启用状态</label><t-switch :value="itemForm.status==='ENABLED'" @change="itemForm.status=$event?'ENABLED':'DISABLED'"/></div>
+        <div class="form-field"><label>启用状态</label><t-switch :value="itemForm.status==='ENABLED'" :disabled="Boolean(selectedType?.systemLocked)||Boolean(itemForm.systemLocked)" @change="itemForm.status=$event?'ENABLED':'DISABLED'"/></div>
         <div class="form-field"><label>排序</label><t-input-number v-model="itemForm.sortOrder" :decimal-places="0"/></div>
         <div class="form-field full"><label>备注</label><t-textarea v-model="itemForm.remark" :autosize="{minRows:3,maxRows:5}"/></div>
       </div>

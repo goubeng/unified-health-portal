@@ -161,9 +161,8 @@ const typeOptions=computed(()=>{
   return items.length?items.map(item=>({value:item.label,label:item.label})):[{value:'通知',label:'通知'},{value:'提示',label:'提示'}];
 });
 const scopeOptions=computed(()=>dictionaryOptions('announcement_scope',['ALL','CITIZEN','GOV']));
-const announcementStatusLabel=value=>value==='SCHEDULED'?'定时发布':label(value,'announcement_status');
-const statusOptions=computed(()=>dictionaryOptions('announcement_status',['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'],{includeDisabled:true})
-  .map(option=>option.value==='SCHEDULED'?{...option,label:announcementStatusLabel(option.value)}:option));
+const announcementStatusLabel=value=>label(value,'announcement_status');
+const statusOptions=computed(()=>dictionaryOptions('announcement_status',['DRAFT','SCHEDULED','PUBLISHED','WITHDRAWN','EXPIRED'],{includeDisabled:true}));
 const publishModeOptions=computed(()=>dictionaryOptions('publish_mode',['IMMEDIATE','SCHEDULED']));
 const displayStatus=row=>row?.displayStatus||row?.status||'DRAFT';
 const statusTheme=value=>value==='PUBLISHED'?'success':value==='SCHEDULED'?'warning':['WITHDRAWN','EXPIRED'].includes(value)?'default':'primary';

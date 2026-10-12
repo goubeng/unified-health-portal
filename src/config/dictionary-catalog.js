@@ -1,17 +1,20 @@
 // Values are persisted business codes. Dictionary maintenance may change labels/order,
 // but must not extend the executable state machines.
 export const businessDictionaryCatalog=[
- {code:'todo_status',name:'待办状态',sortOrder:10,items:[['PENDING','待处理'],['COMPLETED','已处理'],['WITHDRAWN','已撤回'],['EXPIRED','已过期（历史）','DISABLED']]},
+ {code:'todo_status',name:'待办状态',sortOrder:10,items:[['PENDING','待处理'],['COMPLETED','已处理'],['WITHDRAWN','已撤回'],['EXPIRED','已过期（历史）']]},
  {code:'todo_task_type',name:'待办任务类型',sortOrder:11,systemLocked:false,items:[['服务事项','服务事项'],['材料补正','材料补正'],['审核审批','审核审批'],['结果确认','结果确认']]},
  {code:'message_type',name:'消息类型',sortOrder:12,items:[['SYSTEM','系统消息'],['BUSINESS','业务消息'],['TODO_REMINDER','待办提醒']]},
  {code:'message_read_status',name:'消息阅读状态',sortOrder:13,items:[['UNREAD','未读'],['READ','已读']]},
  {code:'application_request_status',name:'应用申请状态',sortOrder:14,items:[['PENDING','待审核'],['APPROVED','已通过'],['REJECTED','已驳回'],['WITHDRAWN','已撤回']]},
  {code:'account_opening_status',name:'账号开通状态',sortOrder:15,items:[['PENDING','待处理'],['PROCESSING','处理中'],['COMPLETED','已完成']]},
  {code:'mapping_status',name:'账号关联状态',sortOrder:16,items:[['UNBOUND','未关联'],['VERIFYING','验证中'],['REVIEWING','待审核'],['BOUND','已关联'],['FAILED','关联失败'],['CONFLICT','关联冲突']]},
- {code:'announcement_status',name:'公告状态',sortOrder:17,items:[['DRAFT','草稿'],['PUBLISHED','已发布'],['WITHDRAWN','已撤回'],['SCHEDULED','定时发布','DISABLED'],['EXPIRED','已过期（展示）','DISABLED']]},
+ {code:'announcement_status',name:'公告状态',sortOrder:17,items:[['DRAFT','草稿'],['PUBLISHED','已发布'],['WITHDRAWN','已撤回'],['SCHEDULED','定时发布'],['EXPIRED','已过期（展示）']]},
  {code:'announcement_scope',name:'公告适用范围',sortOrder:18,items:[['ALL','全部用户'],['CITIZEN','公众用户'],['GOV','政务用户']]},
  {code:'publish_mode',name:'公告发布方式',sortOrder:19,items:[['IMMEDIATE','立即发布'],['SCHEDULED','定时发布']]}
 ];
+
+const systemDictionaryCodes=new Set(['enable_status','runtime_status','integration_protocol',...businessDictionaryCatalog.filter(type=>type.systemLocked!==false).map(type=>type.code)]);
+export const isSystemDictionaryType=code=>systemDictionaryCodes.has(code);
 
 export function businessDictionarySeed(row){
  return {
@@ -20,12 +23,27 @@ export function businessDictionarySeed(row){
  };
 }
 
-// Semantic-key merge: keep administrator edits, including disabled rows and labels.
+// Semantic-key merge: keep custom labels, but restore the invariant of system dictionaries.
 export function reconcileBusinessDictionaries(state,now=new Date().toISOString()){
  const next=structuredClone(state),seed=businessDictionarySeed((id,values)=>({id,version:1,createdAt:now,updatedAt:now,...values}));
  next.dictTypes??=[];next.dictItems??=[];
- const added={types:[],items:[]};
+ const added={types:[],items:[]},corrected={types:[],items:[]};
  for(const type of seed.types)if(!next.dictTypes.some(existing=>existing.code===type.code)){next.dictTypes.push(type);added.types.push(type.code);}
  for(const item of seed.items)if(!next.dictItems.some(existing=>existing.typeCode===item.typeCode&&existing.value===item.value)){next.dictItems.push(item);added.items.push(`${item.typeCode}:${item.value}`);}
- return {state:next,added};
+ for(const type of next.dictTypes){
+  if(!type.systemLocked&&!isSystemDictionaryType(type.code))continue;
+  if(type.status==='ENABLED'&&type.systemLocked===true)continue;
+  Object.assign(type,{status:'ENABLED',systemLocked:true,version:Number(type.version||0)+1,updatedAt:now});
+  corrected.types.push(type.code);
+ }
+ for(const item of next.dictItems){
+  const key=`${item.typeCode}:${item.value}`;
+  const locked=item.systemLocked||isSystemDictionaryType(item.typeCode);
+  const legacyLabel=key==='announcement_status:SCHEDULED'&&item.label==='定时发布(展示)';
+  if(!locked&&!legacyLabel)continue;
+  if(!legacyLabel&&item.status==='ENABLED'&&item.systemLocked===true)continue;
+  Object.assign(item,{...(locked?{status:'ENABLED',systemLocked:true}:{}),...(legacyLabel?{label:'定时发布'}:{}),version:Number(item.version||0)+1,updatedAt:now});
+  corrected.items.push(key);
+ }
+ return {state:next,added,corrected};
 }
