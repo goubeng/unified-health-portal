@@ -6,7 +6,7 @@ import {integrationFields,integrationOptionalFields,terminalStatuses} from '../c
 import {validateLocalPassword} from '../config/password-policy.js';
 import {auditActionNames,auditActionPages} from '../config/audit-activity.js';
 import {countRowsByChinaDay} from '../utils/chinaCalendar.mjs';
-import {visitTrendFromLogs} from '../utils/portalVisitTrend.mjs';
+import {visitTrendFromLogs,apiTrendFromLogs} from '../utils/portalVisitTrend.mjs';
 import {isSystemDictionaryType} from '../config/dictionary-catalog.js';
 const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
@@ -158,10 +158,12 @@ export function createPortalService(provider,getActor){
    if(resource==='header')return {unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length};
    if(resource==='lookupDictionaries')return {types:(d.dictTypes||[]).map(({code,name,status,sortOrder})=>({code,name,status,sortOrder})),items:(d.dictItems||[]).map(({typeCode,value,label,status,sortOrder})=>({typeCode,value,label,status,sortOrder}))};
    if(resource==='home')return {appCount:userApps().length,todoCount:d.todos.filter(x=>own(x,a)&&x.status==='PENDING').length,unreadCount:d.messages.filter(x=>own(x,a)&&!x.deleted&&x.status==='UNREAD').length,announcementCount:d.announcements.filter(x=>visible(x,a)).length,unreadAnnouncementCount:d.announcements.filter(x=>visible(x,a)&&!(d.announcementReads||[]).some(r=>r.announcementId===x.id&&own(r,a))).length};
-   if(resource.startsWith('auditVisitTrend?')){
+   if(resource.startsWith('auditVisitTrend?')||resource.startsWith('auditApiTrend?')){
     auth(a,'audit:view');
-    const query=new URLSearchParams(resource.slice('auditVisitTrend?'.length));
-    return visitTrendFromLogs(query.get('startDate'),query.get('endDate'),d.logs||[]);
+    const apiTrend=resource.startsWith('auditApiTrend?');
+    const query=new URLSearchParams(resource.slice(apiTrend?'auditApiTrend?'.length:'auditVisitTrend?'.length));
+    const aggregate=apiTrend?apiTrendFromLogs:visitTrendFromLogs;
+    return aggregate(query.get('startDate'),query.get('endDate'),d.logs||[]);
    }
    const resourcePermissions={categories:'application:view',access:'integration:view',applicationRequests:'application:review',accountOpeningRequests:'application:review',identityOverview:'identity:view',identities:'identity:view',identityMappings:'identity:view',mappings:'identity:view',exceptions:'identity:view',roles:'role:view',permissions:'role:view',sso:'integration:view',todoIntegration:'integration:view',messageIntegration:'integration:view',external:'integration:view',settings:'settings:view',monitor:'monitor:view',monitorHistory:'monitor:view',adminHome:'any',auditTrends:'audit:view',users:'admin-user:view',organizations:'organization:view',dictionaries:'dictionary:view'};
    auth(a,resource.startsWith('logs:')?'audit:view':resourcePermissions[resource]||'system:super');
