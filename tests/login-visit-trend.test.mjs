@@ -103,7 +103,11 @@ test('趋势卡片和登录日志查询项均只在登录日志页显示',()=>{
  assert.match(chart,/name:metricName\.value,type:'line'/);
  assert.match(chart,/const resourceName=computed\(\(\)=>isApi\.value\?'auditApiTrend':'auditVisitTrend'\)/);
  const homeChart=readFileSync(new URL('../src/components/portal/AdminTrendChart.vue',import.meta.url),'utf8');
- assert.match(homeChart,/lineStyle:\{width:2,color:'#2454ff'\}/);
+ assert.match(homeChart,/const currentLineColor=computed\(\(\)=>metric\.value==='api'\?'#7C3AED':'#0D9488'\)/);
+ assert.match(homeChart,/const currentAreaColor=computed\(\(\)=>metric\.value==='api'\?'rgba\(124,58,237,\.14\)':'rgba\(13,148,136,\.16\)'\)/);
+ assert.match(homeChart,/lineStyle:\{width:2,color:currentLineColor\.value\}/);
+ assert.match(homeChart,/itemStyle:\{color:currentLineColor\.value\}/);
+ assert.match(homeChart,/areaStyle:\{color:currentAreaColor\.value\}/);
  assert.match(chart,/<t-date-range-picker/);
  assert.match(logs,/<LoginVisitTrend v-if="kind==='login'\|\|kind==='api'" :key="kind" :kind="kind"\/>/);
  for(const field of ['事件类型','身份来源','认证类型'])assert(logs.includes(`label="${field}"`));
