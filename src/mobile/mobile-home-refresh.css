@@ -105,11 +105,14 @@
   font-weight: var(--mobile-font-weight-bold);
   color: var(--home-ink);
 }
-.mobile-home-section-head > button {
+.mobile-home-section-head > button,
+.mobile-home-section--first .mobile-home-section-actions .mobile-home-all-apps-link {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   padding: 4px 0 4px 5px;
+  border: 0;
+  background: transparent;
   color: #667b9d;
   font-size: 12px;
   white-space: nowrap;
@@ -120,8 +123,24 @@
   height: 13px;
   color: #7184a2;
 }
-/* 首页“我的申请”采用浅蓝色轻量胶囊，仅保留文字与右箭头，不影响其他分区入口。 */
-.mobile-home-section--first .mobile-home-section-head > .mobile-home-my-requests-link {
+/* 我的应用标题右侧两个入口水平排列，保留我的申请浅蓝胶囊、全部应用轻文字层级。 */
+.mobile-home-section--first .mobile-home-section-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.mobile-home-section--first .mobile-home-section-actions .mobile-home-all-apps-link:focus-visible {
+  outline: 2px solid rgba(0, 82, 217, .26);
+  outline-offset: 2px;
+}
+@media (max-width: 350px) {
+  .mobile-home-section--first .mobile-home-section-actions { gap: 3px; }
+  .mobile-home-section--first .mobile-home-section-actions .mobile-home-my-requests-link { padding-right: 8px; padding-left: 8px; }
+}
+/* 首页“我的申请”采用浅蓝色轻量胶囊，仅保留文字与右箭头。 */
+.mobile-home-section--first .mobile-home-section-actions .mobile-home-my-requests-link {
   display: inline-flex;
   flex: none;
   align-items: center;

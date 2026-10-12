@@ -23,7 +23,7 @@ test('移动端首页我的应用支持直接展示全部应用并按8个分页�
   assert.match(homeDetailCss, /\.mobile-home-apps-dot\.active/);
 });
 
-test('移动端首页原来的“全部应用”已替换为“我的申请”链接', () => {
+test('移动端首页我的应用区域并排显示我的申请和全部应用入口', () => {
   const homeVue = read('src/mobile/MobileHome.vue');
 
   // 我的应用标题旁操作按钮应为我的申请，并跳转到 /m/applications
@@ -32,7 +32,8 @@ test('移动端首页原来的“全部应用”已替换为“我的申请”�
   assert.doesNotMatch(homeVue, /  FileIcon,/);
   assert.match(homeVue, /<ChevronRightIcon class="my-requests-arrow"/);
   const homeCss = read('src/mobile/mobile-home-refresh.css');
-  assert.match(homeCss, /\.mobile-home-section--first \.mobile-home-section-head > \.mobile-home-my-requests-link\s*\{/);
+  assert.match(homeCss, /\.mobile-home-section--first \.mobile-home-section-actions \.mobile-home-my-requests-link\s*\{/);
+  assert.match(homeCss, /\.mobile-home-section-head > button,\s*\.mobile-home-section--first \.mobile-home-section-actions \.mobile-home-all-apps-link\s*\{/);
   assert.match(homeCss, /background:\s*#edf4ff/);
   assert.match(homeCss, /border:\s*1px solid #c9dcff/);
   assert.match(homeCss, /color:\s*var\(--home-brand\)/);
@@ -40,7 +41,11 @@ test('移动端首页原来的“全部应用”已替换为“我的申请”�
   assert.match(homeCss, /height:\s*30px/);
   assert.match(homeCss, /min-height:\s*30px/);
   assert.doesNotMatch(homeCss, /\.my-requests-icon/);
-  assert.doesNotMatch(homeVue, /<button type="button" @click="go\('\/m\/apps'\)">全部应用<\/button>/);
+  assert.match(homeVue, /class="mobile-home-section-actions"/);
+  assert.match(homeVue, /class="mobile-home-all-apps-link"[^>]*@click="go\('\/m\/apps'\)">全部应用<\/button>/);
+  const actions = homeVue.split('class="mobile-home-section-actions"')[1]?.split('</div>')[0] || '';
+  assert.ok(actions.indexOf('mobile-home-my-requests-link') < actions.indexOf('mobile-home-all-apps-link'));
+  assert.match(homeVue, /<button type="button" @click="go\('\/m\/todos'\)">查看全部<\/button>/);
 });
 
 test('移动端首页我的应用和待办事项标题去掉了前导蓝色竖线', () => {

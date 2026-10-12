@@ -13,10 +13,13 @@
       <section class="mobile-home-section mobile-home-section--first">
         <div class="mobile-home-section-head">
           <div><h2>我的应用</h2></div>
-          <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications')">
-            <span>我的申请</span>
-            <ChevronRightIcon class="my-requests-arrow" aria-hidden="true" />
-          </button>
+          <div class="mobile-home-section-actions">
+            <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications')">
+              <span>我的申请</span>
+              <ChevronRightIcon class="my-requests-arrow" aria-hidden="true" />
+            </button>
+            <button type="button" class="mobile-home-all-apps-link" aria-label="查看全部应用" @click="go('/m/apps')">全部应用</button>
+          </div>
         </div>
         <div v-if="mine.length" class="mobile-home-apps-wrapper">
           <div

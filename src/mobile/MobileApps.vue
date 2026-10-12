@@ -1,15 +1,25 @@
 <template>
   <div class="mobile-apps">
-    <!-- 顶部标题栏：全部应用标题，胶囊搜索框，无圆角直连 -->
+    <!-- 顶部页头：左侧标题与动态统计，右侧我的申请快捷入口。 -->
     <header class="mobile-apps-topbar">
       <div class="mobile-apps-title-row">
-        <h1>全部应用</h1>
-        <!-- 标题右侧的纯文字统计，底部对齐，不再占据独立一行 -->
-        <div class="mobile-apps-title-stats" aria-label="应用数量统计">
-          <span>共 <strong>{{ apps.length }}</strong> 个</span>
-          <span class="mobile-apps-stat-divider" aria-hidden="true"></span>
-          <span>已关联 <strong>{{ totalBoundCount }}</strong> 个</span>
+        <div class="mobile-apps-title-group">
+          <h1>全部应用</h1>
+          <div class="mobile-apps-title-stats" aria-label="应用数量统计">
+            <span>共 <strong>{{ apps.length }}</strong> 个</span>
+            <span class="mobile-apps-stat-divider" aria-hidden="true"></span>
+            <span>已关联 <strong>{{ totalBoundCount }}</strong> 个</span>
+          </div>
         </div>
+        <button
+          type="button"
+          class="mobile-apps-my-requests-link"
+          aria-label="查看我的申请"
+          @click="router.push('/m/applications')"
+        >
+          <FileIcon class="mobile-apps-my-requests-icon" aria-hidden="true" />
+          <span>我的申请</span>
+        </button>
       </div>
 
       <div class="mobile-apps-search-wrap">
@@ -189,6 +199,7 @@ import { Button as MobileButton, Input as TMobileInput } from 'tdesign-mobile-vu
 import {
   ChevronRightIcon,
   CloseIcon,
+  FileIcon,
   InfoCircleFilledIcon,
 } from 'tdesign-icons-vue-next';
 import { command, portal, revision } from '../services/runtime.js';

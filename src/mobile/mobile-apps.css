@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-/* 全部应用为两行页头，标题与搜索框间距独立扩大到12px。 */
+/* 全部应用页头：标题与统计上下排列，右侧独立我的申请入口，下方保留搜索框。 */
 .mobile-apps-topbar {
   flex: none;
   background: var(--mobile-gradient-header);
@@ -20,15 +20,24 @@
 
 .mobile-apps-title-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   min-width: 0;
   line-height: 1.25;
 }
 
-/* 标题行：引用待办事项字号规范 22px */
+.mobile-apps-title-group {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+/* 主标题复用移动端页头22px字号规范。 */
 .mobile-apps-title-row h1 {
   flex: none;
   margin: 0;
@@ -39,14 +48,13 @@
   line-height: 1.25;
 }
 
-/* 应用数量以文字形式显示在标题右侧，两组数据与标题底部对齐。 */
+/* 应用总量及关联量固定显示在标题下方，沿用原有实时统计与分隔线。 */
 .mobile-apps-title-stats {
   display: flex;
-  flex: none;
   align-items: baseline;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
-  margin-bottom: 1px;
+  margin: 0;
   color: rgba(255, 255, 255, .84);
   font-size: var(--mobile-font-size-caption);
   font-weight: var(--mobile-font-weight-normal);
@@ -68,10 +76,43 @@
   font-weight: var(--mobile-font-weight-semibold);
 }
 
-/* 窄屏仍保持同一行，不压缩标题字号或文字到12px以下。 */
+/* 我的申请采用白色浅描边和小图标，与蓝色页头协调，不影响列表操作按钮。 */
+.mobile-apps-my-requests-link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-sizing: border-box;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: var(--mobile-action-pill-radius);
+  background: rgba(255, 255, 255, .14);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: var(--mobile-font-weight-medium);
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mobile-apps-my-requests-icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  color: currentColor;
+}
+.mobile-apps-my-requests-link:active { background: rgba(255, 255, 255, .24); }
+.mobile-apps-my-requests-link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* 窄屏只压缩横向留白，统计数字和按钮文字不缩小到12px以下。 */
 @media (max-width: 350px) {
-  .mobile-apps-title-row { gap: 5px; }
-  .mobile-apps-title-stats { gap: 6px; }
+  .mobile-apps-title-row { gap: 6px; }
+  .mobile-apps-title-stats { gap: 5px; }
+  .mobile-apps-my-requests-link { gap: 4px; padding: 0 7px; }
 }
 
 .mobile-apps-search-wrap {
