@@ -234,7 +234,7 @@ export function createPortalService(provider,getActor){
      saveAnnouncement:'announcement:edit',publish:'announcement:publish',withdraw:'announcement:publish',saveConfig:'settings:edit',
      saveIntegration:'integration:edit',createAccessProfile:'integration:edit',approveApplicationRequest:'application:review',rejectApplicationRequest:'application:review',completeMockAccountOpeningRequest:'application:review',
      approveBindingReview:'identity:review',rejectBindingReview:'identity:review',resolveLogError:'audit:resolve',unbind:'identity:unbind',resolveMapping:'identity:review',
-     pushTodo:'integration:edit',pushMessage:'integration:edit',recordMonitorObservation:'monitor:check'
+     pushTodo:'integration:edit',pushMessage:'integration:edit'
     };
     if(permissionByAction[action])auth(a,permissionByAction[action]);
     if(action==='removeAnnouncement'){
@@ -580,18 +580,6 @@ export function createPortalService(provider,getActor){
      const selected={valueMapping,targetKeyKind:'UNIFIED_USER_ID',enabled:p.enabled,protocol:p.protocol||'PUSH',mode:x.kind==='SSO'?'SSO':'PUSH',credentialRef:p.credentialRef||'',clientId:p.clientId||'',authorizeUrl:p.authorizeUrl||'',tokenUrl:p.tokenUrl||'',callbackUrl:p.callbackUrl||'',fieldMapping:mapping,remark:p.remark||''};
      const runtimeStatus=p.enabled==='DISABLED'?'DISABLED':'UNCONFIGURED';
      Object.assign(x,selected,{runtimeStatus,configStatus:'CONFIGURED'});result=stamp(x);
-    }else if(action==='recordMonitorObservation'){
-     const app=requireRow(d.apps,p.appId),kind=p.kind,status=p.status,reason=typeof p.reason==='string'?p.reason.trim():'';
-     if(!['SSO','TODO','MESSAGE'].includes(kind)||!['NORMAL','ABNORMAL'].includes(status))fail('VALIDATION_ERROR','请选择有效接入类型和检测结果');
-     if(status==='ABNORMAL'&&!reason)fail('VALIDATION_ERROR','异常检测须填写原因');
-     const config=d.integrations.find(item=>item.appId===app.id&&item.kind===kind);
-     if(!appEnabled(app)||!config||config.enabled!=='ENABLED'||config.configStatus!=='CONFIGURED')fail('INVALID_TRANSITION','应用及接入配置必须启用且已配置');
-     const checkedAt=new Date(Math.max(Date.now(),(Date.parse(config.updatedAt||config.createdAt)||0)+1)).toISOString();
-     d.monitorSamples??=[];
-     let sample=d.monitorSamples.find(item=>item.appId===app.id&&item.kind===kind);
-     if(sample)Object.assign(sample,{status,runtimeStatus:status,statusSource:'MONITOR_OBSERVATION',lastCheckedAt:checkedAt,lastSuccessAt:status==='NORMAL'?checkedAt:sample.lastSuccessAt||null,lastFailureAt:status==='ABNORMAL'?checkedAt:sample.lastFailureAt||null,failureCount:status==='ABNORMAL'?Number(sample.failureCount||0)+1:Number(sample.failureCount||0),lastError:status==='ABNORMAL'?reason:null,reason:reason||null,updatedAt:checkedAt,version:(sample.version||0)+1});
-     else{sample={id:id(),appId:app.id,kind,status,runtimeStatus:status,statusSource:'MONITOR_OBSERVATION',lastCheckedAt:checkedAt,lastSuccessAt:status==='NORMAL'?checkedAt:null,lastFailureAt:status==='ABNORMAL'?checkedAt:null,failureCount:status==='ABNORMAL'?1:0,lastError:status==='ABNORMAL'?reason:null,reason:reason||null,createdAt:checkedAt,updatedAt:checkedAt,version:1};d.monitorSamples.push(sample);}
-     result={appId:app.id,kind,status,lastCheckedAt:checkedAt};
     }else if(action==='pushTodo'){
      const targetApp=requireRow(d.apps,p.appId);if(!(d.users||actors).some(x=>x.id===p.userId))fail('IDENTITY_UNRESOLVED','接收身份无法解析');if(!p.sourceTodoId?.trim()||!p.eventId?.trim()||!p.title?.trim()||!terminalStatuses.includes(p.status))fail('VALIDATION_ERROR','事件ID、源事项ID、标题及有效状态必填');
      if(p.businessType!==undefined&&(typeof p.businessType!=='string'||!p.businessType.trim()))fail('VALIDATION_ERROR','待办任务类型无效');
@@ -616,8 +604,8 @@ export function createPortalService(provider,getActor){
     for(const app of d.apps)for(const kind of ['SSO','TODO','MESSAGE']){
      const fromStatus=beforeRuntime.get(`${app.id}|${kind}`),toStatus=integrationState(d,app,kind).runtimeStatus;
      if(!fromStatus||fromStatus===toStatus)continue;
-     const source=action==='recordMonitorObservation'?'MONITOR_OBSERVATION':action==='setAppStatus'||action==='saveApp'?'APPLICATION':'CONFIGURATION';
-     const reason=action==='recordMonitorObservation'?(p.reason?.trim()||'接入检测恢复正常'):action==='setAppStatus'||action==='saveApp'?'应用启用状态变更':'接入配置变更';
+     const source=['setAppStatus','saveApp'].includes(action)?'APPLICATION':'CONFIGURATION';
+     const reason=['setAppStatus','saveApp'].includes(action)?'应用启用状态变更':'接入配置变更';
      d.monitorHistory??=[];d.monitorHistory.push({id:id(),appId:app.id,appName:app.name,kind,fromStatus,toStatus,occurredAt:now,reason,source});
     }
     const todoForLog=action==='openTodo'?(d.todos||[]).find(item=>item.id===p.id):null;
