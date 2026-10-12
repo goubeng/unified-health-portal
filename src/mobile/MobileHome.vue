@@ -11,7 +11,14 @@
 
     <template v-else>
       <section class="mobile-home-section mobile-home-section--first">
-        <div class="mobile-home-section-head"><div><h2>我的应用</h2></div><button type="button" @click="go('/m/applications')">我的申请</button></div>
+        <div class="mobile-home-section-head">
+          <div><h2>我的应用</h2></div>
+          <button type="button" class="mobile-home-my-requests-link" aria-label="查看我的申请" @click="go('/m/applications')">
+            <FileIcon class="my-requests-icon" aria-hidden="true" />
+            <span>我的申请</span>
+            <ChevronRightIcon class="my-requests-arrow" aria-hidden="true" />
+          </button>
+        </div>
         <div v-if="mine.length" class="mobile-home-apps-wrapper">
           <div
             class="mobile-home-apps-scroll-wrap"
@@ -163,6 +170,7 @@ import {
   CalendarIcon,
   ChevronRightIcon,
   CloseIcon,
+  FileIcon,
   InfoCircleFilledIcon,
 } from 'tdesign-icons-vue-next';
 import { command, portal, revision } from '../services/runtime.js';

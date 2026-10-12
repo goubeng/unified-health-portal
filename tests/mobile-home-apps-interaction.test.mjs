@@ -27,7 +27,13 @@ test('移动端首页原来的“全部应用”已替换为“我的申请”�
   const homeVue = read('src/mobile/MobileHome.vue');
 
   // 我的应用标题旁操作按钮应为我的申请，并跳转到 /m/applications
-  assert.match(homeVue, /<button type="button" @click="go\('\/m\/applications'\)">我的申请<\/button>/);
+  assert.match(homeVue, /class="mobile-home-my-requests-link"[^>]*@click="go\('\/m\/applications'\)"/);
+  assert.match(homeVue, /<FileIcon class="my-requests-icon"/);
+  assert.match(homeVue, /<ChevronRightIcon class="my-requests-arrow"/);
+  const homeCss = read('src/mobile/mobile-home-refresh.css');
+  assert.match(homeCss, /\.mobile-home-section--first \.mobile-home-section-head > \.mobile-home-my-requests-link\s*\{/);
+  assert.match(homeCss, /background:\s*var\(--home-brand\)/);
+  assert.match(homeCss, /color:\s*#ffffff/);
   assert.doesNotMatch(homeVue, /<button type="button" @click="go\('\/m\/apps'\)">全部应用<\/button>/);
 });
 

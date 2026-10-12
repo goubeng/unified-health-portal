@@ -120,6 +120,49 @@
   height: 13px;
   color: #7184a2;
 }
+/* “我的应用”右侧独立高强调入口：蓝底白字胶囊，与普通“查看全部”链接区分。 */
+.mobile-home-section--first .mobile-home-section-head > .mobile-home-my-requests-link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--home-brand);
+  border-radius: 999px;
+  background: var(--home-brand);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: var(--mobile-font-weight-semibold);
+  line-height: 1.4;
+  box-shadow: 0 3px 9px rgba(0, 82, 217, .15);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color .15s ease, transform .15s ease;
+}
+.mobile-home-section--first .mobile-home-my-requests-link :is(.my-requests-icon, .my-requests-arrow) {
+  display: block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+}
+.mobile-home-section--first .mobile-home-my-requests-link .my-requests-arrow {
+  width: 12px;
+  height: 12px;
+}
+.mobile-home-section--first .mobile-home-my-requests-link:active {
+  background: #0043b3;
+  transform: translateY(1px);
+}
+.mobile-home-section--first .mobile-home-my-requests-link:focus-visible {
+  outline: 2px solid var(--home-brand);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-home-section--first .mobile-home-my-requests-link { transition: none; }
+}
 /* 应用区的标题和路由不变，只调整表面和图片承载空间。 */
 .mobile-home-app-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
