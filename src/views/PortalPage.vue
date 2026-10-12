@@ -377,9 +377,11 @@ const querySpec=computed(()=>{
  const logKind=resource.value.startsWith('logs:')?resource.value.split(':')[1]:'';
  if(key==='apps'||key==='mine')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['name','code'],filters:[
   filterDef('category','系统分类','请选择系统分类',rowOptions('category'),'category'),
-  filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED'],'runtime_status'),'aggregateRuntimeStatus'),
-  ...(admin.value?[filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status')]:[]),
-  filterDef('userType','适用用户','请选择适用用户',fixedOptions(['BOTH','CITIZEN','GOV']),'userType')
+  ...(admin.value?[
+   filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED'],'runtime_status'),'aggregateRuntimeStatus'),
+   filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status'),
+   filterDef('userType','适用用户','请选择适用用户',fixedOptions(['BOTH','CITIZEN','GOV']),'userType')
+  ]:[])
  ]};
  if(key==='categories')return {keywordPlaceholder:'分类名称 / 分类编码',keywordFields:['name','code'],filters:[filterDef('status','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status')]};
  if(key==='myApplicationRequests')return {keywordPlaceholder:'申请编号 / 应用名称 / 申请人',keywordFields:['requestNo','appName','userName','reason'],filters:[filterDef('appName','应用','请选择应用',rowOptions('appName'),'appName'),filterDef('status','状态','请选择状态',myRequestStatusOptions(),'status')]};
