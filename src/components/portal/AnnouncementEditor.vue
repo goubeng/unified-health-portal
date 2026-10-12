@@ -4,7 +4,7 @@
     <div class="rich-editor-shell">
       <div class="rich-editor-toolbar" role="toolbar" aria-label="公告正文格式工具栏" @mousedown.capture="saveSelection">
         <t-tooltip content="加粗"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('bold')"><Icon name="textformat-bold"/></t-button></t-tooltip>
-        <t-tooltip content="斜体"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('italic')"><Icon name="textformat-italic"/></t-button></t-tooltip>
+        <t-tooltip content="斜体"><t-button class="editor-icon-button" size="small" variant="text" @mousedown.prevent="saveSelection" @click.prevent="exec('italic')"><Icon name="textformat-italic"/></t-button></t-tooltip>
         <t-tooltip content="下划线"><t-button class="editor-icon-button" size="small" variant="text" @click.prevent="exec('underline')"><Icon name="textformat-underline"/></t-button></t-tooltip>
         <span class="toolbar-divider"></span>
         <t-tooltip content="文字大小">
