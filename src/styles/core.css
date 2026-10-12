@@ -299,6 +299,8 @@
 .toolbar-divider{width:1px;height:20px;margin:0 4px;background:#dfe3e8}
 .rich-editor-content{min-height:220px;max-height:380px;overflow:auto;padding:14px 16px;color:#1f2329;font-size:13px;line-height:1.8;outline:0;word-break:break-word}
 .rich-editor-content:empty::before{content:attr(data-placeholder);color:#a8abb2;pointer-events:none}
+/* 正文编辑/展示允许无独立斜体字体通过字形合成正确显示斜体。 */
+.rich-editor-content,.portal-rich-content,.portal-announcement-body,.portal-letter-body{font-synthesis:style}
 .rich-editor-content :is(h1,h2,h3){margin:10px 0;font-size:16px}
 .rich-editor-content p{margin:0 0 8px}
 .announcement-editor .t-upload{font-size:13px}
