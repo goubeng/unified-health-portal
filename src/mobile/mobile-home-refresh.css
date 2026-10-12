@@ -126,9 +126,11 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  min-height: 36px;
-  padding: 0 12px;
+  gap: 3px;
+  box-sizing: border-box;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
   border: 1px solid #c9dcff;
   border-radius: var(--mobile-action-pill-radius);
   background: #edf4ff;
@@ -144,8 +146,8 @@
 .mobile-home-section--first .mobile-home-my-requests-link .my-requests-arrow {
   display: block;
   flex: none;
-  width: 11px;
-  height: 11px;
+  width: 9px;
+  height: 9px;
   color: currentColor;
   opacity: .75;
 }

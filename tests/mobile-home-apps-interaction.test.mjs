@@ -36,7 +36,9 @@ test('移动端首页原来的“全部应用”已替换为“我的申请”�
   assert.match(homeCss, /background:\s*#edf4ff/);
   assert.match(homeCss, /border:\s*1px solid #c9dcff/);
   assert.match(homeCss, /color:\s*var\(--home-brand\)/);
-  assert.match(homeCss, /\.my-requests-arrow\s*\{[^}]*width:\s*11px/);
+  assert.match(homeCss, /\.my-requests-arrow\s*\{[^}]*width:\s*9px/);
+  assert.match(homeCss, /height:\s*30px/);
+  assert.match(homeCss, /min-height:\s*30px/);
   assert.doesNotMatch(homeCss, /\.my-requests-icon/);
   assert.doesNotMatch(homeVue, /<button type="button" @click="go\('\/m\/apps'\)">全部应用<\/button>/);
 });
