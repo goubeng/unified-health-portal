@@ -26,17 +26,20 @@ test('PC应用中心：申请使用弹窗760px，统一紧凑的头部、正文�
   assert.match(css, /\.portal-pc-app-request-dialog \.form-grid\s*\{[^}]*gap:\s*12px 16px/);
 });
 
-test('PC应用中心：账号关联弹窗仍560px但统一直角，APP端样式不受影响', () => {
+test('PC应用中心：账号关联弹窗720px、单层内边距及直角，APP端样式不受影响', () => {
   const page = read('src/views/PortalPage.vue');
   const binding = read('src/components/portal/AccountBindingWizard.vue');
   const mobile = read('src/mobile/MobileAccountBindingModal.vue');
   const css = read('src/styles/core.css');
   assert.match(page, /<AccountBindingWizard[^>]*:app-center="isAppCenter"/);
-  assert.match(binding, /APP_CENTER_DIALOG_MAX_WIDTH = 'min\(calc\(100vw - 48px\), 560px\)'/);
+  assert.match(binding, /APP_CENTER_DIALOG_MAX_WIDTH = 'min\(calc\(100vw - 48px\), 720px\)'/);
   assert.match(binding, /const DIALOG_MAX_WIDTH = 'min\(calc\(100vw - 24px\), 420px\)'/);
   assert.match(binding, /'account-binding-dialog--app-center':appCenter/);
   assert.match(binding, /\.account-binding-dialog\.t-dialog,\s*body \.account-binding-dialog \.t-dialog\s*\{[^}]*border-radius:\s*0/);
-  assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center \.t-dialog__body\s*\{[^}]*padding:\s*8px 20px 20px/);
+  assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center \.t-dialog__body\s*\{[^}]*padding:\s*0\s*!important/);
+  assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center\.t-dialog__wrap \.t-dialog,[\s\S]*?padding:\s*24px 28px\s*!important/);
+  assert.match(binding, /\.account-binding-dialog\.account-binding-dialog--app-center \.t-dialog__header\s*\{[^}]*padding:\s*0 28px 0 0/);
+  assert.match(binding, /@media \(max-width:\s*720px\)\s*\{[\s\S]*?padding:\s*18px\s*!important/);
   assert.doesNotMatch(mobile, /portal-pc-app-|account-binding-dialog--app-center/);
   assert.doesNotMatch(css, /\.mobile-apps-my-requests-link|\.mobile-binding-overlay/);
 });

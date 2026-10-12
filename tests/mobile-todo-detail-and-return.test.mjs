@@ -49,7 +49,7 @@ test('移动端我的页面移除申请入口，全部应用申请返回来源�
   assert.match(profile, /个人资料/);
   assert.match(profile, /退出登录/);
   assert.match(apps, /query: \{ from: 'apps' \}/);
-  assert.match(home, /go\('\/m\/applications\?from=home'\)/);
+  assert.match(home, /go\('\/m\/applications', \{ from: 'home' \}\)/);
   assert.match(shell, /route\.query\.from === 'home'/);
   assert.match(applications, /\['apps', 'home'\]\.includes/);
   assert.match(applications, /route\.query\.from === 'apps'/);

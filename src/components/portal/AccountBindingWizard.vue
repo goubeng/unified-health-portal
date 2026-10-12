@@ -68,7 +68,7 @@ import {command} from '../../services/runtime.js';
 import {text} from './presentation.js';
 
 const DIALOG_MAX_WIDTH = 'min(calc(100vw - 24px), 420px)';
-const APP_CENTER_DIALOG_MAX_WIDTH = 'min(calc(100vw - 48px), 560px)';
+const APP_CENTER_DIALOG_MAX_WIDTH = 'min(calc(100vw - 48px), 720px)';
 
 const props=defineProps({visible:Boolean,app:{type:Object,default:null},appCenter:{type:Boolean,default:false}});
 const emit=defineEmits(['update:visible','completed','view-request']);
@@ -304,21 +304,36 @@ body .account-binding-dialog .t-dialog {
   flex-wrap: wrap;
 }
 
-/* 仅PC应用中心来源：扩展账号关联对话框，并统一标题、正文距边框留白。 */
+/* PC应用中心账号确认弹窗：仅在根容器留白，避免TDesign外层和头部/正文重复叠加padding。
+ * 桌面端适度加宽，APP端的MobileAccountBindingModal与其他PC来源不受影响。 */
 .account-binding-dialog.account-binding-dialog--app-center.t-dialog__wrap .t-dialog,
 .account-binding-dialog.account-binding-dialog--app-center.t-dialog,
 body .account-binding-dialog.account-binding-dialog--app-center .t-dialog {
-  width: min(calc(100vw - 48px), 560px) !important;
-  max-width: min(calc(100vw - 48px), 560px) !important;
+  width: min(calc(100vw - 48px), 720px) !important;
+  max-width: min(calc(100vw - 48px), 720px) !important;
+  padding: 24px 28px !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__header {
-  padding: 18px 20px 8px !important;
+  margin: 0 0 16px !important;
+  padding: 0 28px 0 0 !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__body {
-  padding: 8px 20px 20px !important;
+  padding: 0 !important;
 }
 .account-binding-dialog.account-binding-dialog--app-center .t-dialog__close {
-  right: 16px !important;
+  top: 20px !important;
+  right: 22px !important;
+}
+@media (max-width: 720px) {
+  .account-binding-dialog.account-binding-dialog--app-center.t-dialog__wrap .t-dialog,
+  .account-binding-dialog.account-binding-dialog--app-center.t-dialog,
+  body .account-binding-dialog.account-binding-dialog--app-center .t-dialog {
+    padding: 18px !important;
+  }
+  .account-binding-dialog.account-binding-dialog--app-center .t-dialog__close {
+    top: 14px !important;
+    right: 12px !important;
+  }
 }
 
 @media (max-width: 640px) {

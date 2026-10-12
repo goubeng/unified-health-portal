@@ -27,7 +27,8 @@ test('移动端首页我的应用区域并排显示我的申请和全部应用�
   const homeVue = read('src/mobile/MobileHome.vue');
 
   // 我的应用标题旁操作按钮应为我的申请，并跳转到 /m/applications
-  assert.match(homeVue, /class="mobile-home-my-requests-link"[^>]*@click="go\('\/m\/applications'\)"/);
+  assert.match(homeVue, /class="mobile-home-my-requests-link"[^>]*@click="go\('\/m\/applications', \{ from: 'home' \}\)"/);
+  assert.doesNotMatch(homeVue, /go\('\/m\/applications\?from=home'\)/);
   assert.match(homeVue, /<FileIcon class="my-requests-icon"/);
   assert.match(homeVue, /<span class="mobile-home-actions-divider" aria-hidden="true"><\/span>/);
   const homeCss = read('src/mobile/mobile-home-refresh.css');
