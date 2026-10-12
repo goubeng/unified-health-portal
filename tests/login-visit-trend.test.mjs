@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
- visitTrendPreset,validateVisitTrendRange,visitTrendBounds,visitTrendSeries,visitTrendFromLogs
+ visitTrendPreset,validateVisitTrendRange,visitTrendBounds,visitTrendSeries,visitTrendFromLogs,apiTrendFromLogs
 } from '../src/utils/portalVisitTrend.mjs';
 import {createSeed} from '../src/mock/seed.js';
 import {createPortalService} from '../src/services/portal.js';
@@ -48,19 +48,36 @@ test('只统计成功进入门户，不将退出、切换、认证失败、应�
  ]);
 });
 
+test('接口调用趋势按北京时间统计所有API请求，排除其他日志及未来数据',()=>{
+ const now=new Date('2026-10-12T08:00:00Z');
+ const rows=apiTrendFromLogs('2026-10-11','2026-10-12',[
+  {kind:'API',name:'CALL',status:'SUCCESS',createdAt:'2026-10-11T15:59:59Z'},
+  {kind:'api',name:'CALL',status:'FAILURE',createdAt:'2026-10-11T16:00:00Z'},
+  {kind:'api',name:'CALL',status:'DENIED',createdAt:'2026-10-11T16:30:00Z'},
+  {kind:'LOGIN',name:'LOGIN',status:'SUCCESS',createdAt:'2026-10-11T16:30:00Z'},
+  {kind:'api',name:'CALL',status:'SUCCESS',createdAt:'2026-10-12T08:00:01Z'}
+ ],now);
+ assert.deepEqual(rows,[{date:'2026-10-11',count:1},{date:'2026-10-12',count:2}]);
+ assert.deepEqual(visitTrendSeries('2026-10-11','2026-10-12',[
+  {day:'2026-10-11',count:0},{day:'2026-10-12',count:1200}
+ ],now),[{date:'2026-10-11',count:0},{date:'2026-10-12',count:1200}]);
+});
+
 test('按审计权限读取登录访问趋势，普通用户无权查看',async()=>{
  const state=createSeed();
  const admin=state.users.find(x=>x.id==='MOCK_ADMIN');
  const user=state.users.find(x=>x.id==='MOCK_USER_1');
  assert(admin&&user);
  const [startDate,endDate]=visitTrendPreset('7d');
- const resource=`auditVisitTrend?startDate=${startDate}&endDate=${endDate}`;
  const service=createPortalService({kind:'mock',read:()=>structuredClone(state)},()=>admin);
- const result=await service.read(resource);
- assert.equal(result.ok,true);
- assert.equal(result.data.length,7);
  const unauthorized=createPortalService({kind:'mock',read:()=>structuredClone(state)},()=>user);
- assert.equal((await unauthorized.read(resource)).ok,false);
+ for(const resourceName of ['auditVisitTrend','auditApiTrend']){
+  const resource=`${resourceName}?startDate=${startDate}&endDate=${endDate}`;
+  const result=await service.read(resource);
+  assert.equal(result.ok,true,resource);
+  assert.equal(result.data.length,7,resource);
+  assert.equal((await unauthorized.read(resource)).ok,false,resource);
+ }
 });
 
 test('数据库聚合复用审计物理表，不能被列表1000条截断',async()=>{
@@ -81,16 +98,20 @@ test('趋势卡片和登录日志查询项均只在登录日志页显示',()=>{
  assert.match(chart,/const period=ref\('30d'\)/);
  assert.match(chart,/smooth:true/);
  assert.match(chart,/areaStyle:/);
- assert.match(chart,/lineStyle:\{width:2,color:'#0D9488'\}/);
- assert.match(chart,/areaStyle:\{color:'rgba\(13,148,136,\.16\)'\}/);
+ assert.match(chart,/color:isApi\.value\?'#7C3AED':'#0D9488'/);
+ assert.match(chart,/areaStyle:\{color:isApi\.value\?'rgba\(124,58,237,\.14\)':'rgba\(13,148,136,\.16\)'\}/);
+ assert.match(chart,/name:metricName\.value,type:'line'/);
+ assert.match(chart,/const resourceName=computed\(\(\)=>isApi\.value\?'auditApiTrend':'auditVisitTrend'\)/);
  const homeChart=readFileSync(new URL('../src/components/portal/AdminTrendChart.vue',import.meta.url),'utf8');
  assert.match(homeChart,/lineStyle:\{width:2,color:'#2454ff'\}/);
  assert.match(chart,/<t-date-range-picker/);
- assert.match(logs,/<LoginVisitTrend v-if="kind==='login'"\/>/);
+ assert.match(logs,/<LoginVisitTrend v-if="kind==='login'\|\|kind==='api'" :key="kind" :kind="kind"\/>/);
  for(const field of ['事件类型','身份来源','认证类型'])assert(logs.includes(`label="${field}"`));
  assert.match(logs,/eventType\.value='';identitySource\.value='';authType\.value=''/);
  assert.match(api,/repository\.auditDayCounts\(startAt,endAt\)/);
  assert.match(api,/resource\.startsWith\('auditVisitTrend\?'\)/);
+ assert.match(api,/resource\.startsWith\('auditApiTrend\?'\)/);
+ assert.match(api,/count:Number\(apiTrend\?item\.api:item\.access\)\|\|0/);
 });
 
 test('五类日志查询均对应实际列表字段，避免来源应用和结果条件重复',()=>{
