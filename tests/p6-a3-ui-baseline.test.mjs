@@ -34,7 +34,7 @@ test('登录页保留三身份与模拟认证元素且身份页签样式固定',
   assert(css.includes('.identity-pill{font-size:18px!important;font-weight:500!important'));
 });
 
-test('消息中心头部未读统计复用待办任务标题计数样式',()=>{
+test('消息中心头部未读统计复用待办事项标题计数样式',()=>{
   const source=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('class="portal-title-count"'));
@@ -777,7 +777,7 @@ test('管理端指定菜单使用互不重复的业务图标',()=>{
 });
 
 
-test('应用中心与我的申请覆盖主要结果状态和下一步操作',()=>{
+test('全部应用与我的申请覆盖主要结果状态和下一步操作',()=>{
   const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
   const mine=fs.readFileSync('src/components/portal/MyApplications.vue','utf8');
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
@@ -831,7 +831,7 @@ test('字典管理左右卡片顶部严格对齐',()=>{
 });
 
 
-test('待办任务列表缩小标题列并加宽来源应用列',()=>{
+test('待办事项列表缩小标题列并加宽来源应用列',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   assert(source.includes("{colKey:'title',title:'待办标题',width:200,ellipsis:true}"));
   assert(source.includes("{colKey:'appName',title:'来源应用',width:320,ellipsis:true}"));
@@ -884,7 +884,7 @@ test('公共文本清洗不保留演示前缀产生的孤立冒号',()=>{
 });
 
 
-test('应用中心我的应用和其他应用默认每页20条并支持10/20/50切换',()=>{
+test('全部应用我的应用和其他应用默认每页20条并支持10/20/50切换',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   assert(source.includes('const appPageSizes=reactive({mine:20,other:20}),appPages=reactive({mine:1,other:1});'));
   const center=source.split('<template v-if="isAppCenter">')[1]?.split('</template>')[0]||'';
@@ -906,7 +906,7 @@ test('其他应用状态标签文字统一为12px',()=>{
 });
 
 
-test('应用中心分组统计仅数字增加字重',()=>{
+test('全部应用分组统计仅数字增加字重',()=>{
   const source=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/core.css','utf8');
   assert(source.includes('<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span>'));
@@ -1089,7 +1089,7 @@ test('通知公告使用标签元信息和单行Banner',()=>{
 });
 
 
-test('应用中心卡片使用浅色背景并给应用类型增加标签色',()=>{
+test('全部应用卡片使用浅色背景并给应用类型增加标签色',()=>{
   const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(cards.includes(':class="categoryTone(app.category)"'));
@@ -1110,11 +1110,11 @@ test('通知公告标题显示在Banner内且列表页隐藏外部标题',()=>{
 });
 
 
-test('应用中心标题显示在Banner内且去掉独立页标题图标',()=>{
+test('全部应用标题显示在Banner内且去掉独立页标题图标',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
   assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
   assert(layout.includes('<strong>{{ bannerInfo.title }}</strong>'));
-  assert(layout.includes("title:'应用中心'"));
+  assert(layout.includes("title:'全部应用'"));
   assert(layout.includes('汇聚卫生健康服务应用 · 便捷访问常用业务系统'));
   assert(!layout.includes('public-portal-app-banner-icon'));
   assert(!layout.includes('AppIcon'));
@@ -1135,7 +1135,7 @@ test('消息中心列表页使用Banner且详情页保留外部标题',()=>{
 test('公众端全部二级列表页统一Banner和查询布局',()=>{
   const layout=fs.readFileSync('src/views/PortalPreviewLayout.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
-  for(const title of ['待办任务','消息中心','通知公告','应用中心','我的申请','个人中心']){
+  for(const title of ['待办事项','消息中心','通知公告','全部应用','我的申请','个人中心']){
     assert(layout.includes("title:'"+title+"'"),title+' 未接入统一Banner');
   }
   assert(layout.includes('v-if="bannerInfo" class="public-announcement-banner public-portal-section-banner"'));
@@ -1209,7 +1209,7 @@ test('消息中心列表与操作使用统一白色内容容器',()=>{
 });
 
 
-test('首页我的应用保留深色图标并对齐应用中心卡片标签',()=>{
+test('首页我的应用保留深色图标并对齐全部应用卡片标签',()=>{
   const source=fs.readFileSync('src/views/PortalHomePreview.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
   assert(source.includes('class="public-portal-app-category" :class="categoryTone(app.category)"'));
@@ -1270,7 +1270,7 @@ test('消息中心未读筛选空态显示暂无未读的消息',()=>{
 });
 
 
-test('待办任务类型和状态使用标签并将状态放到标题旁',()=>{
+test('待办事项类型和状态使用标签并将状态放到标题旁',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(source.includes('class="public-todo-title-line"'));
@@ -1291,7 +1291,7 @@ test('首页我的应用样式作用域命中实际首页结构',()=>{
 });
 
 
-test('应用中心图标背景配色与首页保持一致',()=>{
+test('全部应用图标背景配色与首页保持一致',()=>{
   const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   const homeCss=fs.readFileSync('src/styles/portal-home-preview.css','utf8');
@@ -1304,7 +1304,7 @@ test('应用中心图标背景配色与首页保持一致',()=>{
 });
 
 
-test('应用中心卡片使用首页同款图标并采用两行布局',()=>{
+test('全部应用卡片使用首页同款图标并采用两行布局',()=>{
   const cards=fs.readFileSync('src/components/portal/AppCards.vue','utf8');
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
@@ -1319,7 +1319,7 @@ test('应用中心卡片使用首页同款图标并采用两行布局',()=>{
 });
 
 
-test('待办任务和消息中心加宽来源应用查询项',()=>{
+test('待办事项和消息中心加宽来源应用查询项',()=>{
   const todo=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   const message=fs.readFileSync('src/components/portal/MessageCenter.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
@@ -1331,7 +1331,7 @@ test('待办任务和消息中心加宽来源应用查询项',()=>{
 });
 
 
-test('待办任务最后一行保留下边框',()=>{
+test('待办事项最后一行保留下边框',()=>{
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(css.includes('.public-portal-secondary-shell .public-todo-list .public-record-item:last-child{'));
   assert(css.includes('border-bottom:1px solid #edf1f6!important;'));
@@ -1345,10 +1345,10 @@ test('公众端二级页按业务主题使用独立PNG Banner',()=>{
   assert(layout.includes("import announcementBanner from '../assets/banner-announcements.png';"));
   assert(layout.includes("import appsBanner from '../assets/banner-apps.png';"));
   assert(layout.includes(":style=\"{backgroundImage:\`url('\${bannerInfo.image}')\`}\""));
-  assert(layout.includes("title:'待办任务',subtitle:'集中处理来自各业务系统的待办事项',image:todoBanner"));
+  assert(layout.includes("title:'待办事项',subtitle:'集中处理来自各业务系统的待办事项',image:todoBanner"));
   assert(layout.includes("title:'消息中心',subtitle:'集中查看业务消息与系统通知',image:messageBanner"));
   assert(layout.includes("title:'通知公告',subtitle:'及时了解平台通知与重要信息',image:announcementBanner"));
-  assert(layout.includes("title:'应用中心',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner"));
+  assert(layout.includes("title:'全部应用',subtitle:'汇聚卫生健康服务应用 · 便捷访问常用业务系统',image:appsBanner"));
   assert(layout.includes("title:'我的申请',subtitle:'查看应用访问与账号开通申请进度',image:applicationsBanner"));
   assert(layout.includes("title:'个人中心',subtitle:'查看账号信息与个人资料',image:messageBanner"));
   assert(!layout.includes("login-health3-bg-3840x2160.png"));
@@ -1426,7 +1426,7 @@ test('首页我的应用最多显示8条并移除更多应用卡片',()=>{
 });
 
 
-test('公众二级页内容区统一为应用中心方角卡片',()=>{
+test('公众二级页内容区统一为全部应用方角卡片',()=>{
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(css.includes('.public-portal-secondary-shell .portal-table-panel,'));
   assert(css.includes('.public-portal-secondary-shell .message-content-shell,'));
@@ -1470,7 +1470,7 @@ test('我的申请两个Tab增加分页连续序号列',()=>{
 });
 
 
-test('公众待办任务使用标准表格列表并加宽来源应用查询',()=>{
+test('公众待办事项使用标准表格列表并加宽来源应用查询',()=>{
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(source.includes('class="public-todo-table"'));
@@ -1499,7 +1499,7 @@ test('首页单条待办打开详情弹窗而查看全部进入二级页',()=>{
 });
 
 
-test('待办任务列表内容顶部间距与消息中心一致',()=>{
+test('待办事项列表内容顶部间距与消息中心一致',()=>{
   const css=fs.readFileSync('src/styles/portal-preview-pages.css','utf8');
   assert(css.includes('.public-portal-secondary-shell .todo-center .portal-table-panel{'));
   assert(css.includes('padding:16px 20px 18px!important;'));
