@@ -88,7 +88,7 @@ const resultTitle=computed(()=>({
 }[resultStatus.value]||'应用访问提示'));
 
 const resultDescription=computed(()=>({
-  BOUND:'已完成应用访问准备，现在可以返回应用中心进入该应用。',
+  BOUND:'已完成应用访问准备，现在可以返回全部应用进入该应用。',
   REVIEWING:'相关信息正在审核，审核完成后即可使用该应用。',
   CONFLICT:'检测到账号关系异常，暂时无法完成访问，请联系门户管理员处理。',
   ACCOUNT_DISABLED:'目标系统中的账号当前不可用，请联系目标系统管理员处理。',
@@ -304,7 +304,7 @@ body .account-binding-dialog .t-dialog {
   flex-wrap: wrap;
 }
 
-/* PC应用中心账号确认弹窗：仅在根容器留白，避免TDesign外层和头部/正文重复叠加padding。
+/* PC全部应用账号确认弹窗：仅在根容器留白，避免TDesign外层和头部/正文重复叠加padding。
  * 桌面端适度加宽，APP端的MobileAccountBindingModal与其他PC来源不受影响。 */
 .account-binding-dialog.account-binding-dialog--app-center.t-dialog__wrap .t-dialog,
 .account-binding-dialog.account-binding-dialog--app-center.t-dialog,
