@@ -25,7 +25,7 @@ test('PG-002认证结果动作区支持进入门户返回用户端和重新登�
   assert(source.includes("router.replace('/login')"));
 });
 
-test('PG-104待办任务使用独立TodoCenter',()=>{
+test('PG-104待办事项使用独立TodoCenter',()=>{
   const page=fs.readFileSync('src/views/PortalPage.vue','utf8');
   const source=fs.readFileSync('src/components/portal/TodoCenter.vue','utf8');
   assert(page.includes("import TodoCenter from '../components/portal/TodoCenter.vue'"));
@@ -89,9 +89,9 @@ test('PG-002和PG-104当前文档口径已收口',()=>{
   const pageSpec=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/页面规格.md','utf8');
   const functionList=fs.readFileSync('docs/01-需求/02-当前基线/细化需求/功能清单.md','utf8');
   assert(pageList.includes('| PG-002 | 认证结果 | `/auth/result` | 展示认证结果、失败原因及下一步操作 | 非菜单 |'));
-  assert(pageList.includes('| PG-104 | 待办任务 | `/portal/todos` | 本人待办查询、详情及去处理 | 菜单 |'));
+  assert(pageList.includes('| PG-104 | 待办事项 | `/portal/todos` | 本人待办查询、详情及去处理 | 菜单 |'));
   assert(pageSpec.includes('## PG-002 认证结果'));
-  assert(pageSpec.includes('## PG-104 待办任务'));
-  assert(functionList.includes('| F-08 | 用户端 | 待办任务 | 本人待办查询、详情、去处理、状态展示'));
+  assert(pageSpec.includes('## PG-104 待办事项'));
+  assert(functionList.includes('| F-08 | 用户端 | 待办事项 | 本人待办查询、详情、去处理、状态展示'));
   assert(functionList.includes('终态由来源子系统同步，门户不自行修改业务结果'));
 });
