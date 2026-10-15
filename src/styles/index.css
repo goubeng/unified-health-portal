@@ -15,15 +15,16 @@
 html,body,#app,button,input,textarea,select{font-weight:var(--portal-font-weight-regular)}
 
 /* Global hierarchy: system name > page title > section title > ordinary content. */
-.brand,.login-brand,.avatar{font-weight:var(--portal-font-weight-bold)!important}
-.content-header h1{font-weight:var(--portal-font-weight-bold)!important}
+.brand{font-size:20px!important;font-weight:var(--portal-font-weight-bold)!important}
+.login-brand,.avatar{font-weight:var(--portal-font-weight-bold)!important}
+.content-header h1{font-size:16px!important;font-weight:var(--portal-font-weight-semibold)!important}
 .section-head h2,.section-head h3,.page-heading h2,.portal-profile-content h3,
 .portal-announcement-header h2,.message-letter h2,.portal-letter h2{font-weight:var(--portal-font-weight-medium)!important}
 
-/* Navigation uses medium only for hierarchy/selected state. */
-.menu-wrap .menu-group{font-weight:var(--portal-font-weight-semibold)!important}
-.portal-caption{font-weight:var(--portal-font-weight-medium)!important}
-.menu-item,.menu-item-label{font-weight:var(--portal-font-weight-regular)!important}
+/* Navigation: distinct hierarchy between top-level brand and functional menu. */
+.menu-wrap .menu-group{font-size:13px!important;font-weight:var(--portal-font-weight-semibold)!important;color:#8a94a6!important}
+.portal-caption{font-size:12px!important;font-weight:var(--portal-font-weight-regular)!important}
+.menu-item,.menu-item-label{font-size:13px!important;font-weight:var(--portal-font-weight-regular)!important}
 .menu-item.active,.menu-item.active .menu-item-label,.account-entry .user-name{font-weight:var(--portal-font-weight-medium)!important}
 
 /* Form / table / detail text follows office-house's lighter hierarchy. */
