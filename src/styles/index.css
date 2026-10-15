@@ -26,6 +26,8 @@ html,body,#app,button,input,textarea,select{font-weight:var(--portal-font-weight
 .portal-caption{font-size:12px!important;font-weight:var(--portal-font-weight-medium)!important}
 .menu-item,.menu-item-label{font-size:13px!important;font-weight:var(--portal-font-weight-medium)!important}
 .menu-item.active,.menu-item.active .menu-item-label{font-weight:var(--portal-font-weight-semibold)!important}
+.menu-wrap:not(.collapsed) .menu-section .menu-item{padding-left:20px}
+.menu-wrap .t-icon-book [stroke],.menu-wrap .t-icon-book path[stroke]{stroke-width:1.4px!important}
 .account-entry .user-name{font-weight:var(--portal-font-weight-medium)!important}
 
 /* Form / table / detail text follows office-house's lighter hierarchy. */

@@ -100,3 +100,10 @@
 
 /* 0.3.0-A local admin mock login. */
 .local-auth .inline-note{margin:0 0 14px}.local-auth-tip{margin:12px 0 0;color:#86909c;font-size:12px;line-height:1.7;text-align:center}.local-auth-tip strong{color:#344054;font-weight:500}.local-help-text{color:#86909c;font-size:12px}.login-identity-switch:has(.identity-pill:nth-child(3)){gap:24px;padding:0 8px}.login-identity-switch:has(.identity-pill:nth-child(3)) .identity-pill>span{font-size:17px}
+
+/* 2026-10 菜单层级优化：展开时管理端二级菜单项向右缩进20px，折叠时保持居中 */
+.menu-wrap:not(.collapsed) .menu-section .menu-item{padding-left:20px}
+
+/* 字典管理图标线宽微调：微调TD官方BookIcon内部描边线宽为1.4px，避免16px小视口下双层书底回路糊黑偏粗 */
+.menu-wrap .t-icon-book [stroke],
+.menu-wrap .t-icon-book path[stroke]{stroke-width:1.4px!important}
