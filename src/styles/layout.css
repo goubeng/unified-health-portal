@@ -104,6 +104,11 @@
 /* 2026-10 菜单层级优化：展开时管理端二级菜单项向右缩进20px，折叠时保持居中 */
 .menu-wrap:not(.collapsed) .menu-section .menu-item{padding-left:20px}
 
+/* 一级菜单大类字重500，二级激活选中菜单字重600 */
+.menu-wrap .menu-group{font-weight:500!important}
+.menu-wrap .menu-item.active,
+.menu-wrap .menu-item.active .menu-item-label{font-weight:600!important}
+
 /* 字典管理图标线宽微调：微调TD官方BookIcon内部描边线宽为1.4px，避免16px小视口下双层书底回路糊黑偏粗 */
 .menu-wrap .t-icon-book [stroke],
 .menu-wrap .t-icon-book path[stroke]{stroke-width:1.4px!important}
