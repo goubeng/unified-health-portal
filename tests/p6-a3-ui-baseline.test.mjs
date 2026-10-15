@@ -366,7 +366,7 @@ test('折叠菜单为主要页面和五类日志显式分配可区分图标',()=
   const source=fs.readFileSync('src/App.vue','utf8');
   for(const mapping of [
     'home:HomeIcon','todos:TaskIcon','myApplicationRequests:FileIcon','messages:MailIcon','announcements:NotificationIcon','profile:UserIcon','apps:AppIcon',
-    'users:UserIcon','roles:UserSafetyIcon','organizations:FolderIcon','dictionaries:BookIcon','identityOverview:LinkIcon','settings:SettingIcon','monitor:ChartBarIcon','accountOpeningRequests:UserAddIcon',
+    'users:UserIcon','roles:UserSafetyIcon','organizations:FolderIcon','dictionaries:BookOpenIcon','identityOverview:LinkIcon','settings:SettingIcon','monitor:ChartBarIcon','accountOpeningRequests:UserAddIcon',
     "'logs:login':UserPasswordIcon","'logs:access':ActivityIcon","'logs:operation':TaskIcon","'logs:api':CodeIcon","'logs:error':BugReportIcon"
   ])assert(source.includes(mapping),mapping+' 未配置');
 });
@@ -745,7 +745,7 @@ test('字典管理左右头部对齐且类型信息单行展示',()=>{
 test('管理端指定菜单使用互不重复的业务图标',()=>{
   const source=fs.readFileSync('src/App.vue','utf8');
   const expected={
-    dictionaries:'BookIcon',
+    dictionaries:'BookOpenIcon',
     accountOpeningRequests:'UserAddIcon',
     "logs:login":'UserPasswordIcon',
     "logs:access":'ActivityIcon',

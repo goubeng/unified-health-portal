@@ -47,7 +47,7 @@
 <script setup>
 import {computed,reactive,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
-import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon,SwapIcon} from 'tdesign-icons-vue-next';
+import {AppIcon,HomeIcon,TaskIcon,MailIcon,NotificationIcon,UserIcon,UserSafetyIcon,SettingIcon,LinkIcon,FileIcon,ChartBarIcon,FolderIcon,BookOpenIcon,UserAddIcon,UserPasswordIcon,ActivityIcon,CodeIcon,BugReportIcon,MenuFoldIcon,MenuUnfoldIcon,ChevronDownIcon,LogoutIcon,ArrowLeftIcon,SwapIcon} from 'tdesign-icons-vue-next';
 import {pages,can,labels} from './config/pages.js';
 import {actor,portal,revision,logout,command} from './services/runtime.js';
 import {validateLocalPassword} from './config/password-policy.js';
@@ -95,7 +95,7 @@ const icons={
  users:UserIcon,
  roles:UserSafetyIcon,
  organizations:FolderIcon,
- dictionaries:BookIcon,
+ dictionaries:BookOpenIcon,
  identityOverview:LinkIcon,
  categories:AppIcon,
  permissions:UserSafetyIcon,
