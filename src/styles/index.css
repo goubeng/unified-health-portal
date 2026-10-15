@@ -9,18 +9,20 @@
   --portal-font-weight-regular:400;
   --portal-font-weight-medium:500;
   --portal-font-weight-semibold:600;
+  --portal-font-weight-bold:700;
 }
 
 html,body,#app,button,input,textarea,select{font-weight:var(--portal-font-weight-regular)}
 
 /* Global hierarchy: system name > page title > section title > ordinary content. */
-.brand,.login-brand{font-weight:var(--portal-font-weight-semibold)!important}
+.brand,.login-brand{font-weight:var(--portal-font-weight-bold)!important}
 .content-header h1{font-weight:var(--portal-font-weight-medium)!important}
 .section-head h2,.section-head h3,.page-heading h2,.portal-profile-content h3,
 .portal-announcement-header h2,.message-letter h2,.portal-letter h2{font-weight:var(--portal-font-weight-medium)!important}
 
 /* Navigation uses medium only for hierarchy/selected state. */
-.menu-wrap .menu-group,.portal-caption{font-weight:var(--portal-font-weight-medium)!important}
+.menu-wrap .menu-group{font-weight:var(--portal-font-weight-semibold)!important}
+.portal-caption{font-weight:var(--portal-font-weight-medium)!important}
 .menu-item,.menu-item-label{font-weight:var(--portal-font-weight-regular)!important}
 .menu-item.active,.menu-item.active .menu-item-label,.account-entry .user-name{font-weight:var(--portal-font-weight-medium)!important}
 
