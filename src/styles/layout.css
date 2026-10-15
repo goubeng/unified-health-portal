@@ -37,7 +37,7 @@
 
 /* 2026-09 portal shell alignment with office-house. */
 .topbar-icon-button .t-icon{width:16px!important;height:16px!important;font-size:16px!important}
-.portal-caption{display:inline-flex;align-items:center;min-height:22px;padding:0 7px;border:1px solid #cfe0ff;border-radius:3px;background:#f2f6ff;color:#2454ff;font-size:12px;font-weight:400;line-height:20px}.portal-caption.admin{border-color:#d9dce5;background:#f7f8fa;color:#4e5969}
+.portal-caption{display:inline-flex;align-items:center;min-height:22px;padding:0 7px;border:1px solid #cfe0ff;border-radius:3px;background:#f2f6ff;color:#2454ff;font-size:12px;font-weight:500;line-height:20px}.portal-caption.admin{border-color:#d9dce5;background:#f7f8fa;color:#4e5969}
 .message-badge{display:inline-flex!important;margin:0 2px!important;overflow:visible!important}.message-badge .t-badge__content,.message-badge .t-badge--circle{box-sizing:border-box!important;width:auto!important;min-width:14px!important;height:14px!important;padding:0 3px!important;border-radius:7px!important;font-size:10px!important;line-height:14px!important;white-space:nowrap!important;top:1px!important;right:1px!important}.topbar-icon-button{width:32px!important;height:32px!important;padding:0!important}
 .content-header .title-row{width:100%;display:flex;align-items:center;gap:10px}.page-header-extra-host{color:#344054;font-size:12px}.page-header-extra-host:empty{display:none}.page-header-actions-host{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}.page-header-actions-host:empty{display:none}
 /* 2026-09-19 round 16: compact page-title action buttons. */

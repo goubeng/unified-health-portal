@@ -23,7 +23,7 @@ html,body,#app,button,input,textarea,select{font-weight:var(--portal-font-weight
 
 /* Navigation: distinct hierarchy between top-level brand and functional menu. */
 .menu-wrap .menu-group{font-size:13px!important;font-weight:var(--portal-font-weight-semibold)!important;color:#8a94a6!important}
-.portal-caption{font-size:12px!important;font-weight:var(--portal-font-weight-regular)!important}
+.portal-caption{font-size:12px!important;font-weight:var(--portal-font-weight-medium)!important}
 .menu-item,.menu-item-label{font-size:13px!important;font-weight:var(--portal-font-weight-medium)!important}
 .menu-item.active,.menu-item.active .menu-item-label{font-weight:var(--portal-font-weight-semibold)!important}
 .account-entry .user-name{font-weight:var(--portal-font-weight-medium)!important}
