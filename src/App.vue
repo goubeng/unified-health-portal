@@ -7,7 +7,7 @@
    <div class="topbar-actions">
     <PortalTooltip v-if="can(actor,'any')" :content="admin?'切换到用户端门户':'切换到平台管理端'" placement="bottom"><t-button class="portal-switch-button" variant="text" @click="router.push(admin?'/portal/home':'/admin/home')"><template #icon><SwapIcon size="16px"/></template>{{admin?'用户端门户':'平台管理端'}}</t-button></PortalTooltip>
     <t-badge class="message-badge" :count="unread" :max-count="99" :show-zero="false"><PortalTooltip content="消息中心" placement="bottom"><t-button class="topbar-icon-button" shape="square" variant="text" aria-label="消息中心" @click="router.push('/portal/messages')"><template #icon><MailIcon size="16px"/></template></t-button></PortalTooltip></t-badge>
-    <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true">
+    <t-popup v-model:visible="accountOpen" trigger="click" placement="bottom-right" :show-arrow="true" overlay-class-name="account-popup-panel">
      <button class="account-entry" :aria-expanded="accountOpen" aria-label="用户菜单"><span class="avatar">{{displayName(actor).slice(0,1)}}</span><span class="user-name">{{displayName(actor)}}</span><ChevronDownIcon/></button>
      <template #content><div class="account-popover">
       <div class="account-summary">
@@ -18,7 +18,7 @@
        </div>
        <span class="account-role-line"><t-tag size="small" variant="light">{{typeLabel(actor)}}</t-tag><t-tag size="small" theme="primary" variant="light">{{can(actor,'any')?(actor?.roleName||'门户管理员'):'普通用户'}}</t-tag></span>
       </div>
-      <div class="account-links"><button @click="openProfile">个人信息</button><button @click="changePassword">修改密码</button></div><button class="logout-button" @click="exitSystem">退出系统</button>
+      <div class="account-links"><button @click="openProfile">个人信息</button><button @click="changePassword">修改密码</button></div><button class="logout-button" @click="exitSystem"><LogoutIcon size="16px"/><span>退出系统</span></button>
      </div></template>
     </t-popup>
    </div>

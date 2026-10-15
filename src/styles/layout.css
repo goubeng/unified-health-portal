@@ -108,3 +108,34 @@
 .menu-wrap .menu-group{font-weight:500!important}
 .menu-wrap .menu-item.active,
 .menu-wrap .menu-item.active .menu-item-label{font-weight:600!important}
+
+/* 2026-10 用户信息浮动窗直角化（去掉圆角） */
+.account-popup-panel .t-popup__content,
+.t-popup:has(.account-popover) .t-popup__content,
+.t-popup__content:has(.account-popover),
+.account-popover{border-radius:0!important}
+
+/* 统一个人信息、修改密码、退出系统按钮的高度、内边距与交互样式 */
+.account-popover .account-links{border-top:1px solid #eef0f4!important;padding:4px 0!important}
+.account-popover .account-links button,
+.account-popover .logout-button{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:40px!important;
+  min-height:40px!important;
+  padding:0 16px!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  font-size:13px!important;
+  line-height:40px!important;
+  border:0!important;
+  border-radius:0!important;
+  cursor:pointer!important;
+  transition:background .15s,color .15s!important;
+}
+.account-popover .account-links button{justify-content:flex-start!important;background:transparent!important;color:#344054!important}
+.account-popover .account-links button:hover{background:#f4f6fb!important;color:#2454ff!important}
+.account-popover .logout-button{justify-content:center!important;gap:6px!important;background:transparent!important;color:#d54941!important;border-top:1px solid #eef0f4!important}
+.account-popover .logout-button:hover{background:#fff1f0!important;color:#d54941!important}
+.account-popover .logout-button .t-icon{font-size:16px!important;width:16px!important;height:16px!important;color:inherit!important}

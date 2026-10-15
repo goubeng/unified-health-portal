@@ -100,3 +100,10 @@ a,.t-link,.t-button--variant-text,.portal-field-link,.portal-field-link.is-unrea
     flex:1 1 100%!important;
   }
 }
+
+/* 用户信息浮层直角化（去掉圆角） */
+.account-popup-panel .t-popup__content,
+.t-popup:has(.account-popover) .t-popup__content,
+.t-popup__content:has(.account-popover),
+.account-popover{border-radius:0!important}
+
