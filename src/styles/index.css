@@ -15,8 +15,8 @@
 html,body,#app,button,input,textarea,select{font-weight:var(--portal-font-weight-regular)}
 
 /* Global hierarchy: system name > page title > section title > ordinary content. */
-.brand,.login-brand{font-weight:var(--portal-font-weight-bold)!important}
-.content-header h1{font-weight:var(--portal-font-weight-medium)!important}
+.brand,.login-brand,.avatar{font-weight:var(--portal-font-weight-bold)!important}
+.content-header h1{font-weight:var(--portal-font-weight-bold)!important}
 .section-head h2,.section-head h3,.page-heading h2,.portal-profile-content h3,
 .portal-announcement-header h2,.message-letter h2,.portal-letter h2{font-weight:var(--portal-font-weight-medium)!important}
 
