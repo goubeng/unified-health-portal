@@ -28,11 +28,11 @@
        </template>
        <template v-else>
         <label class="access-field"><span>接入方式</span><t-select v-model="forms[kind].mode" :options="modeOptions" placeholder="请选择接入方式"/></label>
-        <label class="access-field full"><span>字段映射</span><t-textarea v-model="forms[kind].fieldMapping" :autosize="{minRows:3,maxRows:7}" placeholder="JSON：标准字段 → 来源字段"/></label>
-        <label v-if="kind==='TODO'" class="access-field full"><span>状态映射</span><t-textarea v-model="forms[kind].valueMapping" :autosize="{minRows:3,maxRows:5}" placeholder='{"status":{"待处理":"PENDING","已完成":"COMPLETED"}}'/></label>
+        <label class="access-field full"><span>字段映射</span><t-textarea v-model="forms[kind].fieldMapping" placeholder="JSON：标准字段 → 来源字段" :maxlength="2000"/></label>
+        <label v-if="kind==='TODO'" class="access-field full"><span>状态映射</span><t-textarea v-model="forms[kind].valueMapping" placeholder='{"status":{"待处理":"PENDING","已完成":"COMPLETED"}}' :maxlength="1000"/></label>
        </template>
        <label class="access-field full"><span>服务端凭据引用</span><t-input v-model="forms[kind].credentialRef" placeholder="例如 PORTAL_APP_01_TOKEN"/><small class="form-helper">仅填写服务端凭据引用标识，不填写真实密钥。</small></label>
-       <label class="access-field full"><span>备注</span><t-textarea v-model="forms[kind].remark" :autosize="{minRows:3,maxRows:5}" placeholder="请输入接入说明或备注"/></label>
+       <label class="access-field full"><span>备注</span><t-textarea v-model="forms[kind].remark" placeholder="请输入接入说明或备注（选填）" :maxlength="500"/></label>
        </div>
       </div>
     </t-tab-panel>

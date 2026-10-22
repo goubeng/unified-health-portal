@@ -1798,3 +1798,75 @@
   .portal-pc-app-request-dialog .t-dialog__body { padding: 8px 16px 16px !important; }
   .portal-pc-app-request-dialog .t-dialog__footer { padding: 12px 16px 16px !important; }
 }
+
+/* 全站多行文本输入对标福建教育督导问卷系统规范（TDesign Textarea 原生内嵌计数与统一质感）
+   仅作用于多行文本域；不影响原有 v-model、字数限制及表单校验。 */
+.app-shell .t-textarea,
+.t-dialog .t-textarea,
+.portal-page .t-textarea,
+.t-textarea {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.app-shell .t-textarea .t-textarea__inner,
+.t-dialog .t-textarea .t-textarea__inner,
+.portal-page .t-textarea .t-textarea__inner,
+.t-textarea .t-textarea__inner {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.app-shell .t-form__controls-content > .t-textarea,
+.t-dialog .t-form__controls-content > .t-textarea,
+.portal-page .t-form__controls-content > .t-textarea {
+  flex: 1 1 auto;
+}
+.app-shell textarea:not(.t-textarea__inner),
+.t-dialog textarea:not(.t-textarea__inner),
+.portal-page textarea:not(.t-textarea__inner) {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 72px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* 填单多行文本字数提示沿用标杆的「输入框内部右下角」浮动规范。
+   仅在存在计数或提示元素时预留底部避让内边距，呈现现代专业交互体验。 */
+.t-textarea:has(> :is(.t-textarea__tips, .t-textarea__limit)),
+.t-textarea:has(.t-textarea__tips),
+.t-textarea:has(.t-textarea__limit) {
+  position: relative;
+}
+.t-textarea:has(.t-textarea__tips) .t-textarea__inner,
+.t-textarea:has(.t-textarea__limit) .t-textarea__inner {
+  box-sizing: border-box;
+  padding-bottom: 26px !important;
+}
+.t-textarea:has(.t-textarea__tips) :is(.t-textarea__tips, .t-textarea__limit),
+.t-textarea:has(.t-textarea__limit) :is(.t-textarea__tips, .t-textarea__limit),
+.t-textarea .t-textarea__limit,
+.t-textarea .t-textarea__tips {
+  position: absolute !important;
+  inset: auto 12px 6px auto !important;
+  z-index: 1;
+  box-sizing: border-box;
+  width: auto !important;
+  max-width: calc(100% - 24px);
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 12px;
+  line-height: 16px !important;
+  color: var(--td-text-color-placeholder, #86909c);
+  background: transparent !important;
+  pointer-events: none;
+}

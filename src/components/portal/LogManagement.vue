@@ -60,7 +60,7 @@
         {key:'errorMessage',label:'异常信息',value:resolveRow.errorMessage||resolveRow.description||'-'},
         {key:'requestId',label:'请求ID',value:resolveRow.requestId||'-'}
       ]"/>
-      <div class="form-field log-resolution-note"><label>处理说明 <span class="portal-required">*</span></label><t-textarea v-model="resolutionNote" :autosize="{minRows:3,maxRows:5}" placeholder="请填写排查与处理结果"/></div>
+      <div class="form-field log-resolution-note"><label>处理说明 <span class="portal-required">*</span></label><t-textarea v-model="resolutionNote" placeholder="请填写排查与处理结果（必填）" :maxlength="1000"/></div>
     </t-dialog>
   </section>
 </template>

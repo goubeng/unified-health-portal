@@ -190,7 +190,7 @@
    <p v-if="formAction==='rejectApplicationRequest'" class="inline-note">请填写驳回原因。驳回后用户可在“我的申请”中查看并重新申请。</p>
    <p v-if="formAction==='saveIntegration'" class="inline-note">待办和消息采用PUSH方式接收。凭据填写服务端环境变量名，不填写密钥。SSO参数可维护，认证适配器尚未接入。</p>
    <div v-if="formError" role="alert" class="error-note">{{text(formError)}}</div><t-alert v-if="bindFeedback" :theme="bindFeedback.theme" :message="bindFeedback.message" class="portal-bind-feedback"/>
-   <div class="form-grid" :class="{'app-form-grid':formAction==='saveApp'}"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><div v-if="field.type==='switch'" class="app-status-switch-line"><t-switch v-model="form[field.key]" :disabled="!can(actor,'application:enable')"/><span>{{form[field.key]?'启用':'停用'}}</span></div><t-select v-else-if="field.options" v-model="form[field.key]" :options="field.options"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :autosize="{minRows:3,maxRows:5}"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
+   <div class="form-grid" :class="{'app-form-grid':formAction==='saveApp'}"><div v-for="field in formFields" :key="field.key" class="form-field" :class="{full:field.full}"><label>{{field.label}}<span v-if="field.required" class="portal-required"> *</span></label><div v-if="field.type==='switch'" class="app-status-switch-line"><t-switch v-model="form[field.key]" :disabled="!can(actor,'application:enable')"/><span>{{form[field.key]?'启用':'停用'}}</span></div><t-select v-else-if="field.options" v-model="form[field.key]" :options="field.options"/><t-textarea v-else-if="field.type==='textarea'" v-model="form[field.key]" :placeholder="field.placeholder||('请输入'+field.label+(field.required?'（必填）':'（选填）'))" :maxlength="field.maxlength||(field.required?1000:500)"/><t-date-picker v-else-if="field.type==='date'" v-model="form[field.key]" enable-time-picker clearable format="YYYY-MM-DD HH:mm:ss" value-type="YYYY-MM-DD HH:mm:ss" placeholder="请选择日期时间"/><t-input-number v-else-if="field.type==='number'" v-model="form[field.key]" :decimal-places="0"/><t-input v-else v-model="form[field.key]" :maxlength="300"/></div></div>
    <AnnouncementEditor v-if="formAction==='saveAnnouncement'" v-model="form.content" v-model:files="announcementUploadFiles"/>
   </t-dialog>
   <t-dialog v-model:visible="accessDialogVisible" placement="center" :header="accessDialogTitle" width="1180px" :close-on-overlay-click="false">
@@ -515,7 +515,7 @@ const formTitle=computed(()=>formAction.value==='saveAnnouncement'?(form.id?'编
 const opt=(values,typeCode)=>typeCode?dictionaryOptions(typeCode,values):values.map(value=>({value,label:label(value)}));
 const taskTypeOptions=computed(()=>dictionaryOptions('todo_task_type',dictionaryLookups.value.items.filter(item=>item.typeCode==='todo_task_type').map(item=>item.value).concat('服务事项')));
 const formFields=computed(()=>{
- const f=(key,labelText,type='text',required=false,options=null,full=false)=>({key,label:labelText,type,required,options,full});
+ const f=(key,labelText,type='text',required=false,options=null,full=false,placeholder='',maxlength=null)=>({key,label:labelText,type,required,options,full,placeholder,maxlength});
  const appOpts=allApps.value.map(item=>({value:item.id,label:text(item.name)}));
  const userOpts=availableUsers.value.map(item=>({value:item.id,label:text(item.name)}));
  return ({
@@ -524,17 +524,17 @@ const formFields=computed(()=>{
    f('enabled','启用状态','switch',true),
    ...(form.accessMode==='REQUEST'?[f('postGrantMode','申请通过后','text',true,opt(['DIRECT','BIND']))]:[]),
    ...((form.accessMode==='BIND'||(form.accessMode==='REQUEST'&&form.postGrantMode==='BIND'))?[f('accountBindingMode','账号关联方式','text',true,opt(['AUTO','SELF','REVIEW','ADMIN'])),f('accountOpeningMode','未找到账号时','text',true,[{value:'NONE',label:'仅提示联系管理员'},{value:'REQUEST',label:'允许提交开通申请'}])]:[]),
-   ...(form.id?[]:[f('sortOrder','显示排序','number')]),f('url','入口地址','text',true,null,true),f('description','说明','textarea',false,null,true)],
+   ...(form.id?[]:[f('sortOrder','显示排序','number')]),f('url','入口地址','text',true,null,true),f('description','说明','textarea',false,null,true,'请输入应用功能及业务说明（选填）',500)],
   saveCategory:[f('name','分类名称','text',true),f('code','分类编码','text',true),f('sortOrder','排序','number')],
   saveAnnouncement:[f('title','公告标题','text',true,null,true),f('type','公告类型'),f('scope','发布范围','text',true,opt(['ALL','CITIZEN','GOV'],'announcement_scope')),f('effectiveStart','生效时间','date'),f('effectiveEnd','失效时间','date')],
   bind:[f('externalAccount','已有子系统账号','text',true,null,true)],
-  submitApplicationRequest:[f('reason','申请原因','textarea',true,null,true),f('contact','联系方式','text',false),f('remark','备注','textarea',false,null,true)],
-  rejectApplicationRequest:[f('reviewNote','驳回原因','textarea',true,null,true)],
-  rejectBindingReview:[f('reviewNote','驳回原因','textarea',true,null,true)],
+  submitApplicationRequest:[f('reason','申请原因','textarea',true,null,true,'请详细说明申请使用该应用的业务原因与工作需要（必填）',1000),f('contact','联系方式','text',false),f('remark','备注','textarea',false,null,true,'请输入其他补充说明（选填）',500)],
+  rejectApplicationRequest:[f('reviewNote','驳回原因','textarea',true,null,true,'请详细填写驳回原因，以便申请人修改后重新提交（必填）',1000)],
+  rejectBindingReview:[f('reviewNote','驳回原因','textarea',true,null,true,'请详细填写驳回原因，以便用户重新核验或联系管理员（必填）',1000)],
   saveConfig:[f('value','配置值（使用当前参数标注单位）','number',true,null,true)],
-  saveIntegration:[f('enabled','启用接入','text',true,opt(['ENABLED','DISABLED'])),...(form.kind==='SSO'?[f('protocol','协议','text',true,opt(['OIDC','SAML2','CUSTOM'])),f('clientId','Client ID'),f('authorizeUrl','授权地址'),f('tokenUrl','令牌地址'),f('callbackUrl','回调地址')]:[f('mode','接入方式','text',true,opt(['PUSH'])),f('fieldMapping','字段映射（JSON：标准字段→来源字段）','textarea',false,null,true)]),f('credentialRef','服务端凭据引用'),f('remark','接入说明','textarea',false,null,true)],resolveMapping:[f('reason','核验证据说明','textarea',true,null,true)],
+  saveIntegration:[f('enabled','启用接入','text',true,opt(['ENABLED','DISABLED'])),...(form.kind==='SSO'?[f('protocol','协议','text',true,opt(['OIDC','SAML2','CUSTOM'])),f('clientId','Client ID'),f('authorizeUrl','授权地址'),f('tokenUrl','令牌地址'),f('callbackUrl','回调地址')]:[f('mode','接入方式','text',true,opt(['PUSH'])),f('fieldMapping','字段映射（JSON：标准字段→来源字段）','textarea',false,null,true,'JSON：标准字段 → 来源字段',2000)]),f('credentialRef','服务端凭据引用'),f('remark','接入说明','textarea',false,null,true,'请输入接入说明或备注（选填）',500)],resolveMapping:[f('reason','核验证据说明','textarea',true,null,true,'请详细填写核验证据及处理依据（必填）',1000)],
   pushTodo:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceTodoId','源事项ID','text',true),f('eventId','事件ID','text',true),f('businessType','待办任务类型','text',true,taskTypeOptions.value),f('status','源状态','text',true,opt(['PENDING','COMPLETED','WITHDRAWN'],'todo_status')),f('title','待办标题','text',true,null,true)],
-  pushMessage:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceMessageId','源消息ID','text',true),f('eventId','事件ID','text',true),f('title','消息标题','text',true,null,true),f('content','消息内容','textarea',true,null,true)]
+  pushMessage:[f('appId','来源应用','text',true,appOpts),f('userId','接收人','text',true,userOpts),f('sourceMessageId','源消息ID','text',true),f('eventId','事件ID','text',true),f('title','消息标题','text',true,null,true),f('content','消息内容','textarea',true,null,true,'请输入推送消息的具体正文内容（必填）',2000)]
  })[formAction.value]||[];
 });
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}

@@ -89,7 +89,7 @@
         <div class="form-field"><label>字典名称 <span class="portal-required">*</span></label><t-input v-model="typeForm.name"/></div>
         <div class="form-field"><label>启用状态</label><t-switch :value="typeForm.status==='ENABLED'" :disabled="Boolean(typeForm.systemLocked)" @change="typeForm.status=$event?'ENABLED':'DISABLED'"/></div>
         <div class="form-field"><label>排序</label><t-input-number v-model="typeForm.sortOrder" :decimal-places="0"/></div>
-        <div class="form-field full"><label>说明</label><t-textarea v-model="typeForm.description" :autosize="{minRows:3,maxRows:5}"/></div>
+        <div class="form-field full"><label>说明</label><t-textarea v-model="typeForm.description" placeholder="请输入字典类型的业务说明（选填）" :maxlength="500"/></div>
       </div>
     </t-dialog>
 
@@ -109,7 +109,7 @@
         <div class="form-field"><label>字典值 <span class="portal-required">*</span></label><t-input v-model="itemForm.value" :disabled="Boolean(selectedType?.systemLocked)||Boolean(itemForm.id)" placeholder="请输入稳定值"/></div>
         <div class="form-field"><label>启用状态</label><t-switch :value="itemForm.status==='ENABLED'" :disabled="Boolean(selectedType?.systemLocked)||Boolean(itemForm.systemLocked)" @change="itemForm.status=$event?'ENABLED':'DISABLED'"/></div>
         <div class="form-field"><label>排序</label><t-input-number v-model="itemForm.sortOrder" :decimal-places="0"/></div>
-        <div class="form-field full"><label>备注</label><t-textarea v-model="itemForm.remark" :autosize="{minRows:3,maxRows:5}"/></div>
+        <div class="form-field full"><label>备注</label><t-textarea v-model="itemForm.remark" placeholder="请输入字典项备注（选填）" :maxlength="500"/></div>
       </div>
     </t-dialog>
   </section>

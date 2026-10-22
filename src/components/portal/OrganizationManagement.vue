@@ -90,7 +90,7 @@
         </div>
         <div class="form-field"><label>数据来源</label><t-input value="门户本地" disabled/></div>
         <div class="form-field"><label>启用状态</label><t-switch :value="form.status==='ENABLED'" @change="form.status=$event?'ENABLED':'DISABLED'"/></div>
-        <div class="form-field full"><label>备注</label><t-textarea v-model="form.remark" :autosize="{minRows:3,maxRows:5}"/></div>
+        <div class="form-field full"><label>备注</label><t-textarea v-model="form.remark" placeholder="请输入组织机构备注（选填）" :maxlength="500"/></div>
       </div>
     </t-dialog>
   </section>
