@@ -133,9 +133,9 @@
           <button type="button" aria-label="关闭" @click="closeDialog"><CloseIcon /></button>
         </header>
         <div class="mobile-apps-sheet-fields">
-          <label>申请原因 <span>*</span><textarea v-model.trim="requestReason" rows="3" placeholder="请填写申请使用原因"></textarea></label>
-          <label>联系方式<input v-model.trim="requestContact" type="text" placeholder="选填" /></label>
-          <label>备注<textarea v-model.trim="requestRemark" rows="2" placeholder="选填"></textarea></label>
+          <label>申请原因 <span>*</span><t-mobile-textarea v-model.trim="requestReason" :autosize="{minRows:3,maxRows:5}" placeholder="请填写申请使用原因"/></label>
+          <label>联系方式<t-mobile-input v-model.trim="requestContact" placeholder="选填"/></label>
+          <label>备注<t-mobile-textarea v-model.trim="requestRemark" :autosize="{minRows:2,maxRows:4}" placeholder="选填"/></label>
           <p v-if="requestError" class="mobile-apps-error" role="alert">{{ requestError }}</p>
         </div>
         <footer class="mobile-apps-sheet-footer">
@@ -195,7 +195,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Button as MobileButton, Input as TMobileInput } from 'tdesign-mobile-vue';
+import { Button as MobileButton, Input as TMobileInput, Textarea as TMobileTextarea } from 'tdesign-mobile-vue';
 import {
   ChevronRightIcon,
   CloseIcon,
