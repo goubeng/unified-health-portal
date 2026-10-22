@@ -42,7 +42,8 @@
         <input ref="imageInput" class="editor-hidden-input" type="file" accept="image/*" @change="insertImage"/>
         <input ref="importInput" class="editor-hidden-input" type="file" accept=".html,.htm,.txt" @change="importDocument"/>
       </div>
-      <div ref="editor" class="rich-editor-content" contenteditable="true" data-placeholder="请输入公告正文" @input="syncContent" @blur="syncContent" @mouseup="saveSelection" @keyup="saveSelection"></div>
+      <div ref="editor" class="rich-editor-content" contenteditable="true" :data-placeholder="placeholder" @input="syncContent" @blur="syncContent" @mouseup="saveSelection" @keyup="saveSelection"></div>
+      <div class="rich-editor-limit" :class="{ 'is-limit-exceeded': charCount > maxlength }">{{ charCount }}/{{ maxlength }}</div>
     </div>
 
     <label class="announcement-editor-label attachment-label">附件</label>
@@ -67,23 +68,24 @@ import {nextTick,ref,watch} from 'vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
 
-const props=defineProps({modelValue:{type:String,default:''},files:{type:Array,default:()=>[]}});
+const props=defineProps({modelValue:{type:String,default:''},files:{type:Array,default:()=>[]},maxlength:{type:Number,default:10000},placeholder:{type:String,default:'请输入公告正文（支持格式排版、插入图片与导入文本）'}});
 const emit=defineEmits(['update:modelValue','update:files']);
-const editor=ref(null),localFiles=ref([]),imageInput=ref(null),importInput=ref(null);
+const editor=ref(null),localFiles=ref([]),imageInput=ref(null),importInput=ref(null),charCount=ref(0);
 const fontSize=ref('13px'),textColor=ref('#1f2329');
 const fontSizeOptions=['12px','13px','14px','16px','18px','20px','24px','32px'].map(value=>({value,label:value}));
 const colorSwatches=['#1f2329','#d54941','#ed7b2f','#e37318','#2ba471','#00a870','#0052d9','#2454ff','#7356e8','#8b5cf6','#86909c','#ffffff'];
 let syncing=false,savedRange=null;
 
+function updateCharCount(){if(!editor.value){charCount.value=0;return;}charCount.value=(editor.value.innerText||'').replace(/[\r\n]/g,'').length;}
 function syncEditor(value){
  if(!editor.value)return;
  const html=String(value||'');
- if(editor.value.innerHTML!==html){editor.value.innerHTML=html;savedRange=null;}
+ if(editor.value.innerHTML!==html){editor.value.innerHTML=html;savedRange=null;}updateCharCount();
 }
 function syncContent(){
  if(!editor.value)return;
  const html=editor.value.innerHTML;
- emit('update:modelValue',html==='<br>'?'':html);
+ const cleanHtml=html==='<br>'||html==='<div><br></div>'?'':html;if(!cleanHtml&&html)editor.value.innerHTML='';emit('update:modelValue',cleanHtml);updateCharCount();
 }
 function saveSelection(){
  const selection=window.getSelection?.();
@@ -110,7 +112,7 @@ function clearContent(){
  if(!editor.value)return;
  editor.value.innerHTML='';
  savedRange=null;
- emit('update:modelValue','');
+ emit('update:modelValue','');updateCharCount();
  editor.value.focus();
 }
 function changeFontSize(value){
