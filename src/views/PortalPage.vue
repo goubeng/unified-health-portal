@@ -139,7 +139,12 @@
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
     </t-form>
     <template v-if="isAppCenter">
+     <div class="portal-app-view-switch" role="group" aria-label="应用查看方式">
+      <t-button :theme="appView==='access'?'primary':'default'" :variant="appView==='access'?'base':'outline'" @click="appView='access'">我的应用 / 其它应用</t-button>
+      <t-button :theme="appView==='platform'?'primary':'default'" :variant="appView==='platform'?'base':'outline'" @click="appView='platform'">按子系统查看</t-button>
+     </div>
      <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" action-row :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="group.pageSize" :total="group.total" :page-size-options="[10,20,50]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="setAppPageSize(group.key,$event)"/></section>
+     <section v-if="!appGroups.length" class="panel"><EmptyState description="暂无符合条件的应用"/></section>
     </template>
     <section v-else-if="preview&&resource==='announcements'" class="panel public-announcement-list">
      <article v-for="row in paged" :key="row.id" class="public-announcement-item">
@@ -212,6 +217,7 @@ import {MessagePlugin,DialogPlugin,Tag} from 'tdesign-vue-next';
 import {Icon} from 'tdesign-icons-vue-next';
 import {actor,portal,command,revision,availableUsers,downloadAccessContract,loadDictionaryLookups,dictionaryLookups} from '../services/runtime.js';
 import {pages,can,shouldLoadAppCatalog} from '../config/pages.js';
+import {platforms} from '../mock/catalog.js';
 import RulesSettings from '../components/portal/RulesSettings.vue';
 import MessageCenter from '../components/portal/MessageCenter.vue';
 import TodoCenter from '../components/portal/TodoCenter.vue';
@@ -252,6 +258,7 @@ const homeAppCount=computed(()=>homeApps.value.length);
 const homeVisibleApps=computed(()=>homeApps.value.slice(0,homeAppLimit));
 const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10),tableSort=ref(null);
 const appPageSizes=reactive({mine:20,other:20}),appPages=reactive({mine:1,other:1});
+const appView=ref('access');
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
 const announcementEditVisible=ref(false);
@@ -341,12 +348,13 @@ function resetQuery(){
  search.value='';
  for(const key of Object.keys(filterValues))delete filterValues[key];
  tableSort.value=['applicationRequests','accountOpeningRequests'].includes(listResource.value)?{sortBy:'submittedAt',descending:true}:null;
- page.value=1;appPages.mine=1;appPages.other=1;
+ page.value=1;for(const key of Object.keys(appPages))appPages[key]=1;
 }
 watch(()=>preview.value?route.path:route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
 watch(revision,load);
 const queryWidthClass=key=>({
  category:'query-width-category',
+ platformId:'query-width-source',
  userType:'query-width-user-type',
  messageType:'query-width-message-type',
  businessType:'query-width-kind',
@@ -371,12 +379,15 @@ const myRequestStatusOptions=()=>[...new Map([
  ...dictionaryOptions('account_opening_status',['PROCESSING','COMPLETED'])
 ].map(item=>[item.value,item])).values()];
 const rowOptions=(field,useLabel=false)=>[...new Set(rows.value.map(row=>row[field]).filter(value=>value!==null&&value!==undefined&&String(value)!==''))].map(value=>({value,label:useLabel?label(value):text(value)}));
+const platformOptions=computed(()=>platforms.map(item=>({value:item.id,label:item.name})));
+const platformName=app=>app.platformName||platforms.find(item=>item.id===app.platformId)?.name||'未设置归属子系统';
 const filterDef=(key,labelText,placeholder,options,widthKey=key)=>({key,label:labelText,placeholder:'全部',options,widthKey,searchable:key==='appName'});
 const querySpec=computed(()=>{
  const key=listResource.value;
  const logKind=resource.value.startsWith('logs:')?resource.value.split(':')[1]:'';
  if(key==='apps'||key==='mine')return {keywordPlaceholder:'应用名称 / 应用编码',keywordFields:['name','code'],filters:[
   filterDef('category','系统分类','请选择系统分类',rowOptions('category'),'category'),
+  filterDef('platformId','归属子系统','请选择归属子系统',platformOptions.value,'platformId'),
   ...(admin.value?[
    filterDef('aggregateRuntimeStatus','综合运行状态','请选择综合运行状态',fixedOptions(['NORMAL','ABNORMAL','UNCONFIGURED','DISABLED'],'runtime_status'),'aggregateRuntimeStatus'),
    filterDef('enabled','启用状态','请选择启用状态',fixedOptions(['ENABLED','DISABLED'],'enable_status'),'status'),
@@ -435,24 +446,32 @@ function handleTableSortChange(sort){
  page.value=1;
 }
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
-watch([search,()=>JSON.stringify(filterValues),pageSize],()=>{page.value=1;appPages.mine=1;appPages.other=1;});
+watch([search,()=>JSON.stringify(filterValues),pageSize],()=>{page.value=1;for(const key of Object.keys(appPages))appPages[key]=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
-const appGroups=computed(()=>['mine','other'].map(key=>{
- const entries=filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'));
- const size=appPageSizes[key];
- const current=Math.min(appPages[key],Math.max(1,Math.ceil(entries.length/size)));
- return {key,title:key==='mine'?'我的应用':'其它应用',page:current,pageSize:size,total:entries.length,rows:entries.slice((current-1)*size,current*size)};
-}));
+const appGroups=computed(()=>{
+ const groups=appView.value==='platform'
+  ?[...new Set(filtered.value.map(row=>row.platformId||''))].sort((a,b)=>{
+    const aNo=platforms.find(item=>item.id===a)?.sourceNo??Infinity;
+    const bNo=platforms.find(item=>item.id===b)?.sourceNo??Infinity;
+    return aNo-bNo;
+   }).map(id=>({key:`platform:${id}`,title:platformName(filtered.value.find(row=>(row.platformId||'')===id)),entries:filtered.value.filter(row=>(row.platformId||'')===id)}))
+  :['mine','other'].map(key=>({key,title:key==='mine'?'我的应用':'其它应用',entries:filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'))}));
+ return groups.map(({key,title,entries})=>{
+  const size=appPageSizes[key]||20;
+  const current=Math.min(appPages[key]||1,Math.max(1,Math.ceil(entries.length/size)));
+  return {key,title,page:current,pageSize:size,total:entries.length,rows:entries.slice((current-1)*size,current*size)};
+ });
+});
 function setAppPage(key,value){appPages[key]=value;}
 function setAppPageSize(key,value){appPageSizes[key]=Number(value)||20;appPages[key]=1;}
-const fieldMap={apps:['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt'],categories:['name','code','status'],todos:['title','appName','businessType','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
+const fieldMap={apps:['name','code','category','platformName','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt'],categories:['name','code','status'],todos:['title','appName','businessType','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
 const hasOperations=computed(()=>['apps','categories','todos','messages','settings','mappings','exceptions','myApplicationRequests','applicationRequests','accountOpeningRequests'].includes(resource.value)||(resource.value==='announcements'&&admin.value));
 const columnTitle=(key)=>{
  const resourceKey=listResource.value;
  const overrides={
-  apps:{name:'应用名称',code:'应用编码',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',status:'启用状态'},
+  apps:{name:'应用名称',code:'应用编码',platformName:'归属子系统',userType:'适用用户',aggregateRuntimeStatus:'综合运行状态',status:'启用状态'},
   categories:{status:'启用状态'},
   users:{name:'姓名',status:'启用状态'},
   identities:{status:'启用状态'},
@@ -483,7 +502,7 @@ const columnWidth=(key,index)=>{
  return 160;
 };
 const sortableFields={
- apps:new Set(['name','code','category','userType','accessMode','aggregateRuntimeStatus','enabled']),
+ apps:new Set(['name','code','category','platformName','userType','accessMode','aggregateRuntimeStatus','enabled']),
  applicationRequests:new Set(['requestNo','userName','appName','status','submittedAt']),
  accountOpeningRequests:new Set(['requestNo','userName','appName','status','submittedAt']),
  categories:new Set(['name','code','status']),
@@ -519,7 +538,7 @@ const formFields=computed(()=>{
  const appOpts=allApps.value.map(item=>({value:item.id,label:text(item.name)}));
  const userOpts=availableUsers.value.map(item=>({value:item.id,label:text(item.name)}));
  return ({
-  saveApp:[f('name','应用名称','text',true),f('code','应用编码','text',true),f('category','系统分类','text',true,categories.value.map(item=>({value:item.name,label:text(item.name)}))),f('userType','适用用户','text',true,opt(['BOTH','CITIZEN','GOV'])),
+  saveApp:[f('name','应用名称','text',true),f('code','应用编码','text',true),f('category','系统分类','text',true,categories.value.map(item=>({value:item.name,label:text(item.name)}))),f('platformId','归属子系统','text',true,platformOptions.value),f('userType','适用用户','text',true,opt(['BOTH','CITIZEN','GOV'])),
    f('accessMode','访问模式','text',true,opt(['DIRECT','BIND','REQUEST'])),
    f('enabled','启用状态','switch',true),
    ...(form.accessMode==='REQUEST'?[f('postGrantMode','申请通过后','text',true,opt(['DIRECT','BIND']))]:[]),
@@ -540,7 +559,7 @@ const formFields=computed(()=>{
 function toDateTimeValue(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return String(value||'');const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
 function openForm(action,row={}){
  Object.keys(form).forEach(key=>delete form[key]);
- const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',userType:'BOTH',accessMode:'BIND',enabled:false,postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',businessType:'服务事项',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
+ const defaults={name:'',code:'',category:categories.value[0]?.name||'公众服务',platformId:'',userType:'BOTH',accessMode:'BIND',enabled:false,postGrantMode:'DIRECT',accountBindingMode:'SELF',accountOpeningMode:'NONE',url:'',sortOrder:0,description:'',title:'',content:'',type:'通知',scope:'ALL',attachments:[],value:null,reason:'',contact:'',remark:'',reviewNote:'',appName:'',appId:allApps.value.find(app=>!rows.value.some(item=>item.appId===app.id))?.id||allApps.value[0]?.id,userId:actor.value.id,status:'PENDING',businessType:'服务事项',eventId:createUUID(),sourceTodoId:'',sourceMessageId:''};
  Object.assign(form,defaults,JSON.parse(JSON.stringify(row)));
  if(action==='pushTodo'&&!taskTypeOptions.value.some(item=>item.value===form.businessType))form.businessType=taskTypeOptions.value[0]?.value||'';
  if(action==='saveIntegration'){form.enabled=row.enabled||'DISABLED';form.protocol=['OIDC','SAML2','CUSTOM'].includes(row.protocol)?row.protocol:'OIDC';form.mode='PUSH';form.fieldMapping=JSON.stringify(row.fieldMapping||{},null,2);}

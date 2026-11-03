@@ -1,6 +1,7 @@
 import {createUUID} from '../utils/uuid.js';
 import {can,permissions,permissionsFromScopes} from '../config/pages.js';
 import {actors} from '../mock/seed.js';
+import {platforms} from '../mock/catalog.js';
 import {rules} from '../config/rules.js';
 import {integrationFields,integrationOptionalFields,terminalStatuses} from '../config/integration-contract.js';
 import {validateLocalPassword} from '../config/password-policy.js';
@@ -473,6 +474,11 @@ export function createPortalService(provider,getActor){
      if(!receipt){receipt={announcementId:x.id,userId:a.id,readAt:now};d.announcementReads.push(receipt);}result=receipt;
     }else if(action==='saveApp'){
      if(!p.name?.trim()||!p.code?.trim())fail('VALIDATION_ERROR','应用名称与编码为必填');checkUrl(p.url);
+     const current=p.id?requireRow(d.apps,p.id,p.version):null;
+     const platformId=p.platformId===undefined?current?.platformId:p.platformId;
+     const platform=platforms.find(item=>item.id===platformId);
+     if(!current&&!platform)fail('VALIDATION_ERROR','请选择归属子系统');
+     if(platformId&&!platform)fail('VALIDATION_ERROR','归属子系统无效');
      if(p.enabled!==undefined&&typeof p.enabled!=='boolean')fail('VALIDATION_ERROR','启用状态无效');
      if(!['CITIZEN','GOV','BOTH'].includes(p.userType))fail('VALIDATION_ERROR','请选择适用用户类型');
      if(!['DIRECT','BIND','REQUEST'].includes(p.accessMode))fail('VALIDATION_ERROR','请选择有效访问模式');
@@ -480,11 +486,12 @@ export function createPortalService(provider,getActor){
      if(p.accessMode==='REQUEST'&&!['DIRECT','BIND'].includes(p.postGrantMode))fail('VALIDATION_ERROR','请选择申请通过后的访问方式');
      if(p.accessMode==='REQUEST'&&p.postGrantMode==='BIND'&&!['AUTO','SELF','REVIEW','ADMIN'].includes(p.accountBindingMode))fail('VALIDATION_ERROR','请选择有效账号关联方式');
      if(d.apps.some(x=>x.code===p.code.trim()&&x.id!==p.id))fail('VALIDATION_ERROR','应用编码已存在');
-     const x=p.id?requireRow(d.apps,p.id,p.version):{id:id(),version:0,createdAt:now,enabled:false,status:'DISABLED'};
+     const x=current||{id:id(),version:0,createdAt:now,enabled:false,status:'DISABLED'};
      if(p.enabled!==undefined&&p.enabled!==(x.enabled!==false))auth(a,'application:enable');
      Object.assign(x,{name:p.name.trim(),code:p.code.trim(),category:p.category||'未分类',description:p.description||'',url:p.url,userType:p.userType,
       accessMode:p.accessMode,postGrantMode:p.accessMode==='REQUEST'?p.postGrantMode:'DIRECT',accountBindingMode:p.accessMode==='DIRECT'?'NONE':p.accountBindingMode,
-      accountOpeningMode:p.accountOpeningMode||'NONE',sortOrder:Number(p.sortOrder)||0});
+      accountOpeningMode:p.accountOpeningMode||'NONE',sortOrder:Number(p.sortOrder)||0,
+      platformId:platform?.id||null,platformNo:platform?.sourceNo||null,platformName:platform?.name||null});
      if(p.enabled!==undefined){x.enabled=p.enabled;x.status=p.enabled?'ENABLED':'DISABLED';}
      stamp(x);if(!p.id)d.apps.push(x);result=x;
     }else if(action==='removeApp'){

@@ -5,7 +5,7 @@ import {createMockProvider} from '../src/providers/mock.js';
 import {createPortalService} from '../src/services/portal.js';
 import {actors} from '../src/mock/seed.js';
 
-const input={name:'启用状态测试',code:'ENABLED_EDIT_TEST',category:'公众服务',userType:'BOTH',accessMode:'DIRECT',url:'https://example.invalid/app'};
+const input={name:'启用状态测试',code:'ENABLED_EDIT_TEST',category:'公众服务',platformId:'MOCK_PLATFORM_1',userType:'BOTH',accessMode:'DIRECT',url:'https://example.invalid/app'};
 
 test('应用表单在访问模式后显示启停开关并使用布尔值',()=>{
  const source=readFileSync(new URL('../src/views/PortalPage.vue',import.meta.url),'utf8');

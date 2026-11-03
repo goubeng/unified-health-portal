@@ -146,6 +146,7 @@ const appDetails=computed(()=>{
     item('name','应用名称'),
     item('code','应用编码'),
     item('category','系统分类'),
+    item('platformName','归属子系统'),
     {key:'enabled',label:'启用状态',value:label(enabledState,'enable_status'),state:enabledState},
     item('userType','用户类别'),
     item('createdAt','创建时间'),

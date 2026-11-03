@@ -14,7 +14,12 @@ const archivedCode=id=>'ARCHIVED_'+createHash('sha256').update(id).digest('hex')
 export async function loadApplicationState(query,state){
  const raw=await query(`SELECT json_build_object(
   'categories',coalesce((SELECT json_agg(c ORDER BY c.sort_order,c.id) FROM ${table('application_category')} c WHERE c.runtime_id IS NOT NULL AND c.deleted_at IS NULL),'[]'::json),
-  'apps',coalesce((SELECT json_agg(a ORDER BY a.sort_order,a.id) FROM ${table('application')} a WHERE a.runtime_id IS NOT NULL AND a.deleted_at IS NULL),'[]'::json)
+  'apps',coalesce((SELECT json_agg(a ORDER BY a.sort_order,a.id) FROM (
+    SELECT app.*,subsystem.name AS platform_name,subsystem.source_no AS platform_no
+    FROM ${table('application')} app
+    LEFT JOIN ${table('application_subsystem')} subsystem ON subsystem.id=app.platform_id
+    WHERE app.runtime_id IS NOT NULL AND app.deleted_at IS NULL
+  ) a),'[]'::json)
  );`);
  const data=parsed(raw)||{},categoryById=new Map();
  const categories=(data.categories||[]).map(row=>{
@@ -26,10 +31,14 @@ export async function loadApplicationState(query,state){
  const apps=(data.apps||[]).map(row=>{
   const legacy=parsed(row.runtime_payload)||state.apps?.find(item=>item.id===(row.runtime_id||runtimeId(row.id)))||{};
   const category=categoryById.get(row.category_id);
+  const platformId=Object.hasOwn(row,'platform_id')?row.platform_id:legacy.platformId??null;
   return {...legacy,id:row.runtime_id||runtimeId(row.id),createdAt:row.created_at,updatedAt:row.updated_at,version:Number(row.version)||1,
    code:normalizedCode(row.code),name:row.name,categoryId:category?.id||null,category:category?.name||legacy.category||'未分类',
    userType:row.user_type,url:row.application_url,description:row.description||'',sortOrder:Number(row.sort_order)||0,
    status:row.status,enabled:row.status==='ENABLED',networkZone:row.network_zone??legacy.networkZone,
+   platformId,
+   platformName:platformId?(row.platform_name??legacy.platformName??null):null,
+   platformNo:platformId?(Number(row.platform_no)||legacy.platformNo||null):null,
    logoUrl:row.logo_url??legacy.logoUrl,contactName:row.contact_name??legacy.contactName,
    technicalContact:row.technical_contact??legacy.technicalContact,
    runtimeStatus:row.runtime_status,allowedOrigins:parsed(row.allowed_origins)||[],bindingMethods:parsed(row.binding_methods)||[]};
@@ -49,7 +58,7 @@ export function applicationMirrorSql(before,after){
   if(oldApps.get(row.id)===JSON.stringify(row))continue;
   const category=(after.categories||[]).find(item=>item.id===row.categoryId||item.name===row.category);
   statements.push(upsert('application',{...base(row),runtime_id:row.id,runtime_payload:row,deleted_at:null,
-   code:'P4FIX_'+row.code,name:row.name,category_id:dbId(category?.id),network_zone:row.networkZone||null,
+   code:'P4FIX_'+row.code,name:row.name,category_id:dbId(category?.id),platform_id:row.platformId||null,network_zone:row.networkZone||null,
    user_type:row.userType,application_url:row.url,logo_url:row.logoUrl||null,description:row.description||'',
    contact_name:row.contactName||null,technical_contact:row.technicalContact||null,sort_order:Number(row.sortOrder)||0,
    status:row.enabled===false?'DISABLED':'ENABLED',runtime_status:row.connectionStatus==='CONNECTED'?(row.runtimeStatus||'UNCONFIGURED'):'UNCONFIGURED',

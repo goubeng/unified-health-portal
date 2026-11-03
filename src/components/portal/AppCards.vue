@@ -6,6 +6,7 @@
         <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
         <div class="portal-app-meta">
           <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category" :class="categoryTone(app.category)">{{text(app.category)||'未分类'}}</span></PortalTooltip>
+          <PortalTooltip v-if="app.platformName" :content="text(app.platformName)" placement="top"><span class="portal-app-platform">{{text(app.platformName)}}</span></PortalTooltip>
         </div>
         <div v-if="!actionRow" class="portal-app-result">
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
