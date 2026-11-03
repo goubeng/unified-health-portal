@@ -3,10 +3,16 @@
     <article v-for="(app,index) in apps" :key="app.id" class="portal-app-card" :class="[`tone-${index%4+1}`,compact?'is-compact':'',actionRow?'has-action-row':'']">
       <span class="portal-app-logo" :class="'icon-tone-'+(index%7)"><AppIcon /></span>
       <div class="portal-app-info">
-        <PortalTooltip :content="text(app.name)" placement="top"><button class="portal-app-name" @click="emit('detail',app)">{{text(app.name)}}</button></PortalTooltip>
-        <div class="portal-app-meta">
-          <PortalTooltip :content="text(app.category)||'未分类'" placement="top"><span class="portal-app-category" :class="categoryTone(app.category)">{{text(app.category)||'未分类'}}</span></PortalTooltip>
-          <PortalTooltip v-if="app.platformName" :content="text(app.platformName)" placement="top"><t-tag class="portal-app-platform" theme="primary" variant="light" size="small"><span class="portal-app-platform-text">{{text(app.platformName)}}</span></t-tag></PortalTooltip>
+        <AppOverflowTooltip :content="text(app.name)" kind="name">
+          <button class="portal-app-name" data-overflow-text @click="emit('detail',app)">{{text(app.name)}}</button>
+        </AppOverflowTooltip>
+        <div class="portal-app-meta" :class="{'has-platform':!!app.platformName}">
+          <AppOverflowTooltip :content="text(app.category)||'未分类'" kind="category">
+            <span class="portal-app-category" :class="categoryTone(app.category)"><span class="portal-app-category-text" data-overflow-text>{{text(app.category)||'未分类'}}</span></span>
+          </AppOverflowTooltip>
+          <AppOverflowTooltip v-if="app.platformName" :content="text(app.platformName)" kind="platform">
+            <t-tag class="portal-app-platform" theme="primary" variant="light" size="small"><span class="portal-app-platform-text" data-overflow-text>{{text(app.platformName)}}</span></t-tag>
+          </AppOverflowTooltip>
         </div>
         <div v-if="!actionRow" class="portal-app-result">
           <span v-if="app.applicable===false" class="portal-app-restriction">仅限{{label(app.userType)}}</span>
@@ -29,7 +35,7 @@
 </template>
 <script setup>
 import EmptyState from './EmptyState.vue';
-import PortalTooltip from './PortalTooltip.vue';
+import AppOverflowTooltip from './AppOverflowTooltip.vue';
 import {AppIcon} from 'tdesign-icons-vue-next';
 import {text,label} from './presentation.js';
 
