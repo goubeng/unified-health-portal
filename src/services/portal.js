@@ -143,7 +143,10 @@ export function createPortalService(provider,getActor){
    const d=provider.read();
    const allApps=()=>decorate(d,a),userApps=()=>accountApps(d,a);
    const handlerName=id=>(d.users||[]).find(user=>user.id===id)?.name||'';
-   if(resource==='apps')return allApps().filter(x=>x.applicable&&x.enabled);
+   if(resource==='apps'){
+    const catalogOnly=a.authType==='LOCAL'&&!accessUserEnabled(a)&&can(a,'application:view');
+    return allApps().filter(x=>x.enabled&&(catalogOnly||x.applicable));
+   }
    if(resource==='adminApps'){auth(a,'application:view');return allApps();}
    if(resource==='mine')return userApps().filter(x=>['DIRECT','BOUND'].includes(x.accessState));
    if(resource==='todos')return d.todos.filter(x=>own(x,a));
@@ -440,6 +443,7 @@ export function createPortalService(provider,getActor){
      x.status=action==='approveBindingReview'?'BOUND':'FAILED';x.reviewedBy=a.id;x.reviewedAt=now;x.reviewNote=p.reviewNote?.trim()||'审核通过';
      if(x.status==='BOUND'){x.boundAt=now;x.conflictReason=null;}else x.conflictReason=x.reviewNote;result=stamp(x);
     }else if(action==='submitApplicationRequest'){
+     if(!accessUserEnabled(a))fail('FORBIDDEN','当前账号没有门户访问身份');
      const app=requireRow(d.apps,p.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用，暂不能申请');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode!=='REQUEST')fail('INVALID_TRANSITION','该应用无需提交访问申请');
@@ -519,6 +523,7 @@ export function createPortalService(provider,getActor){
      const ids=[...new Set(Array.isArray(p.ids)?p.ids:[])];if(!ids.length)fail('VALIDATION_ERROR','请选择需要删除的消息');
      const targets=ids.map(id=>requireRow(d.messages,id));if(targets.some(x=>!own(x,a)||x.deleted))fail('NOT_FOUND','消息不存在');for(const x of targets){x.deleted=true;x.deletedAt=now;stamp(x);}result={count:ids.length};
     }else if(action==='enterApp'){
+     if(!accessUserEnabled(a))fail('FORBIDDEN','当前账号没有门户访问身份');
      const app=requireRow(d.apps,p.id);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用');if(integrationState(d,app,'SSO').runtimeStatus!=='NORMAL')fail('UPSTREAM_UNAVAILABLE','SSO接入异常或未配置');
      if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');
      if(app.accessMode==='REQUEST'&&!grantFor(d,a,app.id))fail('APPLICATION_GRANT_REQUIRED','请先提交应用访问申请并等待审核通过');
@@ -532,6 +537,7 @@ export function createPortalService(provider,getActor){
      if(appRequiresBinding(app)&&!d.mappings.some(x=>x.appId===app.id&&own(x,a)&&x.status==='BOUND'))fail('IDENTITY_UNRESOLVED','接收用户尚未关联该子系统');
      checkUrl(app.url);d.visits.push({userId:a.id,appId:app.id,at:now});result={url:app.url,mode:'MOCK',message:'Mock待办跳转校验已通过。真实子系统连接尚未开放。'};
     }else if(action==='bind'){
+     if(!accessUserEnabled(a))fail('FORBIDDEN','当前账号没有门户访问身份');
      const app=requireRow(d.apps,p.appId);if(!appEnabled(app))fail('INVALID_TRANSITION','应用已停用，暂不能关联');if(app.userType!=='BOTH'&&app.userType!==a.userType)fail('FORBIDDEN','应用不适用于当前身份');if(!p.externalAccount?.trim())fail('VALIDATION_ERROR','请输入已有子系统账号');
      let x=d.mappings.find(m=>m.userId===a.id&&m.appId===p.appId);if(x?.status==='BOUND')fail('INVALID_TRANSITION','已有关联，请由具备身份映射权限的管理员处理');
      const collision=d.mappings.some(m=>m.appId===p.appId&&m.externalAccount===p.externalAccount.trim()&&m.userId!==a.id&&m.status==='BOUND');
