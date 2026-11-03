@@ -138,7 +138,7 @@
      <t-form-item v-for="filter in queryFilters" :key="filter.key" class="portal-query-select" :class="queryWidthClass(filter.widthKey||filter.key)" :label="filter.label"><t-select v-model="filterValues[filter.key]" clearable :filterable="filter.searchable===true" :placeholder="filter.placeholder" :options="filter.options"/></t-form-item>
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
      <div v-if="isAppCenter" class="portal-app-view-switch" role="group" aria-label="应用分组方式">
-      <t-button :theme="appView==='access'?'primary':'default'" :variant="appView==='access'?'base':'outline'" @click="appView='access'">按访问情况</t-button>
+      <t-button :theme="appView==='access'?'primary':'default'" :variant="appView==='access'?'base':'outline'" @click="appView='access'">按开通情况</t-button>
       <t-button :theme="appView==='platform'?'primary':'default'" :variant="appView==='platform'?'base':'outline'" @click="appView='platform'">按所属系统</t-button>
      </div>
     </t-form>
