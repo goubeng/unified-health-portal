@@ -27,7 +27,7 @@ const overflow=ref(false);
 let observer=null;
 
 function textElement(){
-  return root.value?.querySelector('[data-overflow-text], .portal-app-platform .t-tag__text') || root.value;
+  return root.value?.querySelector('[data-overflow-text], .portal-app-platform .t-tag--text') || root.value;
 }
 
 function syncOverflow(){
