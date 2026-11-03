@@ -11,7 +11,7 @@
             <span class="portal-app-category" :class="categoryTone(app.category)"><span class="portal-app-category-text" data-overflow-text>{{text(app.category)||'未分类'}}</span></span>
           </AppOverflowTooltip>
           <AppOverflowTooltip v-if="app.platformName" :content="text(app.platformName)" kind="platform">
-            <t-tag class="portal-app-platform" theme="default" variant="light" size="small"><span class="portal-app-platform-text" data-overflow-text>{{text(app.platformName)}}</span></t-tag>
+            <t-tag class="portal-app-platform" theme="default" variant="light" size="small" :title="false">{{text(app.platformName)}}</t-tag>
           </AppOverflowTooltip>
         </div>
         <div v-if="!actionRow" class="portal-app-result">
