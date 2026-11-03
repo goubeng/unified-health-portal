@@ -143,7 +143,7 @@
      </div>
     </t-form>
     <template v-if="isAppCenter">
-     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" action-row :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="group.pageSize" :total="group.total" :page-size-options="[10,20,50]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="setAppPageSize(group.key,$event)"/></section>
+     <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" action-row :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/></section>
      <section v-if="!appGroups.length" class="panel"><EmptyState description="暂无符合条件的应用"/></section>
     </template>
     <section v-else-if="preview&&resource==='announcements'" class="panel public-announcement-list">
@@ -257,7 +257,6 @@ const homeAppLimit=10;
 const homeAppCount=computed(()=>homeApps.value.length);
 const homeVisibleApps=computed(()=>homeApps.value.slice(0,homeAppLimit));
 const error=ref(''),loading=ref(true),pageReady=ref(false),search=ref(''),filterValues=reactive({}),page=ref(1),pageSize=ref(10),tableSort=ref(null);
-const appPageSizes=reactive({mine:20,other:20}),appPages=reactive({mine:1,other:1});
 const appView=ref('access');
 const formVisible=ref(false),formAction=ref(''),form=reactive({}),formError=ref(''),saving=ref(false),bindFeedback=ref(null),announcementUploadFiles=ref([]);
 const detailVisible=ref(false),detail=ref(null),detailKind=ref(''),detailAccessProfile=ref(null);
@@ -348,7 +347,7 @@ function resetQuery(){
  search.value='';
  for(const key of Object.keys(filterValues))delete filterValues[key];
  tableSort.value=['applicationRequests','accountOpeningRequests'].includes(listResource.value)?{sortBy:'submittedAt',descending:true}:null;
- page.value=1;for(const key of Object.keys(appPages))appPages[key]=1;
+ page.value=1;
 }
 watch(()=>preview.value?route.path:route.fullPath,()=>{pageReady.value=false;resetQuery();detailVisible.value=false;formVisible.value=false;announcementEditVisible.value=false;accessDialogVisible.value=false;bindingVisible.value=false;bindingApp.value=null;load();},{immediate:true});
 watch(revision,load);
@@ -446,7 +445,7 @@ function handleTableSortChange(sort){
  page.value=1;
 }
 const paged=computed(()=>filtered.value.slice((page.value-1)*pageSize.value,page.value*pageSize.value));
-watch([search,()=>JSON.stringify(filterValues),pageSize],()=>{page.value=1;for(const key of Object.keys(appPages))appPages[key]=1;});
+watch([search,()=>JSON.stringify(filterValues),pageSize],()=>{page.value=1;});
 watch(()=>filtered.value.length,()=>{page.value=Math.min(page.value,Math.max(1,Math.ceil(filtered.value.length/pageSize.value)));});
 const appGroups=computed(()=>{
  const groups=appView.value==='platform'
@@ -456,14 +455,8 @@ const appGroups=computed(()=>{
     return aNo-bNo;
    }).map(id=>({key:`platform:${id}`,title:platformName(filtered.value.find(row=>(row.platformId||'')===id)),entries:filtered.value.filter(row=>(row.platformId||'')===id)}))
   :['mine','other'].map(key=>({key,title:key==='mine'?'我的应用':'其它应用',entries:filtered.value.filter(row=>mineIds.value.includes(row.id)===(key==='mine'))}));
- return groups.map(({key,title,entries})=>{
-  const size=appPageSizes[key]||20;
-  const current=Math.min(appPages[key]||1,Math.max(1,Math.ceil(entries.length/size)));
-  return {key,title,page:current,pageSize:size,total:entries.length,rows:entries.slice((current-1)*size,current*size)};
- });
+ return groups.map(({key,title,entries})=>({key,title,total:entries.length,rows:entries}));
 });
-function setAppPage(key,value){appPages[key]=value;}
-function setAppPageSize(key,value){appPageSizes[key]=Number(value)||20;appPages[key]=1;}
 const fieldMap={apps:['name','code','category','platformName','userType','accessMode','aggregateRuntimeStatus','enabled'],myApplicationRequests:['requestNo','requestType','appName','status','submittedAt','reviewNote'],applicationRequests:['requestNo','userName','appName','reason','status','submittedAt'],accountOpeningRequests:['requestNo','userName','appName','reason','status','submittedAt'],categories:['name','code','status'],todos:['title','appName','businessType','status','receivedAt'],messages:['title','appName','messageType','status','receivedAt'],announcements:['title','type','scope','status','publishedAt'],identities:['name','orgName','userType','status'],identityMappings:['name','source','status'],mappings:['appName','userId','externalAccount','status'],exceptions:['appName','externalAccount','status'],permissions:['code','name','description'],settings:['name','code','value','status'],monitor:['appName','appCode','ssoStatus','todoStatus','messageStatus','lastCheckedAt']};
 const fields=computed(()=>fieldMap[listResource.value]||(resource.value.startsWith('logs:')?['name','actor','appName','description','status','createdAt']:['appName','kind','mode','status','remark']));
 const primaryField=computed(()=>fields.value[0]);
