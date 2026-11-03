@@ -137,12 +137,12 @@
      <t-form-item class="portal-query-keyword query-width-keyword" :label="querySpec.keywordLabel||'关键词'"><t-input v-model="search" :placeholder="querySpec.keywordPlaceholder" clearable/></t-form-item>
      <t-form-item v-for="filter in queryFilters" :key="filter.key" class="portal-query-select" :class="queryWidthClass(filter.widthKey||filter.key)" :label="filter.label"><t-select v-model="filterValues[filter.key]" clearable :filterable="filter.searchable===true" :placeholder="filter.placeholder" :options="filter.options"/></t-form-item>
      <t-form-item class="portal-query-action"><t-button class="query-reset-button" theme="default" variant="outline" @click="resetQuery">重置</t-button></t-form-item>
+     <div v-if="isAppCenter" class="portal-app-view-switch" role="group" aria-label="应用分组方式">
+      <t-button :theme="appView==='access'?'primary':'default'" :variant="appView==='access'?'base':'outline'" @click="appView='access'">按访问情况</t-button>
+      <t-button :theme="appView==='platform'?'primary':'default'" :variant="appView==='platform'?'base':'outline'" @click="appView='platform'">按所属系统</t-button>
+     </div>
     </t-form>
     <template v-if="isAppCenter">
-     <div class="portal-app-view-switch" role="group" aria-label="应用查看方式">
-      <t-button :theme="appView==='access'?'primary':'default'" :variant="appView==='access'?'base':'outline'" @click="appView='access'">我的应用 / 其它应用</t-button>
-      <t-button :theme="appView==='platform'?'primary':'default'" :variant="appView==='platform'?'base':'outline'" @click="appView='platform'">按子系统查看</t-button>
-     </div>
      <section v-for="group in appGroups" :key="group.key" class="panel portal-app-section"><div class="section-head"><h2>{{group.title}}<span class="portal-section-count">（<span class="portal-section-count-number">{{group.total}}</span>）</span></h2></div><AppCards :apps="group.rows" action-row :hide-normal-state="group.key==='mine'" @detail="showDetail($event,'apps')" @enter="enterApp" @bind="bindApp" @request="requestApp" @view-request="viewApplicationRequest" @view-binding="viewBinding" @view-conflict="viewConflict"/><t-pagination v-if="group.total" :current="group.page" :page-size="group.pageSize" :total="group.total" :page-size-options="[10,20,50]" show-jumper @current-change="setAppPage(group.key,$event)" @page-size-change="setAppPageSize(group.key,$event)"/></section>
      <section v-if="!appGroups.length" class="panel"><EmptyState description="暂无符合条件的应用"/></section>
     </template>
