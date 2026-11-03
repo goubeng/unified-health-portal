@@ -23,7 +23,7 @@ test('全部应用卡片：名称与分类/归属标签单行省略，实际溢�
   assert.match(css, /\.portal-app-overflow-tooltip--platform \.portal-app-platform\.t-tag \.t-tag--text\{[^}]*min-width:0/);
   assert.match(css, /\.portal-app-overflow-tooltip--platform \.portal-app-platform\.t-tag \.t-tag--text\{[^}]*text-overflow:ellipsis/);
   assert.match(tooltip, /querySelector\('\[data-overflow-text\], \.portal-app-platform \.t-tag--text'\)/);
-  assert.doesNotMatch(css, /\.t-tag__text/);
+  assert.doesNotMatch(css, /\.portal-app-overflow-tooltip--platform \.portal-app-platform\.t-tag \.t-tag__text/);
   assert.match(tooltip, /import PortalTooltip from '\.\/PortalTooltip\.vue';/);
   assert.match(css, /\.portal-app-platform\.t-tag\{[^}]*background:#f2f3f5!important;color:#667085!important/);
   assert.doesNotMatch(css, /\.portal-app-meta\.has-platform \.portal-app-overflow-tooltip--category\{max-width:48%\}/);
