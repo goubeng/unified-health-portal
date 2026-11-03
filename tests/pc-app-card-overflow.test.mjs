@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+const read=path=>readFileSync(path,'utf8');
+
+test('全部应用卡片：名称与分类/归属标签单行省略，实际溢出才展示Tooltip',()=>{
+  const cards=read('src/components/portal/AppCards.vue');
+  const tooltip=read('src/components/portal/AppOverflowTooltip.vue');
+  const css=read('src/styles/core.css');
+  assert.match(cards, /<AppOverflowTooltip :content="text\(app\.name\)" kind="name">/);
+  assert.match(cards, /<AppOverflowTooltip :content="text\(app\.category\)\|\|'未分类'" kind="category">/);
+  assert.match(cards, /<AppOverflowTooltip v-if="app\.platformName"[^>]*kind="platform">/);
+  assert.match(tooltip, /:disabled="!overflow \|\| !content"/);
+  assert.match(tooltip, /target\.scrollWidth>target\.clientWidth\+1/);
+  assert.match(tooltip, /new ResizeObserver\(syncOverflow\)/);
+  assert.match(css, /\.portal-app-info \.portal-app-meta\{[^}]*flex-wrap:nowrap!important/);
+  assert.match(css, /\.portal-app-meta\.has-platform \.portal-app-overflow-tooltip--category\{max-width:48%\}/);
+  assert.match(css, /\.portal-app-overflow-tooltip--platform\{[^}]*flex:1 1 0%/);
+  assert.match(css, /\.portal-app-category-text\{[^}]*text-overflow:ellipsis/);
+  assert.match(css, /\.portal-app-platform \.portal-app-platform-text\{[^}]*text-overflow:ellipsis/);
+});
