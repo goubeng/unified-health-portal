@@ -122,6 +122,20 @@
 .portal-app-platform.t-tag{box-sizing:border-box;display:inline-flex!important;align-items:center;min-width:0;max-width:100%;flex:0 1 auto;min-height:22px;padding:1px 8px!important;border-radius:10px!important;font-size:12px!important;line-height:20px!important;white-space:nowrap}
 .portal-app-platform .portal-app-platform-text{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .portal-app-category{flex:none}
+
+/* Application cards: keep both tags inside the card on a single line.
+   Only the text inside a clipped tag shows an ellipsis. */
+.portal-app-info .portal-app-meta{box-sizing:border-box;display:flex!important;align-items:center;flex-wrap:nowrap!important;width:100%;max-width:100%;min-width:0;min-height:22px;height:auto!important;overflow:hidden;white-space:nowrap}
+.portal-app-overflow-tooltip{box-sizing:border-box;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap}
+.portal-app-overflow-tooltip--name{display:block;width:100%}
+.portal-app-overflow-tooltip--category{display:inline-flex;align-items:center;flex:0 1 auto;max-width:100%}
+.portal-app-meta.has-platform .portal-app-overflow-tooltip--category{max-width:48%}
+.portal-app-overflow-tooltip--platform{display:inline-flex;align-items:center;flex:1 1 0%;width:0;max-width:100%;min-width:0}
+.portal-app-overflow-tooltip--category .portal-app-category{box-sizing:border-box;display:inline-flex!important;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap}
+.portal-app-category-text{display:block;flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.portal-app-overflow-tooltip--platform .portal-app-platform.t-tag{box-sizing:border-box;display:inline-flex!important;align-items:center;flex:1 1 auto;width:100%;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap}
+.portal-app-platform .t-tag__text{display:block;min-width:0;max-width:100%;overflow:hidden}
+
 @media(max-width:520px){.portal-app-result{gap:6px}.portal-app-category{max-width:100%}.portal-app-state{font-size:11px}}
 
 
