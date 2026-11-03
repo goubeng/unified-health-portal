@@ -134,7 +134,7 @@
 .portal-app-category-text{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .portal-app-overflow-tooltip--platform{display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;width:auto;overflow:visible}
 .portal-app-overflow-tooltip--platform .portal-app-platform.t-tag{box-sizing:border-box;display:inline-flex!important;align-items:center;flex:0 1 auto;width:auto;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap;padding:1px 8px!important}
-.portal-app-overflow-tooltip--platform .portal-app-platform.t-tag .t-tag__text{display:block;flex:0 1 auto;min-width:0;max-width:100%;width:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.portal-app-overflow-tooltip--platform .portal-app-platform.t-tag .t-tag--text{display:block;flex:0 1 auto;min-width:0;max-width:100%;width:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 @media(max-width:520px){.portal-app-result{gap:6px}.portal-app-category{max-width:100%}.portal-app-state{font-size:11px}}
 
